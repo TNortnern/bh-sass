@@ -1,0 +1,32 @@
+FROM node:20-alpine
+
+# Install build tools for native modules (better-sqlite3, sharp, etc.)
+RUN apk add --no-cache \
+    libc6-compat \
+    python3 \
+    make \
+    g++
+
+WORKDIR /app
+
+# Enable pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy package files
+COPY package.json pnpm-lock.yaml* ./
+
+# Install dependencies - allow build scripts for native modules
+RUN pnpm config set enable-pre-post-scripts true
+RUN pnpm install --force
+
+# Manually rebuild native modules for the container's architecture
+RUN cd node_modules/better-sqlite3 && npm run build-release || true
+
+# Copy source code (will be overridden by volume mount in docker-compose)
+COPY . .
+
+# Expose port
+EXPOSE 3001
+
+# Start development server with hot-reload on all interfaces
+CMD ["pnpm", "dev", "--host", "0.0.0.0", "--port", "3001"]

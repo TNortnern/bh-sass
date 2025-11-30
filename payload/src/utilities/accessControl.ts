@@ -1,0 +1,184 @@
+import type { Access, PayloadRequest } from 'payload'
+import { getApiKeyFromHeaders, authenticateApiKey } from './apiKeyAuth'
+import { getTenantId } from './getTenantId'
+
+interface AccessContext {
+  tenantId: string | null
+  role: string | null
+  authMethod: 'session' | 'api_key' | null
+  userId: string | null
+}
+
+/**
+ * Get the authentication context from a request.
+ * Supports both session authentication (logged in users) and API key authentication.
+ *
+ * @param req - Payload request object
+ * @returns Access context with tenant ID, role, and auth method
+ */
+export async function getAccessContext(req: PayloadRequest): Promise<AccessContext> {
+  // First check for session authentication
+  if (req.user) {
+    const tid = getTenantId(req.user)
+    return {
+      tenantId: tid ? String(tid) : null,
+      role: req.user.role || null,
+      authMethod: 'session',
+      userId: String(req.user.id),
+    }
+  }
+
+  // Check for API key authentication
+  const apiKey = getApiKeyFromHeaders(req.headers)
+  if (apiKey) {
+    const authResult = await authenticateApiKey(apiKey, req.payload)
+    if (authResult.authenticated && authResult.tenant) {
+      return {
+        tenantId: authResult.tenant.id,
+        role: 'api_key', // Special role for API key access
+        authMethod: 'api_key',
+        userId: null,
+      }
+    }
+  }
+
+  // No authentication
+  return {
+    tenantId: null,
+    role: null,
+    authMethod: null,
+    userId: null,
+  }
+}
+
+/**
+ * Check if the request has API key authentication
+ */
+export async function hasApiKeyAuth(req: PayloadRequest): Promise<boolean> {
+  const context = await getAccessContext(req)
+  return context.authMethod === 'api_key'
+}
+
+/**
+ * Check if the request has session authentication
+ */
+export function hasSessionAuth(req: PayloadRequest): boolean {
+  return !!req.user
+}
+
+/**
+ * Create a tenant-scoped access control function that supports both session and API key auth.
+ *
+ * Usage:
+ * ```ts
+ * access: {
+ *   read: tenantScopedAccess(),
+ *   create: tenantScopedAccess(['tenant_admin']),
+ *   update: tenantScopedAccess(['tenant_admin', 'staff']),
+ *   delete: tenantScopedAccess(['tenant_admin']),
+ * }
+ * ```
+ *
+ * @param allowedRoles - Array of roles allowed access (empty = all authenticated)
+ * @param allowPublic - Whether to allow public (unauthenticated) access
+ * @returns Access control function
+ */
+export function tenantScopedAccess(
+  allowedRoles: string[] = [],
+  allowPublic: boolean = false
+): Access {
+  return async ({ req }) => {
+    // Super admin always has full access
+    if (req.user?.role === 'super_admin') {
+      return true
+    }
+
+    const context = await getAccessContext(req)
+
+    // Check authentication
+    if (!context.authMethod) {
+      return allowPublic
+    }
+
+    // Check role restrictions (for session auth)
+    if (allowedRoles.length > 0 && context.authMethod === 'session') {
+      if (!context.role || !allowedRoles.includes(context.role)) {
+        return false
+      }
+    }
+
+    // API key access always has full tenant access (like tenant_admin)
+    // Unless restricted by role check
+
+    // Return tenant-scoped filter
+    if (context.tenantId) {
+      return {
+        tenantId: {
+          equals: context.tenantId,
+        },
+      }
+    }
+
+    return false
+  }
+}
+
+/**
+ * Create access control for API-accessible collections.
+ * This is specifically for collections that should be accessible via API key.
+ *
+ * - Super admins: Full access
+ * - Session auth: Based on user role
+ * - API key auth: Full tenant-scoped access
+ * - Public: Configurable per operation
+ */
+export function apiAccessible(options: {
+  read?: { public?: boolean; roles?: string[] }
+  create?: { public?: boolean; roles?: string[] }
+  update?: { roles?: string[] }
+  delete?: { roles?: string[] }
+} = {}) {
+  const createAccessFn = (
+    config?: { public?: boolean; roles?: string[] },
+    defaultPublic: boolean = false
+  ): Access => {
+    return async ({ req }) => {
+      // Super admin always has full access
+      if (req.user?.role === 'super_admin') {
+        return true
+      }
+
+      const context = await getAccessContext(req)
+
+      // Check authentication
+      if (!context.authMethod) {
+        return config?.public ?? defaultPublic
+      }
+
+      // For session auth, check role restrictions
+      if (context.authMethod === 'session' && config?.roles?.length) {
+        if (!context.role || !config.roles.includes(context.role)) {
+          return false
+        }
+      }
+
+      // Return tenant-scoped filter
+      if (context.tenantId) {
+        return {
+          tenantId: {
+            equals: context.tenantId,
+          },
+        }
+      }
+
+      return false
+    }
+  }
+
+  return {
+    read: createAccessFn(options.read, false),
+    create: createAccessFn(options.create, false),
+    update: createAccessFn(options.update, false),
+    delete: createAccessFn(options.delete, false),
+  }
+}
