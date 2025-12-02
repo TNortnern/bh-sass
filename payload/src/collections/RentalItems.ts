@@ -152,14 +152,23 @@ export const RentalItems: CollectionConfig = {
       type: 'array',
       fields: [
         {
-          name: 'image',
-          type: 'upload',
-          relationTo: 'media',
+          name: 'url',
+          type: 'text',
           required: true,
+          admin: {
+            description: 'Image URL (Bunny CDN or external)',
+          },
+        },
+        {
+          name: 'alt',
+          type: 'text',
+          admin: {
+            description: 'Alt text for accessibility',
+          },
         },
       ],
       admin: {
-        description: 'Product images (first image is primary)',
+        description: 'Product images (first image is primary). Upload via Bunny CDN.',
       },
     },
     {
@@ -340,6 +349,51 @@ export const RentalItems: CollectionConfig = {
       ],
       admin: {
         description: 'Tags for filtering (e.g., "outdoor", "princess theme", "wet")',
+      },
+    },
+    // rb-payload sync fields
+    {
+      name: 'rbPayloadServiceId',
+      type: 'number',
+      index: true,
+      admin: {
+        description: 'ID of corresponding service in rb-payload (for 2-way sync)',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'syncStatus',
+      type: 'select',
+      defaultValue: 'pending',
+      options: [
+        { label: 'Pending Sync', value: 'pending' },
+        { label: 'Synced', value: 'synced' },
+        { label: 'Sync Failed', value: 'failed' },
+        { label: 'Out of Sync', value: 'out_of_sync' },
+      ],
+      admin: {
+        description: 'Status of sync with rb-payload',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'lastSyncedAt',
+      type: 'date',
+      admin: {
+        description: 'Last successful sync with rb-payload',
+        position: 'sidebar',
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
+    {
+      name: 'syncError',
+      type: 'text',
+      admin: {
+        description: 'Last sync error message',
+        position: 'sidebar',
+        condition: (data) => data.syncStatus === 'failed',
       },
     },
   ],

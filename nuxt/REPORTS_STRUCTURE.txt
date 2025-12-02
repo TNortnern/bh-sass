@@ -1,0 +1,172 @@
+BouncePro Reports System - File Structure
+==========================================
+
+nuxt/
+├── app/
+│   ├── pages/app/reports/
+│   │   ├── index.vue          ← Reports Overview Dashboard
+│   │   ├── revenue.vue        ← Revenue Analytics
+│   │   ├── bookings.vue       ← Booking Analytics
+│   │   └── inventory.vue      ← Inventory Performance
+│   │
+│   ├── components/reports/
+│   │   ├── DateRangePicker.vue    ← Date selector with presets
+│   │   ├── StatsCard.vue          ← Metric cards with trends
+│   │   ├── RevenueChart.vue       ← Line chart (revenue)
+│   │   ├── BookingsChart.vue      ← Bar chart (bookings)
+│   │   └── TopItemsChart.vue      ← Horizontal bar chart
+│   │
+│   ├── composables/
+│   │   └── useReports.ts      ← Data fetching logic
+│   │
+│   ├── plugins/
+│   │   └── chartjs.client.ts  ← Chart.js config
+│   │
+│   ├── layouts/
+│   │   └── dashboard.vue      ← UPDATED: Added Reports nav link
+│   │
+│   └── assets/css/
+│       └── main.css           ← UPDATED: Added fonts
+│
+├── REPORTS_DOCUMENTATION.md   ← Complete technical docs
+├── REPORTS_QUICK_START.md     ← Quick start guide
+├── REPORTS_SUMMARY.md         ← Build summary
+├── REPORTS_FILE_INDEX.md      ← Component reference
+└── REPORTS_STRUCTURE.txt      ← This file
+
+Component Architecture
+======================
+
+┌─────────────────────────────────────────────────────────┐
+│                    Reports Pages                        │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
+│  │   Overview   │  │   Revenue    │  │   Bookings   │ │
+│  │   Dashboard  │  │   Details    │  │   Analytics  │ │
+│  └──────────────┘  └──────────────┘  └──────────────┘ │
+│         │                  │                  │         │
+│         └──────────────────┴──────────────────┘         │
+│                        │                                │
+│         ┌──────────────┴──────────────┐                │
+│         ▼                              ▼                │
+│  ┌──────────────┐            ┌──────────────┐         │
+│  │  useReports  │◄───────────│ DateRange    │         │
+│  │  Composable  │            │ Picker       │         │
+│  └──────────────┘            └──────────────┘         │
+│         │                                              │
+│         │                                              │
+│  ┌──────┴─────────────────────────────┐              │
+│  ▼                ▼                    ▼              │
+│ ┌──────────┐  ┌──────────┐  ┌──────────────┐        │
+│ │ Stats    │  │ Revenue  │  │ Bookings/Top │        │
+│ │ Cards    │  │ Chart    │  │ Items Charts │        │
+│ └──────────┘  └──────────┘  └──────────────┘        │
+│                                                       │
+└───────────────────────────────────────────────────────┘
+
+Data Flow
+=========
+
+User Action (Date Range Change)
+        │
+        ▼
+DateRangePicker Component
+        │
+        ▼
+useReports.fetchRevenueReport(range)
+        │
+        ▼
+[Mock Data Generation] ← Replace with API call
+        │
+        ▼
+TypeScript Interface Validation
+        │
+        ▼
+Chart Components Render
+        │
+        ▼
+Chart.js Visualizes Data
+
+Design System
+=============
+
+Colors:
+┌────────┬──────────┬──────────────────────────┐
+│ Name   │ Hex      │ Usage                    │
+├────────┼──────────┼──────────────────────────┤
+│ Cyan   │ #06b6d4  │ Revenue, Primary         │
+│ Pink   │ #ec4899  │ Bookings, Secondary      │
+│ Yellow │ #eab308  │ Warnings, Highlights     │
+│ Green  │ #10b981  │ Success, Positive        │
+│ Red    │ #ef4444  │ Errors, Negative         │
+│ Black  │ #000000  │ Card backgrounds         │
+└────────┴──────────┴──────────────────────────┘
+
+Typography:
+┌──────────────────┬─────────────────────────┐
+│ Font             │ Usage                   │
+├──────────────────┼─────────────────────────┤
+│ IBM Plex Mono    │ Numbers, data, tables   │
+│ Archivo          │ Headers, labels         │
+└──────────────────┴─────────────────────────┘
+
+Chart Types:
+┌──────────────────┬─────────────────────────┐
+│ Type             │ Used For                │
+├──────────────────┼─────────────────────────┤
+│ Line Chart       │ Revenue trends          │
+│ Bar Chart        │ Bookings by status      │
+│ Horizontal Bar   │ Top items ranking       │
+│ Progress Bars    │ Utilization rates       │
+└──────────────────┴─────────────────────────┘
+
+Routes & Navigation
+===================
+
+Dashboard Sidebar
+    │
+    ├─ Dashboard      /app
+    ├─ Calendar       /app/calendar
+    ├─ Bookings       /app/bookings
+    ├─ Inventory      /app/inventory
+    ├─ Customers      /app/customers
+    ├─ Reports ◄──────/app/reports ★ NEW
+    │   │
+    │   ├─ Overview      /app/reports
+    │   ├─ Revenue       /app/reports/revenue
+    │   ├─ Bookings      /app/reports/bookings
+    │   └─ Inventory     /app/reports/inventory
+    │
+    └─ Settings       /app/settings
+
+Key Features
+============
+
+✓ Date Range Filtering
+  - Presets: Today, 7d, 30d, 90d, YTD
+  - Custom date picker
+  - Compare to previous period
+
+✓ Data Visualization
+  - Real-time charts
+  - Trend indicators
+  - Period comparisons
+  - Color-coded metrics
+
+✓ Export Functionality
+  - CSV export
+  - Date-stamped filenames
+  - Filtered data only
+
+✓ Responsive Design
+  - Mobile-first
+  - Tablet optimized
+  - Desktop enhanced
+
+✓ Performance
+  - Loading states
+  - Skeleton loaders
+  - Smooth animations
+  - Optimized rendering
+

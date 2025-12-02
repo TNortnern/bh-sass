@@ -111,16 +111,111 @@ export const Tenants: CollectionConfig = {
           value: 'free',
         },
         {
+          label: 'Growth',
+          value: 'growth',
+        },
+        {
           label: 'Pro',
           value: 'pro',
         },
         {
-          label: 'Enterprise',
-          value: 'enterprise',
+          label: 'Scale',
+          value: 'scale',
         },
       ],
       admin: {
         description: 'Subscription plan tier',
+      },
+    },
+    {
+      name: 'stripeAccountId',
+      type: 'text',
+      access: {
+        read: ({ req: { user } }) => {
+          return user?.role === 'super_admin' || user?.role === 'tenant_admin'
+        },
+      },
+      admin: {
+        description: 'Stripe Connect account ID',
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'stripeAccountStatus',
+      type: 'select',
+      options: [
+        {
+          label: 'Pending',
+          value: 'pending',
+        },
+        {
+          label: 'Active',
+          value: 'active',
+        },
+        {
+          label: 'Restricted',
+          value: 'restricted',
+        },
+        {
+          label: 'Disabled',
+          value: 'disabled',
+        },
+      ],
+      access: {
+        read: ({ req: { user } }) => {
+          return user?.role === 'super_admin' || user?.role === 'tenant_admin'
+        },
+      },
+      admin: {
+        description: 'Stripe Connect account status',
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'stripeDetailsSubmitted',
+      type: 'checkbox',
+      defaultValue: false,
+      access: {
+        read: ({ req: { user } }) => {
+          return user?.role === 'super_admin' || user?.role === 'tenant_admin'
+        },
+      },
+      admin: {
+        description: 'Whether Stripe onboarding is complete',
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'stripeChargesEnabled',
+      type: 'checkbox',
+      defaultValue: false,
+      access: {
+        read: ({ req: { user } }) => {
+          return user?.role === 'super_admin' || user?.role === 'tenant_admin'
+        },
+      },
+      admin: {
+        description: 'Whether the account can accept charges',
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'stripePayoutsEnabled',
+      type: 'checkbox',
+      defaultValue: false,
+      access: {
+        read: ({ req: { user } }) => {
+          return user?.role === 'super_admin' || user?.role === 'tenant_admin'
+        },
+      },
+      admin: {
+        description: 'Whether the account can receive payouts',
+        readOnly: true,
+        position: 'sidebar',
       },
     },
     {

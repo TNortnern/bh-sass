@@ -1,7 +1,173 @@
-# Bounce House Rental SaaS - Project Documentation
+# BouncePro - Bounce House Rental SaaS
 
 > **Multi-tenant bounce house rental platform for party rental businesses**
-> Built with Payload CMS 3.64 + Nuxt 4.2 + PostgreSQL + Docker
+> Built on rb-payload booking engine + Payload CMS 3.64 + Nuxt 4.2 + PostgreSQL
+
+---
+
+## IMPORTANT: Development Guidelines
+
+### Running the App
+**ALWAYS run the app via Docker Compose** - this starts both UI and API together:
+```bash
+docker compose up -d
+```
+- Nuxt UI: http://localhost:3005
+- Payload Admin: http://localhost:3004/admin
+- Never run `pnpm dev` directly - always use Docker
+
+### UI/UX Development
+**ALWAYS use the `frontend-design` plugin for creating layouts, pages, and components.**
+- Invoke with: `skill: "frontend-design:frontend-design"`
+- Creates distinctive, production-grade interfaces
+- Avoids generic AI aesthetics
+- Dark mode is DEFAULT, light mode supported
+
+### Architecture
+- **rb-payload** is the booking engine (don't rebuild booking logic)
+- **Payload CMS** extends rb-payload with bounce house specific features
+- **Nuxt 4** handles all frontend (dashboard, public booking, landing)
+
+### Nuxt Page Routing Standards
+**IMPORTANT: Never have both `page.vue` AND `page/index.vue`!**
+
+When a page needs nested routes (detail pages, new/edit pages), use the folder structure:
+```
+pages/app/inventory/          # Folder approach
+├── index.vue                 # /app/inventory (list page)
+├── new.vue                   # /app/inventory/new (create page)
+└── [id]/                     # Folder for item-specific pages
+    ├── index.vue             # /app/inventory/:id (detail page)
+    └── edit.vue              # /app/inventory/:id/edit (edit page)
+```
+
+**NEVER do this:**
+```
+pages/app/inventory.vue       # WRONG - conflicts with folder
+pages/app/inventory/
+├── index.vue                 # CONFLICT!
+└── [id].vue
+
+# Also wrong - [id].vue alongside [id]/ folder:
+pages/app/inventory/
+├── [id].vue                  # WRONG - conflicts with [id] folder
+└── [id]/
+    └── edit.vue
+```
+
+**Rules:**
+- Simple page with no children → `pages/app/settings.vue`
+- Page with nested routes → `pages/app/inventory/index.vue` + siblings
+- Dynamic segment with sub-pages → `pages/app/inventory/[id]/index.vue` + siblings
+- Delete any `.vue` file that conflicts with a folder of the same name
+
+### rb-payload Integration
+**IMPORTANT: You have access to rb-payload code at:**
+```
+/Users/tnorthern/Documents/projects/reusable-booking/rb-payload/
+```
+
+**On push to main, production URL auto-updates for both Payload and Nuxt.**
+
+**Key rb-payload Knowledge:**
+- **API Key Format**: `tk_[32-character string]` (must start with `tk_`)
+- **Header**: `X-API-Key: tk_xxx` or `Authorization: Bearer tk_xxx`
+- **Production URL**: https://reusablebook-payload-production.up.railway.app
+
+**CURRENT SETUP:**
+- **API Key**: `tk_58v2xsw911d0dy5q8mrlum3r9hah05n0` (in docker-compose.yml)
+- **Tenant ID**: 6 (Bounce Kingdom Party Rentals)
+- **Status**: Fully working - all CRUD operations verified
+
+**Critical: API Key determines tenant scope for reads!**
+- POST requests: `tenantId` in body determines which tenant owns the data
+- GET/PATCH/DELETE requests: API key's tenant determines access scope
+- The API key and TENANT_ID MUST match, or you'll create data you can't read!
+- All server routes in `/server/routes/booking/*` must use correct `TENANT_ID`
+
+**rb-payload Collections:**
+- `tenants` - Multi-tenant configuration
+- `api-keys` - API key management (new system)
+- `bookings` - Booking data with customer, staff, items
+- `customers` - Customer data (scoped by tenantId)
+- `services` - Bookable services/items
+- `staff` - Staff members
+- `users` - User accounts with roles
+- `notifications` - Auto-created on booking events
+- `blackouts` - Staff unavailability
+- `staff-schedules` - Working hours
+
+**API Key Scopes** (defined but NOT enforced yet):
+- `read`, `write`, `delete`, `admin`
+
+**Known Issues to Fix in rb-payload:**
+1. API key tenantId auto-assignment missing in `beforeValidate` hooks
+2. Scope enforcement not implemented
+3. Async hooks have no retry mechanism
+
+### Inventory Sync (2-Way)
+
+**Architecture:**
+```
+BH-SaaS Payload (Master)          rb-payload (Booking Engine)
+┌─────────────────────┐           ┌─────────────────────┐
+│ RentalItems         │ ────────► │ Services            │
+│ - Full inventory    │   sync    │ - Bookable items    │
+│ - Dimensions, specs │ ◄──────── │ - Availability      │
+│ - Pricing tiers     │           │ - Booking calendar  │
+│ - Sync status       │           │ - Customer bookings │
+└─────────────────────┘           └─────────────────────┘
+```
+
+**Sync Fields Added:**
+- `RentalItems.rbPayloadServiceId` - Links to rb-payload service
+- `RentalItems.syncStatus` - pending/synced/failed/out_of_sync
+- `RentalItems.lastSyncedAt` - Last successful sync timestamp
+- `Services.metadata` (rb-payload) - JSON for BH-specific data
+- `Services.externalId` (rb-payload) - `bh-saas-{id}` for lookup
+- `Services.quantity` (rb-payload) - Inventory count
+- `Services.maxConcurrentBookings` (rb-payload) - Booking limit
+
+**Composable:** `useInventorySync()`
+- `syncToRbPayload(item)` - Sync single item
+- `syncAllToRbPayload(items)` - Bulk sync
+- `checkSyncStatus(items)` - Compare local vs remote
+- `deleteFromRbPayload(id)` - Remove from rb-payload
+
+**Metadata Strategy:**
+- Booking-level: `booking.items[].metadata` (delivery address, gate code, etc.)
+- Service-level: `service.metadata` (dimensions, capacity, specs from BH-SaaS)
+- Customer-level: `customer.notes` and `customer.tags[]`
+
+### Booking Widget
+
+**Widget URL:** `/widget/{tenantId}` (on rb-payload)
+- Multi-step booking flow
+- Customizable via URL params
+- Embed code generator at `/app/widgets`
+
+**Embed Options:**
+```html
+<!-- Simple iframe -->
+<iframe src="https://rb-payload-url/widget/6" width="100%" height="700"></iframe>
+
+<!-- Web Component -->
+<script src="https://rb-payload-url/widget/embed.js"></script>
+<booking-widget tenant-id="6"></booking-widget>
+```
+
+### Integrations
+- **Stripe Connect**: Platform payments with per-tier fees
+- **Brevo**: Transactional emails (booking confirmations, reminders)
+- **Bunny CDN**: Media storage (enable via env var)
+
+### Pricing Tiers
+| Tier | Monthly | Transaction Fee |
+|------|---------|-----------------|
+| Free | $0 | 6% + Stripe |
+| Growth | $39/mo | 2.5% + Stripe |
+| Pro | $99/mo | 0.5% + Stripe |
+| Scale | $249/mo | 0% (Stripe only) |
 
 ---
 
@@ -165,17 +331,17 @@ docker compose down
 
 | Service | Internal Port | External Port | URL |
 |---------|---------------|---------------|-----|
-| Postgres | 5432 | 5432 | `localhost:5432` |
-| Payload | 3000 | 3002 | `localhost:3002` |
-| Nuxt | 3001 | 3003 | `localhost:3003` |
+| Postgres | 5432 | 5433 | `localhost:5433` |
+| Payload | 3000 | 3004 | `localhost:3004` |
+| Nuxt | 3001 | 3005 | `localhost:3005` |
 
 ### Access Points
 
-- **Nuxt Landing Page**: http://localhost:3003
-- **Business Dashboard**: http://localhost:3003/app
-- **Payload Admin**: http://localhost:3003/admin (proxied)
-- **Payload API**: http://localhost:3003/api or http://localhost:3003/v1 (proxied)
-- **Widget Preview**: http://localhost:3003/widget/:tenantId
+- **Nuxt Landing Page**: http://localhost:3005
+- **Business Dashboard**: http://localhost:3005/app
+- **Payload Admin**: http://localhost:3004/admin
+- **Payload API**: http://localhost:3005/api or http://localhost:3005/v1 (proxied)
+- **Widget Preview**: http://localhost:3005/widget/:tenantId
 
 ### Admin Credentials
 
@@ -1308,49 +1474,100 @@ const columns: TableColumn<Booking>[] = [
 - Use Vue's `h()` function to render components in cells
 - Use `resolveComponent()` to get component references
 
-### Modals (UModal)
+### Modals (UModal) - CRITICAL PATTERN
 
-Modals use `v-model:open` for state control:
+**IMPORTANT: Nuxt UI v3 uses `v-model:open` NOT `v-model`!**
 
 ```vue
-<script setup>
-const isOpen = ref(false)
-const selectedBooking = ref(null)
+<!-- WRONG - Nuxt UI v2 syntax, will not work in v3 -->
+<UModal v-model="isOpen">...</UModal>
 
-function openModal(booking) {
-  selectedBooking.value = booking
-  isOpen.value = true
-}
+<!-- CORRECT - Nuxt UI v3 syntax -->
+<UModal v-model:open="isOpen">...</UModal>
+```
+
+**Basic Pattern (with trigger button inside):**
+```vue
+<script setup>
+const open = ref(false)
 </script>
 
 <template>
-  <!-- With external trigger -->
-  <UButton label="New Booking" @click="isOpen = true" />
+  <UModal v-model:open="open" title="Create Booking">
+    <!-- Default slot = trigger element -->
+    <UButton label="Open Modal" />
 
-  <UModal v-model:open="isOpen" title="Create Booking">
     <template #body>
-      <!-- Booking form here -->
       <UFormField label="Customer Name" required>
-        <UInput v-model="customerName" />
+        <UInput v-model="customerName" class="w-full" />
       </UFormField>
-      <!-- More form fields -->
     </template>
 
-    <template #footer>
+    <template #footer="{ close }">
       <div class="flex justify-end gap-2">
-        <UButton label="Cancel" color="neutral" variant="ghost" @click="isOpen = false" />
-        <UButton label="Create Booking" @click="createBooking" />
+        <UButton label="Cancel" color="neutral" variant="ghost" @click="close" />
+        <UButton label="Create" @click="createBooking" />
       </div>
     </template>
   </UModal>
 </template>
 ```
 
-**Modal slots:**
-- `#content` - Full control (replaces header/body/footer)
-- `#header` - Custom header
-- `#body` - Main content area
-- `#footer` - Footer with action buttons
+**Programmatic Opening (no trigger inside modal):**
+```vue
+<script setup>
+const isDeleteModalOpen = ref(false)
+const selectedItem = ref(null)
+
+function openDeleteModal(item) {
+  selectedItem.value = item
+  isDeleteModalOpen.value = true
+}
+</script>
+
+<template>
+  <!-- Trigger button is OUTSIDE the modal -->
+  <UButton label="Delete" color="error" @click="openDeleteModal(item)" />
+
+  <UModal v-model:open="isDeleteModalOpen" title="Confirm Delete">
+    <template #content>
+      <div class="p-6">
+        <p>Are you sure you want to delete {{ selectedItem?.name }}?</p>
+        <div class="flex justify-end gap-2 mt-6">
+          <UButton label="Cancel" variant="ghost" @click="isDeleteModalOpen = false" />
+          <UButton label="Delete" color="error" @click="confirmDelete" />
+        </div>
+      </div>
+    </template>
+  </UModal>
+</template>
+```
+
+**Modal Slots:**
+| Slot | Description | Props |
+|------|-------------|-------|
+| `default` | Trigger element (button that opens modal) | `{ open: boolean }` |
+| `#content` | Full control - replaces header/body/footer | `{ close: Function }` |
+| `#header` | Custom header section | - |
+| `#title` | Title text only | - |
+| `#description` | Description text only | - |
+| `#body` | Main content area | - |
+| `#footer` | Footer actions | `{ close: Function }` |
+
+**Key Props:**
+- `title`: Header title string
+- `description`: Header description
+- `overlay`: Show backdrop (default: true)
+- `transition`: Enable animations (default: true)
+- `fullscreen`: Make modal fullscreen
+- `dismissible`: Allow outside click/escape to close (default: true)
+- `close`: Customize or hide close button (`false` to hide)
+
+**Common Mistakes:**
+1. Using `v-model` instead of `v-model:open`
+2. Putting `<UCard>` inside modal (use slots instead)
+3. Forgetting to use `close` function from slot props
+4. Not using `class="w-full"` on inputs inside modals
 
 ### Badges (UBadge)
 
@@ -1480,6 +1697,41 @@ const { titleCase, formatCurrency, formatDate } = useFormat()
 // In table cells
 cell: ({ row }) => titleCase(row.original.status)
 ```
+
+### Select/Dropdown Human-Readable Labels
+
+**CRITICAL: Never display raw database values in dropdowns!**
+
+Users should see "Bounce House" not "bounce-house". Always define select items with human-readable labels:
+
+```typescript
+// CORRECT - Human-readable labels with database values (use snake_case for values)
+const categoryItems = [
+  { label: 'Bounce House', value: 'bounce_house' },
+  { label: 'Water Slide', value: 'water_slide' },
+  { label: 'Obstacle Course', value: 'obstacle_course' },
+  { label: 'Game', value: 'game' },
+  { label: 'Combo', value: 'combo' },
+  { label: 'Other', value: 'other' }
+]
+
+// WRONG - Shows raw database values to user
+const categoryOptions = ['bounce_house', 'water_slide', 'obstacle_course']
+```
+
+**Nuxt UI v3 USelect uses `:items` NOT `:options`:**
+```vue
+<!-- CORRECT - Nuxt UI v3 syntax -->
+<USelect v-model="category" :items="categoryItems" />
+
+<!-- WRONG - Old syntax, won't work -->
+<USelect v-model="category" :options="categoryOptions" />
+```
+
+**Naming convention:**
+- Use `*Items` suffix for select data: `categoryItems`, `statusItems`, `anchoringItems`
+- Each item must have `{ label: string, value: string }` structure
+- `label` = what user sees, `value` = what gets stored in database
 
 ### Form Inputs in Dialogs
 

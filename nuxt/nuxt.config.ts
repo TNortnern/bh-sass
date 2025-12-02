@@ -23,6 +23,7 @@ export default defineNuxtConfig({
         'lucide:panel-left-open',
         'lucide:house',
         'lucide:loader-circle',
+        'lucide:loader-2',
         // Landing page icons
         'lucide:rocket',
         'lucide:sparkles',
@@ -82,7 +83,32 @@ export default defineNuxtConfig({
         'lucide:image',
         'lucide:upload',
         'lucide:download',
+        'lucide:link',
         'lucide:truck',
+        'lucide:clipboard-list',
+        'lucide:user',
+        'lucide:trending-up',
+        'lucide:trending-down',
+        'lucide:calendar-clock',
+        'lucide:package-check',
+        'lucide:user-plus',
+        'lucide:package-plus',
+        // Onboarding flow icons
+        'lucide:sparkles',
+        'lucide:building-2',
+        'lucide:lock-keyhole',
+        'lucide:info',
+        'lucide:loader-circle',
+        'lucide:check-circle',
+        'lucide:castle',
+        'lucide:palette',
+        'lucide:shield-check',
+        // Booking flow icons
+        'lucide:shopping-cart',
+        'lucide:calendar-plus',
+        'lucide:share-2',
+        'lucide:printer',
+        'lucide:chevron-left',
         // Brand icons
         'simple-icons:google'
       ],
@@ -99,10 +125,21 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // Private config (server-side only)
     payloadApiUrl: process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3000',
+    payloadApiKey: process.env.PAYLOAD_API_KEY || '',
+    payloadTenantId: process.env.PAYLOAD_TENANT_ID || '',
+    rbPayloadUrl: process.env.RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app',
+    rbPayloadApiKey: process.env.RB_PAYLOAD_API_KEY || '',
+
+    // Bunny CDN Configuration (server-side only)
+    bunnyStorageApiKey: process.env.BUNNY_STORAGE_API_KEY || '',
+    bunnyStorageZone: process.env.BUNNY_STORAGE_ZONE || '',
+    bunnyCdnHostname: process.env.BUNNY_CDN_HOSTNAME || '',
+    bunnyStorageHostname: process.env.BUNNY_STORAGE_HOSTNAME || 'storage.bunnycdn.com',
 
     // Public config (exposed to client)
     public: {
-      payloadUrl: process.env.NUXT_PUBLIC_PAYLOAD_URL || 'http://localhost:3003'
+      payloadUrl: process.env.NUXT_PUBLIC_PAYLOAD_URL || 'http://localhost:3004',
+      rbPayloadUrl: process.env.NUXT_PUBLIC_RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app'
     }
   },
 
@@ -110,28 +147,23 @@ export default defineNuxtConfig({
     // Proxy Next.js static assets (required for Payload admin)
     '/_next/**': {
       proxy: {
-        to: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3000'}/_next/**`
+        to: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3004'}/_next/**`
       }
     },
 
     // Proxy Payload admin interface
     '/admin/**': {
       proxy: {
-        to: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3000'}/admin/**`
+        to: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3004'}/admin/**`
       }
     },
 
-    // Widget API routes - handled by Nuxt server (NOT proxied to Payload)
-    '/api/widget/**': {},
-
-    // Proxy Payload REST API
-    '/api/**': {
-      proxy: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3000'}/api/**`
-    },
+    // NOTE: /api/** is NOT proxied via routeRules - handled by server/api/[...].ts catch-all
+    // This allows specific server routes (rental-items, upload, widget) to take priority
 
     // Alternative REST API namespace (for external/widget use)
     '/v1/**': {
-      proxy: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3000'}/api/**`
+      proxy: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3004'}/api/**`
     }
   },
 

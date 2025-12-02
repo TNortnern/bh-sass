@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -11,7 +9,7 @@ services:
       POSTGRES_USER: bh_user
       POSTGRES_PASSWORD: dev_password_change_in_prod
     ports:
-      - '5432:5432'
+      - '5433:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -30,7 +28,7 @@ services:
     container_name: bh_payload
     restart: unless-stopped
     ports:
-      - '3002:3000'
+      - '3004:3000'
     environment:
       NODE_ENV: development
       DATABASE_URI: postgresql://bh_user:dev_password_change_in_prod@postgres:5432/bounce_house_saas
@@ -57,13 +55,25 @@ services:
     container_name: bh_nuxt
     restart: unless-stopped
     ports:
-      - '3003:3001'
+      - '3005:3001'
     environment:
       NODE_ENV: development
       PORT: 3001
       # Nuxt proxy configuration
       NUXT_PAYLOAD_API_URL: http://payload:3000
-      NUXT_PUBLIC_PAYLOAD_URL: http://localhost:3003
+      NUXT_PUBLIC_PAYLOAD_URL: http://localhost:3005
+      # Local Payload API key for server-to-server auth
+      PAYLOAD_API_KEY: tk_nymb8x9gib7cg27xomoxo4
+      PAYLOAD_TENANT_ID: 6
+      # rb-payload API configuration
+      RB_PAYLOAD_URL: https://reusablebook-payload-production.up.railway.app
+      NUXT_PUBLIC_RB_PAYLOAD_URL: https://reusablebook-payload-production.up.railway.app
+      RB_PAYLOAD_API_KEY: tk_58v2xsw911d0dy5q8mrlum3r9hah05n0
+      # Bunny CDN Configuration
+      BUNNY_STORAGE_API_KEY: d73ca461-b0a3-4f8e-9d900ff46156-0bec-408b
+      BUNNY_STORAGE_ZONE: hastest
+      BUNNY_CDN_HOSTNAME: hastets.b-cdn.net
+      BUNNY_STORAGE_HOSTNAME: storage.bunnycdn.com
     volumes:
       # Hot-reload: mount source code only
       - ./nuxt/app:/app/app

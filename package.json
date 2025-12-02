@@ -1,0 +1,36 @@
+{
+  "name": "bh-sass",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BouncePro - Bounce House Rental SaaS Platform",
+  "type": "module",
+  "scripts": {
+    "dev": "docker compose up -d",
+    "dev:nuxt": "pnpm --filter bh-nuxt dev",
+    "dev:payload": "pnpm --filter bh-payload dev",
+    "build": "pnpm --filter '*' build",
+    "lint": "pnpm --filter '*' lint",
+    "typecheck": "pnpm --filter '*' typecheck",
+    "test": "pnpm --filter '*' test",
+    "test:e2e": "pnpm --filter bh-nuxt test:e2e",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0"
+  },
+  "lint-staged": {
+    "nuxt/**/*.{ts,vue}": [
+      "pnpm --filter bh-nuxt lint --fix",
+      "pnpm --filter bh-nuxt typecheck"
+    ],
+    "payload/**/*.ts": [
+      "pnpm --filter bh-payload lint --fix"
+    ]
+  },
+  "packageManager": "pnpm@10.23.0",
+  "engines": {
+    "node": ">=20.9.0",
+    "pnpm": ">=10"
+  }
+}

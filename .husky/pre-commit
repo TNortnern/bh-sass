@@ -1,0 +1,9 @@
+# Run lint-staged for linting
+pnpm exec lint-staged
+
+# Run typecheck on staged files
+echo "Running TypeScript checks..."
+cd nuxt && pnpm typecheck || exit 1
+cd ..
+
+echo "Pre-commit checks passed!"
