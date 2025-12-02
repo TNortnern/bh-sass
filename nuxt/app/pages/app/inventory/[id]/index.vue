@@ -8,6 +8,7 @@ definePageMeta({
 })
 
 const route = useRoute()
+const toast = useToast()
 const { fetchItem, isLoading } = useInventory()
 const { fetchBookings, filteredBookings, filters, isLoading: bookingsLoading } = useBookings()
 
@@ -158,7 +159,11 @@ const { syncToRbPayload } = useInventorySync()
 const addUnit = async () => {
   if (!item.value) return
   if (!newUnit.value.serialNumber || !newUnit.value.purchaseDate) {
-    alert('Please fill in required fields: Serial Number and Purchase Date')
+    toast.add({
+      title: 'Missing Required Fields',
+      description: 'Please fill in Serial Number and Purchase Date',
+      color: 'warning'
+    })
     return
   }
 
@@ -238,7 +243,11 @@ const addUnit = async () => {
     }
   } catch (error: any) {
     console.error('Failed to add unit:', error)
-    alert(`Failed to add unit: ${error.message || 'Unknown error'}`)
+    toast.add({
+      title: 'Failed to Add Unit',
+      description: error.data?.message || error.message || 'An unexpected error occurred',
+      color: 'error'
+    })
   } finally {
     isSaving.value = false
   }

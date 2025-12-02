@@ -105,6 +105,14 @@ export interface CreateBookingData {
   internalNotes?: string
 }
 
+// Helper to extract numeric ID from BK-xxx format
+const extractNumericId = (id: string): string => {
+  if (id.startsWith('BK-')) {
+    return id.replace('BK-', '')
+  }
+  return id
+}
+
 export const useBookings = () => {
   const bookings = useState<Booking[]>('bookings:list', () => [])
   const currentBooking = useState<Booking | null>('bookings:current', () => null)
@@ -240,8 +248,10 @@ export const useBookings = () => {
     isLoading.value = true
     error.value = null
 
+    const numericId = extractNumericId(id)
+
     try {
-      const response = await $fetch<{ success: boolean; booking: any }>(`/booking/bookings/${id}`)
+      const response = await $fetch<{ success: boolean; booking: any }>(`/booking/bookings/${numericId}`)
 
       if (!response.success) {
         throw new Error('API returned unsuccessful response')
@@ -503,8 +513,9 @@ export const useBookings = () => {
 
   // Update booking status via rb-payload
   const updateStatus = async (id: string, status: Booking['status']) => {
+    const numericId = extractNumericId(id)
     try {
-      await $fetch(`/booking/bookings/${id}`, {
+      await $fetch(`/booking/bookings/${numericId}`, {
         method: 'PATCH',
         body: { status }
       })
@@ -541,8 +552,9 @@ export const useBookings = () => {
 
   // Update payment status via rb-payload
   const updatePaymentStatus = async (id: string, paymentStatus: Booking['paymentStatus']) => {
+    const numericId = extractNumericId(id)
     try {
-      await $fetch(`/booking/bookings/${id}`, {
+      await $fetch(`/booking/bookings/${numericId}`, {
         method: 'PATCH',
         body: { paymentStatus }
       })
@@ -579,8 +591,9 @@ export const useBookings = () => {
 
   // Cancel booking via rb-payload
   const cancelBooking = async (id: string, reason?: string) => {
+    const numericId = extractNumericId(id)
     try {
-      await $fetch(`/booking/bookings/${id}`, {
+      await $fetch(`/booking/bookings/${numericId}`, {
         method: 'PATCH',
         body: {
           status: 'cancelled',
@@ -620,8 +633,9 @@ export const useBookings = () => {
 
   // Delete booking via rb-payload
   const deleteBooking = async (id: string) => {
+    const numericId = extractNumericId(id)
     try {
-      await $fetch(`/booking/bookings/${id}`, {
+      await $fetch(`/booking/bookings/${numericId}`, {
         method: 'DELETE'
       })
 

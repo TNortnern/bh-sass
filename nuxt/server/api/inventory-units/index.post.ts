@@ -26,10 +26,19 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Ensure rentalItemId is a number (Payload relationships require numeric IDs)
+  const rentalItemId = Number(body.rentalItemId)
+  if (isNaN(rentalItemId) || rentalItemId <= 0) {
+    throw createError({
+      statusCode: 400,
+      message: 'rentalItemId must be a valid numeric ID'
+    })
+  }
+
   // Transform the frontend data format to Payload format
   const payloadData = {
     tenantId: Number(tenantId),
-    rentalItem: body.rentalItemId,
+    rentalItem: rentalItemId,
     label: body.label || `Unit ${body.serialNumber}`,
     serialNumber: body.serialNumber,
     barcode: body.barcode || undefined,
@@ -40,6 +49,8 @@ export default defineEventHandler(async (event) => {
     purchasePrice: body.purchasePrice || undefined,
     lastMaintenanceDate: body.lastMaintenanceDate || undefined
   }
+
+  console.log('Creating inventory unit with data:', JSON.stringify(payloadData, null, 2))
 
   try {
     const response = await fetch(`${payloadUrl}/api/inventory-units`, {

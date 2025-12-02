@@ -44,6 +44,18 @@
         <NuxtPage />
       </div>
     </div>
+    <!-- Unsaved Changes Dialog -->
+    <UiConfirmDialog
+      v-model:open="showLeaveDialog"
+      title="Unsaved Changes"
+      message="You have unsaved changes. Are you sure you want to leave without saving?"
+      confirm-label="Leave"
+      cancel-label="Stay"
+      confirm-color="warning"
+      icon="i-lucide-alert-triangle"
+      @confirm="confirmLeave"
+      @cancel="cancelLeave"
+    />
   </div>
 </template>
 
@@ -54,7 +66,30 @@ definePageMeta({
 })
 
 const route = useRoute()
-const { hasUnsavedChanges, fetchSettings } = useSettings()
+const router = useRouter()
+const { hasUnsavedChanges: settingsHasUnsavedChanges, fetchSettings } = useSettings()
+
+// Unsaved changes dialog state
+const showLeaveDialog = ref(false)
+const pendingNavigation = ref<string | null>(null)
+
+// Alias for template
+const hasUnsavedChanges = settingsHasUnsavedChanges
+
+const confirmLeave = () => {
+  showLeaveDialog.value = false
+  settingsHasUnsavedChanges.value = false
+  if (pendingNavigation.value) {
+    const path = pendingNavigation.value
+    pendingNavigation.value = null
+    router.push(path)
+  }
+}
+
+const cancelLeave = () => {
+  showLeaveDialog.value = false
+  pendingNavigation.value = null
+}
 
 const tabs = [
   {
@@ -108,12 +143,12 @@ watch(() => route.path, (newPath) => {
 }, { immediate: true })
 
 // Warn before leaving if unsaved changes
-onBeforeRouteLeave((to, from) => {
-  if (hasUnsavedChanges.value) {
-    const answer = window.confirm(
-      'You have unsaved changes. Are you sure you want to leave?'
-    )
-    if (!answer) return false
+onBeforeRouteLeave((to) => {
+  if (hasUnsavedChanges.value && !pendingNavigation.value) {
+    pendingNavigation.value = to.fullPath
+    showLeaveDialog.value = true
+    return false // Block navigation, show dialog
   }
+  return true
 })
 </script>

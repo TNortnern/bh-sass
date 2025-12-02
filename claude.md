@@ -23,6 +23,48 @@ docker compose up -d
 - Avoids generic AI aesthetics
 - Dark mode is DEFAULT, light mode supported
 
+### Dialogs & Confirmations
+**NEVER use `window.alert()` or `window.confirm()`!**
+
+Use these components instead:
+- **Toast notifications**: `useToast()` from Nuxt UI for success/error/warning messages
+- **Confirmation dialogs**: `<UiConfirmDialog>` component for destructive actions or unsaved changes
+
+```vue
+<!-- Toast for notifications -->
+const toast = useToast()
+toast.add({
+  title: 'Success',
+  description: 'Item saved successfully',
+  color: 'success'
+})
+
+<!-- Confirm dialog for confirmations -->
+<UiConfirmDialog
+  v-model:open="showDialog"
+  title="Delete Item?"
+  message="This action cannot be undone."
+  confirm-label="Delete"
+  confirm-color="error"
+  @confirm="handleDelete"
+/>
+```
+
+For unsaved changes warnings on route navigation, use the dialog pattern with `onBeforeRouteLeave`:
+```typescript
+const showLeaveDialog = ref(false)
+const pendingNavigation = ref<string | null>(null)
+
+onBeforeRouteLeave((to) => {
+  if (hasUnsavedChanges.value && !pendingNavigation.value) {
+    pendingNavigation.value = to.fullPath
+    showLeaveDialog.value = true
+    return false // Block, show dialog
+  }
+  return true
+})
+```
+
 ### Architecture
 - **rb-payload** is the booking engine (don't rebuild booking logic)
 - **Payload CMS** extends rb-payload with bounce house specific features

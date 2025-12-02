@@ -46,6 +46,19 @@
 
     <!-- Success Toast -->
     <UNotifications />
+
+    <!-- Unsaved Changes Dialog -->
+    <UiConfirmDialog
+      v-model:open="showLeaveDialog"
+      title="Unsaved Changes"
+      message="You have unsaved changes. Are you sure you want to leave without saving?"
+      confirm-label="Leave"
+      cancel-label="Stay"
+      confirm-color="warning"
+      icon="i-lucide-alert-triangle"
+      @confirm="confirmLeave"
+      @cancel="cancelLeave"
+    />
   </div>
 </template>
 
@@ -61,6 +74,24 @@ const toast = useToast()
 const router = useRouter()
 
 const loading = ref(false)
+
+// Unsaved changes dialog state
+const showLeaveDialog = ref(false)
+const pendingNavigation = ref<string | null>(null)
+
+const confirmLeave = () => {
+  showLeaveDialog.value = false
+  if (pendingNavigation.value) {
+    const path = pendingNavigation.value
+    pendingNavigation.value = null
+    router.push(path)
+  }
+}
+
+const cancelLeave = () => {
+  showLeaveDialog.value = false
+  pendingNavigation.value = null
+}
 const formData = ref<Partial<CustomerInput>>({
   firstName: '',
   lastName: '',
@@ -181,17 +212,13 @@ const hasUnsavedChanges = computed(() => {
 })
 
 // Warn before leaving with unsaved changes
-onBeforeRouteLeave((to, from, next) => {
-  if (hasUnsavedChanges.value) {
-    const answer = window.confirm('You have unsaved changes. Do you really want to leave?')
-    if (answer) {
-      next()
-    } else {
-      next(false)
-    }
-  } else {
-    next()
+onBeforeRouteLeave((to) => {
+  if (hasUnsavedChanges.value && !pendingNavigation.value) {
+    pendingNavigation.value = to.fullPath
+    showLeaveDialog.value = true
+    return false // Block navigation, show dialog
   }
+  return true
 })
 </script>
 
