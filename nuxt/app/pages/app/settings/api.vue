@@ -297,6 +297,7 @@
               v-model="newKeyName"
               size="lg"
               placeholder="Production API Key"
+              class="w-full"
             />
           </UFormGroup>
 
@@ -359,6 +360,7 @@
               size="lg"
               type="url"
               placeholder="https://api.yourapp.com/webhooks"
+              class="w-full"
             />
           </UFormGroup>
 

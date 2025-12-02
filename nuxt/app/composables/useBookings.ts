@@ -121,13 +121,6 @@ export const useBookings = () => {
   const filters = useState<BookingFilters>('bookings:filters', () => ({}))
   const toast = useToast()
 
-  // Initialize mock data
-  const initializeMockData = () => {
-    if (bookings.value.length === 0) {
-      bookings.value = generateMockBookings()
-    }
-  }
-
   // Fetch all bookings from rb-payload
   const fetchBookings = async () => {
     isLoading.value = true
@@ -140,13 +133,9 @@ export const useBookings = () => {
       bookings.value = (response.bookings || []).map(transformRbPayloadBooking)
       return { success: true, data: bookings.value }
     } catch (err: any) {
-      // Fallback to mock data in development
-      if (import.meta.dev) {
-        console.warn('Failed to fetch bookings from rb-payload, using mock data:', err.message)
-        initializeMockData()
-        return { success: true, data: bookings.value }
-      }
+      console.error('Failed to fetch bookings from rb-payload:', err.message)
       error.value = err.message || 'Failed to fetch bookings'
+      bookings.value = []
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -272,20 +261,11 @@ export const useBookings = () => {
         data: err.data
       })
 
-      // Fallback to finding in existing bookings or mock data
-      if (import.meta.dev) {
-        console.warn('Failed to fetch booking from rb-payload, checking local:', err.message)
-        const booking = bookings.value.find(b => b.id === id)
-        if (booking) {
-          currentBooking.value = booking
-          return { success: true, data: booking }
-        }
-        initializeMockData()
-        const mockBooking = bookings.value.find(b => b.id === id)
-        if (mockBooking) {
-          currentBooking.value = mockBooking
-          return { success: true, data: mockBooking }
-        }
+      // Check if booking exists in already loaded bookings
+      const booking = bookings.value.find(b => b.id === id)
+      if (booking) {
+        currentBooking.value = booking
+        return { success: true, data: booking }
       }
 
       // Extract meaningful error message
@@ -424,78 +404,6 @@ export const useBookings = () => {
         return { success: true, data: newBooking }
       } catch (rbError: any) {
         console.error('rb-payload booking creation failed:', rbError)
-
-        // Fall back to local mock data if rb-payload fails
-        if (import.meta.dev) {
-          console.warn('Falling back to mock booking creation')
-
-          const days = differenceInDays(parseISO(data.endDate), parseISO(data.startDate)) + 1
-          const mockItem = {
-            id: data.itemId,
-            name: 'Castle Bounce House XL',
-            category: 'Bounce Houses',
-            dailyRate: 250
-          }
-
-          const subtotal = mockItem.dailyRate * days
-          const total = subtotal
-          const deposit = total * 0.5
-          const paid = data.paymentType === 'full' ? total : deposit
-
-          const newBooking: Booking = {
-            id: `booking-${Date.now()}`,
-            bookingNumber: `BK-${1000 + bookings.value.length + 1}`,
-            customer: {
-              id: data.customerId || `customer-${Date.now()}`,
-              name: data.customer ? `${data.customer.firstName} ${data.customer.lastName}` : 'New Customer',
-              email: data.customer?.email || 'customer@example.com',
-              phone: data.customer?.phone || ''
-            },
-            item: mockItem,
-            dates: {
-              start: data.startDate,
-              end: data.endDate,
-              delivery: format(addDays(parseISO(data.startDate), -1), 'yyyy-MM-dd'),
-              pickup: format(addDays(parseISO(data.endDate), 1), 'yyyy-MM-dd')
-            },
-            status: 'pending',
-            paymentStatus: data.paymentType === 'full' ? 'paid' : 'deposit',
-            payment: {
-              subtotal,
-              deposit,
-              total,
-              paid,
-              balance: total - paid
-            },
-            deliveryAddress: data.deliveryAddress,
-            addons: [],
-            notes: {
-              customer: data.customerNotes,
-              internal: data.internalNotes
-            },
-            timeline: [
-              {
-                id: '1',
-                event: 'created',
-                timestamp: new Date().toISOString(),
-                description: 'Booking created (mock data - rb-payload unavailable)'
-              }
-            ],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-
-          bookings.value.unshift(newBooking)
-
-          toast.add({
-            title: 'Booking Created (Local)',
-            description: `${newBooking.bookingNumber} has been created locally`,
-            color: 'orange'
-          })
-
-          return { success: true, data: newBooking }
-        }
-
         throw rbError
       }
     } catch (err: any) {
@@ -895,87 +803,4 @@ export const useBookings = () => {
     deleteBooking,
     bulkUpdateStatus
   }
-}
-
-// Generate mock bookings
-function generateMockBookings(): Booking[] {
-  const statuses: Booking['status'][] = ['pending', 'confirmed', 'delivered', 'completed', 'cancelled']
-  const paymentStatuses: Booking['paymentStatus'][] = ['unpaid', 'deposit', 'paid', 'refunded']
-
-  const items = [
-    { id: '1', name: 'Castle Bounce House XL', category: 'Bounce Houses', dailyRate: 250 },
-    { id: '2', name: 'Water Slide Combo', category: 'Water Slides', dailyRate: 450 },
-    { id: '3', name: 'Princess Palace Jumper', category: 'Bounce Houses', dailyRate: 225 },
-    { id: '4', name: 'Tropical Water Slide', category: 'Water Slides', dailyRate: 425 },
-    { id: '5', name: 'Obstacle Course Pro', category: 'Obstacle Courses', dailyRate: 650 },
-    { id: '6', name: 'Unicorn Castle', category: 'Bounce Houses', dailyRate: 275 }
-  ]
-
-  const customers = [
-    { id: '1', name: 'Sarah Johnson', email: 'sarah.j@email.com', phone: '(555) 123-4567' },
-    { id: '2', name: 'Mike Anderson', email: 'mike.a@email.com', phone: '(555) 234-5678' },
-    { id: '3', name: 'Emily Davis', email: 'emily.d@email.com', phone: '(555) 345-6789' },
-    { id: '4', name: 'Jennifer Martinez', email: 'jen.m@email.com', phone: '(555) 456-7890' },
-    { id: '5', name: 'Robert Wilson', email: 'robert.w@email.com', phone: '(555) 567-8901' },
-    { id: '6', name: 'Amanda Lee', email: 'amanda.l@email.com', phone: '(555) 678-9012' }
-  ]
-
-  return Array.from({ length: 20 }, (_, i) => {
-    const customer = customers[i % customers.length]
-    const item = items[i % items.length]
-    const status = statuses[i % statuses.length]
-    const paymentStatus = paymentStatuses[i % paymentStatuses.length]
-
-    const startDate = format(addDays(new Date(), i - 5), 'yyyy-MM-dd')
-    const endDate = format(addDays(new Date(), i - 3), 'yyyy-MM-dd')
-    const days = differenceInDays(parseISO(endDate), parseISO(startDate)) + 1
-
-    const subtotal = item.dailyRate * days
-    const total = subtotal
-    const deposit = total * 0.5
-    const paid = paymentStatus === 'paid' ? total : paymentStatus === 'deposit' ? deposit : 0
-
-    return {
-      id: `booking-${i + 1}`,
-      bookingNumber: `BK-${1000 + i + 1}`,
-      customer,
-      item,
-      dates: {
-        start: startDate,
-        end: endDate,
-        delivery: format(addDays(parseISO(startDate), -1), 'yyyy-MM-dd'),
-        pickup: format(addDays(parseISO(endDate), 1), 'yyyy-MM-dd')
-      },
-      status,
-      paymentStatus,
-      payment: {
-        subtotal,
-        deposit,
-        total,
-        paid,
-        balance: total - paid
-      },
-      deliveryAddress: {
-        street: `${1000 + i} Main Street`,
-        city: 'San Francisco',
-        state: 'CA',
-        zip: '94102'
-      },
-      addons: [],
-      notes: {
-        customer: i % 3 === 0 ? 'Please call before delivery' : undefined,
-        internal: i % 4 === 0 ? 'VIP customer' : undefined
-      },
-      timeline: [
-        {
-          id: '1',
-          event: 'created',
-          timestamp: format(addDays(new Date(), i - 10), "yyyy-MM-dd'T'HH:mm:ss"),
-          description: 'Booking created'
-        }
-      ],
-      createdAt: format(addDays(new Date(), i - 10), "yyyy-MM-dd'T'HH:mm:ss"),
-      updatedAt: format(addDays(new Date(), i - 8), "yyyy-MM-dd'T'HH:mm:ss")
-    }
-  })
 }

@@ -5,7 +5,7 @@ import type { InventoryItem } from './useInventory'
 
 export interface SearchResult {
   id: string
-  type: 'booking' | 'customer' | 'inventory'
+  type: 'booking' | 'customer' | 'inventory' | 'navigation'
   title: string
   subtitle: string
   metadata?: string
@@ -13,6 +13,114 @@ export interface SearchResult {
   url: string
   relevance: number
 }
+
+// Navigation items that can be searched
+const navigationItems = [
+  {
+    id: 'nav-dashboard',
+    title: 'Dashboard',
+    subtitle: 'Overview and statistics',
+    icon: 'i-lucide-layout-dashboard',
+    url: '/app',
+    keywords: ['dashboard', 'home', 'overview', 'stats', 'statistics']
+  },
+  {
+    id: 'nav-inventory',
+    title: 'Inventory',
+    subtitle: 'Manage rental items',
+    icon: 'i-lucide-box',
+    url: '/app/inventory',
+    keywords: ['inventory', 'items', 'rentals', 'bounce houses', 'equipment']
+  },
+  {
+    id: 'nav-bookings',
+    title: 'Bookings',
+    subtitle: 'View and manage bookings',
+    icon: 'i-lucide-calendar',
+    url: '/app/bookings',
+    keywords: ['bookings', 'reservations', 'orders', 'calendar']
+  },
+  {
+    id: 'nav-customers',
+    title: 'Customers',
+    subtitle: 'Customer management',
+    icon: 'i-lucide-users',
+    url: '/app/customers',
+    keywords: ['customers', 'clients', 'contacts']
+  },
+  {
+    id: 'nav-calendar',
+    title: 'Calendar',
+    subtitle: 'Availability calendar',
+    icon: 'i-lucide-calendar-days',
+    url: '/app/calendar',
+    keywords: ['calendar', 'schedule', 'availability', 'dates']
+  },
+  {
+    id: 'nav-reports',
+    title: 'Reports',
+    subtitle: 'Analytics and insights',
+    icon: 'i-lucide-bar-chart-3',
+    url: '/app/reports',
+    keywords: ['reports', 'analytics', 'insights', 'metrics', 'stats', 'statistics']
+  },
+  {
+    id: 'nav-settings',
+    title: 'Settings',
+    subtitle: 'Account and preferences',
+    icon: 'i-lucide-settings',
+    url: '/app/settings',
+    keywords: ['settings', 'preferences', 'configuration', 'account']
+  },
+  {
+    id: 'nav-settings-profile',
+    title: 'Profile Settings',
+    subtitle: 'Personal information',
+    icon: 'i-lucide-user-cog',
+    url: '/app/settings/profile',
+    keywords: ['profile', 'account', 'personal', 'information', 'settings']
+  },
+  {
+    id: 'nav-settings-booking',
+    title: 'Booking Settings',
+    subtitle: 'Booking configuration',
+    icon: 'i-lucide-calendar-cog',
+    url: '/app/settings/booking',
+    keywords: ['booking', 'configuration', 'settings', 'policies']
+  },
+  {
+    id: 'nav-settings-payments',
+    title: 'Payment Settings',
+    subtitle: 'Stripe and payment options',
+    icon: 'i-lucide-credit-card',
+    url: '/app/settings/payments',
+    keywords: ['payments', 'stripe', 'billing', 'settings', 'money']
+  },
+  {
+    id: 'nav-settings-team',
+    title: 'Team Settings',
+    subtitle: 'Manage team members',
+    icon: 'i-lucide-users-cog',
+    url: '/app/settings/team',
+    keywords: ['team', 'members', 'staff', 'users', 'settings']
+  },
+  {
+    id: 'nav-settings-notifications',
+    title: 'Notification Settings',
+    subtitle: 'Email and notification preferences',
+    icon: 'i-lucide-bell-cog',
+    url: '/app/settings/notifications',
+    keywords: ['notifications', 'email', 'alerts', 'settings']
+  },
+  {
+    id: 'nav-settings-api',
+    title: 'API Settings',
+    subtitle: 'API keys and integration',
+    icon: 'i-lucide-key-square',
+    url: '/app/settings/api',
+    keywords: ['api', 'integration', 'keys', 'settings', 'developer']
+  }
+]
 
 export const useGlobalSearch = () => {
   const searchQuery = ref('')
@@ -35,8 +143,23 @@ export const useGlobalSearch = () => {
       clearTimeout(searchTimeout)
     }
 
-    // If query is empty, clear results
-    if (!query || query.trim().length < 2) {
+    // If query is empty, show quick actions (navigation items only)
+    if (!query || query.trim().length === 0) {
+      results.value = navigationItems.map(nav => ({
+        id: nav.id,
+        type: 'navigation' as const,
+        title: nav.title,
+        subtitle: nav.subtitle,
+        icon: nav.icon,
+        url: nav.url,
+        relevance: 50
+      }))
+      isSearching.value = false
+      return
+    }
+
+    // If query is too short (but not empty), clear results
+    if (query.trim().length < 2) {
       results.value = []
       isSearching.value = false
       return
@@ -48,6 +171,46 @@ export const useGlobalSearch = () => {
     searchTimeout = setTimeout(() => {
       const lowerQuery = query.toLowerCase().trim()
       const searchResults: SearchResult[] = []
+
+      // Search navigation items first
+      navigationItems.forEach(nav => {
+        let relevance = 0
+        const title = nav.title.toLowerCase()
+        const subtitle = nav.subtitle.toLowerCase()
+
+        // Check if title matches exactly
+        if (title === lowerQuery) {
+          relevance = 110
+        }
+        // Check if title starts with query
+        else if (title.startsWith(lowerQuery)) {
+          relevance = 105
+        }
+        // Check if title includes query
+        else if (title.includes(lowerQuery)) {
+          relevance = 100
+        }
+        // Check subtitle
+        else if (subtitle.includes(lowerQuery)) {
+          relevance = 95
+        }
+        // Check keywords
+        else if (nav.keywords.some(keyword => keyword.includes(lowerQuery))) {
+          relevance = 90
+        }
+
+        if (relevance > 0) {
+          searchResults.push({
+            id: nav.id,
+            type: 'navigation',
+            title: nav.title,
+            subtitle: nav.subtitle,
+            icon: nav.icon,
+            url: nav.url,
+            relevance
+          })
+        }
+      })
 
       // Search bookings
       bookings.value.forEach(booking => {
@@ -182,17 +345,21 @@ export const useGlobalSearch = () => {
   // Grouped results for better display
   const groupedResults = computed(() => {
     const groups: {
+      navigation: SearchResult[]
       bookings: SearchResult[]
       customers: SearchResult[]
       inventory: SearchResult[]
     } = {
+      navigation: [],
       bookings: [],
       customers: [],
       inventory: []
     }
 
     results.value.forEach(result => {
-      if (result.type === 'booking') {
+      if (result.type === 'navigation') {
+        groups.navigation.push(result)
+      } else if (result.type === 'booking') {
         groups.bookings.push(result)
       } else if (result.type === 'customer') {
         groups.customers.push(result)

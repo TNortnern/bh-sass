@@ -52,6 +52,7 @@
                 size="lg"
                 min="0"
                 step="1"
+                class="w-full"
                 @input="markHasChanges"
               />
               <span class="input-suffix">hours</span>
@@ -71,6 +72,7 @@
                 size="lg"
                 min="1"
                 step="1"
+                class="w-full"
                 @input="markHasChanges"
               />
               <span class="input-suffix">days</span>
@@ -90,6 +92,7 @@
                 size="lg"
                 min="0"
                 step="15"
+                class="w-full"
                 @input="markHasChanges"
               />
               <span class="input-suffix">minutes</span>

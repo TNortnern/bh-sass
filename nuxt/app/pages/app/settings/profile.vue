@@ -44,6 +44,7 @@
               v-model="business.name"
               size="lg"
               placeholder="Enter business name"
+              class="w-full"
               @input="markHasChanges"
             />
           </UFormGroup>
@@ -70,6 +71,7 @@
               :rows="4"
               size="lg"
               placeholder="Tell customers about your business"
+              class="w-full"
               @input="markHasChanges"
             />
           </UFormGroup>
@@ -98,6 +100,7 @@
                 size="lg"
                 type="tel"
                 placeholder="(555) 123-4567"
+                class="w-full"
                 @input="markHasChanges"
               />
             </UFormGroup>
@@ -108,6 +111,7 @@
                 size="lg"
                 type="email"
                 placeholder="hello@yourbusiness.com"
+                class="w-full"
                 @input="markHasChanges"
               />
             </UFormGroup>
@@ -118,6 +122,7 @@
               v-model="business.address.street"
               size="lg"
               placeholder="123 Main Street"
+              class="w-full"
               @input="markHasChanges"
             />
           </UFormGroup>
@@ -128,6 +133,7 @@
                 v-model="business.address.city"
                 size="lg"
                 placeholder="Austin"
+                class="w-full"
                 @input="markHasChanges"
               />
             </UFormGroup>
@@ -137,6 +143,7 @@
                 v-model="business.address.state"
                 :options="states"
                 size="lg"
+                class="w-full"
                 @change="markHasChanges"
               />
             </UFormGroup>
@@ -146,6 +153,7 @@
                 v-model="business.address.zip"
                 size="lg"
                 placeholder="78701"
+                class="w-full"
                 @input="markHasChanges"
               />
             </UFormGroup>
@@ -173,6 +181,7 @@
               v-model="business.timezone"
               :options="timezones"
               size="lg"
+              class="w-full"
               @change="markHasChanges"
             />
           </UFormGroup>
@@ -235,6 +244,7 @@
                 type="number"
                 size="lg"
                 placeholder="25"
+                class="w-full"
                 @input="markHasChanges"
               />
             </UFormGroup>
@@ -244,6 +254,7 @@
                 v-model="business.serviceArea.unit"
                 :options="['miles', 'km']"
                 size="lg"
+                class="w-full"
                 @change="markHasChanges"
               />
             </UFormGroup>
@@ -285,6 +296,7 @@
               size="lg"
               placeholder="78701"
               maxlength="5"
+              class="w-full"
             />
           </UFormGroup>
         </div>

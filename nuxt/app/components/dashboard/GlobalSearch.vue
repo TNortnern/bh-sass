@@ -42,7 +42,16 @@ const handleKeyDown = (e: KeyboardEvent) => {
 
 // Navigate to search result
 const router = useRouter()
-const navigateToResult = (result: any) => {
+interface SearchResult {
+  id: string
+  title: string
+  subtitle: string
+  url: string
+  type: string
+  icon: string
+  metadata?: string
+}
+const navigateToResult = (result: SearchResult) => {
   router.push(result.url)
   closeSearch()
 }
@@ -50,6 +59,10 @@ const navigateToResult = (result: any) => {
 // Open search
 const openSearch = () => {
   isOpen.value = true
+  // Initialize with quick actions if no query
+  if (!searchQuery.value) {
+    performSearch('')
+  }
   nextTick(() => {
     searchInputRef.value?.focus()
   })
@@ -89,6 +102,8 @@ onMounted(() => {
 // Get badge color based on result type
 const getBadgeColor = (type: string) => {
   switch (type) {
+    case 'navigation':
+      return 'neutral'
     case 'booking':
       return 'primary'
     case 'customer':
@@ -97,6 +112,38 @@ const getBadgeColor = (type: string) => {
       return 'warning'
     default:
       return 'neutral'
+  }
+}
+
+// Get icon background color based on result type
+const getIconBgColor = (type: string) => {
+  switch (type) {
+    case 'navigation':
+      return 'bg-neutral-50 dark:bg-neutral-900/20'
+    case 'booking':
+      return 'bg-primary-50 dark:bg-primary-900/20'
+    case 'customer':
+      return 'bg-success-50 dark:bg-success-900/20'
+    case 'inventory':
+      return 'bg-warning-50 dark:bg-warning-900/20'
+    default:
+      return 'bg-neutral-50 dark:bg-neutral-900/20'
+  }
+}
+
+// Get icon color based on result type
+const getIconColor = (type: string) => {
+  switch (type) {
+    case 'navigation':
+      return 'text-neutral-600 dark:text-neutral-400'
+    case 'booking':
+      return 'text-primary-600 dark:text-primary-400'
+    case 'customer':
+      return 'text-success-600 dark:text-success-400'
+    case 'inventory':
+      return 'text-warning-600 dark:text-warning-400'
+    default:
+      return 'text-neutral-600 dark:text-neutral-400'
   }
 }
 
@@ -166,7 +213,7 @@ const isMac = computed(() => {
                 ref="searchInputRef"
                 v-model="searchQuery"
                 type="text"
-                placeholder="Search bookings, customers, inventory..."
+                placeholder="Search bookings, customers, inventory, or navigate pages..."
                 class="flex-1 bg-transparent border-0 outline-none text-gray-900 dark:text-white placeholder-gray-400"
                 @input="handleInput"
                 @keydown="handleKeyDown"
@@ -202,20 +249,43 @@ const isMac = computed(() => {
 
               <!-- Results List -->
               <div v-else-if="hasResults" class="py-2">
+                <!-- Navigation / Quick Actions -->
+                <div v-if="groupedResults.navigation.length > 0" class="mb-4">
+                  <div class="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    {{ searchQuery ? 'Pages' : 'Quick Actions' }}
+                  </div>
+                  <button
+                    v-for="result in groupedResults.navigation"
+                    :key="result.id"
+                    class="w-full px-4 py-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex(r => r.id === result.id) }"
+                    @click="navigateToResult(result)"
+                  >
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :class="getIconBgColor(result.type)">
+                      <UIcon :name="result.icon" class="w-5 h-5" :class="getIconColor(result.type)" />
+                    </div>
+                    <div class="flex-1 min-w-0 text-left">
+                      <span class="text-sm font-medium text-gray-900 dark:text-white">{{ result.title }}</span>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">{{ result.subtitle }}</p>
+                    </div>
+                    <UIcon name="i-lucide-arrow-right" class="w-4 h-4 text-gray-400 flex-shrink-0 mt-2" />
+                  </button>
+                </div>
+
                 <!-- Bookings -->
                 <div v-if="groupedResults.bookings.length > 0" class="mb-4">
                   <div class="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Bookings
                   </div>
                   <button
-                    v-for="(result, index) in groupedResults.bookings"
+                    v-for="result in groupedResults.bookings"
                     :key="result.id"
                     class="w-full px-4 py-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                     :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex(r => r.id === result.id) }"
                     @click="navigateToResult(result)"
                   >
-                    <div class="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center flex-shrink-0">
-                      <UIcon :name="result.icon" class="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :class="getIconBgColor(result.type)">
+                      <UIcon :name="result.icon" class="w-5 h-5" :class="getIconColor(result.type)" />
                     </div>
                     <div class="flex-1 min-w-0 text-left">
                       <div class="flex items-center gap-2 mb-1">
@@ -237,14 +307,14 @@ const isMac = computed(() => {
                     Customers
                   </div>
                   <button
-                    v-for="(result, index) in groupedResults.customers"
+                    v-for="result in groupedResults.customers"
                     :key="result.id"
                     class="w-full px-4 py-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                     :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex(r => r.id === result.id) }"
                     @click="navigateToResult(result)"
                   >
-                    <div class="w-10 h-10 rounded-lg bg-success-50 dark:bg-success-900/20 flex items-center justify-center flex-shrink-0">
-                      <UIcon :name="result.icon" class="w-5 h-5 text-success-600 dark:text-success-400" />
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :class="getIconBgColor(result.type)">
+                      <UIcon :name="result.icon" class="w-5 h-5" :class="getIconColor(result.type)" />
                     </div>
                     <div class="flex-1 min-w-0 text-left">
                       <div class="flex items-center gap-2 mb-1">
@@ -266,14 +336,14 @@ const isMac = computed(() => {
                     Inventory
                   </div>
                   <button
-                    v-for="(result, index) in groupedResults.inventory"
+                    v-for="result in groupedResults.inventory"
                     :key="result.id"
                     class="w-full px-4 py-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                     :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex(r => r.id === result.id) }"
                     @click="navigateToResult(result)"
                   >
-                    <div class="w-10 h-10 rounded-lg bg-warning-50 dark:bg-warning-900/20 flex items-center justify-center flex-shrink-0">
-                      <UIcon :name="result.icon" class="w-5 h-5 text-warning-600 dark:text-warning-400" />
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :class="getIconBgColor(result.type)">
+                      <UIcon :name="result.icon" class="w-5 h-5" :class="getIconColor(result.type)" />
                     </div>
                     <div class="flex-1 min-w-0 text-left">
                       <div class="flex items-center gap-2 mb-1">
@@ -288,15 +358,6 @@ const isMac = computed(() => {
                     <UIcon name="i-lucide-arrow-right" class="w-4 h-4 text-gray-400 flex-shrink-0 mt-2" />
                   </button>
                 </div>
-              </div>
-
-              <!-- Empty State (no query) -->
-              <div v-else class="flex flex-col items-center justify-center py-12 px-4 text-center">
-                <UIcon name="i-lucide-search" class="w-12 h-12 text-gray-300 dark:text-gray-700 mb-3" />
-                <p class="text-sm font-medium text-gray-900 dark:text-white">Start typing to search</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Search across bookings, customers, and inventory
-                </p>
               </div>
             </div>
 

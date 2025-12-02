@@ -71,71 +71,6 @@ export interface FetchCustomersParams {
   maxBookings?: number
 }
 
-// Mock data generator
-function generateMockCustomers(): Customer[] {
-  const firstNames = ['Emma', 'Liam', 'Olivia', 'Noah', 'Ava', 'Ethan', 'Sophia', 'Mason', 'Isabella', 'William', 'Mia', 'James', 'Charlotte', 'Benjamin', 'Amelia', 'Lucas', 'Harper', 'Henry', 'Evelyn', 'Alexander']
-  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin']
-  const cities = ['Austin', 'Dallas', 'Houston', 'San Antonio', 'Fort Worth', 'El Paso', 'Arlington', 'Corpus Christi', 'Plano', 'Lubbock']
-  const tags = ['VIP', 'Birthday Party', 'Corporate', 'Repeat Customer', 'New', 'High Value', 'Referral', 'Email List', 'SMS List']
-
-  return Array.from({ length: 50 }, (_, i) => {
-    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)]
-    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)]
-    const totalBookings = Math.floor(Math.random() * 20) + 1
-    const totalSpent = Math.floor(Math.random() * 5000) + 100
-    const customerTags = Array.from({ length: Math.floor(Math.random() * 3) }, () => tags[Math.floor(Math.random() * tags.length)]).filter((v, i, a) => a.indexOf(v) === i)
-
-    return {
-      id: `cust_${i + 1}`,
-      firstName,
-      lastName,
-      email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@email.com`,
-      phone: `(${Math.floor(Math.random() * 900) + 100}) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
-      address: {
-        street: `${Math.floor(Math.random() * 9999) + 1} ${['Main', 'Oak', 'Maple', 'Cedar', 'Elm'][Math.floor(Math.random() * 5)]} St`,
-        city: cities[Math.floor(Math.random() * cities.length)],
-        state: 'TX',
-        zip: `${Math.floor(Math.random() * 90000) + 10000}`
-      },
-      tags: customerTags,
-      notes: [
-        {
-          id: `note_${i}_1`,
-          content: 'Great customer, always on time!',
-          createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-          createdBy: 'Admin'
-        }
-      ],
-      bookings: {
-        total: totalBookings,
-        upcoming: Math.floor(Math.random() * 3),
-        completed: totalBookings - Math.floor(Math.random() * 3),
-        cancelled: Math.floor(Math.random() * 2)
-      },
-      totalSpent,
-      averageOrder: Math.floor(totalSpent / totalBookings),
-      lastBooking: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString(),
-      createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
-      activities: [
-        {
-          id: `act_${i}_1`,
-          type: 'booking',
-          description: 'Booked bounce house for birthday party',
-          timestamp: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: `act_${i}_2`,
-          type: 'payment',
-          description: `Payment received: $${Math.floor(Math.random() * 500) + 100}`,
-          timestamp: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ]
-    }
-  })
-}
-
-const mockCustomers = generateMockCustomers()
-
 export function useCustomers() {
   const customers = ref<Customer[]>([])
   const loading = ref(false)
@@ -372,24 +307,15 @@ export function useCustomers() {
     error.value = null
 
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 200))
+      // TODO: Implement API call to add tag to customer in rb-payload
+      // For now, just log the action
+      console.log(`Add tag "${tag}" to customer ${customerId}`)
 
-      const customer = mockCustomers.find(c => c.id === customerId)
-
-      if (!customer) {
-        throw new Error('Customer not found')
-      }
-
-      if (!customer.tags.includes(tag)) {
-        customer.tags.push(tag)
-        customer.activities.unshift({
-          id: `act_${Date.now()}`,
-          type: 'tag',
-          description: `Tag added: ${tag}`,
-          timestamp: new Date().toISOString()
-        })
-      }
+      toast.add({
+        title: 'Tag Added',
+        description: `Tag "${tag}" has been added to customer`,
+        color: 'success'
+      })
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to add tag'
       throw e
@@ -406,21 +332,14 @@ export function useCustomers() {
     error.value = null
 
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 200))
+      // TODO: Implement API call to remove tag from customer in rb-payload
+      // For now, just log the action
+      console.log(`Remove tag "${tag}" from customer ${customerId}`)
 
-      const customer = mockCustomers.find(c => c.id === customerId)
-
-      if (!customer) {
-        throw new Error('Customer not found')
-      }
-
-      customer.tags = customer.tags.filter(t => t !== tag)
-      customer.activities.unshift({
-        id: `act_${Date.now()}`,
-        type: 'tag',
-        description: `Tag removed: ${tag}`,
-        timestamp: new Date().toISOString()
+      toast.add({
+        title: 'Tag Removed',
+        description: `Tag "${tag}" has been removed`,
+        color: 'success'
       })
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to remove tag'
@@ -438,28 +357,14 @@ export function useCustomers() {
     error.value = null
 
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 300))
+      // TODO: Implement API call to add note to customer in rb-payload
+      // For now, just log the action
+      console.log(`Add note to customer ${customerId}:`, note)
 
-      const customer = mockCustomers.find(c => c.id === customerId)
-
-      if (!customer) {
-        throw new Error('Customer not found')
-      }
-
-      const newNote = {
-        id: `note_${Date.now()}`,
-        content: note,
-        createdAt: new Date().toISOString(),
-        createdBy: 'Admin'
-      }
-
-      customer.notes.unshift(newNote)
-      customer.activities.unshift({
-        id: `act_${Date.now()}`,
-        type: 'note',
-        description: 'Note added',
-        timestamp: new Date().toISOString()
+      toast.add({
+        title: 'Note Added',
+        description: 'Note has been added to customer',
+        color: 'success'
       })
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to add note'
@@ -474,7 +379,7 @@ export function useCustomers() {
    */
   function getAllTags(): string[] {
     const tagsSet = new Set<string>()
-    mockCustomers.forEach(customer => {
+    customers.value.forEach(customer => {
       customer.tags.forEach(tag => tagsSet.add(tag))
     })
     return Array.from(tagsSet).sort()

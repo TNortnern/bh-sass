@@ -6,7 +6,7 @@
 export interface Notification {
   id: number
   tenantId: number
-  type: 'booking_created' | 'booking_updated' | 'booking_cancelled' | 'payment_received' | 'reminder'
+  type: 'booking_created' | 'booking_updated' | 'booking_cancelled' | 'payment_received' | 'reminder' | 'customer_created'
   title: string
   body: string
   link: string
@@ -29,10 +29,6 @@ export interface NotificationsResponse {
 }
 
 export const useNotifications = () => {
-  const config = useRuntimeConfig()
-  const rbPayloadUrl = config.public.rbPayloadUrl || 'https://reusablebook-payload-production.up.railway.app'
-  const apiKey = config.public.rbPayloadApiKey || 'tk_58v2xsw911d0dy5q8mrlum3r9hah05n0'
-
   // State
   const notifications = useState<Notification[]>('notifications', () => [])
   const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
@@ -40,7 +36,7 @@ export const useNotifications = () => {
   const error = ref<string | null>(null)
 
   /**
-   * Fetch notifications from rb-payload
+   * Fetch notifications from rb-payload via server proxy
    */
   const fetchNotifications = async (options: {
     limit?: number
@@ -58,16 +54,11 @@ export const useNotifications = () => {
       })
 
       if (options.unreadOnly) {
-        params.append('where[read][equals]', 'false')
+        params.append('unreadOnly', 'true')
       }
 
       const response = await $fetch<NotificationsResponse>(
-        `${rbPayloadUrl}/api/notifications?${params.toString()}`,
-        {
-          headers: {
-            'X-API-Key': apiKey
-          }
-        }
+        `/booking/notifications?${params.toString()}`
       )
 
       // Update state - merge with existing if paginating
@@ -81,7 +72,20 @@ export const useNotifications = () => {
     } catch (e: any) {
       error.value = e.message || 'Failed to fetch notifications'
       console.error('Error fetching notifications:', e)
-      throw e
+
+      // Set empty state on error instead of throwing
+      notifications.value = []
+
+      // Return empty response to prevent UI crashes
+      return {
+        docs: [],
+        totalDocs: 0,
+        limit: options.limit || 10,
+        page: options.page || 1,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPrevPage: false
+      }
     } finally {
       isLoading.value = false
     }
@@ -99,15 +103,11 @@ export const useNotifications = () => {
    */
   const markAsRead = async (notificationId: number) => {
     try {
-      await $fetch(`${rbPayloadUrl}/api/notifications/${notificationId}`, {
+      await $fetch(`/booking/notifications/${notificationId}`, {
         method: 'PATCH',
-        headers: {
-          'X-API-Key': apiKey,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+        body: {
           read: true
-        })
+        }
       })
 
       // Update local state
@@ -117,7 +117,12 @@ export const useNotifications = () => {
       }
     } catch (e: any) {
       console.error('Error marking notification as read:', e)
-      throw e
+      // Don't throw - just log the error and update local state anyway
+      // This provides better UX even if the API call fails
+      const notification = notifications.value.find(n => n.id === notificationId)
+      if (notification) {
+        notification.read = true
+      }
     }
   }
 
@@ -185,7 +190,8 @@ export const useNotifications = () => {
       booking_updated: 'i-lucide-calendar-check',
       booking_cancelled: 'i-lucide-calendar-x',
       payment_received: 'i-lucide-dollar-sign',
-      reminder: 'i-lucide-bell'
+      reminder: 'i-lucide-bell',
+      customer_created: 'i-lucide-user-plus'
     }
     return icons[type] || 'i-lucide-bell'
   }
@@ -199,7 +205,8 @@ export const useNotifications = () => {
       booking_updated: 'primary',
       booking_cancelled: 'error',
       payment_received: 'success',
-      reminder: 'warning'
+      reminder: 'warning',
+      customer_created: 'primary'
     }
     return colors[type] || 'neutral'
   }

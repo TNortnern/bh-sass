@@ -212,6 +212,7 @@
               type="email"
               size="lg"
               placeholder="colleague@example.com"
+              class="w-full"
             />
           </UFormGroup>
 

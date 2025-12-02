@@ -120,14 +120,39 @@ export const useDashboardStats = () => {
 
       return { success: true, data: stats.value }
     } catch (err: any) {
-      // Fallback to mock data in development
-      if (import.meta.dev) {
-        console.warn('Failed to fetch dashboard stats from API, using mock data:', err.message)
-        stats.value = generateMockStats()
-        return { success: true, data: stats.value }
+      console.error('Failed to fetch dashboard stats from API:', err.message)
+      error.value = err.message || 'Failed to fetch dashboard statistics'
+
+      // Set empty stats on error
+      stats.value = {
+        bookings: {
+          total: 0,
+          pending: 0,
+          confirmed: 0,
+          completed: 0,
+          thisMonth: 0
+        },
+        revenue: {
+          total: 0,
+          thisMonth: 0,
+          thisWeek: 0,
+          outstanding: 0
+        },
+        inventory: {
+          totalItems: 0,
+          totalUnits: 0,
+          availableUnits: 0,
+          rentedUnits: 0,
+          utilizationRate: 0
+        },
+        customers: {
+          total: 0,
+          new: 0,
+          active: 0,
+          vip: 0
+        }
       }
 
-      error.value = err.message || 'Failed to fetch dashboard statistics'
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -139,37 +164,5 @@ export const useDashboardStats = () => {
     isLoading: readonly(isLoading),
     error: readonly(error),
     fetchStats
-  }
-}
-
-// Mock data for development
-function generateMockStats(): DashboardStats {
-  return {
-    bookings: {
-      total: 147,
-      pending: 12,
-      confirmed: 28,
-      completed: 95,
-      thisMonth: 34
-    },
-    revenue: {
-      total: 45280,
-      thisMonth: 12450,
-      thisWeek: 3200,
-      outstanding: 4800
-    },
-    inventory: {
-      totalItems: 24,
-      totalUnits: 38,
-      availableUnits: 22,
-      rentedUnits: 16,
-      utilizationRate: 42
-    },
-    customers: {
-      total: 156,
-      new: 12,
-      active: 48,
-      vip: 8
-    }
   }
 }

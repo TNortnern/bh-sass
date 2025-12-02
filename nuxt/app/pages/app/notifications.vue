@@ -1,4 +1,8 @@
 <script setup lang="ts">
+definePageMeta({
+  layout: 'dashboard'
+})
+
 const {
   notifications,
   unreadCount,
@@ -95,87 +99,81 @@ const getTypeLabel = (type: string) => {
     booking_updated: 'Updated',
     booking_cancelled: 'Cancelled',
     payment_received: 'Payment',
-    reminder: 'Reminder'
+    reminder: 'Reminder',
+    customer_created: 'New Customer'
   }
   return labels[type] || type
 }
 </script>
 
 <template>
-  <div class="min-h-screen">
-    <!-- Header -->
-    <div class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-              Notifications
-            </h1>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Stay updated on bookings and payments
-            </p>
-          </div>
-          <UButton
-            v-if="unreadCount > 0"
-            label="Mark all as read"
-            icon="i-lucide-check-check"
-            color="neutral"
-            variant="outline"
-            @click="handleMarkAllRead"
-          />
-        </div>
-
-        <!-- Filters -->
-        <div class="flex items-center gap-2 mt-6">
-          <UButton
-            v-for="filter in filterButtons"
-            :key="filter.value"
-            :label="filter.label"
-            :icon="filter.icon"
-            :color="activeFilter === filter.value ? 'primary' : 'neutral'"
-            :variant="activeFilter === filter.value ? 'solid' : 'ghost'"
-            size="sm"
-            @click="handleFilterChange(filter.value as 'all' | 'unread')"
-          />
-          <UBadge
-            v-if="unreadCount > 0"
-            :label="`${unreadCount} unread`"
-            color="orange"
-            variant="subtle"
-            size="sm"
-            class="ml-2"
-          />
-        </div>
+  <div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Notifications</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">
+          Stay updated on bookings and payments
+        </p>
       </div>
+
+      <UButton
+        v-if="unreadCount > 0"
+        label="Mark all as read"
+        icon="i-lucide-check-check"
+        color="neutral"
+        variant="outline"
+        @click="handleMarkAllRead"
+      />
     </div>
 
-    <!-- Content -->
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <!-- Loading State -->
-      <div v-if="isLoading && notifications.length === 0" class="flex items-center justify-center py-12">
-        <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
-      </div>
+    <!-- Filters -->
+    <div class="flex items-center gap-2">
+      <UButton
+        v-for="filter in filterButtons"
+        :key="filter.value"
+        :label="filter.label"
+        :icon="filter.icon"
+        :color="activeFilter === filter.value ? 'primary' : 'neutral'"
+        :variant="activeFilter === filter.value ? 'solid' : 'ghost'"
+        size="md"
+        @click="handleFilterChange(filter.value as 'all' | 'unread')"
+      />
+      <UBadge
+        v-if="unreadCount > 0"
+        :label="`${unreadCount} unread`"
+        color="orange"
+        variant="subtle"
+        size="sm"
+        class="ml-2"
+      />
+    </div>
 
-      <!-- Empty State -->
-      <div
-        v-else-if="notifications.length === 0"
-        class="flex flex-col items-center justify-center py-16 text-gray-500"
-      >
-        <UIcon name="i-lucide-inbox" class="text-6xl mb-4 text-gray-300 dark:text-gray-700" />
-        <p class="text-lg font-medium">
-          {{ activeFilter === 'unread' ? 'No unread notifications' : 'No notifications yet' }}
-        </p>
-        <p class="text-sm text-center max-w-sm mt-2">
-          {{
-            activeFilter === 'unread'
-              ? 'All caught up! You have no unread notifications.'
-              : 'You\'ll see updates about bookings, payments, and more here.'
-          }}
-        </p>
-      </div>
+    <!-- Loading State -->
+    <div v-if="isLoading && notifications.length === 0" class="flex items-center justify-center py-12">
+      <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
+    </div>
 
-      <!-- Notifications List -->
-      <div v-else class="space-y-3">
+    <!-- Empty State -->
+    <div
+      v-else-if="notifications.length === 0"
+      class="flex flex-col items-center justify-center py-16 text-gray-500"
+    >
+      <UIcon name="i-lucide-inbox" class="text-6xl mb-4 text-gray-300 dark:text-gray-700" />
+      <p class="text-lg font-medium">
+        {{ activeFilter === 'unread' ? 'No unread notifications' : 'No notifications yet' }}
+      </p>
+      <p class="text-sm text-center max-w-sm mt-2">
+        {{
+          activeFilter === 'unread'
+            ? 'All caught up! You have no unread notifications.'
+            : 'You\'ll see updates about bookings, payments, and more here.'
+        }}
+      </p>
+    </div>
+
+    <!-- Notifications List -->
+    <div v-else class="space-y-3">
         <button
           v-for="notification in notifications"
           :key="notification.id"
@@ -243,26 +241,25 @@ const getTypeLabel = (type: string) => {
             class="flex-shrink-0 text-gray-400 dark:text-gray-600 text-xl"
           />
         </button>
-      </div>
+    </div>
 
-      <!-- Load More -->
-      <div v-if="hasNextPage" class="flex justify-center mt-6">
-        <UButton
-          label="Load more"
-          icon="i-lucide-chevron-down"
-          color="neutral"
-          variant="outline"
-          :loading="isLoading"
-          @click="handleLoadMore"
-        />
-      </div>
+    <!-- Load More -->
+    <div v-if="hasNextPage" class="flex justify-center">
+      <UButton
+        label="Load more"
+        icon="i-lucide-chevron-down"
+        color="neutral"
+        variant="outline"
+        :loading="isLoading"
+        @click="handleLoadMore"
+      />
+    </div>
 
-      <!-- Pagination Info -->
-      <div v-if="notifications.length > 0" class="text-center mt-6">
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-          Page {{ currentPage }} of {{ totalPages }}
-        </p>
-      </div>
+    <!-- Pagination Info -->
+    <div v-if="notifications.length > 0" class="text-center">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Page {{ currentPage }} of {{ totalPages }}
+      </p>
     </div>
   </div>
 </template>
