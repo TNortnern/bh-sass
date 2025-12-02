@@ -140,7 +140,7 @@ watch(() => route.path, () => {
 
       <!-- Sidebar Footer -->
       <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-800">
-        <UDropdown :items="userDropdownItems" :popper="{ placement: 'top-start' }">
+        <UDropdownMenu :items="userDropdownItems" :popper="{ placement: 'top-start' }">
           <button class="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             <div class="flex-shrink-0">
               <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold">
@@ -153,7 +153,7 @@ watch(() => route.path, () => {
             </div>
             <UIcon name="i-lucide-chevron-up" class="w-4 h-4 text-gray-400 flex-shrink-0" />
           </button>
-        </UDropdown>
+        </UDropdownMenu>
       </div>
     </aside>
 
@@ -194,7 +194,7 @@ watch(() => route.path, () => {
             <DashboardNotificationsDropdown />
 
             <!-- User dropdown -->
-            <UDropdown :items="userDropdownItems" :popper="{ placement: 'bottom-end' }">
+            <UDropdownMenu :items="userDropdownItems" :popper="{ placement: 'bottom-end' }">
               <UButton
                 color="neutral"
                 variant="ghost"
@@ -205,7 +205,7 @@ watch(() => route.path, () => {
                   {{ initials || 'BP' }}
                 </div>
               </UButton>
-            </UDropdown>
+            </UDropdownMenu>
           </div>
         </div>
       </header>

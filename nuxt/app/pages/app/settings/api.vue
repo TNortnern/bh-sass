@@ -74,8 +74,8 @@
                 <UButton
                   variant="ghost"
                   size="sm"
-                  color="red"
-                  @click="deleteKey(key.id)"
+                  color="error"
+                  @click="confirmDeleteKey(key)"
                 >
                   Delete
                 </UButton>
@@ -193,8 +193,8 @@
                   <UButton
                     variant="ghost"
                     size="sm"
-                    color="red"
-                    @click="deleteWebhook(webhook.id)"
+                    color="error"
+                    @click="confirmDeleteWebhook(webhook)"
                   >
                     Delete
                   </UButton>
@@ -406,6 +406,75 @@
         </template>
       </UCard>
     </UModal>
+
+    <!-- Delete API Key Confirmation Modal -->
+    <UModal v-model:open="showDeleteKeyModal">
+      <UCard>
+        <template #header>
+          <div class="modal-header">
+            <UIcon name="i-heroicons-exclamation-triangle" class="modal-icon" />
+            <h3 class="modal-title">Delete API Key?</h3>
+          </div>
+        </template>
+
+        <div class="modal-content">
+          <p class="modal-text">
+            Are you sure you want to delete <strong>{{ selectedKey?.name }}</strong>?
+            This action cannot be undone and any applications using this key will stop working immediately.
+          </p>
+        </div>
+
+        <template #footer>
+          <div class="modal-actions">
+            <UButton variant="ghost" @click="showDeleteKeyModal = false">
+              Cancel
+            </UButton>
+            <UButton
+              color="error"
+              :loading="saving"
+              @click="deleteKey"
+            >
+              Delete API Key
+            </UButton>
+          </div>
+        </template>
+      </UCard>
+    </UModal>
+
+    <!-- Delete Webhook Confirmation Modal -->
+    <UModal v-model:open="showDeleteWebhookModal">
+      <UCard>
+        <template #header>
+          <div class="modal-header">
+            <UIcon name="i-heroicons-exclamation-triangle" class="modal-icon" />
+            <h3 class="modal-title">Delete Webhook Endpoint?</h3>
+          </div>
+        </template>
+
+        <div class="modal-content">
+          <p class="modal-text">
+            Are you sure you want to delete the webhook endpoint
+            <code class="webhook-url-text">{{ selectedWebhook?.url }}</code>?
+            This action cannot be undone and you will stop receiving events at this endpoint.
+          </p>
+        </div>
+
+        <template #footer>
+          <div class="modal-actions">
+            <UButton variant="ghost" @click="showDeleteWebhookModal = false">
+              Cancel
+            </UButton>
+            <UButton
+              color="error"
+              :loading="saving"
+              @click="deleteWebhook"
+            >
+              Delete Endpoint
+            </UButton>
+          </div>
+        </template>
+      </UCard>
+    </UModal>
   </div>
 </template>
 
@@ -428,10 +497,14 @@ const toast = useToast()
 
 const showCreateKeyModal = ref(false)
 const showCreateWebhookModal = ref(false)
+const showDeleteKeyModal = ref(false)
+const showDeleteWebhookModal = ref(false)
 const newKeyName = ref('')
 const createdKey = ref<ApiKey | null>(null)
 const showKey = ref<Record<string, boolean>>({})
 const showWebhookSecret = ref<Record<string, boolean>>({})
+const selectedKey = ref<any>(null)
+const selectedWebhook = ref<any>(null)
 
 const webhookForm = ref({
   url: '',
@@ -502,12 +575,12 @@ const copyKey = async (key: string) => {
     await navigator.clipboard.writeText(key)
     toast.add({
       title: 'Copied to clipboard',
-      color: 'green',
+      color: 'success',
     })
   } catch (error) {
     toast.add({
       title: 'Failed to copy',
-      color: 'red',
+      color: 'error',
     })
   }
 }
@@ -527,12 +600,27 @@ const closeCreateKeyModal = () => {
   createdKey.value = null
 }
 
-const deleteKey = async (keyId: string) => {
-  if (confirm('Are you sure you want to delete this API key? This cannot be undone.')) {
+const confirmDeleteKey = (key: any) => {
+  selectedKey.value = key
+  showDeleteKeyModal.value = true
+}
+
+const deleteKey = async () => {
+  if (selectedKey.value) {
     try {
-      await deleteApiKey(keyId)
+      await deleteApiKey(selectedKey.value.id)
+      showDeleteKeyModal.value = false
+      selectedKey.value = null
+      toast.add({
+        title: 'API key deleted',
+        color: 'success',
+      })
     } catch (error) {
       console.error('Failed to delete API key:', error)
+      toast.add({
+        title: 'Failed to delete API key',
+        color: 'error',
+      })
     }
   }
 }
@@ -547,12 +635,27 @@ const handleCreateWebhook = async () => {
   }
 }
 
-const deleteWebhook = async (webhookId: string) => {
-  if (confirm('Are you sure you want to delete this webhook endpoint?')) {
+const confirmDeleteWebhook = (webhook: any) => {
+  selectedWebhook.value = webhook
+  showDeleteWebhookModal.value = true
+}
+
+const deleteWebhook = async () => {
+  if (selectedWebhook.value) {
     try {
-      await deleteWebhookEndpoint(webhookId)
+      await deleteWebhookEndpoint(selectedWebhook.value.id)
+      showDeleteWebhookModal.value = false
+      selectedWebhook.value = null
+      toast.add({
+        title: 'Webhook endpoint deleted',
+        color: 'success',
+      })
     } catch (error) {
       console.error('Failed to delete webhook:', error)
+      toast.add({
+        title: 'Failed to delete webhook',
+        color: 'error',
+      })
     }
   }
 }
@@ -1022,6 +1125,18 @@ const testWebhookEndpoint = async (webhookId: string) => {
   line-height: 1.4;
 }
 
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.modal-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #fbbf24;
+}
+
 .modal-title {
   font-size: 1.25rem;
   font-weight: 600;
@@ -1034,6 +1149,28 @@ const testWebhookEndpoint = async (webhookId: string) => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.modal-text {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #888;
+  line-height: 1.6;
+}
+
+.modal-text strong {
+  color: #ffffff;
+}
+
+.webhook-url-text {
+  display: inline;
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  word-break: break-all;
 }
 
 .created-key-display {

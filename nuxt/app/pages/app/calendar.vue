@@ -831,199 +831,205 @@ const statusOptions = [
 
     <!-- Booking Details Modal -->
     <UModal v-model:open="isBookingModalOpen" :ui="{ width: 'sm:max-w-lg' }">
-      <UCard v-if="selectedBooking" class="bg-white dark:bg-gray-900">
-        <template #header>
-          <div class="flex items-start justify-between">
+      <template #content>
+        <UCard v-if="selectedBooking" class="bg-white dark:bg-gray-900">
+          <template #header>
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Booking Details</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ selectedBooking.bookingNumber }}</p>
+              </div>
+              <UBadge :color="getStatusColor(selectedBooking.status)" variant="subtle" size="lg">
+                {{ getStatusLabel(selectedBooking.status) }}
+              </UBadge>
+            </div>
+          </template>
+
+          <div class="space-y-4">
+            <!-- Customer Info -->
             <div>
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white">Booking Details</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ selectedBooking.bookingNumber }}</p>
+              <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                <UIcon name="i-lucide-user" class="w-4 h-4" />
+                Customer
+              </div>
+              <p class="text-base font-semibold text-gray-900 dark:text-white">{{ selectedBooking.customer }}</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ selectedBooking.phone }}</p>
             </div>
-            <UBadge :color="getStatusColor(selectedBooking.status)" variant="subtle" size="lg">
-              {{ getStatusLabel(selectedBooking.status) }}
-            </UBadge>
-          </div>
-        </template>
 
-        <div class="space-y-4">
-          <!-- Customer Info -->
-          <div>
-            <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-              <UIcon name="i-lucide-user" class="w-4 h-4" />
-              Customer
+            <!-- Item Info -->
+            <div>
+              <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                <UIcon name="i-lucide-box" class="w-4 h-4" />
+                Rental Item
+              </div>
+              <p class="text-base font-semibold text-gray-900 dark:text-white">{{ selectedBooking.item }}</p>
             </div>
-            <p class="text-base font-semibold text-gray-900 dark:text-white">{{ selectedBooking.customer }}</p>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ selectedBooking.phone }}</p>
-          </div>
 
-          <!-- Item Info -->
-          <div>
-            <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-              <UIcon name="i-lucide-box" class="w-4 h-4" />
-              Rental Item
+            <!-- Date & Time -->
+            <div>
+              <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                <UIcon name="i-lucide-calendar" class="w-4 h-4" />
+                Schedule
+              </div>
+              <p class="text-base text-gray-900 dark:text-white">
+                {{ format(selectedBooking.startDate.includes('T') ? parseISO(selectedBooking.startDate) : parseISO(selectedBooking.startDate + 'T00:00:00'), 'EEEE, MMMM d, yyyy') }}
+              </p>
+              <p v-if="selectedBooking.startDate !== selectedBooking.endDate" class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Through {{ format(selectedBooking.endDate.includes('T') ? parseISO(selectedBooking.endDate) : parseISO(selectedBooking.endDate + 'T00:00:00'), 'EEEE, MMMM d, yyyy') }}
+              </p>
             </div>
-            <p class="text-base font-semibold text-gray-900 dark:text-white">{{ selectedBooking.item }}</p>
-          </div>
 
-          <!-- Date & Time -->
-          <div>
-            <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-              <UIcon name="i-lucide-calendar" class="w-4 h-4" />
-              Schedule
+            <!-- Address -->
+            <div>
+              <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                <UIcon name="i-lucide-map-pin" class="w-4 h-4" />
+                Delivery Address
+              </div>
+              <p class="text-base text-gray-900 dark:text-white">{{ selectedBooking.address }}</p>
             </div>
-            <p class="text-base text-gray-900 dark:text-white">
-              {{ format(selectedBooking.startDate.includes('T') ? parseISO(selectedBooking.startDate) : parseISO(selectedBooking.startDate + 'T00:00:00'), 'EEEE, MMMM d, yyyy') }}
-            </p>
-            <p v-if="selectedBooking.startDate !== selectedBooking.endDate" class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Through {{ format(selectedBooking.endDate.includes('T') ? parseISO(selectedBooking.endDate) : parseISO(selectedBooking.endDate + 'T00:00:00'), 'EEEE, MMMM d, yyyy') }}
-            </p>
-          </div>
 
-          <!-- Address -->
-          <div>
-            <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-              <UIcon name="i-lucide-map-pin" class="w-4 h-4" />
-              Delivery Address
+            <!-- Amount -->
+            <div>
+              <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                <UIcon name="i-lucide-dollar-sign" class="w-4 h-4" />
+                Amount
+              </div>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ selectedBooking.amount }}</p>
             </div>
-            <p class="text-base text-gray-900 dark:text-white">{{ selectedBooking.address }}</p>
-          </div>
 
-          <!-- Amount -->
-          <div>
-            <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-              <UIcon name="i-lucide-dollar-sign" class="w-4 h-4" />
-              Amount
+            <!-- Notes -->
+            <div v-if="selectedBooking.notes">
+              <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                <UIcon name="i-lucide-file-text" class="w-4 h-4" />
+                Notes
+              </div>
+              <p class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                {{ selectedBooking.notes }}
+              </p>
             </div>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ selectedBooking.amount }}</p>
           </div>
 
-          <!-- Notes -->
-          <div v-if="selectedBooking.notes">
-            <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-              <UIcon name="i-lucide-file-text" class="w-4 h-4" />
-              Notes
+          <template #footer>
+            <div class="flex items-center justify-end gap-3">
+              <UButton color="neutral" variant="outline" @click="closeBookingModal">
+                Close
+              </UButton>
+              <UButton color="primary">
+                Edit Booking
+              </UButton>
             </div>
-            <p class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-              {{ selectedBooking.notes }}
-            </p>
-          </div>
-        </div>
-
-        <template #footer>
-          <div class="flex items-center justify-end gap-3">
-            <UButton color="neutral" variant="outline" @click="closeBookingModal">
-              Close
-            </UButton>
-            <UButton color="primary">
-              Edit Booking
-            </UButton>
-          </div>
-        </template>
-      </UCard>
+          </template>
+        </UCard>
+      </template>
     </UModal>
 
     <!-- New Booking Modal -->
     <UModal v-model:open="isNewBookingModalOpen" :ui="{ width: 'sm:max-w-lg' }">
-      <UCard class="bg-white dark:bg-gray-900">
-        <template #header>
-          <div class="flex items-start justify-between">
-            <div>
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white">Create New Booking</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {{ selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : '' }}
-              </p>
+      <template #content>
+        <UCard class="bg-white dark:bg-gray-900">
+          <template #header>
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Create New Booking</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  {{ selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : '' }}
+                </p>
+              </div>
             </div>
-          </div>
-        </template>
+          </template>
 
-        <div class="text-center py-8">
-          <div class="w-16 h-16 mx-auto rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center mb-4">
-            <UIcon name="i-lucide-calendar-plus" class="w-8 h-8 text-orange-600 dark:text-orange-400" />
+          <div class="text-center py-8">
+            <div class="w-16 h-16 mx-auto rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center mb-4">
+              <UIcon name="i-lucide-calendar-plus" class="w-8 h-8 text-orange-600 dark:text-orange-400" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Booking Form Coming Soon</h3>
+            <p class="text-gray-600 dark:text-gray-400">
+              This will open a form to create a new booking for the selected date.
+            </p>
           </div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Booking Form Coming Soon</h3>
-          <p class="text-gray-600 dark:text-gray-400">
-            This will open a form to create a new booking for the selected date.
-          </p>
-        </div>
 
-        <template #footer>
-          <div class="flex items-center justify-end gap-3">
-            <UButton color="neutral" variant="outline" @click="closeNewBookingModal">
-              Cancel
-            </UButton>
-            <UButton color="primary" @click="closeNewBookingModal">
-              Create Booking
-            </UButton>
-          </div>
-        </template>
-      </UCard>
+          <template #footer>
+            <div class="flex items-center justify-end gap-3">
+              <UButton color="neutral" variant="outline" @click="closeNewBookingModal">
+                Cancel
+              </UButton>
+              <UButton color="primary" @click="closeNewBookingModal">
+                Create Booking
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
     </UModal>
 
     <!-- Mobile Filters Sidebar -->
     <UModal v-model:open="isMobileMenuOpen" :ui="{ width: 'max-w-sm' }">
-      <UCard class="bg-white dark:bg-gray-900">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white">Filters</h3>
-            <UButton
-              v-if="hasActiveFilters"
-              color="neutral"
-              variant="ghost"
-              size="sm"
-              @click="clearFilters"
-            >
-              Clear All
+      <template #content>
+        <UCard class="bg-white dark:bg-gray-900">
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-semibold text-gray-900 dark:text-white">Filters</h3>
+              <UButton
+                v-if="hasActiveFilters"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                @click="clearFilters"
+              >
+                Clear All
+              </UButton>
+            </div>
+          </template>
+
+          <div class="space-y-4">
+            <!-- Status Filter -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+              <select
+                v-model="selectedStatus"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              >
+                <option :value="null">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="delivered">Delivered</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            <!-- Item Filter -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rental Item</label>
+              <select
+                v-model="selectedItem"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              >
+                <option :value="null">All Items</option>
+                <option v-for="item in uniqueItems" :key="item" :value="item">{{ item }}</option>
+              </select>
+            </div>
+
+            <!-- Customer Filter -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Customer</label>
+              <select
+                v-model="selectedCustomer"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              >
+                <option :value="null">All Customers</option>
+                <option v-for="customer in uniqueCustomers" :key="customer" :value="customer">{{ customer }}</option>
+              </select>
+            </div>
+          </div>
+
+          <template #footer>
+            <UButton color="primary" block @click="isMobileMenuOpen = false">
+              Apply Filters
             </UButton>
-          </div>
-        </template>
-
-        <div class="space-y-4">
-          <!-- Status Filter -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-            <select
-              v-model="selectedStatus"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            >
-              <option :value="null">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="delivered">Delivered</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-
-          <!-- Item Filter -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rental Item</label>
-            <select
-              v-model="selectedItem"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            >
-              <option :value="null">All Items</option>
-              <option v-for="item in uniqueItems" :key="item" :value="item">{{ item }}</option>
-            </select>
-          </div>
-
-          <!-- Customer Filter -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Customer</label>
-            <select
-              v-model="selectedCustomer"
-              class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            >
-              <option :value="null">All Customers</option>
-              <option v-for="customer in uniqueCustomers" :key="customer" :value="customer">{{ customer }}</option>
-            </select>
-          </div>
-        </div>
-
-        <template #footer>
-          <UButton color="primary" block @click="isMobileMenuOpen = false">
-            Apply Filters
-          </UButton>
-        </template>
-      </UCard>
+          </template>
+        </UCard>
+      </template>
     </UModal>
   </div>
 </template>

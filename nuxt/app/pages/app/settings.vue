@@ -15,7 +15,7 @@
     <!-- Navigation & Content -->
     <div class="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-0 min-h-[calc(100vh-180px)]">
       <!-- Sidebar Navigation -->
-      <nav class="bg-gray-50 dark:bg-[#0a0a0a] border-r-0 lg:border-r border-b lg:border-b-0 border-gray-200 dark:border-[#1a1a1a] p-4 lg:p-6 flex flex-col gap-1 relative lg:sticky lg:top-0 lg:self-start lg:max-h-screen lg:overflow-y-auto">
+      <nav class="bg-gray-50 dark:bg-[#0a0a0a] border-r-0 lg:border-r border-b lg:border-b-0 border-gray-200 dark:border-[#1a1a1a] p-4 lg:p-6 flex flex-col gap-1 relative lg:sticky lg:top-6 lg:self-start lg:max-h-[calc(100vh-1.5rem)] lg:overflow-y-auto">
         <NuxtLink
           v-for="tab in tabs"
           :key="tab.to"

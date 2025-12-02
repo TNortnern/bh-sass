@@ -198,7 +198,7 @@ const getActionItems = (unit: InventoryUnit) => [
             square
             @click="emit('edit', unit)"
           />
-          <UDropdown :items="getActionItems(unit)">
+          <UDropdownMenu :items="getActionItems(unit)">
             <UButton
               color="neutral"
               variant="ghost"
@@ -206,7 +206,7 @@ const getActionItems = (unit: InventoryUnit) => [
               icon="i-lucide-more-vertical"
               square
             />
-          </UDropdown>
+          </UDropdownMenu>
         </div>
       </div>
     </div>

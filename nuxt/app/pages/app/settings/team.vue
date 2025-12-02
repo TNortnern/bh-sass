@@ -144,7 +144,7 @@
                 <UButton
                   variant="ghost"
                   size="sm"
-                  color="red"
+                  color="error"
                   @click="removeMember(member.id)"
                 >
                   Revoke
@@ -281,7 +281,7 @@
               Cancel
             </UButton>
             <UButton
-              color="red"
+              color="error"
               :loading="saving"
               @click="confirmRemove"
             >
