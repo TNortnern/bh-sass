@@ -248,40 +248,42 @@
 
     <!-- Disconnect Confirmation Modal -->
     <UModal v-model:open="showDisconnectModal">
-      <UCard>
-        <template #header>
-          <div class="modal-header">
-            <UIcon name="i-heroicons-exclamation-triangle" class="modal-icon" />
-            <h3 class="modal-title">Disconnect Stripe?</h3>
-          </div>
-        </template>
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="modal-header">
+              <UIcon name="i-heroicons-exclamation-triangle" class="modal-icon" />
+              <h3 class="modal-title">Disconnect Stripe?</h3>
+            </div>
+          </template>
 
-        <div class="modal-content">
-          <p class="modal-text">
-            Are you sure you want to disconnect your Stripe account? You won't be able
-            to accept new payments until you reconnect.
-          </p>
-          <div class="warning-box">
-            <strong>This will:</strong>
-            <ul>
-              <li>Stop processing of new payments</li>
-              <li>Disable automatic payouts</li>
-              <li>Require reconnection to resume payments</li>
-            </ul>
+          <div class="modal-content">
+            <p class="modal-text">
+              Are you sure you want to disconnect your Stripe account? You won't be able
+              to accept new payments until you reconnect.
+            </p>
+            <div class="warning-box">
+              <strong>This will:</strong>
+              <ul>
+                <li>Stop processing of new payments</li>
+                <li>Disable automatic payouts</li>
+                <li>Require reconnection to resume payments</li>
+              </ul>
+            </div>
           </div>
-        </div>
 
-        <template #footer>
-          <div class="modal-actions">
-            <UButton variant="ghost" @click="showDisconnectModal = false">
-              Cancel
-            </UButton>
-            <UButton color="red" @click="handleDisconnect">
-              Disconnect Stripe
-            </UButton>
-          </div>
-        </template>
-      </UCard>
+          <template #footer>
+            <div class="modal-actions">
+              <UButton variant="ghost" @click="showDisconnectModal = false">
+                Cancel
+              </UButton>
+              <UButton color="red" @click="handleDisconnect">
+                Disconnect Stripe
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
     </UModal>
   </div>
 </template>

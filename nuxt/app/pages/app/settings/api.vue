@@ -286,194 +286,202 @@
 
     <!-- Create API Key Modal -->
     <UModal v-model:open="showCreateKeyModal">
-      <UCard>
-        <template #header>
-          <h3 class="modal-title">Create API Key</h3>
-        </template>
+      <template #content>
+        <UCard>
+          <template #header>
+            <h3 class="modal-title">Create API Key</h3>
+          </template>
 
-        <div class="modal-content">
-          <UFormGroup label="Key Name" required help="A descriptive name for this key">
-            <UInput
-              v-model="newKeyName"
-              size="lg"
-              placeholder="Production API Key"
-              class="w-full"
-            />
-          </UFormGroup>
+          <div class="modal-content">
+            <UFormGroup label="Key Name" required help="A descriptive name for this key">
+              <UInput
+                v-model="newKeyName"
+                size="lg"
+                placeholder="Production API Key"
+                class="w-full"
+              />
+            </UFormGroup>
 
-          <div v-if="createdKey" class="created-key-display">
-            <div class="key-warning">
-              <UIcon name="i-heroicons-exclamation-triangle" class="warning-icon" />
-              <strong>Important:</strong> Copy your API key now. You won't be able to see it again!
-            </div>
-            <div class="key-display">
-              <code>{{ createdKey.key }}</code>
-              <UButton
-                size="sm"
-                icon="i-heroicons-clipboard-document"
-                @click="copyKey(createdKey.key)"
-              >
-                Copy
-              </UButton>
+            <div v-if="createdKey" class="created-key-display">
+              <div class="key-warning">
+                <UIcon name="i-heroicons-exclamation-triangle" class="warning-icon" />
+                <strong>Important:</strong> Copy your API key now. You won't be able to see it again!
+              </div>
+              <div class="key-display">
+                <code>{{ createdKey.key }}</code>
+                <UButton
+                  size="sm"
+                  icon="i-heroicons-clipboard-document"
+                  @click="copyKey(createdKey.key)"
+                >
+                  Copy
+                </UButton>
+              </div>
             </div>
           </div>
-        </div>
 
-        <template #footer>
-          <div class="modal-actions">
-            <UButton v-if="createdKey" @click="closeCreateKeyModal">
-              Done
-            </UButton>
-            <template v-else>
-              <UButton variant="ghost" @click="showCreateKeyModal = false">
+          <template #footer>
+            <div class="modal-actions">
+              <UButton v-if="createdKey" @click="closeCreateKeyModal">
+                Done
+              </UButton>
+              <template v-else>
+                <UButton variant="ghost" @click="showCreateKeyModal = false">
+                  Cancel
+                </UButton>
+                <UButton
+                  color="primary"
+                  :loading="saving"
+                  :disabled="!newKeyName"
+                  @click="handleCreateKey"
+                >
+                  Create API Key
+                </UButton>
+              </template>
+            </div>
+          </template>
+        </UCard>
+      </template>
+    </UModal>
+
+    <!-- Create Webhook Modal -->
+    <UModal v-model:open="showCreateWebhookModal">
+      <template #content>
+        <UCard>
+          <template #header>
+            <h3 class="modal-title">Add Webhook Endpoint</h3>
+          </template>
+
+          <div class="modal-content">
+            <UFormGroup
+              label="Endpoint URL"
+              required
+              help="The URL where events will be sent"
+            >
+              <UInput
+                v-model="webhookForm.url"
+                size="lg"
+                type="url"
+                placeholder="https://api.yourapp.com/webhooks"
+                class="w-full"
+              />
+            </UFormGroup>
+
+            <UFormGroup label="Events to Subscribe" required>
+              <div class="event-checkboxes">
+                <label
+                  v-for="event in availableEvents"
+                  :key="event.name"
+                  class="event-checkbox"
+                >
+                  <input
+                    v-model="webhookForm.events"
+                    type="checkbox"
+                    :value="event.name"
+                    class="checkbox-input"
+                  />
+                  <div class="checkbox-content">
+                    <UIcon :name="event.icon" class="checkbox-icon" />
+                    <div>
+                      <span class="checkbox-label">{{ event.name }}</span>
+                      <span class="checkbox-description">{{ event.description }}</span>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </UFormGroup>
+          </div>
+
+          <template #footer>
+            <div class="modal-actions">
+              <UButton variant="ghost" @click="showCreateWebhookModal = false">
                 Cancel
               </UButton>
               <UButton
                 color="primary"
                 :loading="saving"
-                :disabled="!newKeyName"
-                @click="handleCreateKey"
+                :disabled="!webhookForm.url || webhookForm.events.length === 0"
+                @click="handleCreateWebhook"
               >
-                Create API Key
+                Add Endpoint
               </UButton>
-            </template>
-          </div>
-        </template>
-      </UCard>
-    </UModal>
-
-    <!-- Create Webhook Modal -->
-    <UModal v-model:open="showCreateWebhookModal">
-      <UCard>
-        <template #header>
-          <h3 class="modal-title">Add Webhook Endpoint</h3>
-        </template>
-
-        <div class="modal-content">
-          <UFormGroup
-            label="Endpoint URL"
-            required
-            help="The URL where events will be sent"
-          >
-            <UInput
-              v-model="webhookForm.url"
-              size="lg"
-              type="url"
-              placeholder="https://api.yourapp.com/webhooks"
-              class="w-full"
-            />
-          </UFormGroup>
-
-          <UFormGroup label="Events to Subscribe" required>
-            <div class="event-checkboxes">
-              <label
-                v-for="event in availableEvents"
-                :key="event.name"
-                class="event-checkbox"
-              >
-                <input
-                  v-model="webhookForm.events"
-                  type="checkbox"
-                  :value="event.name"
-                  class="checkbox-input"
-                />
-                <div class="checkbox-content">
-                  <UIcon :name="event.icon" class="checkbox-icon" />
-                  <div>
-                    <span class="checkbox-label">{{ event.name }}</span>
-                    <span class="checkbox-description">{{ event.description }}</span>
-                  </div>
-                </div>
-              </label>
             </div>
-          </UFormGroup>
-        </div>
-
-        <template #footer>
-          <div class="modal-actions">
-            <UButton variant="ghost" @click="showCreateWebhookModal = false">
-              Cancel
-            </UButton>
-            <UButton
-              color="primary"
-              :loading="saving"
-              :disabled="!webhookForm.url || webhookForm.events.length === 0"
-              @click="handleCreateWebhook"
-            >
-              Add Endpoint
-            </UButton>
-          </div>
-        </template>
-      </UCard>
+          </template>
+        </UCard>
+      </template>
     </UModal>
 
     <!-- Delete API Key Confirmation Modal -->
     <UModal v-model:open="showDeleteKeyModal">
-      <UCard>
-        <template #header>
-          <div class="modal-header">
-            <UIcon name="i-heroicons-exclamation-triangle" class="modal-icon" />
-            <h3 class="modal-title">Delete API Key?</h3>
-          </div>
-        </template>
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="modal-header">
+              <UIcon name="i-heroicons-exclamation-triangle" class="modal-icon" />
+              <h3 class="modal-title">Delete API Key?</h3>
+            </div>
+          </template>
 
-        <div class="modal-content">
-          <p class="modal-text">
-            Are you sure you want to delete <strong>{{ selectedKey?.name }}</strong>?
-            This action cannot be undone and any applications using this key will stop working immediately.
-          </p>
-        </div>
-
-        <template #footer>
-          <div class="modal-actions">
-            <UButton variant="ghost" @click="showDeleteKeyModal = false">
-              Cancel
-            </UButton>
-            <UButton
-              color="error"
-              :loading="saving"
-              @click="deleteKey"
-            >
-              Delete API Key
-            </UButton>
+          <div class="modal-content">
+            <p class="modal-text">
+              Are you sure you want to delete <strong>{{ selectedKey?.name }}</strong>?
+              This action cannot be undone and any applications using this key will stop working immediately.
+            </p>
           </div>
-        </template>
-      </UCard>
+
+          <template #footer>
+            <div class="modal-actions">
+              <UButton variant="ghost" @click="showDeleteKeyModal = false">
+                Cancel
+              </UButton>
+              <UButton
+                color="error"
+                :loading="saving"
+                @click="deleteKey"
+              >
+                Delete API Key
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
     </UModal>
 
     <!-- Delete Webhook Confirmation Modal -->
     <UModal v-model:open="showDeleteWebhookModal">
-      <UCard>
-        <template #header>
-          <div class="modal-header">
-            <UIcon name="i-heroicons-exclamation-triangle" class="modal-icon" />
-            <h3 class="modal-title">Delete Webhook Endpoint?</h3>
-          </div>
-        </template>
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="modal-header">
+              <UIcon name="i-heroicons-exclamation-triangle" class="modal-icon" />
+              <h3 class="modal-title">Delete Webhook Endpoint?</h3>
+            </div>
+          </template>
 
-        <div class="modal-content">
-          <p class="modal-text">
-            Are you sure you want to delete the webhook endpoint
-            <code class="webhook-url-text">{{ selectedWebhook?.url }}</code>?
-            This action cannot be undone and you will stop receiving events at this endpoint.
-          </p>
-        </div>
-
-        <template #footer>
-          <div class="modal-actions">
-            <UButton variant="ghost" @click="showDeleteWebhookModal = false">
-              Cancel
-            </UButton>
-            <UButton
-              color="error"
-              :loading="saving"
-              @click="deleteWebhook"
-            >
-              Delete Endpoint
-            </UButton>
+          <div class="modal-content">
+            <p class="modal-text">
+              Are you sure you want to delete the webhook endpoint
+              <code class="webhook-url-text">{{ selectedWebhook?.url }}</code>?
+              This action cannot be undone and you will stop receiving events at this endpoint.
+            </p>
           </div>
-        </template>
-      </UCard>
+
+          <template #footer>
+            <div class="modal-actions">
+              <UButton variant="ghost" @click="showDeleteWebhookModal = false">
+                Cancel
+              </UButton>
+              <UButton
+                color="error"
+                :loading="saving"
+                @click="deleteWebhook"
+              >
+                Delete Endpoint
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
     </UModal>
   </div>
 </template>

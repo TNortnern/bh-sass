@@ -284,32 +284,34 @@
 
     <!-- Add ZIP Code Modal -->
     <UModal v-model:open="showAddZipModal">
-      <UCard>
-        <template #header>
-          <h3 class="modal-title">Add ZIP Code</h3>
-        </template>
+      <template #content>
+        <UCard>
+          <template #header>
+            <h3 class="modal-title">Add ZIP Code</h3>
+          </template>
 
-        <div class="modal-content">
-          <UFormGroup label="ZIP Code" required>
-            <UInput
-              v-model="newZipCode"
-              size="lg"
-              placeholder="78701"
-              maxlength="5"
-              class="w-full"
-            />
-          </UFormGroup>
-        </div>
-
-        <template #footer>
-          <div class="modal-actions">
-            <UButton variant="ghost" @click="showAddZipModal = false">
-              Cancel
-            </UButton>
-            <UButton color="primary" @click="addZipCode">Add ZIP Code</UButton>
+          <div class="modal-content">
+            <UFormGroup label="ZIP Code" required>
+              <UInput
+                v-model="newZipCode"
+                size="lg"
+                placeholder="78701"
+                maxlength="5"
+                class="w-full"
+              />
+            </UFormGroup>
           </div>
-        </template>
-      </UCard>
+
+          <template #footer>
+            <div class="modal-actions">
+              <UButton variant="ghost" @click="showAddZipModal = false">
+                Cancel
+              </UButton>
+              <UButton color="primary" @click="addZipCode">Add ZIP Code</UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
     </UModal>
   </div>
 </template>

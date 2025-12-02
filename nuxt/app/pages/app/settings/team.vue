@@ -200,96 +200,100 @@
 
     <!-- Invite Member Modal -->
     <UModal v-model:open="showInviteModal">
-      <UCard>
-        <template #header>
-          <h3 class="modal-title">Invite Team Member</h3>
-        </template>
+      <template #content>
+        <UCard>
+          <template #header>
+            <h3 class="modal-title">Invite Team Member</h3>
+          </template>
 
-        <div class="modal-content">
-          <UFormGroup label="Email Address" required>
-            <UInput
-              v-model="inviteForm.email"
-              type="email"
-              size="lg"
-              placeholder="colleague@example.com"
-              class="w-full"
-            />
-          </UFormGroup>
+          <div class="modal-content">
+            <UFormGroup label="Email Address" required>
+              <UInput
+                v-model="inviteForm.email"
+                type="email"
+                size="lg"
+                placeholder="colleague@example.com"
+                class="w-full"
+              />
+            </UFormGroup>
 
-          <UFormGroup label="Role" required>
-            <div class="role-select-options">
-              <div
-                v-for="role in roles"
-                :key="role.value"
-                class="role-select-option"
-                :class="{ active: inviteForm.role === role.value }"
-                @click="inviteForm.role = role.value"
-              >
-                <div class="option-radio">
-                  <div v-if="inviteForm.role === role.value" class="radio-dot"></div>
-                </div>
-                <div class="option-icon" :class="`role-${role.value}`">
-                  <UIcon :name="role.icon" class="icon" />
-                </div>
-                <div class="option-content">
-                  <h4 class="option-name">{{ role.name }}</h4>
-                  <p class="option-description">{{ role.description }}</p>
+            <UFormGroup label="Role" required>
+              <div class="role-select-options">
+                <div
+                  v-for="role in roles"
+                  :key="role.value"
+                  class="role-select-option"
+                  :class="{ active: inviteForm.role === role.value }"
+                  @click="inviteForm.role = role.value"
+                >
+                  <div class="option-radio">
+                    <div v-if="inviteForm.role === role.value" class="radio-dot"></div>
+                  </div>
+                  <div class="option-icon" :class="`role-${role.value}`">
+                    <UIcon :name="role.icon" class="icon" />
+                  </div>
+                  <div class="option-content">
+                    <h4 class="option-name">{{ role.name }}</h4>
+                    <p class="option-description">{{ role.description }}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </UFormGroup>
-        </div>
-
-        <template #footer>
-          <div class="modal-actions">
-            <UButton variant="ghost" @click="showInviteModal = false">
-              Cancel
-            </UButton>
-            <UButton
-              color="primary"
-              :loading="saving"
-              :disabled="!inviteForm.email || !inviteForm.role"
-              @click="handleInvite"
-            >
-              Send Invitation
-            </UButton>
+            </UFormGroup>
           </div>
-        </template>
-      </UCard>
+
+          <template #footer>
+            <div class="modal-actions">
+              <UButton variant="ghost" @click="showInviteModal = false">
+                Cancel
+              </UButton>
+              <UButton
+                color="primary"
+                :loading="saving"
+                :disabled="!inviteForm.email || !inviteForm.role"
+                @click="handleInvite"
+              >
+                Send Invitation
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
     </UModal>
 
     <!-- Remove Member Modal -->
     <UModal v-model:open="showRemoveModal">
-      <UCard>
-        <template #header>
-          <div class="modal-header">
-            <UIcon name="i-heroicons-exclamation-triangle" class="modal-icon" />
-            <h3 class="modal-title">Remove Team Member?</h3>
-          </div>
-        </template>
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="modal-header">
+              <UIcon name="i-heroicons-exclamation-triangle" class="modal-icon" />
+              <h3 class="modal-title">Remove Team Member?</h3>
+            </div>
+          </template>
 
-        <div class="modal-content">
-          <p class="modal-text">
-            Are you sure you want to remove <strong>{{ selectedMember?.name }}</strong>
-            from your team? They will immediately lose access to the dashboard.
-          </p>
-        </div>
-
-        <template #footer>
-          <div class="modal-actions">
-            <UButton variant="ghost" @click="showRemoveModal = false">
-              Cancel
-            </UButton>
-            <UButton
-              color="error"
-              :loading="saving"
-              @click="confirmRemove"
-            >
-              Remove Member
-            </UButton>
+          <div class="modal-content">
+            <p class="modal-text">
+              Are you sure you want to remove <strong>{{ selectedMember?.name }}</strong>
+              from your team? They will immediately lose access to the dashboard.
+            </p>
           </div>
-        </template>
-      </UCard>
+
+          <template #footer>
+            <div class="modal-actions">
+              <UButton variant="ghost" @click="showRemoveModal = false">
+                Cancel
+              </UButton>
+              <UButton
+                color="error"
+                :loading="saving"
+                @click="confirmRemove"
+              >
+                Remove Member
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
     </UModal>
   </div>
 </template>

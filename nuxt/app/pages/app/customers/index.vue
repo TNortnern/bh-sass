@@ -318,6 +318,7 @@
               <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Total Spent</th>
               <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Last Booking</th>
               <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Tags</th>
+              <th class="text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4 w-12">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 dark:divide-slate-700/30">
@@ -407,6 +408,18 @@
                   </UBadge>
                 </div>
               </td>
+              <td class="text-sm text-gray-700 dark:text-slate-300 px-6 py-5">
+                <div class="flex justify-end" @click.stop>
+                  <UDropdownMenu :items="getCustomerActions(customer)">
+                    <UButton
+                      icon="i-lucide-more-vertical"
+                      color="neutral"
+                      variant="ghost"
+                      size="sm"
+                    />
+                  </UDropdownMenu>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -486,6 +499,47 @@
       @edit="handleEdit"
     />
 
+    <!-- Delete Confirmation Dialog -->
+    <UModal v-model:open="showDeleteDialog">
+      <UCard>
+        <template #header>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+              <Icon name="i-lucide-trash-2" class="text-red-600 dark:text-red-400 text-xl" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-200">Delete Customer</h3>
+          </div>
+        </template>
+
+        <div class="space-y-3">
+          <p class="text-gray-700 dark:text-slate-300">
+            Are you sure you want to delete
+            <strong>{{ customerToDelete?.firstName }} {{ customerToDelete?.lastName }}</strong>?
+          </p>
+          <p class="text-sm text-gray-500 dark:text-slate-400">
+            This action cannot be undone. All customer data, including booking history, will be permanently removed.
+          </p>
+        </div>
+
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <UButton
+              label="Cancel"
+              color="neutral"
+              variant="ghost"
+              @click="showDeleteDialog = false"
+            />
+            <UButton
+              label="Delete"
+              color="error"
+              icon="i-lucide-trash-2"
+              @click="confirmDelete"
+            />
+          </div>
+        </template>
+      </UCard>
+    </UModal>
+
   </div>
 </template>
 
@@ -496,7 +550,8 @@ definePageMeta({
   layout: 'dashboard'
 })
 
-const { customers, loading, total, fetchCustomers, getAllTags } = useCustomers()
+const { customers, loading, total, fetchCustomers, getAllTags, deleteCustomer } = useCustomers()
+const toast = useToast()
 
 const searchQuery = ref('')
 const showFilters = ref(false)
@@ -505,6 +560,8 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const selectedCustomer = ref<Customer | null>(null)
 const showQuickView = ref(false)
+const showDeleteDialog = ref(false)
+const customerToDelete = ref<Customer | null>(null)
 
 const sort = ref({
   column: 'name',
@@ -668,6 +725,44 @@ function getTagColor(tag: string): string {
     'SMS List': 'orange'
   }
   return colors[tag] || 'gray'
+}
+
+function getCustomerActions(customer: Customer) {
+  return [[
+    {
+      label: 'View Details',
+      icon: 'i-lucide-eye',
+      click: () => navigateTo(`/app/customers/${customer.id}`)
+    },
+    {
+      label: 'Edit Customer',
+      icon: 'i-lucide-pencil',
+      click: () => navigateTo(`/app/customers/${customer.id}/edit`)
+    },
+    {
+      label: 'Delete Customer',
+      icon: 'i-lucide-trash-2',
+      click: () => openDeleteDialog(customer)
+    }
+  ]]
+}
+
+function openDeleteDialog(customer: Customer) {
+  customerToDelete.value = customer
+  showDeleteDialog.value = true
+}
+
+async function confirmDelete() {
+  if (!customerToDelete.value) return
+
+  try {
+    await deleteCustomer(customerToDelete.value.id)
+    showDeleteDialog.value = false
+    customerToDelete.value = null
+    await loadCustomers()
+  } catch (error) {
+    console.error('Failed to delete customer:', error)
+  }
 }
 </script>
 
