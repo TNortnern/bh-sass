@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getStatusLabel, formatEnumValue } from '~/utils/formatters'
+import { format, parseISO, isToday, isFuture } from 'date-fns'
 
 definePageMeta({
   layout: 'dashboard'
@@ -14,116 +15,112 @@ const formattedDate = currentDate.toLocaleDateString('en-US', {
   day: 'numeric'
 })
 
-// Mock data for deliveries/pickups
-const todaysSchedule = [
-  {
-    id: 1,
-    type: 'delivery',
-    time: '10:00 AM',
-    customer: 'Sarah Johnson',
-    item: 'Castle Bounce House XL',
-    address: '1234 Oak Street',
-    status: 'scheduled'
-  },
-  {
-    id: 2,
-    type: 'pickup',
-    time: '2:00 PM',
-    customer: 'Mike Anderson',
-    item: 'Water Slide Combo',
-    address: '5678 Maple Avenue',
-    status: 'in-progress'
-  },
-  {
-    id: 3,
-    type: 'delivery',
-    time: '3:30 PM',
-    customer: 'Emily Davis',
-    item: 'Princess Palace Jumper',
-    address: '9012 Pine Road',
-    status: 'scheduled'
-  }
-]
+// Fetch real data from rb-payload
+const { fetchBookings, bookings, stats, isLoading } = useBookings()
+const { fetchCustomers, total: totalCustomers } = useCustomers()
 
-// Mock KPI data
-const kpiData = [
-  {
-    label: 'Revenue Today',
-    value: '$2,450',
-    change: '+12.5%',
-    trend: 'up',
-    icon: 'i-lucide-dollar-sign',
-    color: 'green'
-  },
-  {
-    label: 'Active Bookings',
-    value: '18',
-    change: '+3',
-    trend: 'up',
-    icon: 'i-lucide-calendar-check',
-    color: 'blue'
-  },
-  {
-    label: 'Utilization Rate',
-    value: '84%',
-    change: '+5.2%',
-    trend: 'up',
-    icon: 'i-lucide-activity',
-    color: 'orange'
-  },
-  {
-    label: 'New Customers',
-    value: '7',
-    change: '+2',
-    trend: 'up',
-    icon: 'i-lucide-users',
-    color: 'purple'
-  }
-]
+// Fetch data on mount
+onMounted(async () => {
+  await Promise.all([
+    fetchBookings(),
+    fetchCustomers({ limit: 100 })
+  ])
+})
 
-// Mock recent bookings
-const recentBookings = [
-  {
-    id: 'BK-1047',
-    customer: 'Jennifer Martinez',
-    date: '2025-12-05',
-    item: 'Tropical Water Slide',
-    amount: '$425',
-    status: 'confirmed'
-  },
-  {
-    id: 'BK-1046',
-    customer: 'Robert Wilson',
-    date: '2025-12-08',
-    item: 'Obstacle Course Pro',
-    amount: '$650',
-    status: 'confirmed'
-  },
-  {
-    id: 'BK-1045',
-    customer: 'Amanda Lee',
-    date: '2025-12-03',
-    item: 'Unicorn Castle',
-    amount: '$375',
-    status: 'pending'
-  },
-  {
-    id: 'BK-1044',
-    customer: 'David Brown',
-    date: '2025-12-10',
-    item: 'Superhero Combo',
-    amount: '$550',
-    status: 'confirmed'
-  },
-  {
-    id: 'BK-1043',
-    customer: 'Lisa Taylor',
-    date: '2025-12-01',
-    item: 'Party Package Deluxe',
-    amount: '$825',
-    status: 'completed'
-  }
-]
+// Get today's deliveries and pickups from real bookings
+const todaysSchedule = computed(() => {
+  const today = new Date().toISOString().split('T')[0]
+
+  return bookings.value
+    .filter(b => {
+      // Show bookings starting or ending today
+      return b.dates.start === today || b.dates.delivery === today
+    })
+    .slice(0, 5) // Limit to 5 items
+    .map(b => ({
+      id: b.id,
+      type: b.dates.delivery === today ? 'delivery' : 'pickup',
+      time: '10:00 AM', // TODO: Add delivery time to booking data
+      customer: b.customer.name,
+      item: b.item.name,
+      address: `${b.deliveryAddress.street}, ${b.deliveryAddress.city}`,
+      status: b.status === 'confirmed' ? 'scheduled' : b.status
+    }))
+})
+
+// Calculate real KPI data from bookings
+const kpiData = computed(() => {
+  const today = new Date().toISOString().split('T')[0]
+
+  // Calculate revenue today (bookings starting today)
+  const todaysBookings = bookings.value.filter(b => b.dates.start === today)
+  const revenueToday = todaysBookings.reduce((sum, b) => sum + b.payment.total, 0)
+
+  // Active bookings (confirmed or delivered)
+  const activeBookings = bookings.value.filter(
+    b => b.status === 'confirmed' || b.status === 'delivered'
+  ).length
+
+  // Calculate utilization rate (active bookings / total capacity)
+  // Assuming 20 items capacity as placeholder
+  const utilization = Math.round((activeBookings / 20) * 100)
+
+  // Count new customers (created in last 7 days)
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  const newCustomers = totalCustomers.value // TODO: Filter by creation date when available
+
+  return [
+    {
+      label: 'Total Revenue',
+      value: `$${stats.value.totalRevenue.toLocaleString()}`,
+      change: revenueToday > 0 ? `+$${revenueToday}` : '$0',
+      trend: 'up',
+      icon: 'i-lucide-dollar-sign',
+      color: 'green'
+    },
+    {
+      label: 'Active Bookings',
+      value: activeBookings.toString(),
+      change: `${stats.value.pending} pending`,
+      trend: 'up',
+      icon: 'i-lucide-calendar-check',
+      color: 'blue'
+    },
+    {
+      label: 'Total Bookings',
+      value: stats.value.total.toString(),
+      change: `${stats.value.completed} completed`,
+      trend: 'up',
+      icon: 'i-lucide-activity',
+      color: 'orange'
+    },
+    {
+      label: 'Total Customers',
+      value: totalCustomers.value.toString(),
+      change: stats.value.confirmed > 0 ? `${stats.value.confirmed} confirmed` : 'No new',
+      trend: 'up',
+      icon: 'i-lucide-users',
+      color: 'purple'
+    }
+  ]
+})
+
+// Get most recent bookings (limit to 5)
+const recentBookings = computed(() => {
+  return bookings.value
+    .slice()
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5)
+    .map(b => ({
+      id: b.bookingNumber,
+      customer: b.customer.name,
+      date: b.dates.start,
+      item: b.item.name,
+      amount: `$${b.payment.total.toFixed(0)}`,
+      status: b.status
+    }))
+})
 
 // Get status color
 const getStatusColor = (status: string) => {
@@ -157,13 +154,20 @@ const getScheduleIcon = (type: string) => {
       <p class="text-gray-600 dark:text-gray-400 mt-1">{{ formattedDate }}</p>
     </div>
 
-    <!-- KPI Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-      <UCard
-        v-for="kpi in kpiData"
-        :key="kpi.label"
-        class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
-      >
+    <!-- Loading State -->
+    <div v-if="isLoading" class="flex items-center justify-center py-12">
+      <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
+    </div>
+
+    <!-- Dashboard Content -->
+    <div v-else class="space-y-6">
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        <UCard
+          v-for="kpi in kpiData"
+          :key="kpi.label"
+          class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+        >
         <div class="flex items-start justify-between">
           <div class="flex-1">
             <p class="text-sm font-medium text-gray-600 dark:text-gray-400">{{ kpi.label }}</p>
@@ -226,7 +230,12 @@ const getScheduleIcon = (type: string) => {
           </div>
         </template>
 
-        <div class="space-y-3">
+        <div v-if="todaysSchedule.length === 0" class="py-8 text-center">
+          <UIcon name="i-lucide-calendar-x" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+          <p class="text-gray-500 dark:text-gray-400">No deliveries or pickups scheduled for today</p>
+        </div>
+
+        <div v-else class="space-y-3">
           <div
             v-for="schedule in todaysSchedule"
             :key="schedule.id"
@@ -301,7 +310,13 @@ const getScheduleIcon = (type: string) => {
           </div>
         </template>
 
-        <div class="space-y-3">
+        <div v-if="recentBookings.length === 0" class="py-8 text-center">
+          <UIcon name="i-lucide-inbox" class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+          <p class="text-gray-500 dark:text-gray-400">No bookings yet</p>
+          <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Bookings will appear here once customers start making reservations</p>
+        </div>
+
+        <div v-else class="space-y-3">
           <div
             v-for="booking in recentBookings"
             :key="booking.id"
@@ -414,5 +429,6 @@ const getScheduleIcon = (type: string) => {
         </UButton>
       </div>
     </UCard>
+    </div>
   </div>
 </template>

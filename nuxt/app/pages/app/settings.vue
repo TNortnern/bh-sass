@@ -50,7 +50,7 @@
 <script setup lang="ts">
 definePageMeta({
   layout: 'dashboard',
-  middleware: ['auth'],
+  // Remove middleware from parent - let child pages handle their own auth
 })
 
 const route = useRoute()
@@ -101,11 +101,11 @@ onMounted(() => {
 })
 
 // Redirect to profile if on base settings page
-onMounted(() => {
-  if (route.path === '/app/settings') {
-    navigateTo('/app/settings/profile')
+watch(() => route.path, (newPath) => {
+  if (newPath === '/app/settings') {
+    navigateTo('/app/settings/profile', { replace: true })
   }
-})
+}, { immediate: true })
 
 // Warn before leaving if unsaved changes
 onBeforeRouteLeave((to, from) => {

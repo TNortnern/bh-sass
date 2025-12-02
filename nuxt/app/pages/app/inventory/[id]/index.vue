@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { InventoryItem, InventoryUnit } from '~/composables/useInventory'
 import { getCategoryLabel, getStatusLabel } from '~/utils/formatters'
+import { format } from 'date-fns'
 
 definePageMeta({
   layout: 'dashboard'
@@ -8,6 +9,7 @@ definePageMeta({
 
 const route = useRoute()
 const { fetchItem, isLoading } = useInventory()
+const { fetchBookings, filteredBookings, filters, isLoading: bookingsLoading } = useBookings()
 
 const item = ref<InventoryItem | null>(null)
 const selectedImageIndex = ref(0)
@@ -18,6 +20,12 @@ onMounted(async () => {
   const result = await fetchItem(route.params.id as string)
   if (result) {
     item.value = result
+
+    // Fetch bookings for this item using rbPayloadServiceId
+    if ((result as any).rbPayloadServiceId) {
+      filters.value.itemId = (result as any).rbPayloadServiceId.toString()
+      await fetchBookings()
+    }
   }
 })
 
@@ -71,38 +79,32 @@ const tabs = [
   { key: 'stats', label: 'Statistics', icon: 'i-lucide-bar-chart-3' }
 ]
 
-// Mock booking history
-const bookingHistory = [
-  {
-    id: 'BK-1047',
-    customer: 'Jennifer Martinez',
-    date: '2025-12-05',
-    duration: '4 hours',
-    revenue: '$300',
-    status: 'confirmed'
-  },
-  {
-    id: 'BK-1042',
-    customer: 'David Thompson',
-    date: '2025-11-28',
-    duration: '8 hours',
-    revenue: '$600',
-    status: 'completed'
-  },
-  {
-    id: 'BK-1035',
-    customer: 'Sarah Williams',
-    date: '2025-11-20',
-    duration: '6 hours',
-    revenue: '$450',
-    status: 'completed'
-  }
-]
+// Computed bookings for this item
+const itemBookings = computed(() => {
+  return filteredBookings.value.map(booking => {
+    const startDate = new Date(booking.dates.start)
+    const endDate = new Date(booking.dates.end)
+    const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+
+    return {
+      id: booking.bookingNumber,
+      customer: booking.customer.name,
+      date: format(startDate, 'MMM dd, yyyy'),
+      duration: days === 1 ? '1 day' : `${days} days`,
+      revenue: `$${booking.payment.total.toFixed(2)}`,
+      status: booking.status
+    }
+  })
+})
 
 const getBookingStatusColor = (status: string) => {
   switch (status) {
+    case 'pending':
+      return 'orange'
     case 'confirmed':
       return 'green'
+    case 'delivered':
+      return 'blue'
     case 'completed':
       return 'blue'
     case 'cancelled':
@@ -566,14 +568,22 @@ const addUnit = async () => {
                 </div>
                 <div>
                   <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Booking History</h3>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">Past and upcoming reservations</p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ itemBookings.length }} {{ itemBookings.length === 1 ? 'booking' : 'bookings' }}
+                  </p>
                 </div>
               </div>
             </template>
 
-            <div class="space-y-3">
+            <!-- Loading State -->
+            <div v-if="bookingsLoading" class="flex items-center justify-center py-12">
+              <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
+            </div>
+
+            <!-- Bookings List -->
+            <div v-else-if="itemBookings.length > 0" class="space-y-3">
               <div
-                v-for="booking in bookingHistory"
+                v-for="booking in itemBookings"
                 :key="booking.id"
                 class="p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-700 transition-colors"
               >
@@ -610,13 +620,23 @@ const addUnit = async () => {
                       variant="ghost"
                       size="sm"
                       icon="i-lucide-external-link"
-                      :to="`/app/bookings/${booking.id}`"
+                      :to="`/app/bookings/${booking.id.replace('BK-', '')}`"
                     >
                       View
                     </UButton>
                   </div>
                 </div>
               </div>
+            </div>
+
+            <!-- Empty State -->
+            <div v-else class="flex flex-col items-center justify-center py-12 text-gray-500">
+              <UIcon name="i-lucide-calendar-x" class="text-6xl mb-4 text-gray-300 dark:text-gray-600" />
+              <p class="text-lg font-medium">No Bookings Yet</p>
+              <p class="text-sm text-center max-w-sm mb-6">
+                This item hasn't been booked yet. Bookings will appear here once customers start reserving this item.
+              </p>
+              <UButton icon="i-lucide-plus" label="Create Booking" :to="`/app/bookings/new?itemId=${item?.id}`" />
             </div>
           </UCard>
         </div>

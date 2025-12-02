@@ -31,6 +31,7 @@ export default defineEventHandler(async (event) => {
     const page = query.page || 1
 
     const url = `${rbPayloadUrl}/api/bookings?where[tenantId][equals]=${TENANT_ID}&limit=${limit}&page=${page}`
+    console.log(`Fetching bookings from rb-payload: ${url}`)
 
     const response = await $fetch<{ docs: any[]; totalDocs: number; totalPages: number }>(url, { headers })
 
@@ -41,11 +42,27 @@ export default defineEventHandler(async (event) => {
       totalPages: response.totalPages
     }
   } catch (error: any) {
-    console.error('Failed to fetch bookings from rb-payload:', error)
+    console.error('Failed to fetch bookings from rb-payload:', {
+      url: `${rbPayloadUrl}/api/bookings`,
+      tenantId: TENANT_ID,
+      statusCode: error.statusCode,
+      message: error.message,
+      data: error.data
+    })
+
+    // Provide helpful error messages
+    let message = 'Failed to fetch bookings'
+    if (error.statusCode === 401 || error.statusCode === 403) {
+      message = 'Authentication failed. Please check the API key configuration.'
+    } else if (error.data?.message) {
+      message = error.data.message
+    } else if (error.message) {
+      message = error.message
+    }
 
     throw createError({
       statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to fetch bookings'
+      message
     })
   }
 })
