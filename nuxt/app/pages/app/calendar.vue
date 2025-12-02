@@ -18,14 +18,16 @@ import {
   parseISO
 } from 'date-fns'
 import { getStatusLabel } from '~/utils/formatters'
+import type { Booking as BookingType } from '~/composables/useBookings'
 
 definePageMeta({
   layout: 'dashboard'
 })
 
-// Types
-interface Booking {
+// Types for calendar display
+interface CalendarBooking {
   id: string
+  bookingNumber: string
   customer: string
   item: string
   startDate: string
@@ -41,14 +43,18 @@ interface CalendarDay {
   date: Date
   isCurrentMonth: boolean
   isToday: boolean
-  bookings: Booking[]
+  bookings: CalendarBooking[]
 }
+
+// Fetch bookings from API
+const bookingsComposable = useBookings()
+const { bookings: apiBookings, isLoading, fetchBookings } = bookingsComposable
 
 // State
 const viewMode = ref<'month' | 'week' | 'day'>('month')
 const currentDate = ref(new Date())
 const selectedDate = ref<Date | null>(null)
-const selectedBooking = ref<Booking | null>(null)
+const selectedBooking = ref<CalendarBooking | null>(null)
 const isBookingModalOpen = ref(false)
 const isNewBookingModalOpen = ref(false)
 const isMobileMenuOpen = ref(false)
@@ -58,169 +64,31 @@ const selectedStatus = ref<string | null>(null)
 const selectedItem = ref<string | null>(null)
 const selectedCustomer = ref<string | null>(null)
 
-// Mock Bookings Data
-const mockBookings: Booking[] = [
-  {
-    id: 'BK-1101',
-    customer: 'Sarah Johnson',
-    item: 'Castle Bounce House XL',
-    startDate: '2025-12-01T10:00:00',
-    endDate: '2025-12-01T18:00:00',
-    status: 'confirmed',
-    amount: '$425',
-    phone: '(555) 123-4567',
-    address: '1234 Oak Street, Springfield',
-    notes: 'Birthday party for 8-year-old'
-  },
-  {
-    id: 'BK-1102',
-    customer: 'Mike Anderson',
-    item: 'Water Slide Combo',
-    startDate: '2025-12-03T09:00:00',
-    endDate: '2025-12-03T17:00:00',
-    status: 'pending',
-    amount: '$650',
-    phone: '(555) 234-5678',
-    address: '5678 Maple Avenue, Springfield'
-  },
-  {
-    id: 'BK-1103',
-    customer: 'Emily Davis',
-    item: 'Princess Palace Jumper',
-    startDate: '2025-12-05T11:00:00',
-    endDate: '2025-12-05T19:00:00',
-    status: 'confirmed',
-    amount: '$375',
-    phone: '(555) 345-6789',
-    address: '9012 Pine Road, Springfield'
-  },
-  {
-    id: 'BK-1104',
-    customer: 'Robert Wilson',
-    item: 'Obstacle Course Pro',
-    startDate: '2025-12-07T08:00:00',
-    endDate: '2025-12-07T16:00:00',
-    status: 'delivered',
-    amount: '$750',
-    phone: '(555) 456-7890',
-    address: '3456 Cedar Lane, Springfield'
-  },
-  {
-    id: 'BK-1105',
-    customer: 'Amanda Lee',
-    item: 'Unicorn Castle',
-    startDate: '2025-12-08T12:00:00',
-    endDate: '2025-12-08T20:00:00',
-    status: 'confirmed',
-    amount: '$475',
-    phone: '(555) 567-8901',
-    address: '7890 Birch Street, Springfield'
-  },
-  {
-    id: 'BK-1106',
-    customer: 'David Brown',
-    item: 'Superhero Combo',
-    startDate: '2025-12-10T10:00:00',
-    endDate: '2025-12-10T18:00:00',
-    status: 'confirmed',
-    amount: '$550',
-    phone: '(555) 678-9012',
-    address: '2345 Elm Avenue, Springfield'
-  },
-  {
-    id: 'BK-1107',
-    customer: 'Lisa Taylor',
-    item: 'Tropical Water Slide',
-    startDate: '2025-12-12T09:00:00',
-    endDate: '2025-12-12T17:00:00',
-    status: 'pending',
-    amount: '$625',
-    phone: '(555) 789-0123',
-    address: '6789 Walnut Drive, Springfield'
-  },
-  {
-    id: 'BK-1108',
-    customer: 'Jennifer Martinez',
-    item: 'Party Package Deluxe',
-    startDate: '2025-12-14T10:00:00',
-    endDate: '2025-12-14T20:00:00',
-    status: 'confirmed',
-    amount: '$925',
-    phone: '(555) 890-1234',
-    address: '4567 Spruce Court, Springfield'
-  },
-  {
-    id: 'BK-1109',
-    customer: 'Chris Thompson',
-    item: 'Sports Arena Jumper',
-    startDate: '2025-12-15T11:00:00',
-    endDate: '2025-12-15T19:00:00',
-    status: 'cancelled',
-    amount: '$400',
-    phone: '(555) 901-2345',
-    address: '8901 Ash Boulevard, Springfield',
-    notes: 'Cancelled due to weather'
-  },
-  {
-    id: 'BK-1110',
-    customer: 'Patricia Garcia',
-    item: 'Castle Bounce House XL',
-    startDate: '2025-12-17T10:00:00',
-    endDate: '2025-12-17T18:00:00',
-    status: 'confirmed',
-    amount: '$425',
-    phone: '(555) 012-3456',
-    address: '1357 Hickory Lane, Springfield'
-  },
-  {
-    id: 'BK-1111',
-    customer: 'James Wilson',
-    item: 'Pirate Ship Adventure',
-    startDate: '2025-12-20T09:00:00',
-    endDate: '2025-12-20T17:00:00',
-    status: 'pending',
-    amount: '$525',
-    phone: '(555) 123-9876',
-    address: '2468 Oak Ridge, Springfield'
-  },
-  {
-    id: 'BK-1112',
-    customer: 'Maria Rodriguez',
-    item: 'Frozen Castle Combo',
-    startDate: '2025-12-22T11:00:00',
-    endDate: '2025-12-22T19:00:00',
-    status: 'confirmed',
-    amount: '$675',
-    phone: '(555) 234-8765',
-    address: '9753 Maple Grove, Springfield'
-  },
-  {
-    id: 'BK-1113',
-    customer: 'Kevin Johnson',
-    item: 'Water Slide Combo',
-    startDate: '2025-11-28T10:00:00',
-    endDate: '2025-11-28T18:00:00',
-    status: 'completed',
-    amount: '$650',
-    phone: '(555) 345-7654',
-    address: '3579 Cedar Point, Springfield'
-  },
-  {
-    id: 'BK-1114',
-    customer: 'Michelle Brown',
-    item: 'Princess Palace Jumper',
-    startDate: '2025-11-30T12:00:00',
-    endDate: '2025-11-30T20:00:00',
-    status: 'delivered',
-    amount: '$375',
-    phone: '(555) 456-6543',
-    address: '8642 Pine Valley, Springfield'
-  }
-]
+// Fetch bookings on mount
+onMounted(() => {
+  fetchBookings()
+})
+
+// Transform API bookings to calendar format
+const calendarBookings = computed<CalendarBooking[]>(() => {
+  return apiBookings.value.map((booking: BookingType) => ({
+    id: booking.id,
+    bookingNumber: booking.bookingNumber,
+    customer: booking.customer.name,
+    item: booking.item.name,
+    startDate: booking.dates.start,
+    endDate: booking.dates.end,
+    status: booking.status,
+    amount: `$${booking.payment.total.toFixed(2)}`,
+    phone: booking.customer.phone,
+    address: `${booking.deliveryAddress.street}, ${booking.deliveryAddress.city}`,
+    notes: booking.notes.customer
+  }))
+})
 
 // Computed
 const filteredBookings = computed(() => {
-  return mockBookings.filter(booking => {
+  return calendarBookings.value.filter(booking => {
     if (selectedStatus.value && booking.status !== selectedStatus.value) return false
     if (selectedItem.value && booking.item !== selectedItem.value) return false
     if (selectedCustomer.value && booking.customer !== selectedCustomer.value) return false
@@ -252,7 +120,10 @@ const calendarDays = computed<CalendarDay[]>(() => {
     let day = startDate
     while (day <= endDate) {
       const dayBookings = filteredBookings.value.filter(booking => {
-        const bookingDate = parseISO(booking.startDate)
+        // Parse date string (format: yyyy-MM-dd or ISO)
+        const bookingDate = booking.startDate.includes('T')
+          ? parseISO(booking.startDate)
+          : parseISO(booking.startDate + 'T00:00:00')
         return isSameDay(bookingDate, day)
       })
 
@@ -272,7 +143,9 @@ const calendarDays = computed<CalendarDay[]>(() => {
     let day = weekStart
     while (day <= weekEnd) {
       const dayBookings = filteredBookings.value.filter(booking => {
-        const bookingDate = parseISO(booking.startDate)
+        const bookingDate = booking.startDate.includes('T')
+          ? parseISO(booking.startDate)
+          : parseISO(booking.startDate + 'T00:00:00')
         return isSameDay(bookingDate, day)
       })
 
@@ -287,7 +160,9 @@ const calendarDays = computed<CalendarDay[]>(() => {
     }
   } else {
     const dayBookings = filteredBookings.value.filter(booking => {
-      const bookingDate = parseISO(booking.startDate)
+      const bookingDate = booking.startDate.includes('T')
+        ? parseISO(booking.startDate)
+        : parseISO(booking.startDate + 'T00:00:00')
       return isSameDay(bookingDate, currentDate.value)
     })
 
@@ -312,7 +187,9 @@ const miniCalendarDays = computed<CalendarDay[]>(() => {
   let day = startDate
   while (day <= endDate) {
     const dayBookings = filteredBookings.value.filter(booking => {
-      const bookingDate = parseISO(booking.startDate)
+      const bookingDate = booking.startDate.includes('T')
+        ? parseISO(booking.startDate)
+        : parseISO(booking.startDate + 'T00:00:00')
       return isSameDay(bookingDate, day)
     })
 
@@ -330,11 +207,11 @@ const miniCalendarDays = computed<CalendarDay[]>(() => {
 })
 
 const uniqueItems = computed(() => {
-  return [...new Set(mockBookings.map(b => b.item))].sort()
+  return [...new Set(calendarBookings.value.map(b => b.item))].sort()
 })
 
 const uniqueCustomers = computed(() => {
-  return [...new Set(mockBookings.map(b => b.customer))].sort()
+  return [...new Set(calendarBookings.value.map(b => b.customer))].sort()
 })
 
 // Methods
@@ -556,8 +433,18 @@ const statusOptions = [
           </div>
         </UCard>
 
+        <!-- Loading State -->
+        <UCard v-if="isLoading" class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+          <div class="flex items-center justify-center py-12">
+            <div class="text-center">
+              <UIcon name="i-lucide-loader-circle" class="w-8 h-8 text-gray-400 animate-spin mx-auto mb-4" />
+              <p class="text-gray-600 dark:text-gray-400">Loading bookings...</p>
+            </div>
+          </div>
+        </UCard>
+
         <!-- Month View -->
-        <UCard v-if="viewMode === 'month'" class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 overflow-hidden">
+        <UCard v-else-if="viewMode === 'month'" class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 overflow-hidden">
           <!-- Weekday Headers -->
           <div class="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
             <div
@@ -612,10 +499,11 @@ const statusOptions = [
                   v-for="(booking, bIndex) in day.bookings.slice(0, 3)"
                   :key="booking.id"
                   @click.stop="openBookingModal(booking)"
-                  class="w-full text-left px-2 py-1 rounded text-xs font-medium truncate transition-all duration-200 hover:shadow-md"
+                  class="w-full text-left px-2 py-1 rounded text-xs font-medium transition-all duration-200 hover:shadow-md"
                   :class="getStatusBgClass(booking.status) + ' text-white'"
                 >
-                  {{ format(parseISO(booking.startDate), 'h:mm a') }} - {{ booking.customer }}
+                  <div class="font-semibold truncate">{{ booking.item }}</div>
+                  <div class="text-[10px] opacity-90 truncate">{{ booking.customer }}</div>
                 </button>
               </div>
 
@@ -632,7 +520,7 @@ const statusOptions = [
         </UCard>
 
         <!-- Week View -->
-        <UCard v-if="viewMode === 'week'" class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 overflow-hidden">
+        <UCard v-else-if="viewMode === 'week'" class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 overflow-hidden">
           <div class="grid grid-cols-7 gap-4">
             <div
               v-for="(day, index) in calendarDays"
@@ -665,9 +553,11 @@ const statusOptions = [
                   class="w-full text-left p-3 rounded-lg text-xs font-medium transition-all duration-200 hover:shadow-lg"
                   :class="getStatusBgClass(booking.status) + ' text-white'"
                 >
-                  <div class="font-semibold">{{ format(parseISO(booking.startDate), 'h:mm a') }}</div>
-                  <div class="mt-1 opacity-90">{{ booking.customer }}</div>
-                  <div class="mt-1 text-[10px] opacity-75 truncate">{{ booking.item }}</div>
+                  <div class="font-semibold truncate">{{ booking.item }}</div>
+                  <div class="mt-1 opacity-90 text-[11px]">{{ booking.customer }}</div>
+                  <div class="mt-1 text-[10px] opacity-75">
+                    {{ format(booking.startDate.includes('T') ? parseISO(booking.startDate) : parseISO(booking.startDate + 'T00:00:00'), 'MMM d') }}
+                  </div>
                 </button>
 
                 <!-- Add Booking Button -->
@@ -683,7 +573,7 @@ const statusOptions = [
         </UCard>
 
         <!-- Day View -->
-        <UCard v-if="viewMode === 'day'" class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+        <UCard v-else-if="viewMode === 'day'" class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
           <div class="space-y-3">
             <!-- Time slots with bookings -->
             <div
@@ -697,14 +587,15 @@ const statusOptions = [
                 <div class="flex-1">
                   <div class="flex items-center gap-3 mb-2">
                     <div class="text-lg font-bold">
-                      {{ format(parseISO(booking.startDate), 'h:mm a') }} - {{ format(parseISO(booking.endDate), 'h:mm a') }}
+                      {{ format(booking.startDate.includes('T') ? parseISO(booking.startDate) : parseISO(booking.startDate + 'T00:00:00'), 'MMM d, yyyy') }}
+                      <span v-if="booking.startDate !== booking.endDate"> - {{ format(booking.endDate.includes('T') ? parseISO(booking.endDate) : parseISO(booking.endDate + 'T00:00:00'), 'MMM d, yyyy') }}</span>
                     </div>
                     <UBadge :color="getStatusColor(booking.status)" variant="solid" size="sm">
                       {{ getStatusLabel(booking.status) }}
                     </UBadge>
                   </div>
-                  <div class="text-xl font-semibold mb-1">{{ booking.customer }}</div>
-                  <div class="opacity-90">{{ booking.item }}</div>
+                  <div class="text-xl font-semibold mb-1">{{ booking.item }}</div>
+                  <div class="opacity-90">{{ booking.customer }}</div>
                   <div class="flex items-center gap-2 mt-2 text-sm opacity-75">
                     <UIcon name="i-lucide-map-pin" class="w-4 h-4" />
                     {{ booking.address }}
@@ -767,7 +658,7 @@ const statusOptions = [
               <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                 <div class="flex items-center gap-1">
                   <UIcon name="i-lucide-calendar" class="w-3.5 h-3.5" />
-                  {{ format(parseISO(booking.startDate), 'MMM d, h:mm a') }}
+                  {{ format(booking.startDate.includes('T') ? parseISO(booking.startDate) : parseISO(booking.startDate + 'T00:00:00'), 'MMM d, yyyy') }}
                 </div>
                 <div class="font-semibold text-gray-900 dark:text-white">{{ booking.amount }}</div>
               </div>
@@ -945,7 +836,7 @@ const statusOptions = [
           <div class="flex items-start justify-between">
             <div>
               <h3 class="text-xl font-bold text-gray-900 dark:text-white">Booking Details</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ selectedBooking.id }}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ selectedBooking.bookingNumber }}</p>
             </div>
             <UBadge :color="getStatusColor(selectedBooking.status)" variant="subtle" size="lg">
               {{ getStatusLabel(selectedBooking.status) }}
@@ -980,10 +871,10 @@ const statusOptions = [
               Schedule
             </div>
             <p class="text-base text-gray-900 dark:text-white">
-              {{ format(parseISO(selectedBooking.startDate), 'EEEE, MMMM d, yyyy') }}
+              {{ format(selectedBooking.startDate.includes('T') ? parseISO(selectedBooking.startDate) : parseISO(selectedBooking.startDate + 'T00:00:00'), 'EEEE, MMMM d, yyyy') }}
             </p>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              {{ format(parseISO(selectedBooking.startDate), 'h:mm a') }} - {{ format(parseISO(selectedBooking.endDate), 'h:mm a') }}
+            <p v-if="selectedBooking.startDate !== selectedBooking.endDate" class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Through {{ format(selectedBooking.endDate.includes('T') ? parseISO(selectedBooking.endDate) : parseISO(selectedBooking.endDate + 'T00:00:00'), 'EEEE, MMMM d, yyyy') }}
             </p>
           </div>
 

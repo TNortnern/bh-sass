@@ -159,9 +159,22 @@ const getTimelineColor = (event: string) => {
   }
 }
 
+// Error state
+const fetchError = ref<string | null>(null)
+const isLoadingBooking = ref(true)
+
 // Load booking on mount
 onMounted(async () => {
-  await fetchBooking(bookingId)
+  isLoadingBooking.value = true
+  fetchError.value = null
+
+  const result = await fetchBooking(bookingId)
+
+  if (!result.success) {
+    fetchError.value = result.error || 'Failed to load booking'
+  }
+
+  isLoadingBooking.value = false
 })
 </script>
 
@@ -562,8 +575,46 @@ onMounted(async () => {
     </UModal>
   </div>
 
+  <!-- Error State -->
+  <div v-else-if="fetchError" class="flex flex-col items-center justify-center py-12">
+    <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mb-4">
+      <UIcon name="i-lucide-alert-circle" class="w-8 h-8 text-red-600 dark:text-red-400" />
+    </div>
+    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Failed to Load Booking</h2>
+    <p class="text-gray-600 dark:text-gray-400 mb-6 text-center max-w-md">
+      {{ fetchError }}
+    </p>
+    <div class="flex gap-3">
+      <UButton
+        color="neutral"
+        variant="outline"
+        icon="i-lucide-arrow-left"
+        @click="router.push('/app/bookings')"
+      >
+        Back to Bookings
+      </UButton>
+      <UButton
+        icon="i-lucide-refresh-cw"
+        @click="async () => {
+          isLoadingBooking = true
+          fetchError = null
+          const result = await fetchBooking(bookingId)
+          if (!result.success) {
+            fetchError = result.error || 'Failed to load booking'
+          }
+          isLoadingBooking = false
+        }"
+      >
+        Retry
+      </UButton>
+    </div>
+  </div>
+
   <!-- Loading State -->
-  <div v-else class="flex items-center justify-center py-12">
-    <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-gray-400" />
+  <div v-else-if="isLoadingBooking" class="flex items-center justify-center py-12">
+    <div class="text-center">
+      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-gray-400 mx-auto mb-3" />
+      <p class="text-sm text-gray-600 dark:text-gray-400">Loading booking details...</p>
+    </div>
   </div>
 </template>

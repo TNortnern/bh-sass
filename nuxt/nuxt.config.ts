@@ -109,6 +109,13 @@ export default defineNuxtConfig({
         'lucide:share-2',
         'lucide:printer',
         'lucide:chevron-left',
+        'lucide:alert-circle',
+        'lucide:pencil',
+        'lucide:x-circle',
+        'lucide:rotate-ccw',
+        'lucide:check-circle-2',
+        'lucide:calendar-days',
+        'lucide:plus-circle',
         // Brand icons
         'simple-icons:google'
       ],

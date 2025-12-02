@@ -25,6 +25,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    // Fetch rental item
     const response = await fetch(`${payloadUrl}/api/rental-items/${id}`, {
       headers: {
         'X-API-Key': apiKey
@@ -39,6 +40,32 @@ export default defineEventHandler(async (event) => {
     }
 
     const data = await response.json()
+
+    // Fetch inventory units for this rental item
+    const unitsResponse = await fetch(`${payloadUrl}/api/inventory-units?where[rentalItem][equals]=${id}`, {
+      headers: {
+        'X-API-Key': apiKey
+      }
+    })
+
+    let units: any[] = []
+    if (unitsResponse.ok) {
+      const unitsData = await unitsResponse.json()
+      units = (unitsData.docs || []).map((unit: any) => ({
+        id: String(unit.id),
+        serialNumber: unit.serialNumber || '',
+        barcode: unit.barcode || undefined,
+        status: unit.status || 'available',
+        condition: unit.condition || 'excellent',
+        lastRentalDate: unit.lastRentalDate || undefined,
+        maintenanceNotes: unit.notes || undefined,
+        purchaseDate: unit.purchaseDate || '',
+        purchasePrice: unit.purchasePrice || 0
+      }))
+    }
+
+    const availableUnits = units.filter(u => u.status === 'available').length
+    const totalUnits = units.length
 
     // Transform Payload format to frontend format
     return {
@@ -81,11 +108,12 @@ export default defineEventHandler(async (event) => {
         anchoringMethod: 'stakes' as const,
         setupCrew: 1
       },
-      units: [],
-      totalUnits: data.quantity || 1,
-      availableUnits: data.quantity || 1,
+      units,
+      totalUnits,
+      availableUnits,
       utilization: 0,
       revenue: { total: 0, thisMonth: 0 },
+      rbPayloadServiceId: data.rbPayloadServiceId || undefined,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt
     }

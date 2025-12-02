@@ -150,35 +150,96 @@ const openAddUnitModal = () => {
   isAddUnitModalOpen.value = true
 }
 
-const addUnit = () => {
+const isSaving = ref(false)
+const { syncToRbPayload } = useInventorySync()
+
+const addUnit = async () => {
   if (!item.value) return
   if (!newUnit.value.serialNumber || !newUnit.value.purchaseDate) {
     alert('Please fill in required fields: Serial Number and Purchase Date')
     return
   }
 
-  const unit: InventoryUnit = {
-    id: `unit-${Date.now()}`,
-    serialNumber: newUnit.value.serialNumber,
-    barcode: newUnit.value.barcode || undefined,
-    status: newUnit.value.status,
-    condition: newUnit.value.condition,
-    purchaseDate: newUnit.value.purchaseDate,
-    purchasePrice: newUnit.value.purchasePrice
+  isSaving.value = true
+
+  try {
+    // 1. Create unit in Payload CMS
+    const response = await $fetch('/api/inventory-units', {
+      method: 'POST',
+      credentials: 'include',
+      body: {
+        rentalItemId: item.value.id,
+        serialNumber: newUnit.value.serialNumber,
+        barcode: newUnit.value.barcode || undefined,
+        status: newUnit.value.status,
+        condition: newUnit.value.condition,
+        purchaseDate: newUnit.value.purchaseDate,
+        purchasePrice: newUnit.value.purchasePrice
+      }
+    })
+
+    if (response.success && response.unit) {
+      // Add unit to local state
+      if (!item.value.units) {
+        item.value.units = []
+      }
+
+      const newLocalUnit: InventoryUnit = {
+        id: response.unit.id,
+        serialNumber: response.unit.serialNumber,
+        barcode: response.unit.barcode || undefined,
+        status: response.unit.status,
+        condition: response.unit.condition,
+        purchaseDate: response.unit.purchaseDate,
+        purchasePrice: response.unit.purchasePrice
+      }
+
+      item.value.units.push(newLocalUnit)
+
+      // Update totals
+      item.value.totalUnits = item.value.units.length
+      item.value.availableUnits = item.value.units.filter(u => u.status === 'available').length
+
+      // 2. Update rental item quantity in Payload
+      const newQuantity = item.value.units.length
+      await $fetch(`/api/rental-items/${item.value.id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: {
+          quantity: newQuantity
+        }
+      })
+
+      // 3. Sync quantity to rb-payload services
+      const rentalItemForSync = {
+        id: Number(item.value.id),
+        name: item.value.name,
+        description: item.value.description,
+        category: item.value.category,
+        pricing: {
+          hourlyRate: item.value.pricing.hourly,
+          dailyRate: item.value.pricing.daily,
+          weekendRate: item.value.pricing.weekend,
+          weeklyRate: item.value.pricing.weekly
+        },
+        dimensions: item.value.specifications?.dimensions,
+        capacity: item.value.specifications?.capacity?.maxOccupants,
+        quantity: newQuantity,
+        isActive: item.value.status === 'active',
+        rbPayloadServiceId: (item.value as any).rbPayloadServiceId
+      }
+
+      await syncToRbPayload(rentalItemForSync)
+
+      // Close modal
+      isAddUnitModalOpen.value = false
+    }
+  } catch (error: any) {
+    console.error('Failed to add unit:', error)
+    alert(`Failed to add unit: ${error.message || 'Unknown error'}`)
+  } finally {
+    isSaving.value = false
   }
-
-  // Add unit to item
-  if (!item.value.units) {
-    item.value.units = []
-  }
-  item.value.units.push(unit)
-
-  // Update totals
-  item.value.totalUnits = item.value.units.length
-  item.value.availableUnits = item.value.units.filter(u => u.status === 'available').length
-
-  // Close modal
-  isAddUnitModalOpen.value = false
 }
 </script>
 
@@ -675,8 +736,8 @@ const addUnit = () => {
 
       <template #footer="{ close }">
         <div class="flex justify-end gap-2 px-6 pb-6">
-          <UButton label="Cancel" color="neutral" variant="ghost" @click="close" />
-          <UButton label="Add Unit" color="primary" @click="addUnit" />
+          <UButton label="Cancel" color="neutral" variant="ghost" @click="close" :disabled="isSaving" />
+          <UButton label="Add Unit" color="primary" @click="addUnit" :loading="isSaving" :disabled="isSaving" />
         </div>
       </template>
     </UModal>

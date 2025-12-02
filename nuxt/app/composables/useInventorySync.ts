@@ -109,6 +109,7 @@ export function useInventorySync() {
   }> {
     try {
       const serviceData = rentalItemToService(item)
+      const tenantId = 6 // TODO: Get from config or context
 
       if (item.rbPayloadServiceId) {
         // UPDATE existing service
@@ -116,7 +117,10 @@ export function useInventorySync() {
           `/booking/services/${item.rbPayloadServiceId}`,
           {
             method: 'PATCH',
-            body: serviceData,
+            body: {
+              ...serviceData,
+              tenantId
+            },
           }
         )
         return {
@@ -129,7 +133,10 @@ export function useInventorySync() {
           '/booking/services',
           {
             method: 'POST',
-            body: serviceData,
+            body: {
+              ...serviceData,
+              tenantId
+            },
           }
         )
         return {

@@ -147,15 +147,24 @@ export const useBookings = () => {
 
   // Transform rb-payload booking to local Booking format
   const transformRbPayloadBooking = (rbBooking: any): Booking => {
-    const customer = rbBooking.customerId || {}
-    const items = rbBooking.items || []
+    if (!rbBooking) {
+      throw new Error('Invalid booking data: booking is null or undefined')
+    }
+
+    // Handle both direct customer object and relationship ID
+    const customer = typeof rbBooking.customerId === 'object' ? rbBooking.customerId : {}
+    const items = Array.isArray(rbBooking.items) ? rbBooking.items : []
     const firstItem = items[0] || {}
+
+    // Extract metadata if available (BH-SaaS specific data)
+    const metadata = firstItem.metadata || {}
+    const deliveryAddress = metadata.deliveryAddress || rbBooking.metadata?.deliveryAddress || {}
 
     return {
       id: rbBooking.id?.toString() || '',
       bookingNumber: `BK-${rbBooking.id || ''}`,
       customer: {
-        id: customer.id?.toString() || '',
+        id: customer.id?.toString() || rbBooking.customerId?.toString() || '',
         name: customer.name || 'Unknown Customer',
         email: customer.email || '',
         phone: customer.phone || ''
@@ -163,12 +172,14 @@ export const useBookings = () => {
       item: {
         id: firstItem.serviceId?.toString() || '',
         name: firstItem.label || 'Service',
-        category: 'Bounce Houses',
+        category: metadata.category || 'Bounce Houses',
         dailyRate: firstItem.price || 0
       },
       dates: {
         start: rbBooking.startTime ? format(new Date(rbBooking.startTime), 'yyyy-MM-dd') : '',
-        end: rbBooking.endTime ? format(new Date(rbBooking.endTime), 'yyyy-MM-dd') : ''
+        end: rbBooking.endTime ? format(new Date(rbBooking.endTime), 'yyyy-MM-dd') : '',
+        delivery: rbBooking.startTime ? format(addDays(new Date(rbBooking.startTime), -1), 'yyyy-MM-dd') : undefined,
+        pickup: rbBooking.endTime ? format(addDays(new Date(rbBooking.endTime), 1), 'yyyy-MM-dd') : undefined
       },
       status: mapRbPayloadStatus(rbBooking.status),
       paymentStatus: mapRbPayloadPaymentStatus(rbBooking.paymentStatus),
@@ -180,14 +191,16 @@ export const useBookings = () => {
         balance: rbBooking.paymentStatus === 'paid' ? 0 : rbBooking.totalPrice || 0
       },
       deliveryAddress: {
-        street: '',
-        city: '',
-        state: '',
-        zip: ''
+        street: deliveryAddress.street || 'Not specified',
+        city: deliveryAddress.city || 'Not specified',
+        state: deliveryAddress.state || 'N/A',
+        zip: deliveryAddress.zip || 'N/A',
+        instructions: deliveryAddress.instructions
       },
       addons: [],
       notes: {
-        customer: rbBooking.notes || undefined
+        customer: rbBooking.notes || metadata.customerNotes || undefined,
+        internal: metadata.internalNotes || undefined
       },
       timeline: [{
         id: '1',
@@ -230,10 +243,25 @@ export const useBookings = () => {
     try {
       const response = await $fetch<{ success: boolean; booking: any }>(`/booking/bookings/${id}`)
 
+      if (!response.success) {
+        throw new Error('API returned unsuccessful response')
+      }
+
+      if (!response.booking) {
+        throw new Error('No booking data returned from API')
+      }
+
       const booking = transformRbPayloadBooking(response.booking)
       currentBooking.value = booking
       return { success: true, data: booking }
     } catch (err: any) {
+      console.error('Error fetching booking:', {
+        id,
+        error: err.message,
+        statusCode: err.statusCode,
+        data: err.data
+      })
+
       // Fallback to finding in existing bookings or mock data
       if (import.meta.dev) {
         console.warn('Failed to fetch booking from rb-payload, checking local:', err.message)
@@ -249,7 +277,18 @@ export const useBookings = () => {
           return { success: true, data: mockBooking }
         }
       }
-      error.value = err.message || 'Failed to fetch booking'
+
+      // Extract meaningful error message
+      let errorMessage = 'Failed to fetch booking'
+      if (err.statusCode === 404) {
+        errorMessage = `Booking with ID ${id} not found`
+      } else if (err.data?.message) {
+        errorMessage = err.data.message
+      } else if (err.message) {
+        errorMessage = err.message
+      }
+
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
