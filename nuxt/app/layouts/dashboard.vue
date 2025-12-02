@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const colorMode = useColorMode()
 const route = useRoute()
+const { logout, currentUser, displayName, initials } = useAuth()
 
 // Set dark mode as default
 onMounted(() => {
@@ -40,6 +41,11 @@ const navigationItems = [
     to: '/app/customers'
   },
   {
+    label: 'Notifications',
+    icon: 'i-lucide-bell',
+    to: '/app/notifications'
+  },
+  {
     label: 'Reports',
     icon: 'i-lucide-bar-chart-3',
     to: '/app/reports'
@@ -71,10 +77,7 @@ const userDropdownItems = [
   [{
     label: 'Sign out',
     icon: 'i-lucide-log-out',
-    click: () => {
-      // Handle sign out
-      console.log('Sign out clicked')
-    }
+    click: () => logout()
   }]
 ]
 
@@ -137,17 +140,20 @@ watch(() => route.path, () => {
 
       <!-- Sidebar Footer -->
       <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-800">
-        <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-          <div class="flex-shrink-0">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold">
-              BP
+        <UDropdown :items="userDropdownItems" :popper="{ placement: 'top-start' }">
+          <button class="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold">
+                {{ initials || 'BP' }}
+              </div>
             </div>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">BouncePro Demo</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">demo@bouncepro.com</p>
-          </div>
-        </div>
+            <div class="flex-1 min-w-0 text-left">
+              <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ displayName || 'BouncePro Demo' }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ currentUser?.email || 'demo@bouncepro.com' }}</p>
+            </div>
+            <UIcon name="i-lucide-chevron-up" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+          </button>
+        </UDropdown>
       </div>
     </aside>
 
@@ -168,16 +174,9 @@ watch(() => route.path, () => {
             />
 
             <!-- Search -->
-            <UButton
-              color="neutral"
-              variant="outline"
-              size="lg"
-              class="hidden sm:flex items-center gap-2 min-w-[240px] justify-start text-gray-500 dark:text-gray-400"
-            >
-              <UIcon name="i-lucide-search" class="w-4 h-4" />
-              <span class="text-sm">Search...</span>
-              <UKbd class="ml-auto">Cmd+K</UKbd>
-            </UButton>
+            <div class="hidden sm:block">
+              <DashboardGlobalSearch />
+            </div>
           </div>
 
           <!-- Right: Actions -->
@@ -192,23 +191,21 @@ watch(() => route.path, () => {
             />
 
             <!-- Notifications -->
-            <UButton
-              color="neutral"
-              variant="ghost"
-              size="lg"
-              icon="i-lucide-bell"
-              class="relative"
-            >
-              <!-- Notification badge -->
-              <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full ring-2 ring-white dark:ring-gray-900" />
-            </UButton>
+            <DashboardNotificationsDropdown />
 
-            <!-- User avatar -->
-            <NuxtLink to="/app/settings/profile" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <div class="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold text-sm">
-                BP
-              </div>
-            </NuxtLink>
+            <!-- User dropdown -->
+            <UDropdown :items="userDropdownItems" :popper="{ placement: 'bottom-end' }">
+              <UButton
+                color="neutral"
+                variant="ghost"
+                size="lg"
+                class="flex items-center gap-2"
+              >
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold text-xs">
+                  {{ initials || 'BP' }}
+                </div>
+              </UButton>
+            </UDropdown>
           </div>
         </div>
       </header>

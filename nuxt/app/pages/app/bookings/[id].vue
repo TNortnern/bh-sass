@@ -16,6 +16,7 @@ const bookingId = route.params.id as string
 // Modals
 const showCancelModal = ref(false)
 const showRefundModal = ref(false)
+const showEmailModal = ref(false)
 const cancelReason = ref('')
 
 // Format currency
@@ -116,11 +117,7 @@ const handlePrint = () => {
 
 // Handle send email
 const handleSendEmail = () => {
-  toast.add({
-    title: 'Email Sent',
-    description: 'Booking confirmation sent to customer',
-    color: 'green'
-  })
+  showEmailModal.value = true
 }
 
 // Contact customer
@@ -181,7 +178,7 @@ onMounted(async () => {
 <template>
   <div v-if="currentBooking" class="space-y-6">
     <!-- Header -->
-    <div class="flex items-start justify-between gap-4">
+    <div class="flex items-start justify-between gap-4 no-print">
       <div class="flex items-center gap-4">
         <UButton
           color="neutral"
@@ -231,8 +228,14 @@ onMounted(async () => {
       </div>
     </div>
 
+    <!-- Print Header (visible only when printing) -->
+    <div class="print-only print-header">
+      <h1 class="text-2xl font-bold">{{ currentBooking.bookingNumber }}</h1>
+      <p class="text-sm text-gray-600">Created {{ formatDateTime(currentBooking.createdAt) }}</p>
+    </div>
+
     <!-- Status Actions -->
-    <div v-if="statusActions.length > 0" class="flex gap-3">
+    <div v-if="statusActions.length > 0" class="flex gap-3 no-print">
       <UButton
         v-for="action in statusActions"
         :key="action.label"
@@ -399,7 +402,7 @@ onMounted(async () => {
       </div>
 
       <!-- Right Column -->
-      <div class="space-y-6">
+      <div class="space-y-6 print-right-column">
         <!-- Customer Information -->
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
@@ -468,7 +471,7 @@ onMounted(async () => {
         </UCard>
 
         <!-- Timeline -->
-        <UCard class="bg-white dark:bg-gray-900">
+        <UCard class="bg-white dark:bg-gray-900 no-print">
           <template #header>
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Timeline</h2>
           </template>
@@ -511,7 +514,7 @@ onMounted(async () => {
         </UCard>
 
         <!-- Actions -->
-        <UCard class="bg-white dark:bg-gray-900">
+        <UCard class="bg-white dark:bg-gray-900 no-print">
           <template #header>
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Actions</h2>
           </template>
@@ -541,6 +544,19 @@ onMounted(async () => {
         </UCard>
       </div>
     </div>
+
+    <!-- Email Modal -->
+    <BookingsEmailModal
+      v-if="currentBooking"
+      v-model:open="showEmailModal"
+      :booking="currentBooking"
+      @sent="toast.add({
+        title: 'Email Sent',
+        description: 'Email sent successfully to customer',
+        color: 'green',
+        icon: 'i-lucide-check-circle'
+      })"
+    />
 
     <!-- Cancel Modal -->
     <UModal v-model:open="showCancelModal">
@@ -618,3 +634,136 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Print Styles */
+.print-only {
+  display: none;
+}
+
+@media print {
+  /* Hide elements that shouldn't print */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print-only {
+    display: block !important;
+  }
+
+  /* Print header styling */
+  .print-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e5e7eb;
+  }
+
+  /* Remove page margins and backgrounds */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Reset layout for print */
+  .space-y-6 {
+    display: block !important;
+  }
+
+  /* Single column layout for print */
+  .grid {
+    display: block !important;
+  }
+
+  .lg\:col-span-2 {
+    width: 100% !important;
+  }
+
+  .print-right-column {
+    width: 100% !important;
+    page-break-before: auto;
+    margin-top: 2rem;
+  }
+
+  /* Card styling for print */
+  .bg-white,
+  .dark\:bg-gray-900 {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Ensure text is readable */
+  .text-gray-900,
+  .dark\:text-white {
+    color: #111827 !important;
+  }
+
+  .text-gray-600,
+  .dark\:text-gray-400 {
+    color: #4b5563 !important;
+  }
+
+  .text-gray-500 {
+    color: #6b7280 !important;
+  }
+
+  /* Badge styling for print */
+  [class*='bg-green'],
+  [class*='bg-blue'],
+  [class*='bg-yellow'],
+  [class*='bg-red'],
+  [class*='bg-orange'] {
+    border: 1px solid currentColor !important;
+    padding: 0.25rem 0.5rem;
+  }
+
+  /* Remove gradient backgrounds for print */
+  .bg-gradient-to-br {
+    background: #f3f4f6 !important;
+  }
+
+  /* Icon colors for print */
+  .text-orange-600,
+  .text-blue-600,
+  .text-green-600 {
+    color: #000 !important;
+  }
+
+  /* Ensure borders are visible */
+  .border-gray-200,
+  .dark\:border-gray-700 {
+    border-color: #e5e7eb !important;
+  }
+
+  /* Payment section emphasis */
+  .font-bold {
+    font-weight: 700 !important;
+  }
+
+  /* Remove unnecessary spacing */
+  .gap-6,
+  .gap-4 {
+    gap: 1rem !important;
+  }
+
+  /* Page breaks */
+  .space-y-6 > * {
+    page-break-inside: avoid;
+  }
+
+  /* Hover states don't apply in print */
+  button:hover,
+  .hover\:bg-gray-50 {
+    background: transparent !important;
+  }
+
+  /* Clean up rounded corners for print */
+  .rounded-lg,
+  .rounded-full {
+    border-radius: 0.5rem !important;
+  }
+}
+</style>

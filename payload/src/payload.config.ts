@@ -34,6 +34,7 @@ import {
   stripeCheckoutGetEndpoint,
   stripeWebhookEndpoint,
 } from './endpoints/stripe-endpoints'
+import { sendBookingEmail } from './endpoints/send-booking-email'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -80,6 +81,12 @@ export default buildConfig({
     stripeCheckoutGetEndpoint,
     // Stripe Webhook endpoint (must support raw body parsing)
     stripeWebhookEndpoint,
+    // Booking email endpoint
+    {
+      path: '/bookings/:id/send-email',
+      method: 'post',
+      handler: sendBookingEmail,
+    },
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

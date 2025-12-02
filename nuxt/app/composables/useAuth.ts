@@ -213,12 +213,18 @@ export const useAuth = () => {
         method: 'POST',
         credentials: 'include'
       })
+
+      toast.add({
+        title: 'Signed out',
+        description: 'You have been successfully signed out',
+        color: 'green'
+      })
     } catch {
-      // Ignore logout errors
+      // Ignore logout errors - still clear local state
     } finally {
       currentUser.value = null
       isLoading.value = false
-      navigateTo('/auth/login')
+      await navigateTo('/auth/login')
     }
   }
 

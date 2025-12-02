@@ -6,6 +6,11 @@ const props = defineProps<{
   units: InventoryUnit[]
 }>()
 
+const emit = defineEmits<{
+  (e: 'edit', unit: InventoryUnit): void
+  (e: 'delete', unit: InventoryUnit): void
+}>()
+
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'available':
@@ -73,6 +78,25 @@ const daysSinceRental = (date?: string) => {
   const days = Math.floor((Date.now() - new Date(date).getTime()) / (1000 * 60 * 60 * 24))
   return days
 }
+
+// Actions menu items
+const getActionItems = (unit: InventoryUnit) => [
+  [
+    {
+      label: 'Edit Unit',
+      icon: 'i-lucide-edit',
+      click: () => emit('edit', unit)
+    }
+  ],
+  [
+    {
+      label: 'Delete Unit',
+      icon: 'i-lucide-trash-2',
+      color: 'error' as const,
+      click: () => emit('delete', unit)
+    }
+  ]
+]
 </script>
 
 <template>
@@ -165,21 +189,24 @@ const daysSinceRental = (date?: string) => {
         </div>
 
         <!-- Right: Actions -->
-        <div class="flex flex-col gap-2">
+        <div class="flex gap-2">
           <UButton
             color="neutral"
             variant="ghost"
             size="sm"
             icon="i-lucide-edit"
             square
+            @click="emit('edit', unit)"
           />
-          <UButton
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            icon="i-lucide-more-vertical"
-            square
-          />
+          <UDropdown :items="getActionItems(unit)">
+            <UButton
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              icon="i-lucide-more-vertical"
+              square
+            />
+          </UDropdown>
         </div>
       </div>
     </div>

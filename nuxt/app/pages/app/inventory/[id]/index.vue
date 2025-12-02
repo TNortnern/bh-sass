@@ -126,6 +126,14 @@ const newUnit = ref({
   purchasePrice: 0
 })
 
+// Edit Unit Modal State
+const isEditUnitModalOpen = ref(false)
+const editingUnit = ref<InventoryUnit | null>(null)
+
+// Delete Unit Confirm Dialog State
+const isDeleteConfirmOpen = ref(false)
+const deletingUnit = ref<InventoryUnit | null>(null)
+
 const statusOptions = [
   { label: 'Available', value: 'available' },
   { label: 'Rented', value: 'rented' },
@@ -238,6 +246,12 @@ const addUnit = async () => {
 
       await syncToRbPayload(rentalItemForSync)
 
+      toast.add({
+        title: 'Unit Added',
+        description: 'The unit has been added successfully',
+        color: 'success'
+      })
+
       // Close modal
       isAddUnitModalOpen.value = false
     }
@@ -250,6 +264,159 @@ const addUnit = async () => {
     })
   } finally {
     isSaving.value = false
+  }
+}
+
+// Edit Unit
+const openEditUnitModal = (unit: InventoryUnit) => {
+  editingUnit.value = { ...unit }
+  isEditUnitModalOpen.value = true
+}
+
+const updateUnit = async () => {
+  if (!item.value || !editingUnit.value) return
+  if (!editingUnit.value.serialNumber || !editingUnit.value.purchaseDate) {
+    toast.add({
+      title: 'Missing Required Fields',
+      description: 'Please fill in Serial Number and Purchase Date',
+      color: 'warning'
+    })
+    return
+  }
+
+  isSaving.value = true
+
+  try {
+    const response = await $fetch(`/api/inventory-units/${editingUnit.value.id}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      body: {
+        serialNumber: editingUnit.value.serialNumber,
+        barcode: editingUnit.value.barcode || undefined,
+        status: editingUnit.value.status,
+        condition: editingUnit.value.condition,
+        purchaseDate: editingUnit.value.purchaseDate,
+        purchasePrice: editingUnit.value.purchasePrice
+      }
+    })
+
+    if (response.success && response.unit) {
+      // Update local state
+      const unitIndex = item.value.units?.findIndex(u => u.id === editingUnit.value?.id)
+      if (unitIndex !== undefined && unitIndex >= 0 && item.value.units) {
+        item.value.units[unitIndex] = {
+          id: response.unit.id,
+          serialNumber: response.unit.serialNumber,
+          barcode: response.unit.barcode || undefined,
+          status: response.unit.status,
+          condition: response.unit.condition,
+          purchaseDate: response.unit.purchaseDate,
+          purchasePrice: response.unit.purchasePrice
+        }
+      }
+
+      // Update availableUnits count
+      item.value.availableUnits = item.value.units.filter(u => u.status === 'available').length
+
+      toast.add({
+        title: 'Unit Updated',
+        description: 'The unit has been updated successfully',
+        color: 'success'
+      })
+
+      isEditUnitModalOpen.value = false
+      editingUnit.value = null
+    }
+  } catch (error: any) {
+    console.error('Failed to update unit:', error)
+    toast.add({
+      title: 'Failed to Update Unit',
+      description: error.data?.message || error.message || 'An unexpected error occurred',
+      color: 'error'
+    })
+  } finally {
+    isSaving.value = false
+  }
+}
+
+// Delete Unit
+const openDeleteConfirm = (unit: InventoryUnit) => {
+  deletingUnit.value = unit
+  isDeleteConfirmOpen.value = true
+}
+
+const isDeleting = ref(false)
+
+const deleteUnit = async () => {
+  if (!item.value || !deletingUnit.value) return
+
+  isDeleting.value = true
+
+  try {
+    const response = await $fetch(`/api/inventory-units/${deletingUnit.value.id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    })
+
+    if (response.success) {
+      // Remove from local state
+      if (item.value.units) {
+        item.value.units = item.value.units.filter(u => u.id !== deletingUnit.value?.id)
+      }
+
+      // Update totals
+      item.value.totalUnits = item.value.units?.length || 0
+      item.value.availableUnits = item.value.units?.filter(u => u.status === 'available').length || 0
+
+      // Update rental item quantity in Payload
+      const newQuantity = item.value.units?.length || 0
+      await $fetch(`/api/rental-items/${item.value.id}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: {
+          quantity: newQuantity
+        }
+      })
+
+      // Sync quantity to rb-payload services
+      const rentalItemForSync = {
+        id: Number(item.value.id),
+        name: item.value.name,
+        description: item.value.description,
+        category: item.value.category,
+        pricing: {
+          hourlyRate: item.value.pricing.hourly,
+          dailyRate: item.value.pricing.daily,
+          weekendRate: item.value.pricing.weekend,
+          weeklyRate: item.value.pricing.weekly
+        },
+        dimensions: item.value.specifications?.dimensions,
+        capacity: item.value.specifications?.capacity?.maxOccupants,
+        quantity: newQuantity,
+        isActive: item.value.status === 'active',
+        rbPayloadServiceId: (item.value as any).rbPayloadServiceId
+      }
+
+      await syncToRbPayload(rentalItemForSync)
+
+      toast.add({
+        title: 'Unit Deleted',
+        description: 'The unit has been deleted successfully',
+        color: 'success'
+      })
+
+      isDeleteConfirmOpen.value = false
+      deletingUnit.value = null
+    }
+  } catch (error: any) {
+    console.error('Failed to delete unit:', error)
+    toast.add({
+      title: 'Failed to Delete Unit',
+      description: error.data?.message || error.message || 'An unexpected error occurred',
+      color: 'error'
+    })
+  } finally {
+    isDeleting.value = false
   }
 }
 </script>
@@ -555,7 +722,12 @@ const addUnit = async () => {
               </div>
             </template>
 
-            <InventoryUnitsList v-if="item.units?.length" :units="item.units" />
+            <inventory-units-list
+              v-if="item.units?.length"
+              :units="item.units"
+              @edit="openEditUnitModal"
+              @delete="openDeleteConfirm"
+            />
             <div v-else class="text-center py-8">
               <UIcon name="i-lucide-box" class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
               <p class="text-gray-500 dark:text-gray-400">No units configured yet</p>
@@ -770,5 +942,63 @@ const addUnit = async () => {
         </div>
       </template>
     </UModal>
+
+    <!-- Edit Unit Modal -->
+    <UModal v-model:open="isEditUnitModalOpen" title="Edit Unit">
+      <template #body>
+        <div v-if="editingUnit" class="space-y-4 p-6">
+          <UFormField label="Serial Number" required>
+            <UInput v-model="editingUnit.serialNumber" placeholder="e.g., CBH-XL-004" class="w-full" />
+          </UFormField>
+
+          <UFormField label="Barcode">
+            <UInput v-model="editingUnit.barcode" placeholder="e.g., 123456789004" class="w-full" />
+          </UFormField>
+
+          <div class="grid grid-cols-2 gap-4">
+            <UFormField label="Status" required>
+              <USelect v-model="editingUnit.status" :items="statusOptions" class="w-full" />
+            </UFormField>
+
+            <UFormField label="Condition" required>
+              <USelect v-model="editingUnit.condition" :items="conditionOptions" class="w-full" />
+            </UFormField>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <UFormField label="Purchase Date" required>
+              <UInput v-model="editingUnit.purchaseDate" type="date" class="w-full" />
+            </UFormField>
+
+            <UFormField label="Purchase Price" required>
+              <UInput v-model.number="editingUnit.purchasePrice" type="number" placeholder="0" class="w-full">
+                <template #leading>
+                  <span class="text-gray-500">$</span>
+                </template>
+              </UInput>
+            </UFormField>
+          </div>
+        </div>
+      </template>
+
+      <template #footer="{ close }">
+        <div class="flex justify-end gap-2 px-6 pb-6">
+          <UButton label="Cancel" color="neutral" variant="ghost" @click="close" :disabled="isSaving" />
+          <UButton label="Update Unit" color="primary" @click="updateUnit" :loading="isSaving" :disabled="isSaving" />
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Delete Confirmation Dialog -->
+    <UiConfirmDialog
+      v-model:open="isDeleteConfirmOpen"
+      title="Delete Unit"
+      :message="`Are you sure you want to delete unit ${deletingUnit?.serialNumber}? This action cannot be undone.`"
+      confirm-label="Delete"
+      confirm-color="error"
+      icon="i-lucide-trash-2"
+      :loading="isDeleting"
+      @confirm="deleteUnit"
+    />
   </div>
 </template>

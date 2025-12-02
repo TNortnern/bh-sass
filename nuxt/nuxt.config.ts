@@ -116,6 +116,12 @@ export default defineNuxtConfig({
         'lucide:check-circle-2',
         'lucide:calendar-days',
         'lucide:plus-circle',
+        // Notification icons
+        'lucide:calendar-plus',
+        'lucide:calendar-check',
+        'lucide:calendar-x',
+        'lucide:check-check',
+        'lucide:chevron-up',
         // Brand icons
         'simple-icons:google'
       ],
@@ -146,7 +152,8 @@ export default defineNuxtConfig({
     // Public config (exposed to client)
     public: {
       payloadUrl: process.env.NUXT_PUBLIC_PAYLOAD_URL || 'http://localhost:3004',
-      rbPayloadUrl: process.env.NUXT_PUBLIC_RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app'
+      rbPayloadUrl: process.env.NUXT_PUBLIC_RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app',
+      rbPayloadApiKey: process.env.NUXT_PUBLIC_RB_PAYLOAD_API_KEY || 'tk_58v2xsw911d0dy5q8mrlum3r9hah05n0'
     }
   },
 

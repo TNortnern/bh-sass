@@ -589,6 +589,100 @@ export const useBookings = () => {
     }
   }
 
+  // Update booking via rb-payload
+  const updateBooking = async (id: string, updates: Partial<{
+    startDate: string
+    endDate: string
+    status: Booking['status']
+    paymentStatus: Booking['paymentStatus']
+    notes: { customer?: string; internal?: string }
+    deliveryAddress: Booking['deliveryAddress']
+    customerInfo: { name: string; email: string; phone: string }
+  }>) => {
+    const numericId = extractNumericId(id)
+    try {
+      // Prepare update payload for rb-payload
+      const updatePayload: any = {}
+
+      if (updates.startDate) {
+        updatePayload.startTime = new Date(updates.startDate).toISOString()
+      }
+      if (updates.endDate) {
+        updatePayload.endTime = new Date(updates.endDate).toISOString()
+      }
+      if (updates.status) {
+        updatePayload.status = updates.status
+      }
+      if (updates.paymentStatus) {
+        updatePayload.paymentStatus = updates.paymentStatus
+      }
+      if (updates.notes) {
+        const notesArray = [updates.notes.customer, updates.notes.internal].filter(Boolean)
+        updatePayload.notes = notesArray.join('\n\n')
+      }
+
+      // Store delivery address and customer updates in metadata
+      if (updates.deliveryAddress || updates.customerInfo) {
+        updatePayload.metadata = {}
+        if (updates.deliveryAddress) {
+          updatePayload.metadata.deliveryAddress = updates.deliveryAddress
+        }
+        if (updates.customerInfo) {
+          updatePayload.metadata.customerUpdate = updates.customerInfo
+        }
+      }
+
+      await $fetch(`/booking/bookings/${numericId}`, {
+        method: 'PATCH',
+        body: updatePayload
+      })
+
+      // Update local state
+      const booking = bookings.value.find(b => b.id === id)
+      if (booking) {
+        if (updates.startDate) booking.dates.start = updates.startDate
+        if (updates.endDate) booking.dates.end = updates.endDate
+        if (updates.status) booking.status = updates.status
+        if (updates.paymentStatus) booking.paymentStatus = updates.paymentStatus
+        if (updates.notes) {
+          if (updates.notes.customer) booking.notes.customer = updates.notes.customer
+          if (updates.notes.internal) booking.notes.internal = updates.notes.internal
+        }
+        if (updates.deliveryAddress) {
+          booking.deliveryAddress = updates.deliveryAddress
+        }
+        if (updates.customerInfo) {
+          booking.customer.name = updates.customerInfo.name
+          booking.customer.email = updates.customerInfo.email
+          booking.customer.phone = updates.customerInfo.phone
+        }
+        booking.updatedAt = new Date().toISOString()
+        booking.timeline.push({
+          id: `${Date.now()}`,
+          event: 'updated',
+          timestamp: new Date().toISOString(),
+          description: 'Booking details updated'
+        })
+      }
+
+      toast.add({
+        title: 'Booking Updated',
+        description: 'The booking has been successfully updated',
+        color: 'success'
+      })
+
+      return { success: true }
+    } catch (err: any) {
+      console.error('Failed to update booking:', err)
+      toast.add({
+        title: 'Error',
+        description: 'Failed to update booking',
+        color: 'error'
+      })
+      return { success: false, error: err.message }
+    }
+  }
+
   // Cancel booking via rb-payload
   const cancelBooking = async (id: string, reason?: string) => {
     const numericId = extractNumericId(id)
@@ -794,6 +888,7 @@ export const useBookings = () => {
     fetchBookings,
     fetchBooking,
     createBooking,
+    updateBooking,
     updateStatus,
     updatePaymentStatus,
     cancelBooking,

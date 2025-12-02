@@ -49,10 +49,6 @@ class BrevoClient {
   constructor(apiKey?: string, defaultFrom?: BrevoEmailAddress) {
     this.apiKey = apiKey || process.env.BREVO_API_KEY || ''
 
-    if (!this.apiKey) {
-      throw new Error('BREVO_API_KEY is required')
-    }
-
     this.defaultFrom = defaultFrom || {
       email: process.env.EMAIL_FROM_ADDRESS || 'noreply@bouncepro.com',
       name: process.env.EMAIL_FROM_NAME || 'BouncePro',
@@ -60,9 +56,20 @@ class BrevoClient {
   }
 
   /**
+   * Check if the client is configured
+   */
+  isConfigured(): boolean {
+    return !!this.apiKey
+  }
+
+  /**
    * Send a transactional email with custom HTML/text content
    */
   async sendTransactionalEmail(params: BrevoEmailParams): Promise<BrevoEmailResponse> {
+    if (!this.apiKey) {
+      throw new Error('BREVO_API_KEY is not configured. Please set it in your environment variables.')
+    }
+
     const payload = {
       sender: params.from || this.defaultFrom,
       to: params.to,
@@ -84,6 +91,10 @@ class BrevoClient {
    * Send an email using a Brevo template
    */
   async sendTemplateEmail(params: BrevoTemplateParams): Promise<BrevoEmailResponse> {
+    if (!this.apiKey) {
+      throw new Error('BREVO_API_KEY is not configured. Please set it in your environment variables.')
+    }
+
     const payload = {
       sender: params.from || this.defaultFrom,
       to: params.to,
