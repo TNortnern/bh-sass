@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { Access, CollectionConfig } from 'payload'
 import { getTenantId } from '../utilities/getTenantId'
 import { getAccessContext } from '../utilities/accessControl'
 
@@ -11,7 +11,7 @@ export const Availability: CollectionConfig = {
     description: 'Manage blackout dates and maintenance windows for rental items',
   },
   access: {
-    read: async ({ req }) => {
+    read: (async ({ req }) => {
       // Super admin can read all
       if (req.user?.role === 'super_admin') return true
 
@@ -33,15 +33,15 @@ export const Availability: CollectionConfig = {
           equals: true,
         },
       }
-    },
-    create: async ({ req }) => {
+    }) as Access,
+    create: (async ({ req }) => {
       if (req.user?.role === 'super_admin' || req.user?.role === 'tenant_admin') return true
 
       // API key auth can create blackouts
       const context = await getAccessContext(req)
       return context.authMethod === 'api_key'
-    },
-    update: async ({ req }) => {
+    }) as Access,
+    update: (async ({ req }) => {
       if (req.user?.role === 'super_admin') return true
 
       const context = await getAccessContext(req)
@@ -65,8 +65,8 @@ export const Availability: CollectionConfig = {
         }
       }
       return false
-    },
-    delete: async ({ req }) => {
+    }) as Access,
+    delete: (async ({ req }) => {
       if (req.user?.role === 'super_admin') return true
 
       const context = await getAccessContext(req)
@@ -90,7 +90,7 @@ export const Availability: CollectionConfig = {
         }
       }
       return false
-    },
+    }) as Access,
   },
   fields: [
     {
@@ -104,9 +104,9 @@ export const Availability: CollectionConfig = {
       hooks: {
         beforeValidate: [
           ({ req, value }) => {
-            // Auto-assign tenant for tenant admins
-            if (!value && req.user?.role === 'tenant_admin') {
-              return req.user.tenantId
+            // Auto-assign tenant for tenant admins or staff
+            if (!value && req.user && (req.user.role === 'tenant_admin' || req.user.role === 'staff')) {
+              return getTenantId(req.user)
             }
             return value
           },
