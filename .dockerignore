@@ -1,0 +1,63 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+docs/
+README*
+
+# Environment files
+.env*
+!.env.example
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+.pnpm-store/
+
+# Build artifacts
+dist/
+build/
+.next/
+.nuxt/
+.output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests
+tests/
+*.test.ts
+*.spec.ts
+coverage/
+.vitest/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Logs
+*.log
+logs/
+
+# Backup and temp
+backups/
+tmp/
+temp/
+
+# SSL certificates (generated at runtime)
+nginx/ssl/*.pem
+nginx/ssl/*.key
+
+# Docker
+docker-compose*.yml
+Dockerfile.dev
