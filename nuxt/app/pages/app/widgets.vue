@@ -17,6 +17,7 @@ definePageMeta({
 
 const toast = useToast()
 const config = useRuntimeConfig()
+const colorMode = useColorMode()
 
 // For demo purposes, use a placeholder tenant ID
 // In production, this would come from the user's session
@@ -29,12 +30,14 @@ const rbPayloadUrl = computed(() => {
 
 // Widget config editor URL (embedded from rb-payload)
 const widgetConfigUrl = computed(() => {
-  return `${rbPayloadUrl.value}/widget/config/${tenantId.value}`
+  const theme = colorMode.value === 'dark' ? 'dark' : 'light'
+  return `${rbPayloadUrl.value}/widget/config/${tenantId.value}?theme=${theme}`
 })
 
 // Direct widget link
 const directWidgetLink = computed(() => {
-  return `${rbPayloadUrl.value}/widget/${tenantId.value}`
+  const theme = colorMode.value === 'dark' ? 'dark' : 'light'
+  return `${rbPayloadUrl.value}/widget/${tenantId.value}?theme=${theme}`
 })
 
 // Listen for config updates from embedded iframe

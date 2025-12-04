@@ -88,6 +88,18 @@ export const Subscriptions: CollectionConfig = {
           label: 'Trialing',
           value: 'trialing',
         },
+        {
+          label: 'Incomplete',
+          value: 'incomplete',
+        },
+        {
+          label: 'Incomplete Expired',
+          value: 'incomplete_expired',
+        },
+        {
+          label: 'Unpaid',
+          value: 'unpaid',
+        },
       ],
       admin: {
         description: 'Subscription status',
@@ -99,6 +111,22 @@ export const Subscriptions: CollectionConfig = {
       unique: true,
       admin: {
         description: 'Stripe subscription ID',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'stripeCustomerId',
+      type: 'text',
+      admin: {
+        description: 'Stripe customer ID for the tenant',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'stripePriceId',
+      type: 'text',
+      admin: {
+        description: 'Stripe price ID for the subscription plan',
         readOnly: true,
       },
     },
@@ -128,6 +156,36 @@ export const Subscriptions: CollectionConfig = {
       defaultValue: false,
       admin: {
         description: 'Cancel subscription at end of current period',
+      },
+    },
+    {
+      name: 'canceledAt',
+      type: 'date',
+      admin: {
+        description: 'Date when subscription was canceled',
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
+    {
+      name: 'trialStart',
+      type: 'date',
+      admin: {
+        description: 'Trial period start date',
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
+    {
+      name: 'trialEnd',
+      type: 'date',
+      admin: {
+        description: 'Trial period end date',
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
       },
     },
   ],

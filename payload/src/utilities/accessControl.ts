@@ -7,6 +7,8 @@ interface AccessContext {
   role: string | null
   authMethod: 'session' | 'api_key' | null
   userId: string | null
+  scopes?: string[]
+  scopeType?: 'full_access' | 'read_only' | 'booking_management' | 'custom'
 }
 
 /**
@@ -32,12 +34,14 @@ export async function getAccessContext(req: PayloadRequest): Promise<AccessConte
   const apiKey = getApiKeyFromHeaders(req.headers)
   if (apiKey) {
     const authResult = await authenticateApiKey(apiKey, req.payload)
-    if (authResult.authenticated && authResult.tenant) {
+    if (authResult.authenticated && authResult.tenant && authResult.apiKey) {
       return {
         tenantId: authResult.tenant.id,
         role: 'api_key', // Special role for API key access
         authMethod: 'api_key',
         userId: null,
+        scopes: authResult.apiKey.scopes,
+        scopeType: authResult.apiKey.scopeType,
       }
     }
   }
@@ -182,3 +186,99 @@ export function apiAccessible(options: {
     delete: createAccessFn(options.delete, false),
   }
 }
+
+/**
+ * Check if the access context has a required scope.
+ *
+ * Scope format: {collection}:{action}
+ * Examples: 'bookings:read', 'rental-items:write', 'customers:delete'
+ *
+ * @param context - Access context from getAccessContext()
+ * @param requiredScope - The scope to check for (e.g., 'bookings:read')
+ * @returns true if the context has the required scope
+ */
+export function hasScope(context: AccessContext, requiredScope: string): boolean {
+  // Session auth always has full access (controlled by user roles)
+  if (context.authMethod === 'session') {
+    return true
+  }
+
+  // API key auth: check scopes
+  if (context.authMethod === 'api_key') {
+    // Full access scope type has all permissions
+    if (context.scopeType === 'full_access') {
+      return true
+    }
+
+    // Check if the specific scope exists in the scopes array
+    return context.scopes?.includes(requiredScope) || false
+  }
+
+  // No authentication
+  return false
+}
+
+/**
+ * Create a scope-aware access control function for API keys.
+ * This enforces scope checking for API key authentication while allowing
+ * session-based authentication to use role-based access.
+ *
+ * @param collection - Collection slug (e.g., 'bookings', 'rental-items')
+ * @param action - Action type ('read', 'write', 'delete')
+ * @param options - Additional access control options
+ * @returns Access control function
+ */
+export function scopedAccess(
+  collection: string,
+  action: 'read' | 'write' | 'delete',
+  options: {
+    allowedRoles?: string[]
+    allowPublic?: boolean
+  } = {}
+): Access {
+  return async ({ req }) => {
+    // Super admin always has full access
+    if (req.user?.role === 'super_admin') {
+      return true
+    }
+
+    const context = await getAccessContext(req)
+
+    // Check authentication
+    if (!context.authMethod) {
+      return options.allowPublic || false
+    }
+
+    // For API key auth, check scopes
+    if (context.authMethod === 'api_key') {
+      const requiredScope = `${collection}:${action}`
+
+      if (!hasScope(context, requiredScope)) {
+        return false
+      }
+    }
+
+    // For session auth, check role restrictions
+    if (context.authMethod === 'session' && options.allowedRoles?.length) {
+      if (!context.role || !options.allowedRoles.includes(context.role)) {
+        return false
+      }
+    }
+
+    // Return tenant-scoped filter
+    if (context.tenantId) {
+      return {
+        tenantId: {
+          equals: context.tenantId,
+        },
+      }
+    }
+
+    return false
+  }
+}
+
+/**
+ * Export the AccessContext type for use in other files
+ */
+export type { AccessContext }

@@ -10,13 +10,20 @@ const router = useRouter()
 const tenantSlug = route.params.tenant as string
 
 const { items, total, clear } = useCart()
+const { loadTenant, createBooking, createCheckoutSession, loading, error } = usePublicBooking()
 const customerInfo = ref<CustomerInfo | null>(null)
+const tenantData = ref<any>(null)
 
-// Redirect if cart is empty
-onMounted(() => {
+// Load tenant and redirect if cart is empty
+onMounted(async () => {
   if (items.value.length === 0) {
     router.push(`/book/${tenantSlug}`)
+    return
   }
+
+  // Load tenant for checkout
+  const loadedTenant = await loadTenant(tenantSlug)
+  tenantData.value = loadedTenant
 })
 
 const isFormValid = computed(() => {
@@ -38,32 +45,69 @@ const isFormValid = computed(() => {
 })
 
 const isProcessing = ref(false)
+const bookingError = ref<string | null>(null)
 
-const proceedToPayment = async () => {
-  if (!isFormValid.value) return
+const proceedToPayment = async (paymentType: 'deposit' | 'full' = 'deposit') => {
+  if (!isFormValid.value || !customerInfo.value) return
 
   isProcessing.value = true
+  bookingError.value = null
 
   try {
-    // In production, this would:
-    // 1. Create a booking in the database
-    // 2. Create a Stripe Checkout session
-    // 3. Redirect to Stripe Checkout
+    // Calculate payment amount
+    const paymentAmount = paymentType === 'deposit' ? depositAmount.value : total.value
 
-    // For now, simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Create booking in rb-payload
+    const booking = await createBooking({
+      customer: {
+        firstName: customerInfo.value.firstName,
+        lastName: customerInfo.value.lastName,
+        email: customerInfo.value.email,
+        phone: customerInfo.value.phone,
+        address: customerInfo.value.address
+      },
+      eventDetails: {
+        type: customerInfo.value.eventDetails.type,
+        date: items.value[0]?.startDate || new Date().toISOString(),
+        attendees: customerInfo.value.eventDetails.attendees,
+        specialInstructions: customerInfo.value.eventDetails.specialInstructions
+      },
+      items: items.value.map((item: any) => ({
+        itemId: item.itemId,
+        serviceId: item.itemId, // Use itemId as serviceId for now
+        startDate: item.startDate,
+        endDate: item.endDate,
+        quantity: item.quantity,
+        addOns: item.addOns?.map((a: any) => a.id) || []
+      })),
+      totalPrice: total.value,
+      depositAmount: depositAmount.value
+    })
 
-    // Mock booking number
-    const bookingNumber = `BH-${Date.now()}`
+    if (!booking || !booking.id) {
+      throw new Error('Failed to create booking')
+    }
+
+    // Create Stripe checkout session
+    const session = await createCheckoutSession(
+      booking.id,
+      paymentAmount,
+      customerInfo.value.email,
+      tenantSlug
+    )
+
+    if (!session || !session.url) {
+      throw new Error('Failed to create checkout session')
+    }
 
     // Clear cart
     clear()
 
-    // Redirect to confirmation page
-    router.push(`/book/${tenantSlug}/confirmation?booking=${bookingNumber}`)
-  } catch (error) {
-    console.error('Payment error:', error)
-    // Handle error - show toast notification
+    // Redirect to Stripe Checkout
+    window.location.href = session.url
+  } catch (err: any) {
+    console.error('Payment error:', err)
+    bookingError.value = err.message || 'Failed to process booking. Please try again.'
   } finally {
     isProcessing.value = false
   }
@@ -81,6 +125,17 @@ const depositAmount = computed(() => total.value * 0.5)
 
 <template>
   <div>
+    <!-- Error Alert -->
+    <div v-if="bookingError" class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+      <div class="flex items-start gap-3">
+        <UIcon name="lucide:alert-circle" class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+        <div>
+          <h3 class="font-semibold text-red-900 dark:text-red-100 mb-1">Booking Error</h3>
+          <p class="text-sm text-red-700 dark:text-red-300">{{ bookingError }}</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -130,7 +185,7 @@ const depositAmount = computed(() => total.value * 0.5)
                 size="lg"
                 :disabled="!isFormValid || isProcessing"
                 :loading="isProcessing"
-                @click="proceedToPayment"
+                @click="() => proceedToPayment('deposit')"
               >
                 Pay Deposit Now
               </UButton>
@@ -158,7 +213,7 @@ const depositAmount = computed(() => total.value * 0.5)
                 variant="outline"
                 :disabled="!isFormValid || isProcessing"
                 :loading="isProcessing"
-                @click="proceedToPayment"
+                @click="() => proceedToPayment('full')"
               >
                 Pay Full Amount
               </UButton>

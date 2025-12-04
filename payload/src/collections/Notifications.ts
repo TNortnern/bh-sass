@@ -133,9 +133,9 @@ export const Notifications: CollectionConfig = {
       hooks: {
         beforeValidate: [
           ({ req, value }) => {
-            // Auto-assign tenant for tenant admins
-            if (!value && req.user?.role === 'tenant_admin') {
-              return req.user.tenantId
+            // Auto-assign tenant for tenant admins or staff
+            if (!value && req.user && (req.user.role === 'tenant_admin' || req.user.role === 'staff')) {
+              return getTenantId(req.user)
             }
             return value
           },

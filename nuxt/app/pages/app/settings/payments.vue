@@ -1,10 +1,10 @@
 <template>
-  <div class="settings-page">
+  <div class="max-w-[1200px] mx-auto">
     <!-- Page Header -->
-    <div class="page-header">
+    <div class="flex items-center justify-between mb-8 pb-6 border-b border-gray-200 dark:border-white/[0.06]">
       <div>
-        <h2 class="section-title">Payment Settings</h2>
-        <p class="section-description">Manage Stripe integration and payout preferences</p>
+        <h2 class="text-2xl font-bold tracking-tight m-0 mb-1.5 text-gray-900 dark:text-white">Payment Settings</h2>
+        <p class="m-0 text-[0.9375rem] text-gray-600 dark:text-[#888]">Manage Stripe integration and payout preferences</p>
       </div>
       <UButton
         color="primary"
@@ -12,51 +12,51 @@
         :loading="saving"
         :disabled="!hasUnsavedChanges"
         @click="saveSettings"
-        class="save-button"
+        class="bg-gradient-to-br from-amber-400 to-amber-600 border-none text-black font-semibold tracking-tight transition-all duration-200 hover:enabled:-translate-y-px hover:enabled:shadow-[0_8px_16px_-4px_rgba(251,191,36,0.4)]"
       >
         Save Changes
       </UButton>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
+    <div v-if="loading" class="flex flex-col items-center justify-center py-16 px-8 gap-4 text-gray-600 dark:text-[#888]">
+      <div class="w-8 h-8 border-[3px] border-amber-200 dark:border-amber-500/10 border-t-amber-600 dark:border-t-amber-400 rounded-full animate-spin"></div>
       <p>Loading settings...</p>
     </div>
 
-    <div v-else-if="payments" class="settings-grid">
+    <div v-else-if="payments" class="flex flex-col gap-6">
       <!-- Stripe Connection Status -->
-      <UCard class="settings-card status-card">
+      <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 ease-out hover:border-amber-200 dark:hover:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-credit-card" class="icon" />
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[0.625rem] text-amber-600 dark:text-amber-400 shrink-0">
+              <UIcon name="i-heroicons-credit-card" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Stripe Connection</h3>
-              <p class="card-description">Accept payments from your customers</p>
+              <h3 class="text-lg font-semibold tracking-tight m-0 mb-1 text-gray-900 dark:text-white">Stripe Connection</h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">Accept payments from your customers</p>
             </div>
           </div>
         </template>
 
-        <div class="card-content">
-          <div v-if="payments.stripeConnected" class="connection-status connected">
-            <div class="status-header">
-              <div class="status-icon-wrapper">
-                <UIcon name="i-heroicons-check-circle-solid" class="status-icon" />
+        <div class="p-6">
+          <div v-if="payments.stripeConnected" class="flex flex-col gap-6">
+            <div class="flex items-start gap-5">
+              <div class="w-14 h-14 flex items-center justify-center rounded-xl bg-green-100 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 shrink-0">
+                <UIcon name="i-heroicons-check-circle-solid" class="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
-              <div class="status-info">
-                <h4 class="status-title">Connected to Stripe</h4>
-                <p class="status-description">
+              <div class="flex-1">
+                <h4 class="text-xl font-semibold m-0 mb-2 text-gray-900 dark:text-white">Connected to Stripe</h4>
+                <p class="m-0 mb-4 text-[0.9375rem] text-gray-600 dark:text-[#888] leading-relaxed">
                   Your account is connected and ready to accept payments
                 </p>
-                <div class="account-id">
-                  <span class="label">Account ID:</span>
-                  <code>{{ payments.stripeAccountId }}</code>
+                <div class="flex items-center gap-3 p-3 px-4 bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.06] rounded-lg text-sm">
+                  <span class="text-gray-500 dark:text-[#666] font-medium">Account ID:</span>
+                  <code class="text-green-600 dark:text-green-400 font-mono text-[0.8125rem] tabular-nums">{{ payments.stripeAccountId }}</code>
                 </div>
               </div>
             </div>
 
-            <div class="connection-actions">
+            <div class="flex gap-3 pt-2">
               <UButton
                 variant="outline"
                 size="lg"
@@ -76,54 +76,54 @@
               </UButton>
             </div>
 
-            <div class="connection-stats">
-              <div class="stat-item">
-                <UIcon name="i-heroicons-calendar" class="stat-icon" />
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.05] rounded-xl">
+              <div class="flex items-center gap-3">
+                <UIcon name="i-heroicons-calendar" class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
                 <div>
-                  <span class="stat-label">Last Payout</span>
-                  <span class="stat-value">{{ formatDate(payments.lastPayoutDate) }}</span>
+                  <span class="block text-[0.8125rem] text-gray-500 dark:text-[#666] mb-0.5">Last Payout</span>
+                  <span class="block text-[0.9375rem] font-semibold text-gray-800 dark:text-[#e5e5e5]">{{ formatDate(payments.lastPayoutDate) }}</span>
                 </div>
               </div>
-              <div class="stat-item">
-                <UIcon name="i-heroicons-clock" class="stat-icon" />
+              <div class="flex items-center gap-3">
+                <UIcon name="i-heroicons-clock" class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
                 <div>
-                  <span class="stat-label">Payout Schedule</span>
-                  <span class="stat-value">{{ capitalizeFirst(payments.payoutSchedule) }}</span>
+                  <span class="block text-[0.8125rem] text-gray-500 dark:text-[#666] mb-0.5">Payout Schedule</span>
+                  <span class="block text-[0.9375rem] font-semibold text-gray-800 dark:text-[#e5e5e5]">{{ capitalizeFirst(payments.payoutSchedule) }}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div v-else class="connection-status disconnected">
-            <div class="status-header">
-              <div class="status-icon-wrapper">
-                <UIcon name="i-heroicons-exclamation-circle" class="status-icon" />
+          <div v-else class="flex flex-col gap-6">
+            <div class="flex items-start gap-5">
+              <div class="w-14 h-14 flex items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 shrink-0">
+                <UIcon name="i-heroicons-exclamation-circle" class="w-8 h-8 text-amber-600 dark:text-amber-400" />
               </div>
-              <div class="status-info">
-                <h4 class="status-title">Stripe Not Connected</h4>
-                <p class="status-description">
+              <div class="flex-1">
+                <h4 class="text-xl font-semibold m-0 mb-2 text-gray-900 dark:text-white">Stripe Not Connected</h4>
+                <p class="m-0 mb-4 text-[0.9375rem] text-gray-600 dark:text-[#888] leading-relaxed">
                   Connect your Stripe account to start accepting payments from customers
                 </p>
               </div>
             </div>
 
-            <div class="connection-benefits">
-              <h5 class="benefits-title">What you'll get:</h5>
-              <ul class="benefits-list">
-                <li>
-                  <UIcon name="i-heroicons-check" class="benefit-icon" />
+            <div class="p-5 bg-amber-50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/15 rounded-xl">
+              <h5 class="text-sm font-semibold m-0 mb-3 text-amber-600 dark:text-amber-400 uppercase tracking-wider">What you'll get:</h5>
+              <ul class="m-0 p-0 list-none flex flex-col gap-2.5">
+                <li class="flex items-center gap-3 text-[0.9375rem] text-gray-800 dark:text-[#e5e5e5]">
+                  <UIcon name="i-heroicons-check" class="w-[1.125rem] h-[1.125rem] text-amber-600 dark:text-amber-400 shrink-0" />
                   Accept credit card and digital wallet payments
                 </li>
-                <li>
-                  <UIcon name="i-heroicons-check" class="benefit-icon" />
+                <li class="flex items-center gap-3 text-[0.9375rem] text-gray-800 dark:text-[#e5e5e5]">
+                  <UIcon name="i-heroicons-check" class="w-[1.125rem] h-[1.125rem] text-amber-600 dark:text-amber-400 shrink-0" />
                   Automatic payouts to your bank account
                 </li>
-                <li>
-                  <UIcon name="i-heroicons-check" class="benefit-icon" />
+                <li class="flex items-center gap-3 text-[0.9375rem] text-gray-800 dark:text-[#e5e5e5]">
+                  <UIcon name="i-heroicons-check" class="w-[1.125rem] h-[1.125rem] text-amber-600 dark:text-amber-400 shrink-0" />
                   Built-in fraud protection and security
                 </li>
-                <li>
-                  <UIcon name="i-heroicons-check" class="benefit-icon" />
+                <li class="flex items-center gap-3 text-[0.9375rem] text-gray-800 dark:text-[#e5e5e5]">
+                  <UIcon name="i-heroicons-check" class="w-[1.125rem] h-[1.125rem] text-amber-600 dark:text-amber-400 shrink-0" />
                   Detailed transaction reporting
                 </li>
               </ul>
@@ -135,7 +135,7 @@
               icon="i-heroicons-link"
               :loading="connecting"
               @click="handleConnectStripe"
-              class="connect-button"
+              class="w-full bg-gradient-to-br from-amber-400 to-amber-600 border-none text-black font-semibold text-base py-4 px-8 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_-8px_rgba(251,191,36,0.5)]"
             >
               Connect with Stripe
             </UButton>
@@ -144,56 +144,56 @@
       </UCard>
 
       <!-- Platform Fees (if connected) -->
-      <UCard v-if="payments.stripeConnected" class="settings-card">
+      <UCard v-if="payments.stripeConnected" class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 ease-out hover:border-amber-200 dark:hover:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-receipt-percent" class="icon" />
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[0.625rem] text-amber-600 dark:text-amber-400 shrink-0">
+              <UIcon name="i-heroicons-receipt-percent" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Platform Fees</h3>
-              <p class="card-description">Fees charged on each transaction</p>
+              <h3 class="text-lg font-semibold tracking-tight m-0 mb-1 text-gray-900 dark:text-white">Platform Fees</h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">Fees charged on each transaction</p>
             </div>
           </div>
         </template>
 
-        <div class="card-content">
-          <div class="fee-breakdown">
-            <div class="fee-item">
-              <div class="fee-label">
-                <span>BouncePro Platform Fee</span>
-                <span class="fee-badge">Based on your plan</span>
+        <div class="p-6">
+          <div class="flex flex-col gap-4">
+            <div class="flex items-center justify-between p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl">
+              <div class="flex flex-col gap-1">
+                <span class="text-[0.9375rem] font-semibold text-gray-800 dark:text-[#e5e5e5]">BouncePro Platform Fee</span>
+                <span class="text-[0.8125rem] text-amber-600 dark:text-amber-400 font-medium">Based on your plan</span>
               </div>
-              <div class="fee-value">{{ payments.platformFee }}%</div>
+              <div class="text-xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">{{ payments.platformFee }}%</div>
             </div>
 
-            <div class="fee-item">
-              <div class="fee-label">
-                <span>Stripe Processing Fee</span>
-                <span class="fee-note">2.9% + $0.30 per transaction</span>
+            <div class="flex items-center justify-between p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl">
+              <div class="flex flex-col gap-1">
+                <span class="text-[0.9375rem] font-semibold text-gray-800 dark:text-[#e5e5e5]">Stripe Processing Fee</span>
+                <span class="text-[0.8125rem] text-gray-500 dark:text-[#666]">2.9% + $0.30 per transaction</span>
               </div>
-              <div class="fee-value">Variable</div>
+              <div class="text-xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">Variable</div>
             </div>
           </div>
 
-          <div class="fee-example">
-            <h5 class="example-title">Example: $100 Booking</h5>
-            <div class="example-breakdown">
-              <div class="example-row">
-                <span>Booking Total</span>
-                <span class="amount">$100.00</span>
+          <div class="mt-4 p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl">
+            <h5 class="text-sm font-semibold m-0 mb-4 text-gray-600 dark:text-[#888] uppercase tracking-wider">Example: $100 Booking</h5>
+            <div class="flex flex-col gap-2.5">
+              <div class="flex justify-between items-center py-2 text-[0.9375rem]">
+                <span class="text-gray-900 dark:text-white">Booking Total</span>
+                <span class="tabular-nums font-semibold text-gray-900 dark:text-white">$100.00</span>
               </div>
-              <div class="example-row fee-row">
+              <div class="flex justify-between items-center py-2 text-[0.9375rem] text-gray-500 dark:text-[#666] pl-4 border-l-2 border-gray-200 dark:border-white/[0.05]">
                 <span>Platform Fee ({{ payments.platformFee }}%)</span>
-                <span class="amount">-${{ (100 * payments.platformFee / 100).toFixed(2) }}</span>
+                <span class="tabular-nums font-semibold">-${{ (100 * payments.platformFee / 100).toFixed(2) }}</span>
               </div>
-              <div class="example-row fee-row">
+              <div class="flex justify-between items-center py-2 text-[0.9375rem] text-gray-500 dark:text-[#666] pl-4 border-l-2 border-gray-200 dark:border-white/[0.05]">
                 <span>Stripe Fee (~3.2%)</span>
-                <span class="amount">-$3.20</span>
+                <span class="tabular-nums font-semibold">-$3.20</span>
               </div>
-              <div class="example-row total-row">
+              <div class="flex justify-between items-center mt-2 pt-4 border-t border-gray-200 dark:border-white/10 font-semibold text-green-600 dark:text-green-400 text-[1.0625rem]">
                 <span>You Receive</span>
-                <span class="amount">${{ (100 - (100 * payments.platformFee / 100) - 3.20).toFixed(2) }}</span>
+                <span class="tabular-nums">${{ (100 - (100 * payments.platformFee / 100) - 3.20).toFixed(2) }}</span>
               </div>
             </div>
           </div>
@@ -201,43 +201,44 @@
       </UCard>
 
       <!-- Payout Schedule (if connected) -->
-      <UCard v-if="payments.stripeConnected" class="settings-card">
+      <UCard v-if="payments.stripeConnected" class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 ease-out hover:border-amber-200 dark:hover:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-banknotes" class="icon" />
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[0.625rem] text-amber-600 dark:text-amber-400 shrink-0">
+              <UIcon name="i-heroicons-banknotes" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Payout Schedule</h3>
-              <p class="card-description">How often you receive payments</p>
+              <h3 class="text-lg font-semibold tracking-tight m-0 mb-1 text-gray-900 dark:text-white">Payout Schedule</h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">How often you receive payments</p>
             </div>
           </div>
         </template>
 
-        <div class="card-content">
-          <UFormGroup label="Payout Frequency" class="form-group">
-            <div class="payout-options">
+        <div class="p-6">
+          <UFormGroup label="Payout Frequency">
+            <div class="flex flex-col gap-3 mt-2">
               <div
                 v-for="schedule in payoutSchedules"
                 :key="schedule.value"
-                class="payout-option"
-                :class="{ active: payments.payoutSchedule === schedule.value }"
+                class="flex items-start gap-4 p-4 px-5 bg-white dark:bg-white/[0.02] border-2 border-gray-200 dark:border-white/[0.06] rounded-xl cursor-pointer transition-all duration-200 hover:border-amber-200 dark:hover:border-amber-500/30 hover:bg-amber-50 dark:hover:bg-amber-500/[0.03]"
+                :class="{ 'border-amber-300 dark:!border-amber-500/50 bg-amber-50 dark:!bg-amber-500/[0.08]': payments.payoutSchedule === schedule.value }"
                 @click="selectPayoutSchedule(schedule.value)"
               >
-                <div class="option-radio">
-                  <div v-if="payments.payoutSchedule === schedule.value" class="radio-dot"></div>
+                <div class="w-5 h-5 border-2 border-gray-300 dark:border-white/20 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-all duration-200"
+                     :class="{ '!border-amber-500 dark:!border-amber-400': payments.payoutSchedule === schedule.value }">
+                  <div v-if="payments.payoutSchedule === schedule.value" class="w-2.5 h-2.5 bg-amber-500 dark:bg-amber-400 rounded-full"></div>
                 </div>
-                <div class="option-content">
-                  <h4 class="option-name">{{ schedule.name }}</h4>
-                  <p class="option-description">{{ schedule.description }}</p>
+                <div class="flex-1">
+                  <h4 class="text-[0.9375rem] font-semibold m-0 mb-1 text-gray-900 dark:text-white">{{ schedule.name }}</h4>
+                  <p class="m-0 text-sm text-gray-600 dark:text-[#888]">{{ schedule.description }}</p>
                 </div>
               </div>
             </div>
           </UFormGroup>
 
-          <div class="payout-info">
-            <UIcon name="i-heroicons-information-circle" class="info-icon" />
-            <p class="info-text">
+          <div class="flex items-start gap-3 p-4 mt-4 bg-blue-50 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-500/15 rounded-lg">
+            <UIcon name="i-heroicons-information-circle" class="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+            <p class="m-0 text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
               Payouts are automatically transferred to your connected bank account.
               First payout may take 7-14 days for verification.
             </p>
@@ -251,20 +252,20 @@
       <template #content>
         <UCard>
           <template #header>
-            <div class="modal-header">
-              <UIcon name="i-heroicons-exclamation-triangle" class="modal-icon" />
-              <h3 class="modal-title">Disconnect Stripe?</h3>
+            <div class="flex items-center gap-3">
+              <UIcon name="i-heroicons-exclamation-triangle" class="w-6 h-6 text-red-600 dark:text-red-400" />
+              <h3 class="text-xl font-semibold m-0 text-gray-900 dark:text-white">Disconnect Stripe?</h3>
             </div>
           </template>
 
-          <div class="modal-content">
-            <p class="modal-text">
+          <div class="p-6 flex flex-col gap-4">
+            <p class="m-0 text-[0.9375rem] text-gray-600 dark:text-[#888] leading-relaxed">
               Are you sure you want to disconnect your Stripe account? You won't be able
               to accept new payments until you reconnect.
             </p>
-            <div class="warning-box">
-              <strong>This will:</strong>
-              <ul>
+            <div class="p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg text-sm text-red-900 dark:text-red-300">
+              <strong class="block mb-2 text-red-600 dark:text-red-400">This will:</strong>
+              <ul class="m-0 pl-5 flex flex-col gap-1">
                 <li>Stop processing of new payments</li>
                 <li>Disable automatic payouts</li>
                 <li>Require reconnection to resume payments</li>
@@ -273,7 +274,7 @@
           </div>
 
           <template #footer>
-            <div class="modal-actions">
+            <div class="flex gap-3 justify-end">
               <UButton variant="ghost" @click="showDisconnectModal = false">
                 Cancel
               </UButton>
@@ -360,598 +361,3 @@ const saveSettings = async () => {
   }
 }
 </script>
-
-<style scoped>
-.settings-page {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 0 0 0.375rem;
-  color: #ffffff;
-}
-
-.section-description {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #888;
-}
-
-.save-button {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  border: none;
-  color: #000;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  transition: all 0.2s;
-}
-
-.save-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 16px -4px rgba(251, 191, 36, 0.4);
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  gap: 1rem;
-  color: #888;
-}
-
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(251, 191, 36, 0.1);
-  border-top-color: #fbbf24;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.settings-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.settings-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 1rem;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.settings-card:hover {
-  border-color: rgba(251, 191, 36, 0.2);
-  box-shadow: 0 8px 32px -8px rgba(251, 191, 36, 0.15);
-}
-
-.status-card.connected {
-  border-color: rgba(34, 197, 94, 0.3);
-}
-
-.status-card.connected:hover {
-  border-color: rgba(34, 197, 94, 0.4);
-  box-shadow: 0 8px 32px -8px rgba(34, 197, 94, 0.2);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.card-header-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.2);
-  border-radius: 0.625rem;
-  color: #fbbf24;
-  flex-shrink: 0;
-}
-
-.icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.card-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  margin: 0 0 0.25rem;
-  color: #ffffff;
-}
-
-.card-description {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.card-content {
-  padding: 1.5rem;
-}
-
-.connection-status {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.status-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 1.25rem;
-}
-
-.status-icon-wrapper {
-  width: 3.5rem;
-  height: 3.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.75rem;
-  flex-shrink: 0;
-}
-
-.connected .status-icon-wrapper {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-}
-
-.disconnected .status-icon-wrapper {
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.3);
-}
-
-.status-icon {
-  width: 2rem;
-  height: 2rem;
-}
-
-.connected .status-icon {
-  color: #22c55e;
-}
-
-.disconnected .status-icon {
-  color: #fbbf24;
-}
-
-.status-info {
-  flex: 1;
-}
-
-.status-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem;
-  color: #ffffff;
-}
-
-.status-description {
-  margin: 0 0 1rem;
-  font-size: 0.9375rem;
-  color: #888;
-  line-height: 1.6;
-}
-
-.account-id {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.account-id .label {
-  color: #666;
-  font-weight: 500;
-}
-
-.account-id code {
-  color: #22c55e;
-  font-family: 'SF Mono', Monaco, Consolas, monospace;
-  font-size: 0.8125rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.connection-actions {
-  display: flex;
-  gap: 0.75rem;
-  padding-top: 0.5rem;
-}
-
-.connection-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 0.75rem;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.stat-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #fbbf24;
-  flex-shrink: 0;
-}
-
-.stat-label {
-  display: block;
-  font-size: 0.8125rem;
-  color: #666;
-  margin-bottom: 0.125rem;
-}
-
-.stat-value {
-  display: block;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #e5e5e5;
-}
-
-.connection-benefits {
-  padding: 1.25rem;
-  background: rgba(251, 191, 36, 0.05);
-  border: 1px solid rgba(251, 191, 36, 0.15);
-  border-radius: 0.75rem;
-}
-
-.benefits-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin: 0 0 0.75rem;
-  color: #fbbf24;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.benefits-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-}
-
-.benefits-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.9375rem;
-  color: #e5e5e5;
-}
-
-.benefit-icon {
-  width: 1.125rem;
-  height: 1.125rem;
-  color: #fbbf24;
-  flex-shrink: 0;
-}
-
-.connect-button {
-  width: 100%;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  border: none;
-  color: #000;
-  font-weight: 600;
-  font-size: 1rem;
-  padding: 1rem 2rem;
-  transition: all 0.2s;
-}
-
-.connect-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px -8px rgba(251, 191, 36, 0.5);
-}
-
-.fee-breakdown {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.fee-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
-}
-
-.fee-label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.fee-label > span:first-child {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #e5e5e5;
-}
-
-.fee-badge {
-  font-size: 0.8125rem;
-  color: #fbbf24;
-  font-weight: 500;
-}
-
-.fee-note {
-  font-size: 0.8125rem;
-  color: #666;
-}
-
-.fee-value {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #fbbf24;
-  font-variant-numeric: tabular-nums;
-}
-
-.fee-example {
-  margin-top: 1rem;
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
-}
-
-.example-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin: 0 0 1rem;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.example-breakdown {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-}
-
-.example-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-  font-size: 0.9375rem;
-}
-
-.example-row.fee-row {
-  color: #666;
-  padding-left: 1rem;
-  border-left: 2px solid rgba(255, 255, 255, 0.05);
-}
-
-.example-row.total-row {
-  margin-top: 0.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  font-weight: 600;
-  color: #22c55e;
-  font-size: 1.0625rem;
-}
-
-.amount {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-}
-
-.payout-options {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-.payout-option {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 2px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.payout-option:hover {
-  border-color: rgba(251, 191, 36, 0.3);
-  background: rgba(251, 191, 36, 0.03);
-}
-
-.payout-option.active {
-  border-color: rgba(251, 191, 36, 0.5);
-  background: rgba(251, 191, 36, 0.08);
-}
-
-.option-radio {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 0.125rem;
-  transition: all 0.2s;
-}
-
-.payout-option.active .option-radio {
-  border-color: #fbbf24;
-}
-
-.radio-dot {
-  width: 10px;
-  height: 10px;
-  background: #fbbf24;
-  border-radius: 50%;
-}
-
-.option-content {
-  flex: 1;
-}
-
-.option-name {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  margin: 0 0 0.25rem;
-  color: #ffffff;
-}
-
-.option-description {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #888;
-}
-
-.payout-info {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
-  margin-top: 1rem;
-  background: rgba(59, 130, 246, 0.05);
-  border: 1px solid rgba(59, 130, 246, 0.15);
-  border-radius: 0.5rem;
-}
-
-.info-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #3b82f6;
-  flex-shrink: 0;
-  margin-top: 0.125rem;
-}
-
-.info-text {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #93c5fd;
-  line-height: 1.5;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.modal-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: #ef4444;
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-  color: #ffffff;
-}
-
-.modal-content {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.modal-text {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #888;
-  line-height: 1.6;
-}
-
-.warning-box {
-  padding: 1rem;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  color: #fca5a5;
-}
-
-.warning-box strong {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #ef4444;
-}
-
-.warning-box ul {
-  margin: 0;
-  padding-left: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-}
-
-@media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .connection-actions {
-    flex-direction: column;
-  }
-
-  .connection-stats {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

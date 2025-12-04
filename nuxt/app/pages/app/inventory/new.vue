@@ -5,6 +5,26 @@ definePageMeta({
 
 const { createItem, isLoading } = useInventory()
 const router = useRouter()
+const toast = useToast()
+const { setBreadcrumbs } = useBreadcrumbs()
+
+// Set breadcrumbs for new inventory page
+onMounted(() => {
+  setBreadcrumbs([
+    {
+      label: 'Dashboard',
+      to: '/app',
+      icon: 'i-lucide-home'
+    },
+    {
+      label: 'Inventory',
+      to: '/app/inventory'
+    },
+    {
+      label: 'New Item'
+    }
+  ])
+})
 
 const currentStep = ref(1)
 const totalSteps = 4
@@ -118,27 +138,45 @@ const previousStep = () => {
 }
 
 const handleSubmit = async () => {
-  const result = await createItem({
-    name: formData.value.name,
-    category: formData.value.category as any,
-    description: formData.value.description,
-    images: formData.value.images,
-    specifications: {
-      dimensions: formData.value.dimensions,
-      weight: formData.value.weight,
-      capacity: formData.value.capacity,
-      ageRange: formData.value.ageRange,
-      setupTime: formData.value.setupTime,
-      requiredSpace: formData.value.requiredSpace
-    },
-    pricing: formData.value.pricing,
-    setupRequirements: formData.value.setupRequirements,
-    status: formData.value.status as any
-  })
+  try {
+    const result = await createItem({
+      name: formData.value.name,
+      category: formData.value.category as any,
+      description: formData.value.description,
+      images: formData.value.images,
+      specifications: {
+        dimensions: formData.value.dimensions,
+        weight: formData.value.weight,
+        capacity: formData.value.capacity,
+        ageRange: formData.value.ageRange,
+        setupTime: formData.value.setupTime,
+        requiredSpace: formData.value.requiredSpace
+      },
+      pricing: formData.value.pricing,
+      setupRequirements: formData.value.setupRequirements,
+      status: formData.value.status as any
+    })
 
-  if (result.success) {
-    // Navigate to inventory list with success message
-    router.push('/app/inventory')
+    if (result.success) {
+      toast.add({
+        title: 'Item Created',
+        description: `${formData.value.name} has been added to your inventory`,
+        color: 'success',
+      })
+      router.push('/app/inventory')
+    } else {
+      toast.add({
+        title: 'Failed to Create Item',
+        description: result.error || 'An unexpected error occurred',
+        color: 'error',
+      })
+    }
+  } catch (error: any) {
+    toast.add({
+      title: 'Error',
+      description: error.message || 'Failed to create inventory item',
+      color: 'error',
+    })
   }
 }
 

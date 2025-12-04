@@ -6,55 +6,73 @@ definePageMeta({
 })
 
 const route = useRoute()
+const router = useRouter()
 const tenantSlug = route.params.tenant as string
-const bookingNumber = route.query.booking as string
+const bookingId = route.query.booking as string
 
-// Redirect if no booking number
-onMounted(() => {
-  if (!bookingNumber) {
-    navigateTo(`/book/${tenantSlug}`)
+const { loadTenant, getBookingDetails, loading, error } = usePublicBooking()
+
+const booking = ref<any>(null)
+const tenant = ref<any>(null)
+
+// Load booking details on mount
+onMounted(async () => {
+  if (!bookingId) {
+    router.push(`/book/${tenantSlug}`)
+    return
   }
-})
 
-// Mock booking data - in production, this would be fetched from API
-const booking = ref({
-  number: bookingNumber,
-  status: 'confirmed',
-  createdAt: new Date().toISOString(),
-  customer: {
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john@example.com',
-    phone: '(555) 123-4567'
-  },
-  items: [
-    {
-      name: 'Princess Castle',
-      startDate: '2025-12-15',
-      endDate: '2025-12-15',
-      price: 199,
-      quantity: 1,
-      addOns: [
-        { name: 'Cotton Candy Machine', price: 49 }
-      ]
-    }
-  ],
-  address: {
-    street: '123 Main St',
-    city: 'Austin',
-    state: 'TX',
-    zip: '78701'
-  },
-  eventType: 'Birthday Party',
-  total: 320.50,
-  depositPaid: 160.25,
-  balanceDue: 160.25
-})
+  // Load tenant
+  const loadedTenant = await loadTenant(tenantSlug)
+  if (!loadedTenant) {
+    router.push('/404')
+    return
+  }
 
-const tenant = ref({
-  name: 'Acme Party Rentals',
-  phone: '(555) 123-4567',
-  email: 'bookings@acmerentals.com'
+  tenant.value = {
+    name: loadedTenant.name,
+    phone: loadedTenant.businessInfo?.phone || '',
+    email: loadedTenant.businessInfo?.email || ''
+  }
+
+  // Load booking details
+  const loadedBooking = await getBookingDetails(bookingId)
+
+  if (!loadedBooking) {
+    router.push(`/book/${tenantSlug}`)
+    return
+  }
+
+  // Map booking data to display format
+  booking.value = {
+    number: loadedBooking.id,
+    status: loadedBooking.status,
+    createdAt: loadedBooking.createdAt || new Date().toISOString(),
+    customer: {
+      firstName: loadedBooking.customer?.firstName || '',
+      lastName: loadedBooking.customer?.lastName || '',
+      email: loadedBooking.customer?.email || '',
+      phone: loadedBooking.customer?.phone || ''
+    },
+    items: loadedBooking.items?.map((item: any) => ({
+      name: item.label || 'Rental Item',
+      startDate: loadedBooking.startTime,
+      endDate: loadedBooking.endTime,
+      price: item.price || 0,
+      quantity: item.metadata?.quantity || 1,
+      addOns: item.metadata?.addOns || []
+    })) || [],
+    address: loadedBooking.items?.[0]?.metadata?.deliveryAddress || {
+      street: '',
+      city: '',
+      state: '',
+      zip: ''
+    },
+    eventType: loadedBooking.items?.[0]?.metadata?.eventType || 'Event',
+    total: loadedBooking.totalPrice || 0,
+    depositPaid: (loadedBooking.totalPrice || 0) * 0.5,
+    balanceDue: (loadedBooking.totalPrice || 0) * 0.5
+  }
 })
 
 const formatCurrency = (amount: number) => {
@@ -133,8 +151,26 @@ const printBooking = () => {
 
 <template>
   <div class="max-w-3xl mx-auto">
-    <!-- Success Message -->
-    <div class="text-center mb-8">
+    <!-- Loading State -->
+    <div v-if="loading || !booking" class="flex items-center justify-center py-16">
+      <div class="text-center">
+        <UIcon name="lucide:loader-circle" class="w-12 h-12 text-orange-600 animate-spin mx-auto mb-4" />
+        <p class="text-gray-600 dark:text-gray-400">Loading booking details...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="text-center py-16">
+      <UIcon name="lucide:alert-circle" class="w-16 h-16 text-red-600 mx-auto mb-4" />
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Booking Not Found</h2>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">{{ error }}</p>
+      <UButton @click="() => router.push(`/book/${tenantSlug}`)">Back to Rentals</UButton>
+    </div>
+
+    <!-- Content -->
+    <div v-else>
+      <!-- Success Message -->
+      <div class="text-center mb-8">
       <div class="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
         <UIcon name="lucide:check-circle" class="w-10 h-10 text-green-600 dark:text-green-500" />
       </div>
@@ -153,20 +189,20 @@ const printBooking = () => {
     <!-- Action Buttons -->
     <div class="flex flex-wrap gap-3 justify-center mb-8">
       <UDropdownMenu :items="[[
-        { label: 'Google Calendar', icon: 'lucide:calendar', click: () => addToCalendar('google') },
-        { label: 'Apple Calendar', icon: 'lucide:calendar', click: () => addToCalendar('apple') },
-        { label: 'Outlook', icon: 'lucide:calendar', click: () => addToCalendar('outlook') }
+        { label: 'Google Calendar', icon: 'i-lucide-calendar', onSelect: () => addToCalendar('google') },
+        { label: 'Apple Calendar', icon: 'i-lucide-calendar', onSelect: () => addToCalendar('apple') },
+        { label: 'Outlook', icon: 'i-lucide-calendar', onSelect: () => addToCalendar('outlook') }
       ]]">
-        <UButton color="neutral" variant="outline" icon="lucide:calendar-plus">
+        <UButton color="neutral" variant="outline" icon="i-lucide-calendar-plus">
           Add to Calendar
         </UButton>
       </UDropdownMenu>
 
-      <UButton color="neutral" variant="outline" icon="lucide:share-2" @click="shareBooking">
+      <UButton color="neutral" variant="outline" icon="i-lucide-share-2" @click="shareBooking">
         Share
       </UButton>
 
-      <UButton color="neutral" variant="outline" icon="lucide:printer" @click="printBooking">
+      <UButton color="neutral" variant="outline" icon="i-lucide-printer" @click="printBooking">
         Print
       </UButton>
     </div>
@@ -369,6 +405,7 @@ const printBooking = () => {
           </UButton>
         </NuxtLink>
       </div>
+    </div>
     </div>
   </div>
 </template>

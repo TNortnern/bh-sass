@@ -43,6 +43,20 @@ export interface InventoryData {
   availabilityOverview: Array<{ item: string; availableDays: number; totalDays: number }>
 }
 
+export interface CustomersData {
+  totalCustomers: number
+  previousTotalCustomers: number
+  percentageChange: number
+  newCustomers: number
+  returningCustomers: number
+  averageLifetimeValue: number
+  repeatRate: number
+  topCustomers: Array<{ name: string; email: string; bookings: number; lifetimeValue: number }>
+  acquisitionSources: Array<{ source: string; count: number }>
+  bookingFrequency: Array<{ frequency: string; count: number }>
+  geographicDistribution: Array<{ city: string; state: string; count: number }>
+}
+
 export function useReports() {
   const loading = ref(false)
   const dateRange = ref<DateRange>({ start: null, end: null })
@@ -119,6 +133,30 @@ export function useReports() {
     }
   }
 
+  async function fetchCustomersReport(range: DateRange): Promise<CustomersData> {
+    if (!range.start || !range.end) {
+      throw new Error('Date range is required')
+    }
+
+    loading.value = true
+
+    try {
+      const startDate = range.start.toISOString().split('T')[0]
+      const endDate = range.end.toISOString().split('T')[0]
+
+      const response = await $fetch<{ success: boolean; data: CustomersData }>(
+        `/reports/customers?startDate=${startDate}&endDate=${endDate}`
+      )
+
+      return response.data
+    } catch (error) {
+      console.error('Failed to fetch customers report:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function exportToCsv(reportType: string, range: DateRange) {
     // Generate CSV data based on report type
     let csvContent = ''
@@ -151,6 +189,15 @@ export function useReports() {
         })
         filename = `inventory-report-${new Date().toISOString().split('T')[0]}.csv`
         break
+
+      case 'customers':
+        const customersData = await fetchCustomersReport(range)
+        csvContent = 'Customer,Email,Bookings,Lifetime Value\n'
+        customersData.topCustomers.forEach(customer => {
+          csvContent += `${customer.name},${customer.email},${customer.bookings},${customer.lifetimeValue}\n`
+        })
+        filename = `customers-report-${new Date().toISOString().split('T')[0]}.csv`
+        break
     }
 
     // Create download
@@ -168,6 +215,7 @@ export function useReports() {
     fetchRevenueReport,
     fetchBookingsReport,
     fetchInventoryReport,
+    fetchCustomersReport,
     exportToCsv
   }
 }

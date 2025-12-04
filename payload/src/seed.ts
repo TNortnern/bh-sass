@@ -1,5 +1,7 @@
 import { getPayload } from 'payload'
 import config from './payload.config.js'
+import { seedCategories } from './seed-categories.js'
+import { seedContractTemplates } from './lib/documents/seed-templates.js'
 
 export async function seedDatabase() {
   console.log('🌱 Starting database seed...')
@@ -150,6 +152,30 @@ export async function seedDatabase() {
     console.log(`✓ Created demo staff: ${staffUser.email}`)
 
     // ========================================================================
+    // SEED CATEGORIES
+    // ========================================================================
+    console.log('Seeding categories...')
+    await seedCategories(payload, tenant.id)
+    console.log('✓ Categories seeded')
+
+    // Fetch created categories for use in rental items
+    const categoriesResult = await payload.find({
+      collection: 'categories',
+      where: {
+        tenantId: {
+          equals: tenant.id,
+        },
+      },
+    })
+    const categories = categoriesResult.docs
+
+    // Helper to find category by name
+    const getCategoryId = (name: string) => {
+      const cat = categories.find((c) => c.name === name)
+      return cat ? cat.id : undefined
+    }
+
+    // ========================================================================
     // CREATE RENTAL ITEMS
     // ========================================================================
     console.log('Creating rental items...')
@@ -160,6 +186,7 @@ export async function seedDatabase() {
           tenantId: tenant.id,
           name: 'Small Bounce House',
           description: '15x15 bounce house perfect for backyard parties. Ages 3-10.',
+          categoryId: getCategoryId('Bounce Houses'),
           category: 'bounce_house',
           pricing: {
             hourlyRate: 25,
@@ -193,6 +220,7 @@ export async function seedDatabase() {
           tenantId: tenant.id,
           name: 'Large Bounce House',
           description: '20x20 bounce house with slide. Perfect for bigger events.',
+          categoryId: getCategoryId('Bounce Houses'),
           category: 'bounce_house',
           pricing: {
             hourlyRate: 40,
@@ -226,6 +254,7 @@ export async function seedDatabase() {
           tenantId: tenant.id,
           name: 'Water Slide',
           description: '25ft water slide - perfect for summer parties!',
+          categoryId: getCategoryId('Water Slides'),
           category: 'water_slide',
           pricing: {
             hourlyRate: 50,
@@ -259,6 +288,7 @@ export async function seedDatabase() {
           tenantId: tenant.id,
           name: 'Obstacle Course',
           description: '40ft inflatable obstacle course. Great for competitive fun!',
+          categoryId: getCategoryId('Obstacle Courses'),
           category: 'obstacle_course',
           pricing: {
             hourlyRate: 65,
@@ -292,6 +322,7 @@ export async function seedDatabase() {
           tenantId: tenant.id,
           name: 'Combo Bounce + Slide',
           description: 'Best seller! Bounce house with attached slide.',
+          categoryId: getCategoryId('Combo Units'),
           category: 'combo_unit',
           pricing: {
             hourlyRate: 55,
@@ -388,6 +419,12 @@ export async function seedDatabase() {
     console.log(`✓ Created ${customers.length} customers`)
 
     console.log('\nℹ️  Skipping bookings - create them via the admin panel or API as needed')
+
+    // ========================================================================
+    // SEED CONTRACT TEMPLATES
+    // ========================================================================
+    console.log('\n')
+    await seedContractTemplates(payload)
 
     console.log('\n✅ Seed complete!')
     console.log('\nDemo User Credentials:')

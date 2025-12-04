@@ -53,13 +53,57 @@ export interface TenantData {
   id: string
   name: string
   email?: string
+  phone?: string
   domain?: string
+  address?: {
+    street?: string
+    city?: string
+    state?: string
+    zip?: string
+  }
+  branding?: {
+    businessName?: string
+  }
 }
 
 /**
  * Email Service Class
  */
 class EmailService {
+  /**
+   * Helper: Get business details from tenant for email templates
+   */
+  private getBusinessDetails(tenant: TenantData): Record<string, string> {
+    return {
+      businessName: tenant.branding?.businessName || tenant.name,
+      businessEmail: tenant.email || '',
+      businessPhone: tenant.phone || '',
+      businessAddress: this.formatAddress(tenant.address),
+    }
+  }
+
+  /**
+   * Helper: Format address for display
+   */
+  private formatAddress(address?: TenantData['address']): string {
+    if (!address) return ''
+    const parts = [
+      address.street,
+      address.city,
+      address.state,
+      address.zip,
+    ].filter(Boolean)
+
+    if (parts.length === 0) return ''
+
+    // Format as "123 Main St, Austin, TX 78701"
+    if (address.street && address.city && address.state && address.zip) {
+      return `${address.street}, ${address.city}, ${address.state} ${address.zip}`
+    }
+
+    return parts.join(', ')
+  }
+
   /**
    * Send booking confirmation email
    */
@@ -83,6 +127,7 @@ class EmailService {
       location: booking.location,
       totalAmount: booking.totalAmount.toFixed(2),
       bookingUrl: this.getBookingUrl(booking.id, tenant),
+      ...this.getBusinessDetails(tenant),
     }
 
     await brevo.sendTransactionalEmail({
@@ -115,6 +160,7 @@ class EmailService {
       eventTime: booking.eventTime,
       location: booking.location,
       bookingUrl: this.getBookingUrl(booking.id, tenant),
+      ...this.getBusinessDetails(tenant),
     }
 
     await brevo.sendTransactionalEmail({
@@ -147,6 +193,7 @@ class EmailService {
       itemName: booking.item?.name || 'Bounce House',
       eventDate: this.formatDate(booking.eventDate),
       refundAmount: refundAmount ? refundAmount.toFixed(2) : undefined,
+      ...this.getBusinessDetails(tenant),
     }
 
     await brevo.sendTransactionalEmail({
@@ -183,6 +230,7 @@ class EmailService {
       amount: payment.amount.toFixed(2),
       remainingBalance: remainingBalance ? remainingBalance.toFixed(2) : undefined,
       receiptUrl: this.getReceiptUrl(payment.id, tenant),
+      ...this.getBusinessDetails(tenant),
     }
 
     await brevo.sendTransactionalEmail({
@@ -234,6 +282,7 @@ class EmailService {
       tenantName: tenant.name,
       planName: 'Free Trial', // Could be passed as parameter
       dashboardUrl: this.getDashboardUrl(tenant),
+      ...this.getBusinessDetails(tenant),
     }
 
     await brevo.sendTransactionalEmail({

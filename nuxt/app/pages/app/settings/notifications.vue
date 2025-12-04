@@ -1,10 +1,10 @@
 <template>
-  <div class="settings-page">
+  <div class="max-w-[1200px] mx-auto">
     <!-- Page Header -->
-    <div class="page-header">
+    <div class="flex items-center justify-between mb-8 pb-6 border-b border-gray-200 dark:border-white/[0.06] max-md:flex-col max-md:items-start max-md:gap-4">
       <div>
-        <h2 class="section-title">Notification Settings</h2>
-        <p class="section-description">Manage how and when you receive alerts</p>
+        <h2 class="text-2xl font-bold tracking-tight m-0 mb-1.5 text-gray-900 dark:text-white">Notification Settings</h2>
+        <p class="m-0 text-[0.9375rem] text-gray-600 dark:text-[#888]">Manage how and when you receive alerts</p>
       </div>
       <UButton
         color="primary"
@@ -12,42 +12,42 @@
         :loading="saving"
         :disabled="!hasUnsavedChanges"
         @click="saveSettings"
-        class="save-button"
+        class="bg-gradient-to-br from-amber-400 to-amber-500 border-none text-black font-semibold tracking-tight transition-all duration-200 hover:enabled:-translate-y-px hover:enabled:shadow-[0_8px_16px_-4px_rgba(251,191,36,0.4)] disabled:opacity-40 disabled:cursor-not-allowed"
       >
         Save Changes
       </UButton>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
+    <div v-if="loading" class="flex flex-col items-center justify-center py-16 px-8 gap-4 text-gray-600 dark:text-[#888]">
+      <div class="w-8 h-8 border-[3px] border-amber-100 dark:border-amber-500/10 border-t-amber-500 dark:border-t-amber-400 rounded-full animate-spin"></div>
       <p>Loading settings...</p>
     </div>
 
-    <div v-else-if="notifications" class="settings-grid">
+    <div v-else-if="notifications" class="flex flex-col gap-6">
       <!-- Email Notifications -->
-      <UCard class="settings-card">
+      <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 ease-out hover:border-amber-200 dark:hover:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-envelope" class="icon" />
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[0.625rem] text-amber-600 dark:text-amber-400 shrink-0">
+              <UIcon name="i-heroicons-envelope" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Email Notifications</h3>
-              <p class="card-description">Receive updates via email</p>
+              <h3 class="text-lg font-semibold tracking-tight m-0 mb-1 text-gray-900 dark:text-white">Email Notifications</h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">Receive updates via email</p>
             </div>
           </div>
         </template>
 
-        <div class="card-content">
-          <div class="notification-group">
-            <div class="notification-item">
-              <div class="notification-content">
-                <div class="notification-icon">
-                  <UIcon name="i-heroicons-calendar-days" class="icon" />
+        <div class="p-6">
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-6 p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-white/[0.03] hover:border-gray-300 dark:hover:border-white/10">
+              <div class="flex items-start gap-4 flex-1">
+                <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-amber-600 dark:text-amber-400 shrink-0">
+                  <UIcon name="i-heroicons-calendar-days" class="w-5 h-5" />
                 </div>
-                <div class="notification-info">
-                  <h4 class="notification-label">New Bookings</h4>
-                  <p class="notification-description">
+                <div class="flex-1">
+                  <h4 class="text-[0.9375rem] font-semibold m-0 mb-1 text-gray-900 dark:text-white">New Bookings</h4>
+                  <p class="m-0 text-sm text-gray-600 dark:text-[#888] leading-relaxed">
                     Get notified when a new booking is created
                   </p>
                 </div>
@@ -59,14 +59,14 @@
               />
             </div>
 
-            <div class="notification-item">
-              <div class="notification-content">
-                <div class="notification-icon">
-                  <UIcon name="i-heroicons-x-circle" class="icon" />
+            <div class="flex items-center justify-between gap-6 p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-white/[0.03] hover:border-gray-300 dark:hover:border-white/10">
+              <div class="flex items-start gap-4 flex-1">
+                <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-amber-600 dark:text-amber-400 shrink-0">
+                  <UIcon name="i-heroicons-x-circle" class="w-5 h-5" />
                 </div>
-                <div class="notification-info">
-                  <h4 class="notification-label">Cancellations</h4>
-                  <p class="notification-description">
+                <div class="flex-1">
+                  <h4 class="text-[0.9375rem] font-semibold m-0 mb-1 text-gray-900 dark:text-white">Cancellations</h4>
+                  <p class="m-0 text-sm text-gray-600 dark:text-[#888] leading-relaxed">
                     Get notified when a booking is cancelled
                   </p>
                 </div>
@@ -78,14 +78,14 @@
               />
             </div>
 
-            <div class="notification-item">
-              <div class="notification-content">
-                <div class="notification-icon">
-                  <UIcon name="i-heroicons-banknotes" class="icon" />
+            <div class="flex items-center justify-between gap-6 p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-white/[0.03] hover:border-gray-300 dark:hover:border-white/10">
+              <div class="flex items-start gap-4 flex-1">
+                <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-amber-600 dark:text-amber-400 shrink-0">
+                  <UIcon name="i-heroicons-banknotes" class="w-5 h-5" />
                 </div>
-                <div class="notification-info">
-                  <h4 class="notification-label">Payments</h4>
-                  <p class="notification-description">
+                <div class="flex-1">
+                  <h4 class="text-[0.9375rem] font-semibold m-0 mb-1 text-gray-900 dark:text-white">Payments</h4>
+                  <p class="m-0 text-sm text-gray-600 dark:text-[#888] leading-relaxed">
                     Get notified when a payment is received
                   </p>
                 </div>
@@ -97,14 +97,14 @@
               />
             </div>
 
-            <div class="notification-item">
-              <div class="notification-content">
-                <div class="notification-icon">
-                  <UIcon name="i-heroicons-clock" class="icon" />
+            <div class="flex items-center justify-between gap-6 p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-white/[0.03] hover:border-gray-300 dark:hover:border-white/10">
+              <div class="flex items-start gap-4 flex-1">
+                <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-amber-600 dark:text-amber-400 shrink-0">
+                  <UIcon name="i-heroicons-clock" class="w-5 h-5" />
                 </div>
-                <div class="notification-info">
-                  <h4 class="notification-label">Upcoming Rental Reminders</h4>
-                  <p class="notification-description">
+                <div class="flex-1">
+                  <h4 class="text-[0.9375rem] font-semibold m-0 mb-1 text-gray-900 dark:text-white">Upcoming Rental Reminders</h4>
+                  <p class="m-0 text-sm text-gray-600 dark:text-[#888] leading-relaxed">
                     Reminders before scheduled rentals
                   </p>
                 </div>
@@ -116,14 +116,14 @@
               />
             </div>
 
-            <div class="notification-item">
-              <div class="notification-content">
-                <div class="notification-icon">
-                  <UIcon name="i-heroicons-document-text" class="icon" />
+            <div class="flex items-center justify-between gap-6 p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-white/[0.03] hover:border-gray-300 dark:hover:border-white/10">
+              <div class="flex items-start gap-4 flex-1">
+                <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-amber-600 dark:text-amber-400 shrink-0">
+                  <UIcon name="i-heroicons-document-text" class="w-5 h-5" />
                 </div>
-                <div class="notification-info">
-                  <h4 class="notification-label">Daily Summary</h4>
-                  <p class="notification-description">
+                <div class="flex-1">
+                  <h4 class="text-[0.9375rem] font-semibold m-0 mb-1 text-gray-900 dark:text-white">Daily Summary</h4>
+                  <p class="m-0 text-sm text-gray-600 dark:text-[#888] leading-relaxed">
                     Receive a daily summary of bookings and activity
                   </p>
                 </div>
@@ -139,29 +139,29 @@
       </UCard>
 
       <!-- In-App Notifications -->
-      <UCard class="settings-card">
+      <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 ease-out hover:border-amber-200 dark:hover:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-bell" class="icon" />
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[0.625rem] text-amber-600 dark:text-amber-400 shrink-0">
+              <UIcon name="i-heroicons-bell" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">In-App Notifications</h3>
-              <p class="card-description">Alerts within the dashboard</p>
+              <h3 class="text-lg font-semibold tracking-tight m-0 mb-1 text-gray-900 dark:text-white">In-App Notifications</h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">Alerts within the dashboard</p>
             </div>
           </div>
         </template>
 
-        <div class="card-content">
-          <div class="notification-group">
-            <div class="notification-item">
-              <div class="notification-content">
-                <div class="notification-icon">
-                  <UIcon name="i-heroicons-calendar-days" class="icon" />
+        <div class="p-6">
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-6 p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-white/[0.03] hover:border-gray-300 dark:hover:border-white/10">
+              <div class="flex items-start gap-4 flex-1">
+                <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-amber-600 dark:text-amber-400 shrink-0">
+                  <UIcon name="i-heroicons-calendar-days" class="w-5 h-5" />
                 </div>
-                <div class="notification-info">
-                  <h4 class="notification-label">New Bookings</h4>
-                  <p class="notification-description">
+                <div class="flex-1">
+                  <h4 class="text-[0.9375rem] font-semibold m-0 mb-1 text-gray-900 dark:text-white">New Bookings</h4>
+                  <p class="m-0 text-sm text-gray-600 dark:text-[#888] leading-relaxed">
                     Show in-app alerts for new bookings
                   </p>
                 </div>
@@ -173,14 +173,14 @@
               />
             </div>
 
-            <div class="notification-item">
-              <div class="notification-content">
-                <div class="notification-icon">
-                  <UIcon name="i-heroicons-x-circle" class="icon" />
+            <div class="flex items-center justify-between gap-6 p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-white/[0.03] hover:border-gray-300 dark:hover:border-white/10">
+              <div class="flex items-start gap-4 flex-1">
+                <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-amber-600 dark:text-amber-400 shrink-0">
+                  <UIcon name="i-heroicons-x-circle" class="w-5 h-5" />
                 </div>
-                <div class="notification-info">
-                  <h4 class="notification-label">Cancellations</h4>
-                  <p class="notification-description">
+                <div class="flex-1">
+                  <h4 class="text-[0.9375rem] font-semibold m-0 mb-1 text-gray-900 dark:text-white">Cancellations</h4>
+                  <p class="m-0 text-sm text-gray-600 dark:text-[#888] leading-relaxed">
                     Show in-app alerts for cancellations
                   </p>
                 </div>
@@ -192,14 +192,14 @@
               />
             </div>
 
-            <div class="notification-item">
-              <div class="notification-content">
-                <div class="notification-icon">
-                  <UIcon name="i-heroicons-banknotes" class="icon" />
+            <div class="flex items-center justify-between gap-6 p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-white/[0.03] hover:border-gray-300 dark:hover:border-white/10">
+              <div class="flex items-start gap-4 flex-1">
+                <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-amber-600 dark:text-amber-400 shrink-0">
+                  <UIcon name="i-heroicons-banknotes" class="w-5 h-5" />
                 </div>
-                <div class="notification-info">
-                  <h4 class="notification-label">Payments</h4>
-                  <p class="notification-description">
+                <div class="flex-1">
+                  <h4 class="text-[0.9375rem] font-semibold m-0 mb-1 text-gray-900 dark:text-white">Payments</h4>
+                  <p class="m-0 text-sm text-gray-600 dark:text-[#888] leading-relaxed">
                     Show in-app alerts for payments
                   </p>
                 </div>
@@ -211,14 +211,14 @@
               />
             </div>
 
-            <div class="notification-item">
-              <div class="notification-content">
-                <div class="notification-icon">
-                  <UIcon name="i-heroicons-clock" class="icon" />
+            <div class="flex items-center justify-between gap-6 p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-white/[0.03] hover:border-gray-300 dark:hover:border-white/10">
+              <div class="flex items-start gap-4 flex-1">
+                <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-amber-600 dark:text-amber-400 shrink-0">
+                  <UIcon name="i-heroicons-clock" class="w-5 h-5" />
                 </div>
-                <div class="notification-info">
-                  <h4 class="notification-label">Upcoming Rental Reminders</h4>
-                  <p class="notification-description">
+                <div class="flex-1">
+                  <h4 class="text-[0.9375rem] font-semibold m-0 mb-1 text-gray-900 dark:text-white">Upcoming Rental Reminders</h4>
+                  <p class="m-0 text-sm text-gray-600 dark:text-[#888] leading-relaxed">
                     Show in-app alerts for upcoming rentals
                   </p>
                 </div>
@@ -234,47 +234,48 @@
       </UCard>
 
       <!-- Reminder Timing -->
-      <UCard class="settings-card">
+      <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 ease-out hover:border-amber-200 dark:hover:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-clock" class="icon" />
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[0.625rem] text-amber-600 dark:text-amber-400 shrink-0">
+              <UIcon name="i-heroicons-clock" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Reminder Timing</h3>
-              <p class="card-description">When to send rental reminders</p>
+              <h3 class="text-lg font-semibold tracking-tight m-0 mb-1 text-gray-900 dark:text-white">Reminder Timing</h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">When to send rental reminders</p>
             </div>
           </div>
         </template>
 
-        <div class="card-content">
+        <div class="p-6">
           <UFormGroup
             label="Send reminders before rental"
             help="How many hours in advance to send reminders"
-            class="form-group"
+            class="flex flex-col gap-2"
           >
-            <div class="timing-selector">
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3 mt-2 max-md:grid-cols-1">
               <div
                 v-for="option in reminderOptions"
                 :key="option.value"
-                class="timing-option"
-                :class="{ active: notifications.reminderTiming === option.value }"
+                class="flex items-start gap-3 p-4 bg-white dark:bg-white/[0.02] border-2 border-gray-200 dark:border-white/[0.06] rounded-xl cursor-pointer transition-all duration-200 hover:border-amber-300 dark:hover:border-amber-500/30 hover:bg-amber-50 dark:hover:bg-amber-500/[0.03]"
+                :class="{ 'border-amber-400 dark:!border-amber-500/50 bg-amber-50 dark:!bg-amber-500/[0.08]': notifications.reminderTiming === option.value }"
                 @click="selectReminderTiming(option.value)"
               >
-                <div class="option-radio">
-                  <div v-if="notifications.reminderTiming === option.value" class="radio-dot"></div>
+                <div class="w-5 h-5 border-2 border-gray-300 dark:border-white/20 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-all duration-200"
+                  :class="{ 'border-amber-500 dark:!border-amber-400': notifications.reminderTiming === option.value }">
+                  <div v-if="notifications.reminderTiming === option.value" class="w-2.5 h-2.5 bg-amber-500 dark:bg-amber-400 rounded-full"></div>
                 </div>
-                <div class="option-content">
-                  <h4 class="option-label">{{ option.label }}</h4>
-                  <p class="option-description">{{ option.description }}</p>
+                <div class="flex-1">
+                  <h4 class="text-[0.9375rem] font-semibold m-0 mb-1 text-gray-900 dark:text-white">{{ option.label }}</h4>
+                  <p class="m-0 text-[0.8125rem] text-gray-600 dark:text-[#888]">{{ option.description }}</p>
                 </div>
               </div>
             </div>
           </UFormGroup>
 
-          <div class="timing-info">
-            <UIcon name="i-heroicons-information-circle" class="info-icon" />
-            <p class="info-text">
+          <div class="flex items-start gap-3 p-4 mt-4 bg-blue-50 dark:bg-blue-500/[0.05] border border-blue-200 dark:border-blue-500/[0.15] rounded-lg">
+            <UIcon name="i-heroicons-information-circle" class="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+            <p class="m-0 text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
               Reminders will be sent {{ notifications.reminderTiming }} hours before the
               scheduled rental time. Both email and in-app notifications will be sent
               if enabled.
@@ -284,27 +285,27 @@
       </UCard>
 
       <!-- Quick Actions -->
-      <UCard class="settings-card">
+      <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 ease-out hover:border-amber-200 dark:hover:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-bolt" class="icon" />
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[0.625rem] text-amber-600 dark:text-amber-400 shrink-0">
+              <UIcon name="i-heroicons-bolt" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Quick Actions</h3>
-              <p class="card-description">Bulk notification controls</p>
+              <h3 class="text-lg font-semibold tracking-tight m-0 mb-1 text-gray-900 dark:text-white">Quick Actions</h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">Bulk notification controls</p>
             </div>
           </div>
         </template>
 
-        <div class="card-content">
-          <div class="quick-actions">
+        <div class="p-6">
+          <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-6 max-md:grid-cols-1">
             <UButton
               variant="outline"
               size="lg"
               icon="i-heroicons-check-circle"
               @click="enableAllNotifications"
-              class="action-button"
+              class="w-full justify-center"
             >
               Enable All Notifications
             </UButton>
@@ -314,20 +315,20 @@
               size="lg"
               icon="i-heroicons-x-circle"
               @click="disableAllNotifications"
-              class="action-button"
+              class="w-full justify-center"
             >
               Disable All Notifications
             </UButton>
           </div>
 
-          <div class="notification-summary">
-            <div class="summary-item">
-              <span class="summary-label">Email Notifications Enabled</span>
-              <span class="summary-value">{{ enabledEmailCount }} / 5</span>
+          <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl max-md:grid-cols-1">
+            <div class="flex flex-col gap-2">
+              <span class="text-[0.8125rem] text-gray-500 dark:text-[#666] uppercase tracking-wider font-semibold">Email Notifications Enabled</span>
+              <span class="text-xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">{{ enabledEmailCount }} / 5</span>
             </div>
-            <div class="summary-item">
-              <span class="summary-label">In-App Notifications Enabled</span>
-              <span class="summary-value">{{ enabledInAppCount }} / 4</span>
+            <div class="flex flex-col gap-2">
+              <span class="text-[0.8125rem] text-gray-500 dark:text-[#666] uppercase tracking-wider font-semibold">In-App Notifications Enabled</span>
+              <span class="text-xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">{{ enabledInAppCount }} / 4</span>
             </div>
           </div>
         </div>
@@ -424,364 +425,3 @@ const saveSettings = async () => {
   }
 }
 </script>
-
-<style scoped>
-.settings-page {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 0 0 0.375rem;
-  color: #ffffff;
-}
-
-.section-description {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #888;
-}
-
-.save-button {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  border: none;
-  color: #000;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  transition: all 0.2s;
-}
-
-.save-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 16px -4px rgba(251, 191, 36, 0.4);
-}
-
-.save-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  gap: 1rem;
-  color: #888;
-}
-
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(251, 191, 36, 0.1);
-  border-top-color: #fbbf24;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.settings-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.settings-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 1rem;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.settings-card:hover {
-  border-color: rgba(251, 191, 36, 0.2);
-  box-shadow: 0 8px 32px -8px rgba(251, 191, 36, 0.15);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.card-header-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.2);
-  border-radius: 0.625rem;
-  color: #fbbf24;
-  flex-shrink: 0;
-}
-
-.icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.card-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  margin: 0 0 0.25rem;
-  color: #ffffff;
-}
-
-.card-description {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.card-content {
-  padding: 1.5rem;
-}
-
-.notification-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.notification-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
-  transition: all 0.2s;
-}
-
-.notification-item:hover {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.notification-content {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  flex: 1;
-}
-
-.notification-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.2);
-  border-radius: 0.5rem;
-  color: #fbbf24;
-  flex-shrink: 0;
-}
-
-.notification-info {
-  flex: 1;
-}
-
-.notification-label {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  margin: 0 0 0.25rem;
-  color: #ffffff;
-}
-
-.notification-description {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #888;
-  line-height: 1.5;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.timing-selector {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-.timing-option {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 2px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.timing-option:hover {
-  border-color: rgba(251, 191, 36, 0.3);
-  background: rgba(251, 191, 36, 0.03);
-}
-
-.timing-option.active {
-  border-color: rgba(251, 191, 36, 0.5);
-  background: rgba(251, 191, 36, 0.08);
-}
-
-.option-radio {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 0.125rem;
-  transition: all 0.2s;
-}
-
-.timing-option.active .option-radio {
-  border-color: #fbbf24;
-}
-
-.radio-dot {
-  width: 10px;
-  height: 10px;
-  background: #fbbf24;
-  border-radius: 50%;
-}
-
-.option-content {
-  flex: 1;
-}
-
-.option-label {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  margin: 0 0 0.25rem;
-  color: #ffffff;
-}
-
-.option-description {
-  margin: 0;
-  font-size: 0.8125rem;
-  color: #888;
-}
-
-.timing-info {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
-  margin-top: 1rem;
-  background: rgba(59, 130, 246, 0.05);
-  border: 1px solid rgba(59, 130, 246, 0.15);
-  border-radius: 0.5rem;
-}
-
-.info-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #3b82f6;
-  flex-shrink: 0;
-  margin-top: 0.125rem;
-}
-
-.info-text {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #93c5fd;
-  line-height: 1.5;
-}
-
-.quick-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.action-button {
-  width: 100%;
-  justify-content: center;
-}
-
-.notification-summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
-}
-
-.summary-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.summary-label {
-  font-size: 0.8125rem;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
-}
-
-.summary-value {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #fbbf24;
-  font-variant-numeric: tabular-nums;
-}
-
-@media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .timing-selector {
-    grid-template-columns: 1fr;
-  }
-
-  .quick-actions {
-    grid-template-columns: 1fr;
-  }
-
-  .notification-summary {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

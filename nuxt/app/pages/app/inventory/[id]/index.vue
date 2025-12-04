@@ -11,6 +11,7 @@ const route = useRoute()
 const toast = useToast()
 const { fetchItem, isLoading } = useInventory()
 const { fetchBookings, filteredBookings, filters, isLoading: bookingsLoading } = useBookings()
+const { setBreadcrumbs } = useBreadcrumbs()
 
 const item = ref<InventoryItem | null>(null)
 const selectedImageIndex = ref(0)
@@ -21,6 +22,22 @@ onMounted(async () => {
   const result = await fetchItem(route.params.id as string)
   if (result) {
     item.value = result
+
+    // Set custom breadcrumbs with item name
+    setBreadcrumbs([
+      {
+        label: 'Dashboard',
+        to: '/app',
+        icon: 'i-lucide-home'
+      },
+      {
+        label: 'Inventory',
+        to: '/app/inventory'
+      },
+      {
+        label: result.name
+      }
+    ])
 
     // Fetch bookings for this item using rbPayloadServiceId
     if ((result as any).rbPayloadServiceId) {

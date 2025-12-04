@@ -1,0 +1,25 @@
+# Playwright test artifacts
+test-results/
+playwright-report/
+playwright/.cache/
+*.zip
+
+# Screenshots and videos
+screenshots/
+videos/
+traces/
+
+# Debug artifacts
+debug.png
+*.png
+*.jpg
+*.mp4
+*.webm
+
+# Coverage reports (if added later)
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp

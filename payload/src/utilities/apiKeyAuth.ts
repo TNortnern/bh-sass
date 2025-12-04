@@ -8,18 +8,25 @@ export interface ApiKeyAuthResult {
     slug: string
     status: string
   }
+  apiKey?: {
+    id: string
+    name: string
+    scopes: string[]
+    scopeType: 'full_access' | 'read_only' | 'booking_management' | 'custom'
+    isActive: boolean
+  }
   error?: string
 }
 
 /**
- * Validate an API key and return the associated tenant
+ * Validate an API key and return the associated tenant with scopes
  *
  * API keys should be sent in the X-API-Key header
- * Format: X-API-Key: tk_xxxxxxxxxxxxx
+ * Format: X-API-Key: bp_live_xxxxxxxxxxxxx
  *
  * @param apiKey - The API key to validate
  * @param payload - Payload instance for database queries
- * @returns Authentication result with tenant info or error
+ * @returns Authentication result with tenant info, scopes, and error if any
  */
 export async function authenticateApiKey(
   apiKey: string | null | undefined,
@@ -32,8 +39,9 @@ export async function authenticateApiKey(
     }
   }
 
-  // Validate API key format
-  if (!apiKey.startsWith('tk_') || apiKey.length < 10) {
+  // Validate API key format (supports both bp_live_ and tk_ prefixes)
+  const validPrefix = apiKey.startsWith('bp_live_') || apiKey.startsWith('tk_')
+  if (!validPrefix || apiKey.length < 15) {
     return {
       authenticated: false,
       error: 'Invalid API key format.',
@@ -41,23 +49,49 @@ export async function authenticateApiKey(
   }
 
   try {
-    // Look up tenant by API key
-    const tenants = await payload.find({
-      collection: 'tenants',
+    // Look up API key in api-keys collection
+    const apiKeys = await payload.find({
+      collection: 'api-keys',
       where: {
-        apiKey: { equals: apiKey },
+        key: { equals: apiKey },
       },
       limit: 1,
+      depth: 1, // Populate tenant relationship
     })
 
-    if (tenants.docs.length === 0) {
+    if (apiKeys.docs.length === 0) {
       return {
         authenticated: false,
         error: 'Invalid API key.',
       }
     }
 
-    const tenant = tenants.docs[0]
+    const apiKeyDoc = apiKeys.docs[0]
+
+    // Check if API key is active
+    if (!apiKeyDoc.isActive) {
+      return {
+        authenticated: false,
+        error: 'API key is disabled.',
+      }
+    }
+
+    // Check if API key has expired
+    if (apiKeyDoc.expiresAt && new Date(apiKeyDoc.expiresAt) < new Date()) {
+      return {
+        authenticated: false,
+        error: 'API key has expired.',
+      }
+    }
+
+    // Get tenant info (relationship is populated with depth: 1)
+    const tenant = apiKeyDoc.tenantId
+    if (!tenant || typeof tenant === 'string') {
+      return {
+        authenticated: false,
+        error: 'API key is not associated with a valid tenant.',
+      }
+    }
 
     // Check tenant status
     if (tenant.status !== 'active') {
@@ -67,6 +101,17 @@ export async function authenticateApiKey(
       }
     }
 
+    // Update last used timestamp (async, don't await)
+    payload.update({
+      collection: 'api-keys',
+      id: String(apiKeyDoc.id),
+      data: {
+        lastUsed: new Date().toISOString(),
+      },
+    }).catch((err) => {
+      payload.logger.error(`Failed to update API key lastUsed: ${err}`)
+    })
+
     return {
       authenticated: true,
       tenant: {
@@ -74,6 +119,13 @@ export async function authenticateApiKey(
         name: tenant.name,
         slug: tenant.slug,
         status: tenant.status,
+      },
+      apiKey: {
+        id: String(apiKeyDoc.id),
+        name: apiKeyDoc.name,
+        scopes: apiKeyDoc.scopes || [],
+        scopeType: apiKeyDoc.scopeType || 'full_access',
+        isActive: apiKeyDoc.isActive,
       },
     }
   } catch (error) {
@@ -104,7 +156,7 @@ export function getApiKeyFromHeaders(headers: Headers | Record<string, string>):
     ? headers.get('authorization')
     : headers['authorization']
 
-  if (authHeader?.startsWith('Bearer tk_')) {
+  if (authHeader?.startsWith('Bearer bp_live_') || authHeader?.startsWith('Bearer tk_')) {
     return authHeader.replace('Bearer ', '')
   }
 
@@ -113,11 +165,11 @@ export function getApiKeyFromHeaders(headers: Headers | Record<string, string>):
 
 /**
  * Generate a new secure API key
- * Format: tk_[random 32 chars]
+ * Format: bp_live_[random 32 chars]
  */
 export function generateApiKey(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
-  let key = 'tk_'
+  let key = 'bp_live_'
   for (let i = 0; i < 32; i++) {
     key += chars.charAt(Math.floor(Math.random() * chars.length))
   }

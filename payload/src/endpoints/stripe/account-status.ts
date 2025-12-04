@@ -24,12 +24,7 @@ export const getAccountStatus = async (req: PayloadRequest): Promise<Response> =
     }
 
     // Get tenant ID from user
-    const tenantId =
-      user.role === 'tenant_admin'
-        ? typeof user.tenant === 'string'
-          ? user.tenant
-          : user.tenant?.id
-        : null
+    const tenantId = typeof user.tenantId === 'number' ? user.tenantId : (typeof user.tenantId === 'object' && user.tenantId ? user.tenantId.id : null)
 
     if (!tenantId) {
       return Response.json(
@@ -153,12 +148,7 @@ export const disconnectAccount = async (req: PayloadRequest): Promise<Response> 
       )
     }
 
-    const tenantId =
-      user.role === 'tenant_admin'
-        ? typeof user.tenant === 'string'
-          ? user.tenant
-          : user.tenant?.id
-        : null
+    const tenantId = typeof user.tenantId === 'number' ? user.tenantId : (typeof user.tenantId === 'object' && user.tenantId ? user.tenantId.id : null)
 
     if (!tenantId) {
       return Response.json(

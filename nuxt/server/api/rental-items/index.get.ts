@@ -59,20 +59,30 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const payloadUrl = config.payloadApiUrl || 'http://payload:3000'
   const apiKey = config.payloadApiKey
-  const tenantId = config.payloadTenantId
 
-  if (!apiKey) {
+  // Get the cookie header to forward to Payload for session auth
+  const cookieHeader = getHeader(event, 'cookie') || ''
+
+  // Must have either session cookie or API key
+  if (!cookieHeader.includes('payload-token') && !apiKey) {
     throw createError({
-      statusCode: 500,
-      message: 'Payload API key not configured'
+      statusCode: 401,
+      message: 'Authentication required'
     })
   }
 
+  // Build headers - prefer session auth, fall back to API key
+  const headers: Record<string, string> = {}
+  if (cookieHeader.includes('payload-token')) {
+    headers['Cookie'] = cookieHeader
+  } else if (apiKey) {
+    headers['X-API-Key'] = apiKey
+  }
+
   try {
-    const response = await fetch(`${payloadUrl}/api/rental-items?where[tenantId][equals]=${tenantId}&limit=100&depth=2`, {
-      headers: {
-        'X-API-Key': apiKey
-      }
+    // Don't filter by tenantId - let Payload's access control handle tenant scoping
+    const response = await fetch(`${payloadUrl}/api/rental-items?limit=100&depth=2`, {
+      headers
     })
 
     if (!response.ok) {

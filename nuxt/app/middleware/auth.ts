@@ -11,10 +11,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return
   }
 
-  const { fetchUser, isAuthenticated, isLoading } = useAuth()
+  const { fetchUser, isAuthenticated } = useAuth()
 
-  // Fetch user if not already loaded
-  if (isLoading.value) {
+  // Always try to fetch user if not authenticated yet
+  if (!isAuthenticated.value) {
     await fetchUser()
   }
 

@@ -226,7 +226,13 @@ const getScheduleIcon = (type: string) => {
                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ todaysSchedule.length }} deliveries/pickups</p>
               </div>
             </div>
-            <UButton color="neutral" variant="ghost" size="sm" icon="i-lucide-external-link" />
+            <UButton
+              to="/app/bookings"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              icon="i-lucide-external-link"
+            />
           </div>
         </template>
 
@@ -286,7 +292,7 @@ const getScheduleIcon = (type: string) => {
         </div>
 
         <template #footer>
-          <UButton color="neutral" variant="ghost" block>
+          <UButton to="/app/bookings" color="neutral" variant="ghost" block>
             View Full Schedule
             <UIcon name="i-lucide-arrow-right" class="w-4 h-4 ml-2" />
           </UButton>
@@ -306,7 +312,13 @@ const getScheduleIcon = (type: string) => {
                 <p class="text-sm text-gray-500 dark:text-gray-400">Latest customer reservations</p>
               </div>
             </div>
-            <UButton color="neutral" variant="ghost" size="sm" icon="i-lucide-external-link" />
+            <UButton
+              to="/app/bookings"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              icon="i-lucide-external-link"
+            />
           </div>
         </template>
 
@@ -349,7 +361,7 @@ const getScheduleIcon = (type: string) => {
         </div>
 
         <template #footer>
-          <UButton color="neutral" variant="ghost" block>
+          <UButton to="/app/bookings" color="neutral" variant="ghost" block>
             View All Bookings
             <UIcon name="i-lucide-arrow-right" class="w-4 h-4 ml-2" />
           </UButton>
@@ -373,6 +385,7 @@ const getScheduleIcon = (type: string) => {
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <UButton
+          to="/app/bookings/new"
           color="neutral"
           variant="outline"
           size="lg"
@@ -387,6 +400,7 @@ const getScheduleIcon = (type: string) => {
         </UButton>
 
         <UButton
+          to="/app/customers/new"
           color="neutral"
           variant="outline"
           size="lg"
@@ -401,6 +415,7 @@ const getScheduleIcon = (type: string) => {
         </UButton>
 
         <UButton
+          to="/app/inventory/new"
           color="neutral"
           variant="outline"
           size="lg"
@@ -415,6 +430,7 @@ const getScheduleIcon = (type: string) => {
         </UButton>
 
         <UButton
+          to="/app/reports"
           color="neutral"
           variant="outline"
           size="lg"

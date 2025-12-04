@@ -5,34 +5,34 @@ const props = defineProps<{
   trend?: number
   previousValue?: string | number
   icon?: string
-  color?: 'cyan' | 'magenta' | 'yellow' | 'green'
+  color?: 'primary' | 'success' | 'warning' | 'info' | 'cyan' | 'magenta' | 'green' | 'yellow'
   loading?: boolean
 }>()
 
 const colorClasses = {
-  cyan: 'border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.3)]',
-  magenta: 'border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.3)]',
-  yellow: 'border-yellow-500 shadow-[0_0_20px_rgba(234,179,8,0.3)]',
-  green: 'border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]'
+  primary: 'bg-blue-100 dark:bg-blue-900/20',
+  success: 'bg-green-100 dark:bg-green-900/20',
+  warning: 'bg-orange-100 dark:bg-orange-900/20',
+  info: 'bg-purple-100 dark:bg-purple-900/20',
+  cyan: 'bg-cyan-100 dark:bg-cyan-900/20',
+  magenta: 'bg-pink-100 dark:bg-pink-900/20',
+  green: 'bg-emerald-100 dark:bg-emerald-900/20',
+  yellow: 'bg-yellow-100 dark:bg-yellow-900/20'
 }
 
 const iconColorClasses = {
-  cyan: 'text-cyan-500',
-  magenta: 'text-pink-500',
-  yellow: 'text-yellow-500',
-  green: 'text-emerald-500'
+  primary: 'text-blue-600 dark:text-blue-400',
+  success: 'text-green-600 dark:text-green-400',
+  warning: 'text-orange-600 dark:text-orange-400',
+  info: 'text-purple-600 dark:text-purple-400',
+  cyan: 'text-cyan-600 dark:text-cyan-400',
+  magenta: 'text-pink-600 dark:text-pink-400',
+  green: 'text-emerald-600 dark:text-emerald-400',
+  yellow: 'text-yellow-600 dark:text-yellow-400'
 }
 
-const trendColorClasses = {
-  cyan: 'text-cyan-400 bg-cyan-500/10',
-  magenta: 'text-pink-400 bg-pink-500/10',
-  yellow: 'text-yellow-400 bg-yellow-500/10',
-  green: 'text-emerald-400 bg-emerald-500/10'
-}
-
-const cardClass = computed(() => colorClasses[props.color || 'cyan'])
-const iconClass = computed(() => iconColorClasses[props.color || 'cyan'])
-const trendClass = computed(() => trendColorClasses[props.color || 'cyan'])
+const iconBgClass = computed(() => colorClasses[props.color || 'primary'])
+const iconClass = computed(() => iconColorClasses[props.color || 'primary'])
 
 const formattedTrend = computed(() => {
   if (props.trend === undefined) return null
@@ -44,74 +44,57 @@ const isPositiveTrend = computed(() => props.trend && props.trend > 0)
 </script>
 
 <template>
-  <div
-    class="relative p-6 bg-black border-2 rounded-lg transition-all duration-300 hover:scale-[1.02] overflow-hidden"
-    :class="cardClass"
-  >
-    <!-- Background pattern -->
-    <div class="absolute inset-0 opacity-5">
-      <div class="absolute inset-0" style="background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, currentColor 2px, currentColor 4px); background-size: 100% 4px;" />
-    </div>
+  <UCard class="bg-white dark:bg-gray-900">
+    <div class="flex items-center justify-between">
+      <div class="flex-1">
+        <p class="text-sm text-gray-600 dark:text-gray-400">{{ label }}</p>
 
-    <div class="relative z-10">
-      <!-- Header -->
-      <div class="flex items-start justify-between mb-4">
-        <div class="flex items-center gap-3">
-          <div
-            v-if="icon"
-            class="w-10 h-10 rounded-lg bg-gray-900 border-2 border-gray-800 flex items-center justify-center"
-          >
-            <UIcon
-              :name="icon"
-              class="w-5 h-5"
-              :class="iconClass"
-            />
+        <!-- Loading state -->
+        <div v-if="loading" class="mt-1 space-y-2">
+          <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-24" />
+          <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-32" />
+        </div>
+
+        <!-- Value -->
+        <div v-else>
+          <div class="flex items-baseline gap-2 mt-1">
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">
+              {{ value }}
+            </p>
+
+            <!-- Trend indicator -->
+            <span
+              v-if="trend !== undefined"
+              class="text-sm font-medium"
+              :class="isPositiveTrend ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
+            >
+              <UIcon
+                :name="isPositiveTrend ? 'i-lucide-trending-up' : 'i-lucide-trending-down'"
+                class="w-3 h-3 inline"
+              />
+              {{ formattedTrend }}
+            </span>
           </div>
-          <h3 class="text-xs font-mono uppercase tracking-wider text-gray-400">
-            {{ label }}
-          </h3>
-        </div>
 
-        <!-- Trend indicator -->
-        <div
-          v-if="trend !== undefined"
-          class="flex items-center gap-1 px-2 py-1 rounded font-mono text-xs font-bold"
-          :class="trendClass"
-        >
-          <UIcon
-            :name="isPositiveTrend ? 'i-lucide-trending-up' : 'i-lucide-trending-down'"
-            class="w-3 h-3"
-          />
-          {{ formattedTrend }}
+          <!-- Previous value comparison -->
+          <p v-if="previousValue" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            vs {{ previousValue }} prev period
+          </p>
         </div>
       </div>
 
-      <!-- Loading state -->
-      <div v-if="loading" class="space-y-3">
-        <div class="h-12 bg-gray-800 rounded animate-pulse" />
-        <div class="h-4 bg-gray-800 rounded w-2/3 animate-pulse" />
-      </div>
-
-      <!-- Value -->
-      <div v-else>
-        <div class="text-4xl font-mono font-bold text-white mb-2 tracking-tight">
-          {{ value }}
-        </div>
-
-        <!-- Previous value comparison -->
-        <div v-if="previousValue" class="flex items-center gap-2 text-sm font-mono text-gray-500">
-          <span>vs</span>
-          <span class="text-gray-400">{{ previousValue }}</span>
-          <span>prev period</span>
-        </div>
+      <!-- Icon -->
+      <div
+        v-if="icon"
+        class="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+        :class="iconBgClass"
+      >
+        <UIcon
+          :name="icon"
+          class="w-6 h-6"
+          :class="iconClass"
+        />
       </div>
     </div>
-
-    <!-- Glitch effect line -->
-    <div
-      class="absolute bottom-0 left-0 right-0 h-0.5 opacity-50"
-      :class="iconClass"
-      style="background: linear-gradient(90deg, transparent, currentColor, transparent);"
-    />
-  </div>
+  </UCard>
 </template>

@@ -122,6 +122,10 @@ export default defineNuxtConfig({
         'lucide:calendar-x',
         'lucide:check-check',
         'lucide:chevron-up',
+        // Maintenance mode icons
+        'lucide:construction',
+        'lucide:wrench',
+        'lucide:alert-triangle',
         // Brand icons
         'simple-icons:google'
       ],
@@ -143,6 +147,10 @@ export default defineNuxtConfig({
     rbPayloadUrl: process.env.RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app',
     rbPayloadApiKey: process.env.RB_PAYLOAD_API_KEY || '',
 
+    // Stripe Configuration (server-side only)
+    stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
+    stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+
     // Bunny CDN Configuration (server-side only)
     bunnyStorageApiKey: process.env.BUNNY_STORAGE_API_KEY || '',
     bunnyStorageZone: process.env.BUNNY_STORAGE_ZONE || '',
@@ -153,7 +161,8 @@ export default defineNuxtConfig({
     public: {
       payloadUrl: process.env.NUXT_PUBLIC_PAYLOAD_URL || 'http://localhost:3004',
       rbPayloadUrl: process.env.NUXT_PUBLIC_RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app',
-      rbPayloadApiKey: process.env.NUXT_PUBLIC_RB_PAYLOAD_API_KEY || 'tk_58v2xsw911d0dy5q8mrlum3r9hah05n0'
+      rbPayloadApiKey: process.env.NUXT_PUBLIC_RB_PAYLOAD_API_KEY || 'tk_58v2xsw911d0dy5q8mrlum3r9hah05n0',
+      stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || ''
     }
   },
 

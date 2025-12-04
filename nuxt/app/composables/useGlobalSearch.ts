@@ -100,7 +100,7 @@ const navigationItems = [
     id: 'nav-settings-team',
     title: 'Team Settings',
     subtitle: 'Manage team members',
-    icon: 'i-lucide-users-cog',
+    icon: 'i-lucide-users',
     url: '/app/settings/team',
     keywords: ['team', 'members', 'staff', 'users', 'settings']
   },
@@ -108,7 +108,7 @@ const navigationItems = [
     id: 'nav-settings-notifications',
     title: 'Notification Settings',
     subtitle: 'Email and notification preferences',
-    icon: 'i-lucide-bell-cog',
+    icon: 'i-lucide-bell',
     url: '/app/settings/notifications',
     keywords: ['notifications', 'email', 'alerts', 'settings']
   },

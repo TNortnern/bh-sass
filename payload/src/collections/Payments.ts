@@ -1,6 +1,7 @@
 import type { Access, CollectionConfig } from 'payload'
 import { getTenantId } from '../utilities/getTenantId'
 import { getAccessContext } from '../utilities/accessControl'
+import { auditCreateAndUpdate, auditDelete } from '../hooks/auditHooks'
 
 export const Payments: CollectionConfig = {
   slug: 'payments',
@@ -75,9 +76,9 @@ export const Payments: CollectionConfig = {
       hooks: {
         beforeValidate: [
           ({ req, value }) => {
-            // Auto-assign tenant for tenant admins
-            if (!value && req.user?.role === 'tenant_admin') {
-              return req.user.tenantId
+            // Auto-assign tenant for tenant admins or staff
+            if (!value && req.user && (req.user.role === 'tenant_admin' || req.user.role === 'staff')) {
+              return getTenantId(req.user)
             }
             return value
           },
@@ -121,6 +122,10 @@ export const Payments: CollectionConfig = {
           value: 'pending',
         },
         {
+          label: 'Processing',
+          value: 'processing',
+        },
+        {
           label: 'Succeeded',
           value: 'succeeded',
         },
@@ -132,9 +137,28 @@ export const Payments: CollectionConfig = {
           label: 'Refunded',
           value: 'refunded',
         },
+        {
+          label: 'Partially Refunded',
+          value: 'partially_refunded',
+        },
       ],
       admin: {
         description: 'Payment status',
+      },
+    },
+    {
+      name: 'refundAmount',
+      type: 'number',
+      admin: {
+        description: 'Amount refunded in cents (for partial refunds)',
+        step: 1,
+      },
+    },
+    {
+      name: 'refundReason',
+      type: 'textarea',
+      admin: {
+        description: 'Reason for refund',
       },
     },
     {
@@ -147,10 +171,44 @@ export const Payments: CollectionConfig = {
       },
     },
     {
+      name: 'stripeCheckoutSessionId',
+      type: 'text',
+      admin: {
+        description: 'Stripe Checkout Session ID',
+        readOnly: true,
+      },
+    },
+    {
       name: 'stripeChargeId',
       type: 'text',
       admin: {
         description: 'Stripe Charge ID',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'stripeRefundId',
+      type: 'text',
+      admin: {
+        description: 'Stripe Refund ID (if payment was refunded)',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'platformFee',
+      type: 'number',
+      admin: {
+        description: 'Platform fee in cents (deducted from payment)',
+        step: 1,
+        readOnly: true,
+      },
+    },
+    {
+      name: 'netAmount',
+      type: 'number',
+      admin: {
+        description: 'Net amount tenant receives in cents (after platform fee)',
+        step: 1,
         readOnly: true,
       },
     },
@@ -189,4 +247,32 @@ export const Payments: CollectionConfig = {
     },
   ],
   timestamps: true,
+  hooks: {
+    afterChange: [
+      auditCreateAndUpdate,
+      // Trigger payment webhooks
+      async ({ doc, operation, previousDoc, req }) => {
+        const { queueWebhook } = await import('../lib/webhooks')
+        const tenantId = typeof doc.tenantId === 'object' ? doc.tenantId.id : doc.tenantId
+
+        setImmediate(async () => {
+          try {
+            // Trigger webhooks on status changes
+            if (operation === 'update' && previousDoc.status !== doc.status) {
+              if (doc.status === 'succeeded') {
+                await queueWebhook(req.payload, tenantId, 'payment.succeeded', doc)
+              } else if (doc.status === 'failed') {
+                await queueWebhook(req.payload, tenantId, 'payment.failed', doc)
+              } else if (doc.status === 'refunded') {
+                await queueWebhook(req.payload, tenantId, 'payment.refunded', doc)
+              }
+            }
+          } catch (error) {
+            req.payload.logger.error(`Failed to queue payment webhooks: ${error.message}`)
+          }
+        })
+      },
+    ],
+    afterDelete: [auditDelete],
+  },
 }

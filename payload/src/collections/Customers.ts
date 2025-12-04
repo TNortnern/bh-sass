@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { getTenantId } from '../utilities/getTenantId'
 import { getAccessContext } from '../utilities/accessControl'
+import { auditCreateAndUpdate, auditDelete } from '../hooks/auditHooks'
 
 export const Customers: CollectionConfig = {
   slug: 'customers',
@@ -187,4 +188,27 @@ export const Customers: CollectionConfig = {
     },
   ],
   timestamps: true,
+  hooks: {
+    afterChange: [
+      auditCreateAndUpdate,
+      // Trigger customer webhooks
+      async ({ doc, operation, req }) => {
+        const { queueWebhook } = await import('../lib/webhooks')
+        const tenantId = typeof doc.tenantId === 'object' ? doc.tenantId.id : doc.tenantId
+
+        setImmediate(async () => {
+          try {
+            if (operation === 'create') {
+              await queueWebhook(req.payload, tenantId, 'customer.created', doc)
+            } else if (operation === 'update') {
+              await queueWebhook(req.payload, tenantId, 'customer.updated', doc)
+            }
+          } catch (error) {
+            req.payload.logger.error(`Failed to queue customer webhooks: ${error.message}`)
+          }
+        })
+      },
+    ],
+    afterDelete: [auditDelete],
+  },
 }

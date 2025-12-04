@@ -1,212 +1,284 @@
 <template>
-  <div class="settings-page">
+  <div class="max-w-5xl mx-auto">
     <!-- Page Header -->
-    <div class="page-header">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-gray-200 dark:border-white/[0.06]">
       <div>
-        <h2 class="section-title">Team Settings</h2>
-        <p class="section-description">Manage team members and their permissions</p>
+        <h2 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mb-1">Team Settings</h2>
+        <p class="text-sm text-gray-600 dark:text-[#888]">Manage team members and their permissions</p>
       </div>
       <UButton
         color="primary"
         size="lg"
         icon="i-heroicons-user-plus"
         @click="showInviteModal = true"
-        class="invite-button"
+        class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-black font-semibold shadow-lg hover:shadow-amber-500/25 transition-all duration-200"
       >
         Invite Team Member
       </UButton>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
+    <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4 text-gray-500 dark:text-[#888]">
+      <div class="w-8 h-8 border-3 border-amber-500/20 border-t-amber-500 rounded-full animate-spin"></div>
       <p>Loading team...</p>
     </div>
 
-    <div v-else class="settings-grid">
+    <div v-else class="flex flex-col gap-6">
       <!-- Active Members -->
-      <UCard class="settings-card">
-        <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-user-group" class="icon" />
+      <div class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 hover:border-amber-300 dark:hover:border-amber-500/20 hover:shadow-lg hover:shadow-amber-500/5">
+        <div class="px-6 py-4 border-b border-gray-100 dark:border-white/[0.06]">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-amber-600 dark:text-amber-400 flex-shrink-0">
+              <UIcon name="i-heroicons-user-group" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Team Members</h3>
-              <p class="card-description">
+              <h3 class="text-lg font-semibold tracking-tight text-gray-900 dark:text-white">Team Members</h3>
+              <p class="text-sm text-gray-500 dark:text-[#666]">
                 {{ activeMembers.length }} active
                 {{ activeMembers.length === 1 ? 'member' : 'members' }}
               </p>
             </div>
           </div>
-        </template>
+        </div>
 
-        <div class="card-content">
-          <div v-if="activeMembers.length === 0" class="empty-state">
-            <UIcon name="i-heroicons-user-group" class="empty-icon" />
-            <p class="empty-text">No active team members</p>
+        <div class="p-6">
+          <div v-if="activeMembers.length === 0" class="flex flex-col items-center justify-center py-12 gap-3">
+            <UIcon name="i-heroicons-user-group" class="w-12 h-12 text-gray-300 dark:text-[#333]" />
+            <p class="text-sm text-gray-500 dark:text-[#666]">No active team members</p>
           </div>
 
-          <div v-else class="members-list">
+          <div v-else class="flex flex-col gap-3">
             <div
               v-for="member in activeMembers"
               :key="member.id"
-              class="member-item"
+              class="flex items-center gap-5 p-5 bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/[0.06] rounded-xl transition-all duration-200 hover:bg-gray-100 dark:hover:bg-white/[0.03] hover:border-gray-200 dark:hover:border-white/[0.1]"
             >
-              <div class="member-avatar">
-                <div v-if="!member.avatar" class="avatar-placeholder">
+              <div class="w-12 h-12 flex-shrink-0">
+                <div v-if="!member.avatar" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl text-black text-sm font-bold">
                   {{ getInitials(member.name) }}
                 </div>
-                <img v-else :src="member.avatar" :alt="member.name" />
+                <img v-else :src="member.avatar" :alt="member.name" class="w-full h-full object-cover rounded-xl" />
               </div>
 
-              <div class="member-info">
-                <h4 class="member-name">{{ member.name }}</h4>
-                <p class="member-email">{{ member.email }}</p>
-                <div class="member-meta">
-                  <span class="meta-item">
-                    <UIcon name="i-heroicons-calendar" class="meta-icon" />
+              <div class="flex-1 min-w-0">
+                <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">{{ member.name }}</h4>
+                <p class="text-sm text-gray-500 dark:text-[#666] mb-1.5">{{ member.email }}</p>
+                <div class="flex gap-4">
+                  <span class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-[#666]">
+                    <UIcon name="i-heroicons-calendar" class="w-3.5 h-3.5" />
                     Joined {{ formatDate(member.joinedAt) }}
                   </span>
                 </div>
               </div>
 
-              <div class="member-role">
+              <div class="flex-shrink-0">
                 <div
-                  class="role-badge"
-                  :class="`role-${member.role}`"
+                  class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold"
+                  :class="{
+                    'bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400': member.role === 'admin',
+                    'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-600 dark:text-blue-400': member.role === 'manager',
+                    'bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 text-green-600 dark:text-green-400': member.role === 'staff',
+                  }"
                 >
-                  <UIcon :name="getRoleIcon(member.role)" class="role-icon" />
+                  <UIcon :name="getRoleIcon(member.role)" class="w-4 h-4" />
                   {{ capitalizeFirst(member.role) }}
                 </div>
               </div>
 
-              <div class="member-actions">
-                <UButton
-                  variant="ghost"
-                  size="sm"
-                  icon="i-heroicons-ellipsis-horizontal"
-                  @click="showMemberMenu(member)"
-                />
+              <div class="flex-shrink-0">
+                <UDropdown :items="getDropdownItems(member)">
+                  <UButton
+                    variant="ghost"
+                    size="sm"
+                    icon="i-heroicons-ellipsis-horizontal"
+                  />
+                </UDropdown>
               </div>
             </div>
           </div>
         </div>
-      </UCard>
+      </div>
 
       <!-- Pending Invitations -->
-      <UCard v-if="pendingMembers.length > 0" class="settings-card">
-        <template #header>
-          <div class="card-header">
-            <div class="card-header-icon pending">
-              <UIcon name="i-heroicons-clock" class="icon" />
+      <div v-if="pendingMembers.length > 0" class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 dark:border-white/[0.06]">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl text-blue-600 dark:text-blue-400 flex-shrink-0">
+              <UIcon name="i-heroicons-clock" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Pending Invitations</h3>
-              <p class="card-description">
+              <h3 class="text-lg font-semibold tracking-tight text-gray-900 dark:text-white">Pending Invitations</h3>
+              <p class="text-sm text-gray-500 dark:text-[#666]">
                 {{ pendingMembers.length }} pending
                 {{ pendingMembers.length === 1 ? 'invitation' : 'invitations' }}
               </p>
             </div>
           </div>
-        </template>
+        </div>
 
-        <div class="card-content">
-          <div class="members-list">
+        <div class="p-6">
+          <div class="flex flex-col gap-3">
             <div
               v-for="member in pendingMembers"
               :key="member.id"
-              class="member-item pending"
+              class="flex items-center gap-5 p-5 bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/[0.06] rounded-xl opacity-70"
             >
-              <div class="member-avatar">
-                <div class="avatar-placeholder pending">
+              <div class="w-12 h-12 flex-shrink-0">
+                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl text-white text-sm font-bold">
                   {{ getInitials(member.name) }}
                 </div>
               </div>
 
-              <div class="member-info">
-                <h4 class="member-name">{{ member.name }}</h4>
-                <p class="member-email">{{ member.email }}</p>
-                <div class="member-meta">
-                  <span class="meta-item">
-                    <UIcon name="i-heroicons-envelope" class="meta-icon" />
+              <div class="flex-1 min-w-0">
+                <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">{{ member.name }}</h4>
+                <p class="text-sm text-gray-500 dark:text-[#666] mb-1.5">{{ member.email }}</p>
+                <div class="flex gap-4">
+                  <span class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-[#666]">
+                    <UIcon name="i-heroicons-envelope" class="w-3.5 h-3.5" />
                     Invitation sent {{ formatDate(member.joinedAt) }}
                   </span>
                 </div>
               </div>
 
-              <div class="member-role">
-                <div class="role-badge role-pending">
+              <div class="flex-shrink-0">
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-gray-500/10 border border-gray-200 dark:border-gray-500/30 text-gray-600 dark:text-gray-400">
                   {{ capitalizeFirst(member.role) }}
                 </div>
               </div>
 
-              <div class="member-actions">
-                <UButton
-                  variant="ghost"
-                  size="sm"
-                  color="error"
-                  @click="removeMember(member.id)"
-                >
-                  Revoke
-                </UButton>
+              <div class="flex-shrink-0">
+                <UDropdown :items="getDropdownItems(member)">
+                  <UButton
+                    variant="ghost"
+                    size="sm"
+                    icon="i-heroicons-ellipsis-horizontal"
+                  />
+                </UDropdown>
               </div>
             </div>
           </div>
         </div>
-      </UCard>
+      </div>
 
-      <!-- Roles & Permissions -->
-      <UCard class="settings-card">
-        <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-shield-check" class="icon" />
+      <!-- Inactive Members -->
+      <div v-if="inactiveMembers.length > 0" class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 dark:border-white/[0.06]">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-500/10 border border-gray-200 dark:border-gray-500/20 rounded-xl text-gray-500 dark:text-gray-400 flex-shrink-0">
+              <UIcon name="i-heroicons-no-symbol" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Roles & Permissions</h3>
-              <p class="card-description">What each role can do</p>
+              <h3 class="text-lg font-semibold tracking-tight text-gray-900 dark:text-white">Inactive Members</h3>
+              <p class="text-sm text-gray-500 dark:text-[#666]">
+                {{ inactiveMembers.length }} deactivated
+                {{ inactiveMembers.length === 1 ? 'member' : 'members' }}
+              </p>
             </div>
           </div>
-        </template>
+        </div>
 
-        <div class="card-content">
-          <div class="roles-grid">
+        <div class="p-6">
+          <div class="flex flex-col gap-3">
             <div
-              v-for="role in roles"
-              :key="role.value"
-              class="role-card"
+              v-for="member in inactiveMembers"
+              :key="member.id"
+              class="flex items-center gap-5 p-5 bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/[0.06] rounded-xl opacity-60"
             >
-              <div class="role-header">
-                <div class="role-icon-wrapper" :class="`role-${role.value}`">
-                  <UIcon :name="role.icon" class="icon" />
-                </div>
-                <div>
-                  <h4 class="role-name">{{ role.name }}</h4>
-                  <p class="role-description">{{ role.description }}</p>
+              <div class="w-12 h-12 flex-shrink-0">
+                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-400 to-gray-500 rounded-xl text-white text-sm font-bold">
+                  {{ getInitials(member.name) }}
                 </div>
               </div>
 
-              <ul class="permissions-list">
-                <li v-for="(permission, index) in role.permissions" :key="index">
-                  <UIcon name="i-heroicons-check" class="permission-icon" />
+              <div class="flex-1 min-w-0">
+                <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">{{ member.name }}</h4>
+                <p class="text-sm text-gray-500 dark:text-[#666] mb-1.5">{{ member.email }}</p>
+                <div class="flex gap-4">
+                  <span class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-[#666]">
+                    <UIcon name="i-heroicons-calendar" class="w-3.5 h-3.5" />
+                    Joined {{ formatDate(member.joinedAt) }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="flex-shrink-0">
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-gray-500/10 border border-gray-200 dark:border-gray-500/30 text-gray-500 dark:text-gray-400">
+                  {{ capitalizeFirst(member.role) }}
+                </div>
+              </div>
+
+              <div class="flex-shrink-0">
+                <UDropdown :items="getDropdownItems(member)">
+                  <UButton
+                    variant="ghost"
+                    size="sm"
+                    icon="i-heroicons-ellipsis-horizontal"
+                  />
+                </UDropdown>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Roles & Permissions -->
+      <div class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 dark:border-white/[0.06]">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-amber-600 dark:text-amber-400 flex-shrink-0">
+              <UIcon name="i-heroicons-shield-check" class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold tracking-tight text-gray-900 dark:text-white">Roles & Permissions</h3>
+              <p class="text-sm text-gray-500 dark:text-[#666]">What each role can do</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div
+              v-for="role in roles"
+              :key="role.value"
+              class="p-5 bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/[0.06] rounded-xl flex flex-col gap-4"
+            >
+              <div class="flex items-start gap-4">
+                <div
+                  class="w-10 h-10 flex items-center justify-center rounded-lg flex-shrink-0"
+                  :class="{
+                    'bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400': role.value === 'admin',
+                    'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-600 dark:text-blue-400': role.value === 'manager',
+                    'bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 text-green-600 dark:text-green-400': role.value === 'staff',
+                  }"
+                >
+                  <UIcon :name="role.icon" class="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">{{ role.name }}</h4>
+                  <p class="text-xs text-gray-500 dark:text-[#666] leading-relaxed">{{ role.description }}</p>
+                </div>
+              </div>
+
+              <ul class="flex flex-col gap-2 mt-auto">
+                <li v-for="(permission, index) in role.permissions" :key="index" class="flex items-center gap-2 text-xs text-gray-600 dark:text-[#888] leading-relaxed">
+                  <UIcon name="i-heroicons-check" class="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
                   {{ permission }}
                 </li>
               </ul>
             </div>
           </div>
         </div>
-      </UCard>
+      </div>
     </div>
 
     <!-- Invite Member Modal -->
     <UModal v-model:open="showInviteModal">
       <template #content>
-        <UCard>
-          <template #header>
-            <h3 class="modal-title">Invite Team Member</h3>
-          </template>
+        <div class="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-100 dark:border-white/[0.06]">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Invite Team Member</h3>
+          </div>
 
-          <div class="modal-content">
+          <div class="p-6 flex flex-col gap-6">
             <UFormGroup label="Email Address" required>
               <UInput
                 v-model="inviteForm.email"
@@ -218,81 +290,184 @@
             </UFormGroup>
 
             <UFormGroup label="Role" required>
-              <div class="role-select-options">
+              <div class="flex flex-col gap-3 mt-2">
                 <div
                   v-for="role in roles"
                   :key="role.value"
-                  class="role-select-option"
-                  :class="{ active: inviteForm.role === role.value }"
+                  class="flex items-start gap-4 p-4 bg-gray-50 dark:bg-white/[0.02] border-2 rounded-xl cursor-pointer transition-all duration-200"
+                  :class="inviteForm.role === role.value ? 'border-amber-400 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/5' : 'border-gray-100 dark:border-white/[0.06] hover:border-amber-200 dark:hover:border-amber-500/30'"
                   @click="inviteForm.role = role.value"
                 >
-                  <div class="option-radio">
-                    <div v-if="inviteForm.role === role.value" class="radio-dot"></div>
+                  <div class="w-5 h-5 mt-0.5 border-2 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
+                    :class="inviteForm.role === role.value ? 'border-amber-500' : 'border-gray-300 dark:border-white/20'"
+                  >
+                    <div v-if="inviteForm.role === role.value" class="w-2.5 h-2.5 bg-amber-500 rounded-full"></div>
                   </div>
-                  <div class="option-icon" :class="`role-${role.value}`">
-                    <UIcon :name="role.icon" class="icon" />
+                  <div
+                    class="w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0"
+                    :class="{
+                      'bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400': role.value === 'admin',
+                      'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400': role.value === 'manager',
+                      'bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 text-green-600 dark:text-green-400': role.value === 'staff',
+                    }"
+                  >
+                    <UIcon :name="role.icon" class="w-4 h-4" />
                   </div>
-                  <div class="option-content">
-                    <h4 class="option-name">{{ role.name }}</h4>
-                    <p class="option-description">{{ role.description }}</p>
+                  <div class="flex-1">
+                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">{{ role.name }}</h4>
+                    <p class="text-xs text-gray-500 dark:text-[#888]">{{ role.description }}</p>
                   </div>
                 </div>
               </div>
             </UFormGroup>
           </div>
 
-          <template #footer>
-            <div class="modal-actions">
-              <UButton variant="ghost" @click="showInviteModal = false">
-                Cancel
-              </UButton>
-              <UButton
-                color="primary"
-                :loading="saving"
-                :disabled="!inviteForm.email || !inviteForm.role"
-                @click="handleInvite"
-              >
-                Send Invitation
-              </UButton>
+          <div class="px-6 py-4 border-t border-gray-100 dark:border-white/[0.06] flex justify-end gap-3">
+            <UButton variant="ghost" @click="showInviteModal = false">
+              Cancel
+            </UButton>
+            <UButton
+              color="primary"
+              :loading="saving"
+              :disabled="!inviteForm.email || !inviteForm.role"
+              @click="handleInvite"
+            >
+              Send Invitation
+            </UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Edit Role Modal -->
+    <UModal v-model:open="showEditRoleModal">
+      <template #content>
+        <div class="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-100 dark:border-white/[0.06]">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Edit Team Member Role</h3>
+          </div>
+
+          <div class="p-6 flex flex-col gap-6">
+            <div class="mb-2">
+              <p class="text-xs text-gray-500 dark:text-[#666] mb-1">Team Member</p>
+              <p class="font-semibold text-gray-900 dark:text-white">{{ selectedMember?.name }}</p>
+              <p class="text-sm text-gray-500 dark:text-[#666]">{{ selectedMember?.email }}</p>
             </div>
-          </template>
-        </UCard>
+
+            <UFormGroup label="Role" required>
+              <div class="flex flex-col gap-3 mt-2">
+                <div
+                  v-for="role in roles"
+                  :key="role.value"
+                  class="flex items-start gap-4 p-4 bg-gray-50 dark:bg-white/[0.02] border-2 rounded-xl cursor-pointer transition-all duration-200"
+                  :class="editRoleForm === role.value ? 'border-amber-400 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/5' : 'border-gray-100 dark:border-white/[0.06] hover:border-amber-200 dark:hover:border-amber-500/30'"
+                  @click="editRoleForm = role.value"
+                >
+                  <div class="w-5 h-5 mt-0.5 border-2 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
+                    :class="editRoleForm === role.value ? 'border-amber-500' : 'border-gray-300 dark:border-white/20'"
+                  >
+                    <div v-if="editRoleForm === role.value" class="w-2.5 h-2.5 bg-amber-500 rounded-full"></div>
+                  </div>
+                  <div
+                    class="w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0"
+                    :class="{
+                      'bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400': role.value === 'admin',
+                      'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400': role.value === 'manager',
+                      'bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 text-green-600 dark:text-green-400': role.value === 'staff',
+                    }"
+                  >
+                    <UIcon :name="role.icon" class="w-4 h-4" />
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">{{ role.name }}</h4>
+                    <p class="text-xs text-gray-500 dark:text-[#888]">{{ role.description }}</p>
+                  </div>
+                </div>
+              </div>
+            </UFormGroup>
+          </div>
+
+          <div class="px-6 py-4 border-t border-gray-100 dark:border-white/[0.06] flex justify-end gap-3">
+            <UButton variant="ghost" @click="showEditRoleModal = false">
+              Cancel
+            </UButton>
+            <UButton
+              color="primary"
+              :loading="saving"
+              @click="saveEditedRole"
+            >
+              Update Role
+            </UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Deactivate Member Modal -->
+    <UModal v-model:open="showDeactivateModal">
+      <template #content>
+        <div class="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-100 dark:border-white/[0.06]">
+            <div class="flex items-center gap-3">
+              <UIcon name="i-heroicons-no-symbol" class="w-6 h-6 text-amber-500" />
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Deactivate Team Member?</h3>
+            </div>
+          </div>
+
+          <div class="p-6">
+            <p class="text-sm text-gray-600 dark:text-[#888] leading-relaxed">
+              Are you sure you want to deactivate <strong class="text-gray-900 dark:text-white">{{ selectedMember?.name }}</strong>?
+              They will lose access to the dashboard but their account will be preserved.
+            </p>
+          </div>
+
+          <div class="px-6 py-4 border-t border-gray-100 dark:border-white/[0.06] flex justify-end gap-3">
+            <UButton variant="ghost" @click="showDeactivateModal = false">
+              Cancel
+            </UButton>
+            <UButton
+              color="warning"
+              :loading="saving"
+              @click="confirmDeactivate"
+            >
+              Deactivate Member
+            </UButton>
+          </div>
+        </div>
       </template>
     </UModal>
 
     <!-- Remove Member Modal -->
     <UModal v-model:open="showRemoveModal">
       <template #content>
-        <UCard>
-          <template #header>
-            <div class="modal-header">
-              <UIcon name="i-heroicons-exclamation-triangle" class="modal-icon" />
-              <h3 class="modal-title">Remove Team Member?</h3>
+        <div class="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-100 dark:border-white/[0.06]">
+            <div class="flex items-center gap-3">
+              <UIcon name="i-heroicons-exclamation-triangle" class="w-6 h-6 text-red-500" />
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Remove Team Member?</h3>
             </div>
-          </template>
+          </div>
 
-          <div class="modal-content">
-            <p class="modal-text">
-              Are you sure you want to remove <strong>{{ selectedMember?.name }}</strong>
+          <div class="p-6">
+            <p class="text-sm text-gray-600 dark:text-[#888] leading-relaxed">
+              Are you sure you want to remove <strong class="text-gray-900 dark:text-white">{{ selectedMember?.name }}</strong>
               from your team? They will immediately lose access to the dashboard.
             </p>
           </div>
 
-          <template #footer>
-            <div class="modal-actions">
-              <UButton variant="ghost" @click="showRemoveModal = false">
-                Cancel
-              </UButton>
-              <UButton
-                color="error"
-                :loading="saving"
-                @click="confirmRemove"
-              >
-                Remove Member
-              </UButton>
-            </div>
-          </template>
-        </UCard>
+          <div class="px-6 py-4 border-t border-gray-100 dark:border-white/[0.06] flex justify-end gap-3">
+            <UButton variant="ghost" @click="showRemoveModal = false">
+              Cancel
+            </UButton>
+            <UButton
+              color="error"
+              :loading="saving"
+              @click="confirmRemove"
+            >
+              Remove Member
+            </UButton>
+          </div>
+        </div>
       </template>
     </UModal>
   </div>
@@ -301,11 +476,14 @@
 <script setup lang="ts">
 import type { TeamMember } from '~/composables/useSettings'
 
-const { team, loading, saving, inviteTeamMember, removeTeamMember } = useSettings()
+const { team, loading, saving, inviteTeamMember, removeTeamMember, deactivateTeamMember, reactivateTeamMember, resendInvitation: resendInvitationFn, updateTeamMemberRole } = useSettings()
 
 const showInviteModal = ref(false)
 const showRemoveModal = ref(false)
+const showEditRoleModal = ref(false)
+const showDeactivateModal = ref(false)
 const selectedMember = ref<TeamMember | null>(null)
+const editRoleForm = ref<TeamMember['role']>('staff')
 
 const inviteForm = ref({
   email: '',
@@ -360,6 +538,10 @@ const pendingMembers = computed(() => {
   return team.value.filter((m) => m.status === 'pending')
 })
 
+const inactiveMembers = computed(() => {
+  return team.value.filter((m) => m.status === 'inactive')
+})
+
 const getInitials = (name: string) => {
   return name
     .split(' ')
@@ -386,9 +568,106 @@ const capitalizeFirst = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-const showMemberMenu = (member: TeamMember) => {
+const getDropdownItems = (member: TeamMember) => {
+  const items = []
+
+  if (member.status === 'active') {
+    items.push({
+      label: 'Edit Role',
+      icon: 'i-heroicons-pencil-square',
+      click: () => openEditRoleModal(member),
+    })
+    items.push({
+      label: 'Deactivate',
+      icon: 'i-heroicons-no-symbol',
+      click: () => openDeactivateModal(member),
+    })
+  }
+
+  if (member.status === 'inactive') {
+    items.push({
+      label: 'Reactivate',
+      icon: 'i-heroicons-check-circle',
+      click: () => handleReactivate(member),
+    })
+    items.push({
+      label: 'Edit Role',
+      icon: 'i-heroicons-pencil-square',
+      click: () => openEditRoleModal(member),
+    })
+  }
+
+  if (member.status === 'pending') {
+    items.push({
+      label: 'Resend Invitation',
+      icon: 'i-heroicons-paper-airplane',
+      click: () => resendInvitation(member),
+    })
+  }
+
+  items.push({
+    label: 'Delete',
+    icon: 'i-heroicons-trash',
+    click: () => openRemoveModal(member),
+  })
+
+  return [items]
+}
+
+const handleReactivate = async (member: TeamMember) => {
+  try {
+    await reactivateTeamMember(member.id)
+  } catch (error) {
+    console.error('Failed to reactivate member:', error)
+  }
+}
+
+const openEditRoleModal = (member: TeamMember) => {
+  selectedMember.value = member
+  editRoleForm.value = member.role
+  showEditRoleModal.value = true
+}
+
+const openDeactivateModal = (member: TeamMember) => {
+  selectedMember.value = member
+  showDeactivateModal.value = true
+}
+
+const openRemoveModal = (member: TeamMember) => {
   selectedMember.value = member
   showRemoveModal.value = true
+}
+
+const resendInvitation = async (member: TeamMember) => {
+  try {
+    await resendInvitationFn(member.id)
+  } catch (error) {
+    console.error('Failed to resend invitation:', error)
+  }
+}
+
+const saveEditedRole = async () => {
+  if (!selectedMember.value) return
+
+  try {
+    await updateTeamMemberRole(selectedMember.value.id, editRoleForm.value)
+    showEditRoleModal.value = false
+    selectedMember.value = null
+  } catch (error) {
+    console.error('Failed to update role:', error)
+  }
+}
+
+const confirmDeactivate = async () => {
+  if (!selectedMember.value) return
+
+  try {
+    await deactivateTeamMember(selectedMember.value.id)
+    showDeactivateModal.value = false
+    selectedMember.value = null
+  } catch (error) {
+    console.error('Failed to deactivate member:', error)
+  }
 }
 
 const handleInvite = async () => {
@@ -417,553 +696,3 @@ const confirmRemove = async () => {
   }
 }
 </script>
-
-<style scoped>
-.settings-page {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 0 0 0.375rem;
-  color: #ffffff;
-}
-
-.section-description {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #888;
-}
-
-.invite-button {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  border: none;
-  color: #000;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  transition: all 0.2s;
-}
-
-.invite-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 16px -4px rgba(251, 191, 36, 0.4);
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  gap: 1rem;
-  color: #888;
-}
-
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(251, 191, 36, 0.1);
-  border-top-color: #fbbf24;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.settings-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.settings-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 1rem;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.settings-card:hover {
-  border-color: rgba(251, 191, 36, 0.2);
-  box-shadow: 0 8px 32px -8px rgba(251, 191, 36, 0.15);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.card-header-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.2);
-  border-radius: 0.625rem;
-  color: #fbbf24;
-  flex-shrink: 0;
-}
-
-.card-header-icon.pending {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.2);
-  color: #3b82f6;
-}
-
-.icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.card-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  margin: 0 0 0.25rem;
-  color: #ffffff;
-}
-
-.card-description {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.card-content {
-  padding: 1.5rem;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem;
-  gap: 0.75rem;
-}
-
-.empty-icon {
-  width: 3rem;
-  height: 3rem;
-  color: #333;
-}
-
-.empty-text {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #666;
-}
-
-.members-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.member-item {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
-  transition: all 0.2s;
-}
-
-.member-item:hover {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.member-item.pending {
-  opacity: 0.7;
-}
-
-.member-avatar {
-  width: 3rem;
-  height: 3rem;
-  flex-shrink: 0;
-}
-
-.avatar-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  border-radius: 0.625rem;
-  color: #000;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.avatar-placeholder.pending {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: #fff;
-}
-
-.member-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 0.625rem;
-}
-
-.member-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.member-name {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  margin: 0 0 0.25rem;
-  color: #ffffff;
-}
-
-.member-email {
-  margin: 0 0 0.5rem;
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.member-meta {
-  display: flex;
-  gap: 1rem;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.8125rem;
-  color: #666;
-}
-
-.meta-icon {
-  width: 0.875rem;
-  height: 0.875rem;
-}
-
-.member-role {
-  flex-shrink: 0;
-}
-
-.role-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.role-badge.role-admin {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #ef4444;
-}
-
-.role-badge.role-manager {
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  color: #3b82f6;
-}
-
-.role-badge.role-staff {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  color: #22c55e;
-}
-
-.role-badge.role-pending {
-  background: rgba(102, 102, 102, 0.1);
-  border: 1px solid rgba(102, 102, 102, 0.3);
-  color: #666;
-}
-
-.role-icon {
-  width: 1rem;
-  height: 1rem;
-}
-
-.member-actions {
-  flex-shrink: 0;
-}
-
-.roles-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-}
-
-.role-card {
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.role-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.role-icon-wrapper {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.5rem;
-  flex-shrink: 0;
-}
-
-.role-icon-wrapper.role-admin {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #ef4444;
-}
-
-.role-icon-wrapper.role-manager {
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  color: #3b82f6;
-}
-
-.role-icon-wrapper.role-staff {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  color: #22c55e;
-}
-
-.role-name {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  margin: 0 0 0.25rem;
-  color: #ffffff;
-}
-
-.role-description {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #666;
-  line-height: 1.4;
-}
-
-.permissions-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.permissions-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8125rem;
-  color: #888;
-  line-height: 1.4;
-}
-
-.permission-icon {
-  width: 0.875rem;
-  height: 0.875rem;
-  color: #fbbf24;
-  flex-shrink: 0;
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-  color: #ffffff;
-}
-
-.modal-content {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.role-select-options {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-.role-select-option {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 2px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.role-select-option:hover {
-  border-color: rgba(251, 191, 36, 0.3);
-  background: rgba(251, 191, 36, 0.03);
-}
-
-.role-select-option.active {
-  border-color: rgba(251, 191, 36, 0.5);
-  background: rgba(251, 191, 36, 0.08);
-}
-
-.option-radio {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 0.125rem;
-  transition: all 0.2s;
-}
-
-.role-select-option.active .option-radio {
-  border-color: #fbbf24;
-}
-
-.radio-dot {
-  width: 10px;
-  height: 10px;
-  background: #fbbf24;
-  border-radius: 50%;
-}
-
-.option-icon {
-  width: 2rem;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.5rem;
-  flex-shrink: 0;
-}
-
-.option-icon.role-admin {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-}
-
-.option-icon.role-manager {
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  color: #3b82f6;
-}
-
-.option-icon.role-staff {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.2);
-  color: #22c55e;
-}
-
-.option-content {
-  flex: 1;
-}
-
-.option-name {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  margin: 0 0 0.25rem;
-  color: #ffffff;
-}
-
-.option-description {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #888;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.modal-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: #fbbf24;
-}
-
-.modal-text {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #888;
-  line-height: 1.6;
-}
-
-.modal-text strong {
-  color: #ffffff;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-}
-
-@media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .member-item {
-    flex-wrap: wrap;
-  }
-
-  .member-role {
-    order: -1;
-    width: 100%;
-  }
-
-  .roles-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

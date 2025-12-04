@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onClickOutside } from '@vueuse/core'
+import type { SearchResult } from '~/composables/useGlobalSearch'
 
+// Note: onClickOutside is auto-imported from @vueuse/nuxt
 const isOpen = ref(false)
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const selectedIndex = ref(0)
@@ -29,8 +30,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
       break
     case 'Enter':
       e.preventDefault()
-      if (results.value[selectedIndex.value]) {
-        navigateToResult(results.value[selectedIndex.value])
+      const selected = results.value[selectedIndex.value]
+      if (selected) {
+        navigateToResult(selected)
       }
       break
     case 'Escape':
@@ -42,15 +44,6 @@ const handleKeyDown = (e: KeyboardEvent) => {
 
 // Navigate to search result
 const router = useRouter()
-interface SearchResult {
-  id: string
-  title: string
-  subtitle: string
-  url: string
-  type: string
-  icon: string
-  metadata?: string
-}
 const navigateToResult = (result: SearchResult) => {
   router.push(result.url)
   closeSearch()
@@ -258,7 +251,7 @@ const isMac = computed(() => {
                     v-for="result in groupedResults.navigation"
                     :key="result.id"
                     class="w-full px-4 py-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                    :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex(r => r.id === result.id) }"
+                    :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex((r: SearchResult) => r.id === result.id) }"
                     @click="navigateToResult(result)"
                   >
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :class="getIconBgColor(result.type)">
@@ -281,7 +274,7 @@ const isMac = computed(() => {
                     v-for="result in groupedResults.bookings"
                     :key="result.id"
                     class="w-full px-4 py-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                    :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex(r => r.id === result.id) }"
+                    :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex((r: SearchResult) => r.id === result.id) }"
                     @click="navigateToResult(result)"
                   >
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :class="getIconBgColor(result.type)">
@@ -310,7 +303,7 @@ const isMac = computed(() => {
                     v-for="result in groupedResults.customers"
                     :key="result.id"
                     class="w-full px-4 py-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                    :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex(r => r.id === result.id) }"
+                    :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex((r: SearchResult) => r.id === result.id) }"
                     @click="navigateToResult(result)"
                   >
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :class="getIconBgColor(result.type)">
@@ -339,7 +332,7 @@ const isMac = computed(() => {
                     v-for="result in groupedResults.inventory"
                     :key="result.id"
                     class="w-full px-4 py-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                    :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex(r => r.id === result.id) }"
+                    :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex((r: SearchResult) => r.id === result.id) }"
                     @click="navigateToResult(result)"
                   >
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :class="getIconBgColor(result.type)">

@@ -11,77 +11,83 @@ const tenantSlug = route.params.tenant as string
 const itemSlug = route.params.item as string
 
 const { addItem } = useCart()
+const { loadTenant, loadItems, loadAddOns, checkAvailability, loading, error } = usePublicBooking()
 
-// Mock item data - in production, this would be fetched from API
-const item = ref({
-  id: '1',
-  name: 'Princess Castle',
-  slug: 'princess-castle',
-  description: 'Perfect for little princesses! This beautiful pink castle features turrets, a slide, and plenty of bouncing space. Made with commercial-grade vinyl and includes safety netting on all sides.',
-  longDescription: 'Transform your backyard into a magical kingdom with our Princess Castle bounce house. This enchanting inflatable features beautiful pink and purple colors, castle turrets, and a fun slide. The spacious bouncing area can accommodate up to 8 children at once, making it perfect for birthday parties and special events. Safety is our top priority - the castle includes reinforced netting on all sides, secure entrance steps, and is made from commercial-grade, fire-resistant vinyl.',
-  price: 199,
-  images: [
-    'https://images.unsplash.com/photo-1530981785497-a62037228fe9?w=800&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1464207687429-7505649dae38?w=800&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&h=600&fit=crop'
-  ],
-  category: 'Bounce Houses',
-  capacity: 8,
-  ageRange: '3-12 years',
-  dimensions: '15ft x 15ft x 12ft',
-  setupSpace: '18ft x 18ft',
-  powerRequired: '1 standard 110v outlet',
-  features: [
-    'Large bouncing area',
-    'Built-in slide',
-    'Safety netting on all sides',
-    'Princess castle theme with turrets',
-    'Commercial-grade vinyl',
-    'Fire-resistant materials'
+// Item and add-ons data
+const item = ref<any>(null)
+const addOns = ref<any[]>([])
+const unavailableDates = ref<string[]>([])
+
+// Load item and add-ons on mount
+onMounted(async () => {
+  // Load tenant first
+  const loadedTenant = await loadTenant(tenantSlug)
+
+  if (!loadedTenant) {
+    router.push('/404')
+    return
+  }
+
+  // Load all items for this tenant
+  const loadedItems = await loadItems(loadedTenant.id)
+
+  // Find the specific item by slug
+  const foundItem = loadedItems.find((i: any) => i.slug === itemSlug)
+
+  if (!foundItem) {
+    router.push(`/book/${tenantSlug}`)
+    return
+  }
+
+  // Map item to display format
+  item.value = {
+    id: foundItem.id,
+    name: foundItem.name,
+    slug: foundItem.slug,
+    description: foundItem.description,
+    longDescription: foundItem.description, // Use description as long description
+    price: foundItem.pricing?.fullDayRate || 0,
+    images: foundItem.images?.map((img: any) => img.url) || [
+      'https://images.unsplash.com/photo-1530981785497-a62037228fe9?w=800&h=600&fit=crop'
+    ],
+    category: foundItem.category || 'Bounce Houses',
+    capacity: foundItem.specifications?.capacity || 0,
+    ageRange: foundItem.specifications?.ageRange || 'All ages',
+    dimensions: foundItem.specifications?.dimensions
+      ? `${foundItem.specifications.dimensions.length}ft x ${foundItem.specifications.dimensions.width}ft x ${foundItem.specifications.dimensions.height}ft`
+      : 'Standard size',
+    setupSpace: foundItem.specifications?.requiredSpace || 'Contact for details',
+    powerRequired: foundItem.specifications?.powerRequired ? '1 standard 110v outlet' : 'No power required',
+    features: [
+      'Professionally cleaned and sanitized',
+      'Commercial-grade materials',
+      'Safety netting and secure entrance',
+      'Delivered and set up by trained staff',
+      'Insurance and safety certified'
+    ],
+    rbPayloadServiceId: foundItem.rbPayloadServiceId
+  }
+
+  // Load add-ons
+  const loadedAddOns = await loadAddOns(loadedTenant.id)
+
+  addOns.value = loadedAddOns.map((addOn: any) => ({
+    id: addOn.id,
+    name: addOn.name,
+    description: addOn.description,
+    price: addOn.price,
+    selected: false
+  }))
+
+  // TODO: Load unavailable dates from availability API
+  // For now, use mock data
+  unavailableDates.value = [
+    '2025-12-05',
+    '2025-12-06',
+    '2025-12-25',
+    '2025-12-26'
   ]
 })
-
-// Mock add-ons
-const addOns = ref([
-  {
-    id: 'addon-1',
-    name: 'Cotton Candy Machine',
-    description: 'Make fluffy cotton candy for your guests',
-    price: 49,
-    selected: false
-  },
-  {
-    id: 'addon-2',
-    name: 'Popcorn Machine',
-    description: 'Movie theater style popcorn maker',
-    price: 39,
-    selected: false
-  },
-  {
-    id: 'addon-3',
-    name: 'Table & Chairs Set',
-    description: '6ft table with 8 folding chairs',
-    price: 29,
-    selected: false
-  },
-  {
-    id: 'addon-4',
-    name: 'Generator',
-    description: 'Backup power supply if outlet not available',
-    price: 75,
-    selected: false
-  }
-])
-
-// Mock unavailable dates
-const unavailableDates = ref([
-  '2025-12-05',
-  '2025-12-06',
-  '2025-12-12',
-  '2025-12-13',
-  '2025-12-25',
-  '2025-12-26'
-])
 
 const selectedDates = ref<DateRange | null>(null)
 const selectedImage = ref(0)
@@ -149,8 +155,18 @@ const formatCurrency = (amount: number) => {
 
 <template>
   <div>
-    <!-- Breadcrumb -->
-    <nav class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
+    <!-- Loading State -->
+    <div v-if="loading || !item" class="flex items-center justify-center py-16">
+      <div class="text-center">
+        <UIcon name="lucide:loader-circle" class="w-12 h-12 text-orange-600 animate-spin mx-auto mb-4" />
+        <p class="text-gray-600 dark:text-gray-400">Loading item details...</p>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div v-else>
+      <!-- Breadcrumb -->
+      <nav class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
       <NuxtLink :to="`/book/${tenantSlug}`" class="hover:text-orange-600 dark:hover:text-orange-400">
         Rentals
       </NuxtLink>
@@ -347,6 +363,7 @@ const formatCurrency = (amount: number) => {
           </p>
         </div>
       </div>
+    </div>
     </div>
   </div>
 </template>

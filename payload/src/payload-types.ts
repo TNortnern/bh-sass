@@ -70,7 +70,9 @@ export interface Config {
     users: User;
     media: Media;
     tenants: Tenant;
+    categories: Category;
     'rental-items': RentalItem;
+    variations: Variation;
     bookings: Booking;
     customers: Customer;
     availability: Availability;
@@ -81,8 +83,16 @@ export interface Config {
     'add-ons': AddOn;
     payments: Payment;
     'webhook-endpoints': WebhookEndpoint;
+    'webhook-deliveries': WebhookDelivery;
     notifications: Notification;
     'api-keys': ApiKey;
+    'audit-logs': AuditLog;
+    invoices: Invoice;
+    contracts: Contract;
+    'contract-templates': ContractTemplate;
+    'maintenance-records': MaintenanceRecord;
+    'maintenance-schedules': MaintenanceSchedule;
+    'email-templates': EmailTemplate;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -93,7 +103,9 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     tenants: TenantsSelect<false> | TenantsSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     'rental-items': RentalItemsSelect<false> | RentalItemsSelect<true>;
+    variations: VariationsSelect<false> | VariationsSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
     availability: AvailabilitySelect<false> | AvailabilitySelect<true>;
@@ -104,8 +116,16 @@ export interface Config {
     'add-ons': AddOnsSelect<false> | AddOnsSelect<true>;
     payments: PaymentsSelect<false> | PaymentsSelect<true>;
     'webhook-endpoints': WebhookEndpointsSelect<false> | WebhookEndpointsSelect<true>;
+    'webhook-deliveries': WebhookDeliveriesSelect<false> | WebhookDeliveriesSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'api-keys': ApiKeysSelect<false> | ApiKeysSelect<true>;
+    'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
+    invoices: InvoicesSelect<false> | InvoicesSelect<true>;
+    contracts: ContractsSelect<false> | ContractsSelect<true>;
+    'contract-templates': ContractTemplatesSelect<false> | ContractTemplatesSelect<true>;
+    'maintenance-records': MaintenanceRecordsSelect<false> | MaintenanceRecordsSelect<true>;
+    'maintenance-schedules': MaintenanceSchedulesSelect<false> | MaintenanceSchedulesSelect<true>;
+    'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -114,8 +134,12 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'platform-settings': PlatformSetting;
+  };
+  globalsSelect: {
+    'platform-settings': PlatformSettingsSelect<false> | PlatformSettingsSelect<true>;
+  };
   locale: null;
   user: User & {
     collection: 'users';
@@ -239,6 +263,135 @@ export interface Tenant {
    * API key for widget authentication
    */
   apiKey: string;
+  /**
+   * Business phone number
+   */
+  phone?: string | null;
+  /**
+   * Business email address
+   */
+  email?: string | null;
+  /**
+   * Business description for customers
+   */
+  description?: string | null;
+  /**
+   * Business address
+   */
+  address?: {
+    street?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zip?: string | null;
+  };
+  /**
+   * Weekly business hours
+   */
+  businessHours?: {
+    monday?: {
+      enabled?: boolean | null;
+      open?: string | null;
+      close?: string | null;
+    };
+    tuesday?: {
+      enabled?: boolean | null;
+      open?: string | null;
+      close?: string | null;
+    };
+    wednesday?: {
+      enabled?: boolean | null;
+      open?: string | null;
+      close?: string | null;
+    };
+    thursday?: {
+      enabled?: boolean | null;
+      open?: string | null;
+      close?: string | null;
+    };
+    friday?: {
+      enabled?: boolean | null;
+      open?: string | null;
+      close?: string | null;
+    };
+    saturday?: {
+      enabled?: boolean | null;
+      open?: string | null;
+      close?: string | null;
+    };
+    sunday?: {
+      enabled?: boolean | null;
+      open?: string | null;
+      close?: string | null;
+    };
+  };
+  /**
+   * Service delivery area
+   */
+  serviceArea?: {
+    /**
+     * Service radius in miles/km
+     */
+    radius?: number | null;
+    unit?: ('miles' | 'km') | null;
+    /**
+     * Specific ZIP codes served
+     */
+    zipCodes?:
+      | {
+          code?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Brand identity and theming
+   */
+  branding?: {
+    /**
+     * Business name for branding (overrides tenant name)
+     */
+    businessName?: string | null;
+    /**
+     * Short tagline or slogan
+     */
+    tagline?: string | null;
+    /**
+     * Primary brand color (hex)
+     */
+    primaryColor?: string | null;
+    /**
+     * Secondary brand color (hex)
+     */
+    secondaryColor?: string | null;
+    /**
+     * Accent color for buttons and CTAs (hex)
+     */
+    accentColor?: string | null;
+    /**
+     * Email header background color (hex)
+     */
+    emailHeaderBg?: string | null;
+    /**
+     * Email button color (hex)
+     */
+    emailButtonColor?: string | null;
+    /**
+     * Custom footer text for emails
+     */
+    emailFooter?: string | null;
+    /**
+     * Invoice header text
+     */
+    invoiceHeader?: string | null;
+    /**
+     * Terms & Conditions for contracts
+     */
+    termsAndConditions?: string | null;
+    /**
+     * Safety guidelines for rental agreements
+     */
+    safetyGuidelines?: string | null;
+  };
   settings?: {
     timezone?: ('America/New_York' | 'America/Chicago' | 'America/Denver' | 'America/Los_Angeles' | 'UTC') | null;
     currency?: ('USD' | 'EUR' | 'GBP' | 'CAD') | null;
@@ -322,6 +475,51 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  /**
+   * The tenant this category belongs to
+   */
+  tenantId: number | Tenant;
+  /**
+   * Category name (e.g., "Bounce Houses", "Water Slides")
+   */
+  name: string;
+  /**
+   * URL-friendly identifier (auto-generated from name)
+   */
+  slug: string;
+  /**
+   * Brief description of this category
+   */
+  description?: string | null;
+  /**
+   * Icon name (e.g., "i-lucide-castle", "i-lucide-tent")
+   */
+  icon?: string | null;
+  /**
+   * Category image (optional)
+   */
+  image?: (number | null) | Media;
+  /**
+   * Display order (lower numbers appear first)
+   */
+  sortOrder: number;
+  /**
+   * Is this category currently active?
+   */
+  isActive?: boolean | null;
+  /**
+   * Number of rental items in this category (computed)
+   */
+  itemCount?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "rental-items".
  */
 export interface RentalItem {
@@ -353,18 +551,25 @@ export interface RentalItem {
     [k: string]: unknown;
   } | null;
   /**
-   * Category of rental item
+   * Legacy category field (use categoryId relationship instead)
    */
-  category:
-    | 'bounce_house'
-    | 'water_slide'
-    | 'combo_unit'
-    | 'obstacle_course'
-    | 'interactive_game'
-    | 'tent_canopy'
-    | 'table_chair'
-    | 'concession'
-    | 'other';
+  category?:
+    | (
+        | 'bounce_house'
+        | 'water_slide'
+        | 'combo_unit'
+        | 'obstacle_course'
+        | 'interactive_game'
+        | 'tent_canopy'
+        | 'table_chair'
+        | 'concession'
+        | 'other'
+      )
+    | null;
+  /**
+   * Category for this rental item (recommended over legacy category field)
+   */
+  categoryId?: (number | null) | Category;
   /**
    * Product images (first image is primary). Upload via Bunny CDN.
    */
@@ -486,6 +691,141 @@ export interface RentalItem {
    * Last sync error message
    */
   syncError?: string | null;
+  /**
+   * Does this item have variations (size, color, theme, etc.)?
+   */
+  hasVariations?: boolean | null;
+  /**
+   * Available variation attributes and their possible values
+   */
+  variationAttributes?:
+    | {
+        /**
+         * Attribute name (e.g., "Size", "Theme", "Color")
+         */
+        name: string;
+        /**
+         * Available values for this attribute
+         */
+        values: {
+          value: string;
+          id?: string | null;
+        }[];
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Date of last maintenance/inspection
+   */
+  lastMaintenanceDate?: string | null;
+  /**
+   * Date when next maintenance is due
+   */
+  nextMaintenanceDate?: string | null;
+  /**
+   * Current maintenance status
+   */
+  maintenanceStatus?: ('up_to_date' | 'due_soon' | 'overdue') | null;
+  /**
+   * General maintenance notes and history
+   */
+  maintenanceNotes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variations".
+ */
+export interface Variation {
+  id: number;
+  /**
+   * The tenant this variation belongs to
+   */
+  tenantId: number | Tenant;
+  /**
+   * The parent rental item this variation belongs to
+   */
+  rentalItemId: number | RentalItem;
+  /**
+   * Variation name (e.g., "Large Blue Theme", "Medium Princess")
+   */
+  name: string;
+  /**
+   * Stock keeping unit (SKU) - must be unique within tenant
+   */
+  sku: string;
+  /**
+   * Variation attributes that differentiate this from the parent item
+   */
+  attributes: {
+    /**
+     * Attribute name (e.g., "Size", "Theme", "Color")
+     */
+    name: string;
+    /**
+     * Attribute value (e.g., "Large", "Princess", "Blue")
+     */
+    value: string;
+    id?: string | null;
+  }[];
+  /**
+   * How pricing is calculated for this variation
+   */
+  pricingType: 'same_as_parent' | 'adjustment' | 'override';
+  /**
+   * Amount to add/subtract from parent price (use negative for discount)
+   */
+  priceAdjustment?: number | null;
+  /**
+   * Custom pricing for this variation (overrides parent entirely)
+   */
+  overridePrice?: {
+    /**
+     * Hourly rental rate
+     */
+    hourlyRate?: number | null;
+    /**
+     * Daily rental rate
+     */
+    dailyRate?: number | null;
+    /**
+     * Weekend rental rate
+     */
+    weekendRate?: number | null;
+    /**
+     * Weekly rental rate
+     */
+    weeklyRate?: number | null;
+  };
+  /**
+   * Number of units available for this variation
+   */
+  quantity: number;
+  /**
+   * Track inventory for this variation separately
+   */
+  trackInventory?: boolean | null;
+  /**
+   * Optional images for this variation (if empty, uses parent item images)
+   */
+  images?:
+    | {
+        /**
+         * Image URL (Bunny CDN or external)
+         */
+        url: string;
+        /**
+         * Alt text for accessibility
+         */
+        alt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Variation status
+   */
+  status: 'active' | 'inactive';
   updatedAt: string;
   createdAt: string;
 }
@@ -703,6 +1043,10 @@ export interface Plan {
     maxBookings: number;
   };
   /**
+   * Stripe Price ID (e.g., price_xxx)
+   */
+  stripePriceId?: string | null;
+  /**
    * Is this plan available for new signups?
    */
   active?: boolean | null;
@@ -726,11 +1070,19 @@ export interface Subscription {
   /**
    * Subscription status
    */
-  status: 'active' | 'canceled' | 'past_due' | 'trialing';
+  status: 'active' | 'canceled' | 'past_due' | 'trialing' | 'incomplete' | 'incomplete_expired' | 'unpaid';
   /**
    * Stripe subscription ID
    */
   stripeSubscriptionId?: string | null;
+  /**
+   * Stripe customer ID for the tenant
+   */
+  stripeCustomerId?: string | null;
+  /**
+   * Stripe price ID for the subscription plan
+   */
+  stripePriceId?: string | null;
   /**
    * Current billing period start date
    */
@@ -743,6 +1095,18 @@ export interface Subscription {
    * Cancel subscription at end of current period
    */
   cancelAtPeriodEnd?: boolean | null;
+  /**
+   * Date when subscription was canceled
+   */
+  canceledAt?: string | null;
+  /**
+   * Trial period start date
+   */
+  trialStart?: string | null;
+  /**
+   * Trial period end date
+   */
+  trialEnd?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -796,6 +1160,18 @@ export interface InventoryUnit {
    * Date of last maintenance/inspection
    */
   lastMaintenanceDate?: string | null;
+  /**
+   * Date when next maintenance is due
+   */
+  nextMaintenanceDate?: string | null;
+  /**
+   * Current maintenance status
+   */
+  maintenanceStatus?: ('up_to_date' | 'due_soon' | 'overdue') | null;
+  /**
+   * Maintenance notes specific to this unit
+   */
+  maintenanceNotes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -892,6 +1268,14 @@ export interface AddOn {
    * Description of the add-on service
    */
   description?: string | null;
+  /**
+   * Icon class name (e.g., i-lucide-truck)
+   */
+  icon?: string | null;
+  /**
+   * Category for organizing add-ons
+   */
+  category?: ('delivery' | 'setup' | 'equipment' | 'service' | 'other') | null;
   pricing: {
     /**
      * Pricing calculation method
@@ -938,15 +1322,39 @@ export interface Payment {
   /**
    * Payment status
    */
-  status: 'pending' | 'succeeded' | 'failed' | 'refunded';
+  status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded' | 'partially_refunded';
+  /**
+   * Amount refunded in cents (for partial refunds)
+   */
+  refundAmount?: number | null;
+  /**
+   * Reason for refund
+   */
+  refundReason?: string | null;
   /**
    * Stripe Payment Intent ID
    */
   stripePaymentIntentId?: string | null;
   /**
+   * Stripe Checkout Session ID
+   */
+  stripeCheckoutSessionId?: string | null;
+  /**
    * Stripe Charge ID
    */
   stripeChargeId?: string | null;
+  /**
+   * Stripe Refund ID (if payment was refunded)
+   */
+  stripeRefundId?: string | null;
+  /**
+   * Platform fee in cents (deducted from payment)
+   */
+  platformFee?: number | null;
+  /**
+   * Net amount tenant receives in cents (after platform fee)
+   */
+  netAmount?: number | null;
   /**
    * Type of payment
    */
@@ -977,32 +1385,137 @@ export interface WebhookEndpoint {
    */
   tenantId: number | Tenant;
   /**
-   * Webhook endpoint URL
+   * Friendly name for this webhook endpoint
+   */
+  name: string;
+  /**
+   * Webhook endpoint URL (must be HTTPS)
    */
   url: string;
   /**
-   * Webhook signing secret for verification
+   * Webhook signing secret for verification (auto-generated)
    */
   secret: string;
   /**
-   * Events to listen for
+   * Events that will trigger this webhook
    */
   events: {
     event:
       | 'booking.created'
+      | 'booking.updated'
       | 'booking.confirmed'
       | 'booking.cancelled'
       | 'booking.delivered'
       | 'booking.completed'
       | 'payment.succeeded'
       | 'payment.failed'
-      | 'payment.refunded';
+      | 'payment.refunded'
+      | 'customer.created'
+      | 'customer.updated'
+      | 'inventory.low'
+      | 'maintenance.due';
     id?: string | null;
   }[];
   /**
-   * Is this webhook endpoint active?
+   * Enable or disable this webhook endpoint
    */
-  active?: boolean | null;
+  isActive?: boolean | null;
+  /**
+   * Last time a webhook was delivered to this endpoint
+   */
+  lastDeliveryAt?: string | null;
+  /**
+   * Status of the last delivery attempt
+   */
+  lastDeliveryStatus?: ('success' | 'failed') | null;
+  /**
+   * Number of consecutive failed deliveries
+   */
+  failedDeliveriesCount?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Webhook delivery logs and retry tracking
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "webhook-deliveries".
+ */
+export interface WebhookDelivery {
+  id: number;
+  /**
+   * The webhook endpoint this delivery was sent to
+   */
+  endpointId: number | WebhookEndpoint;
+  /**
+   * The tenant this delivery belongs to
+   */
+  tenantId: number | Tenant;
+  /**
+   * The event that triggered this webhook
+   */
+  event: string;
+  /**
+   * The data that was sent in the webhook
+   */
+  payload:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Current status of this delivery
+   */
+  status: 'pending' | 'delivered' | 'failed' | 'retrying';
+  /**
+   * Number of delivery attempts
+   */
+  attempts?: number | null;
+  /**
+   * Maximum number of retry attempts
+   */
+  maxAttempts?: number | null;
+  /**
+   * When to attempt the next retry
+   */
+  nextRetryAt?: string | null;
+  /**
+   * Response from the webhook endpoint
+   */
+  response?: {
+    /**
+     * HTTP status code
+     */
+    statusCode?: number | null;
+    /**
+     * Response body (truncated to 1000 chars)
+     */
+    body?: string | null;
+    /**
+     * Response headers
+     */
+    headers?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  /**
+   * Error message if delivery failed
+   */
+  error?: string | null;
+  /**
+   * When the webhook was successfully delivered
+   */
+  deliveredAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1089,29 +1602,567 @@ export interface ApiKey {
    */
   isActive?: boolean | null;
   /**
-   * Specific permissions for this API key (empty = full access)
+   * Access level for this API key
    */
-  permissions?:
+  scopeType: 'full_access' | 'read_only' | 'booking_management' | 'custom';
+  /**
+   * Computed scopes based on scope type (stored as JSON array)
+   */
+  scopes?:
     | {
-        permission?:
-          | (
-              | 'inventory:read'
-              | 'inventory:write'
-              | 'bookings:read'
-              | 'bookings:write'
-              | 'customers:read'
-              | 'customers:write'
-              | 'reports:read'
-              | 'webhooks:manage'
-            )
-          | null;
-        id?: string | null;
-      }[]
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
     | null;
   /**
    * Optional expiration date for this API key
    */
   expiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Audit trail of all system actions
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-logs".
+ */
+export interface AuditLog {
+  id: number;
+  /**
+   * Type of action performed
+   */
+  action: 'create' | 'update' | 'delete' | 'login' | 'logout' | 'api_call';
+  /**
+   * Collection name that was affected
+   */
+  collection: string;
+  /**
+   * ID of the affected document
+   */
+  documentId: string;
+  /**
+   * User who performed the action
+   */
+  userId?: (number | null) | User;
+  /**
+   * Tenant context for this action
+   */
+  tenantId?: (number | null) | Tenant;
+  /**
+   * Before/after data for updates, full document for create/delete
+   */
+  changes?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Additional metadata (IP address, user agent, etc.)
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * When this action occurred
+   */
+  timestamp: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoices".
+ */
+export interface Invoice {
+  id: number;
+  tenantId: number | Tenant;
+  /**
+   * Auto-generated invoice number (e.g., INV-2025-001)
+   */
+  invoiceNumber: string;
+  /**
+   * Related booking
+   */
+  bookingId: number | Booking;
+  /**
+   * Customer this invoice is for
+   */
+  customerId: number | Customer;
+  lineItems: {
+    /**
+     * Item description
+     */
+    description: string;
+    /**
+     * Quantity
+     */
+    quantity: number;
+    /**
+     * Price per unit
+     */
+    unitPrice: number;
+    /**
+     * Line item total
+     */
+    total: number;
+    id?: string | null;
+  }[];
+  /**
+   * Subtotal before tax and discounts
+   */
+  subtotal: number;
+  /**
+   * Tax amount
+   */
+  taxAmount?: number | null;
+  /**
+   * Discount amount
+   */
+  discountAmount?: number | null;
+  /**
+   * Total amount
+   */
+  totalAmount: number;
+  /**
+   * Invoice status
+   */
+  status: 'draft' | 'sent' | 'paid' | 'void';
+  /**
+   * Payment due date
+   */
+  dueDate?: string | null;
+  /**
+   * Date payment was received
+   */
+  paidAt?: string | null;
+  /**
+   * URL to generated PDF document
+   */
+  pdfUrl?: string | null;
+  /**
+   * Additional notes or payment terms
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contracts".
+ */
+export interface Contract {
+  id: number;
+  tenantId: number | Tenant;
+  /**
+   * Auto-generated contract number (e.g., CTR-2025-001)
+   */
+  contractNumber: string;
+  /**
+   * Related booking
+   */
+  bookingId: number | Booking;
+  /**
+   * Customer signing this contract
+   */
+  customerId: number | Customer;
+  /**
+   * Contract type
+   */
+  type: 'rental-agreement' | 'liability-waiver' | 'custom';
+  /**
+   * Contract terms and conditions
+   */
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Contract status
+   */
+  status: 'draft' | 'sent' | 'signed' | 'void';
+  /**
+   * Date contract was sent to customer
+   */
+  sentAt?: string | null;
+  /**
+   * Date contract was signed
+   */
+  signedAt?: string | null;
+  /**
+   * URL to digital signature image
+   */
+  signatureUrl?: string | null;
+  /**
+   * Name of person who signed
+   */
+  signerName?: string | null;
+  /**
+   * IP address of signer (for verification)
+   */
+  signerIP?: string | null;
+  /**
+   * URL to generated PDF document
+   */
+  pdfUrl?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Reusable contract and document templates
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contract-templates".
+ */
+export interface ContractTemplate {
+  id: number;
+  /**
+   * Leave empty for platform-wide default templates, or set to make it tenant-specific
+   */
+  tenantId?: (number | null) | Tenant;
+  /**
+   * Template name (e.g., "Standard Rental Agreement")
+   */
+  name: string;
+  /**
+   * Type of contract template
+   */
+  templateType:
+    | 'rental-agreement'
+    | 'liability-waiver'
+    | 'damage-policy'
+    | 'safety-rules'
+    | 'weather-policy'
+    | 'custom';
+  /**
+   * Brief description of what this template is for
+   */
+  description?: string | null;
+  /**
+   * Template content. Use {{variableName}} for dynamic fields like {{customerName}}, {{itemName}}, {{startDate}}, etc.
+   */
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Available variables that can be used in the template (auto-populated)
+   */
+  variables?:
+    | {
+        key: string;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Platform-wide default template (only super_admins can create/edit default templates)
+   */
+  isDefault?: boolean | null;
+  /**
+   * Whether this contract requires customer signature
+   */
+  requiresSignature?: boolean | null;
+  /**
+   * Active templates are available for use
+   */
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "maintenance-records".
+ */
+export interface MaintenanceRecord {
+  id: number;
+  /**
+   * The tenant this maintenance record belongs to
+   */
+  tenantId: number | Tenant;
+  /**
+   * The rental item being maintained
+   */
+  rentalItem: number | RentalItem;
+  /**
+   * Specific unit if tracking individual units (optional)
+   */
+  inventoryUnit?: (number | null) | InventoryUnit;
+  /**
+   * Type of maintenance performed
+   */
+  type: 'inspection' | 'cleaning' | 'repair' | 'replacement' | 'certification';
+  /**
+   * Description of the maintenance work
+   */
+  description: string;
+  /**
+   * When the maintenance was scheduled
+   */
+  scheduledDate: string;
+  /**
+   * When the maintenance was actually completed
+   */
+  completedDate?: string | null;
+  /**
+   * Current status of the maintenance
+   */
+  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  /**
+   * Name of staff member or vendor who performed the maintenance
+   */
+  performedBy: string;
+  /**
+   * Cost of maintenance (parts + labor)
+   */
+  cost?: number | null;
+  /**
+   * Detailed notes about the maintenance work
+   */
+  notes?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Checklist items completed during maintenance
+   */
+  checklist?:
+    | {
+        task: string;
+        completed?: boolean | null;
+        notes?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Photos documenting the maintenance
+   */
+  photos?:
+    | {
+        /**
+         * Photo URL (before/after photos)
+         */
+        url: string;
+        /**
+         * Photo description
+         */
+        caption?: string | null;
+        type?: ('before' | 'after' | 'during') | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Related documents (certificates, receipts, etc.)
+   */
+  documents?:
+    | {
+        /**
+         * Document URL (certificates, receipts, etc.)
+         */
+        url: string;
+        name: string;
+        type?: ('certificate' | 'receipt' | 'invoice' | 'report' | 'other') | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * When the next maintenance is recommended
+   */
+  nextMaintenanceDate?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "maintenance-schedules".
+ */
+export interface MaintenanceSchedule {
+  id: number;
+  /**
+   * The tenant this maintenance schedule belongs to
+   */
+  tenantId: number | Tenant;
+  /**
+   * The rental item this schedule applies to
+   */
+  rentalItem: number | RentalItem;
+  /**
+   * Schedule name (e.g., "Monthly Inspection", "Annual Certification")
+   */
+  name: string;
+  /**
+   * How often maintenance should occur
+   */
+  frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annually' | 'after_x_rentals';
+  /**
+   * Frequency interval (e.g., every 2 weeks, after 10 rentals)
+   */
+  frequencyValue?: number | null;
+  /**
+   * Type of maintenance to perform
+   */
+  maintenanceType: 'inspection' | 'cleaning' | 'repair' | 'certification';
+  /**
+   * Checklist of tasks to perform during maintenance
+   */
+  checklist?:
+    | {
+        /**
+         * Task description
+         */
+        task: string;
+        /**
+         * Is this task required?
+         */
+        required?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Detailed instructions for performing the maintenance
+   */
+  instructions?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Estimated duration in minutes
+   */
+  estimatedDuration?: number | null;
+  /**
+   * Send reminder X days before due date
+   */
+  reminderDaysBefore?: number | null;
+  /**
+   * Is this schedule currently active?
+   */
+  isActive?: boolean | null;
+  /**
+   * When was maintenance last completed?
+   */
+  lastCompletedDate?: string | null;
+  /**
+   * When is the next maintenance due? (auto-calculated)
+   */
+  nextDueDate?: string | null;
+  /**
+   * Number of rentals since last maintenance (for rental-based schedules)
+   */
+  rentalCount?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Customize email templates for your business
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-templates".
+ */
+export interface EmailTemplate {
+  id: number;
+  /**
+   * The tenant this template belongs to
+   */
+  tenantId: number | Tenant;
+  /**
+   * Which template type to customize
+   */
+  templateKey:
+    | 'BOOKING_CONFIRMATION'
+    | 'BOOKING_REMINDER'
+    | 'BOOKING_CANCELLED'
+    | 'PAYMENT_RECEIVED'
+    | 'PASSWORD_RESET'
+    | 'WELCOME';
+  /**
+   * Display name for this template
+   */
+  name: string;
+  /**
+   * Email subject line (supports variables like {{customerName}})
+   */
+  subject: string;
+  /**
+   * HTML email body (supports variables like {{customerName}}, {{bookingId}}, etc.)
+   */
+  htmlBody: string;
+  /**
+   * Plain text version (optional, auto-generated from HTML if empty)
+   */
+  textBody?: string | null;
+  /**
+   * Whether to use this custom template instead of the default
+   */
+  isActive?: boolean | null;
+  /**
+   * Available template variables (auto-populated based on template type)
+   */
+  variables?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1152,8 +2203,16 @@ export interface PayloadLockedDocument {
         value: number | Tenant;
       } | null)
     | ({
+        relationTo: 'categories';
+        value: number | Category;
+      } | null)
+    | ({
         relationTo: 'rental-items';
         value: number | RentalItem;
+      } | null)
+    | ({
+        relationTo: 'variations';
+        value: number | Variation;
       } | null)
     | ({
         relationTo: 'bookings';
@@ -1196,12 +2255,44 @@ export interface PayloadLockedDocument {
         value: number | WebhookEndpoint;
       } | null)
     | ({
+        relationTo: 'webhook-deliveries';
+        value: number | WebhookDelivery;
+      } | null)
+    | ({
         relationTo: 'notifications';
         value: number | Notification;
       } | null)
     | ({
         relationTo: 'api-keys';
         value: number | ApiKey;
+      } | null)
+    | ({
+        relationTo: 'audit-logs';
+        value: number | AuditLog;
+      } | null)
+    | ({
+        relationTo: 'invoices';
+        value: number | Invoice;
+      } | null)
+    | ({
+        relationTo: 'contracts';
+        value: number | Contract;
+      } | null)
+    | ({
+        relationTo: 'contract-templates';
+        value: number | ContractTemplate;
+      } | null)
+    | ({
+        relationTo: 'maintenance-records';
+        value: number | MaintenanceRecord;
+      } | null)
+    | ({
+        relationTo: 'maintenance-schedules';
+        value: number | MaintenanceSchedule;
+      } | null)
+    | ({
+        relationTo: 'email-templates';
+        value: number | EmailTemplate;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1311,6 +2402,97 @@ export interface TenantsSelect<T extends boolean = true> {
   stripeChargesEnabled?: T;
   stripePayoutsEnabled?: T;
   apiKey?: T;
+  phone?: T;
+  email?: T;
+  description?: T;
+  address?:
+    | T
+    | {
+        street?: T;
+        city?: T;
+        state?: T;
+        zip?: T;
+      };
+  businessHours?:
+    | T
+    | {
+        monday?:
+          | T
+          | {
+              enabled?: T;
+              open?: T;
+              close?: T;
+            };
+        tuesday?:
+          | T
+          | {
+              enabled?: T;
+              open?: T;
+              close?: T;
+            };
+        wednesday?:
+          | T
+          | {
+              enabled?: T;
+              open?: T;
+              close?: T;
+            };
+        thursday?:
+          | T
+          | {
+              enabled?: T;
+              open?: T;
+              close?: T;
+            };
+        friday?:
+          | T
+          | {
+              enabled?: T;
+              open?: T;
+              close?: T;
+            };
+        saturday?:
+          | T
+          | {
+              enabled?: T;
+              open?: T;
+              close?: T;
+            };
+        sunday?:
+          | T
+          | {
+              enabled?: T;
+              open?: T;
+              close?: T;
+            };
+      };
+  serviceArea?:
+    | T
+    | {
+        radius?: T;
+        unit?: T;
+        zipCodes?:
+          | T
+          | {
+              code?: T;
+              id?: T;
+            };
+      };
+  branding?:
+    | T
+    | {
+        businessName?: T;
+        tagline?: T;
+        primaryColor?: T;
+        secondaryColor?: T;
+        accentColor?: T;
+        emailHeaderBg?: T;
+        emailButtonColor?: T;
+        emailFooter?: T;
+        invoiceHeader?: T;
+        termsAndConditions?: T;
+        safetyGuidelines?: T;
+      };
   settings?:
     | T
     | {
@@ -1341,6 +2523,23 @@ export interface TenantsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  tenantId?: T;
+  name?: T;
+  slug?: T;
+  description?: T;
+  icon?: T;
+  image?: T;
+  sortOrder?: T;
+  isActive?: T;
+  itemCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "rental-items_select".
  */
 export interface RentalItemsSelect<T extends boolean = true> {
@@ -1348,6 +2547,7 @@ export interface RentalItemsSelect<T extends boolean = true> {
   name?: T;
   description?: T;
   category?: T;
+  categoryId?: T;
   images?:
     | T
     | {
@@ -1399,6 +2599,62 @@ export interface RentalItemsSelect<T extends boolean = true> {
   syncStatus?: T;
   lastSyncedAt?: T;
   syncError?: T;
+  hasVariations?: T;
+  variationAttributes?:
+    | T
+    | {
+        name?: T;
+        values?:
+          | T
+          | {
+              value?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  lastMaintenanceDate?: T;
+  nextMaintenanceDate?: T;
+  maintenanceStatus?: T;
+  maintenanceNotes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variations_select".
+ */
+export interface VariationsSelect<T extends boolean = true> {
+  tenantId?: T;
+  rentalItemId?: T;
+  name?: T;
+  sku?: T;
+  attributes?:
+    | T
+    | {
+        name?: T;
+        value?: T;
+        id?: T;
+      };
+  pricingType?: T;
+  priceAdjustment?: T;
+  overridePrice?:
+    | T
+    | {
+        hourlyRate?: T;
+        dailyRate?: T;
+        weekendRate?: T;
+        weeklyRate?: T;
+      };
+  quantity?: T;
+  trackInventory?: T;
+  images?:
+    | T
+    | {
+        url?: T;
+        alt?: T;
+        id?: T;
+      };
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1495,6 +2751,7 @@ export interface PlansSelect<T extends boolean = true> {
         maxItems?: T;
         maxBookings?: T;
       };
+  stripePriceId?: T;
   active?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1508,9 +2765,14 @@ export interface SubscriptionsSelect<T extends boolean = true> {
   plan?: T;
   status?: T;
   stripeSubscriptionId?: T;
+  stripeCustomerId?: T;
+  stripePriceId?: T;
   currentPeriodStart?: T;
   currentPeriodEnd?: T;
   cancelAtPeriodEnd?: T;
+  canceledAt?: T;
+  trialStart?: T;
+  trialEnd?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1530,6 +2792,9 @@ export interface InventoryUnitsSelect<T extends boolean = true> {
   purchaseDate?: T;
   purchasePrice?: T;
   lastMaintenanceDate?: T;
+  nextMaintenanceDate?: T;
+  maintenanceStatus?: T;
+  maintenanceNotes?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1569,6 +2834,8 @@ export interface AddOnsSelect<T extends boolean = true> {
   tenantId?: T;
   name?: T;
   description?: T;
+  icon?: T;
+  category?: T;
   pricing?:
     | T
     | {
@@ -1590,8 +2857,14 @@ export interface PaymentsSelect<T extends boolean = true> {
   amount?: T;
   currency?: T;
   status?: T;
+  refundAmount?: T;
+  refundReason?: T;
   stripePaymentIntentId?: T;
+  stripeCheckoutSessionId?: T;
   stripeChargeId?: T;
+  stripeRefundId?: T;
+  platformFee?: T;
+  netAmount?: T;
   type?: T;
   metadata?: T;
   updatedAt?: T;
@@ -1603,6 +2876,7 @@ export interface PaymentsSelect<T extends boolean = true> {
  */
 export interface WebhookEndpointsSelect<T extends boolean = true> {
   tenantId?: T;
+  name?: T;
   url?: T;
   secret?: T;
   events?:
@@ -1611,7 +2885,35 @@ export interface WebhookEndpointsSelect<T extends boolean = true> {
         event?: T;
         id?: T;
       };
-  active?: T;
+  isActive?: T;
+  lastDeliveryAt?: T;
+  lastDeliveryStatus?: T;
+  failedDeliveriesCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "webhook-deliveries_select".
+ */
+export interface WebhookDeliveriesSelect<T extends boolean = true> {
+  endpointId?: T;
+  tenantId?: T;
+  event?: T;
+  payload?: T;
+  status?: T;
+  attempts?: T;
+  maxAttempts?: T;
+  nextRetryAt?: T;
+  response?:
+    | T
+    | {
+        statusCode?: T;
+        body?: T;
+        headers?: T;
+      };
+  error?: T;
+  deliveredAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1641,13 +2943,187 @@ export interface ApiKeysSelect<T extends boolean = true> {
   keyPrefix?: T;
   lastUsed?: T;
   isActive?: T;
-  permissions?:
+  scopeType?: T;
+  scopes?: T;
+  expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-logs_select".
+ */
+export interface AuditLogsSelect<T extends boolean = true> {
+  action?: T;
+  collection?: T;
+  documentId?: T;
+  userId?: T;
+  tenantId?: T;
+  changes?: T;
+  metadata?: T;
+  timestamp?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoices_select".
+ */
+export interface InvoicesSelect<T extends boolean = true> {
+  tenantId?: T;
+  invoiceNumber?: T;
+  bookingId?: T;
+  customerId?: T;
+  lineItems?:
     | T
     | {
-        permission?: T;
+        description?: T;
+        quantity?: T;
+        unitPrice?: T;
+        total?: T;
         id?: T;
       };
-  expiresAt?: T;
+  subtotal?: T;
+  taxAmount?: T;
+  discountAmount?: T;
+  totalAmount?: T;
+  status?: T;
+  dueDate?: T;
+  paidAt?: T;
+  pdfUrl?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contracts_select".
+ */
+export interface ContractsSelect<T extends boolean = true> {
+  tenantId?: T;
+  contractNumber?: T;
+  bookingId?: T;
+  customerId?: T;
+  type?: T;
+  content?: T;
+  status?: T;
+  sentAt?: T;
+  signedAt?: T;
+  signatureUrl?: T;
+  signerName?: T;
+  signerIP?: T;
+  pdfUrl?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contract-templates_select".
+ */
+export interface ContractTemplatesSelect<T extends boolean = true> {
+  tenantId?: T;
+  name?: T;
+  templateType?: T;
+  description?: T;
+  content?: T;
+  variables?:
+    | T
+    | {
+        key?: T;
+        description?: T;
+        id?: T;
+      };
+  isDefault?: T;
+  requiresSignature?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "maintenance-records_select".
+ */
+export interface MaintenanceRecordsSelect<T extends boolean = true> {
+  tenantId?: T;
+  rentalItem?: T;
+  inventoryUnit?: T;
+  type?: T;
+  description?: T;
+  scheduledDate?: T;
+  completedDate?: T;
+  status?: T;
+  performedBy?: T;
+  cost?: T;
+  notes?: T;
+  checklist?:
+    | T
+    | {
+        task?: T;
+        completed?: T;
+        notes?: T;
+        id?: T;
+      };
+  photos?:
+    | T
+    | {
+        url?: T;
+        caption?: T;
+        type?: T;
+        id?: T;
+      };
+  documents?:
+    | T
+    | {
+        url?: T;
+        name?: T;
+        type?: T;
+        id?: T;
+      };
+  nextMaintenanceDate?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "maintenance-schedules_select".
+ */
+export interface MaintenanceSchedulesSelect<T extends boolean = true> {
+  tenantId?: T;
+  rentalItem?: T;
+  name?: T;
+  frequency?: T;
+  frequencyValue?: T;
+  maintenanceType?: T;
+  checklist?:
+    | T
+    | {
+        task?: T;
+        required?: T;
+        id?: T;
+      };
+  instructions?: T;
+  estimatedDuration?: T;
+  reminderDaysBefore?: T;
+  isActive?: T;
+  lastCompletedDate?: T;
+  nextDueDate?: T;
+  rentalCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-templates_select".
+ */
+export interface EmailTemplatesSelect<T extends boolean = true> {
+  tenantId?: T;
+  templateKey?: T;
+  name?: T;
+  subject?: T;
+  htmlBody?: T;
+  textBody?: T;
+  isActive?: T;
+  variables?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1690,6 +3166,89 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * Global platform configuration and maintenance settings
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "platform-settings".
+ */
+export interface PlatformSetting {
+  id: number;
+  /**
+   * Configure platform-wide maintenance mode
+   */
+  maintenanceMode?: {
+    /**
+     * Enable maintenance mode (blocks all non-admin users)
+     */
+    enabled?: boolean | null;
+    /**
+     * Message displayed to users during maintenance
+     */
+    message?: string | null;
+    /**
+     * Expected end time of maintenance (optional)
+     */
+    endTime?: string | null;
+    /**
+     * IP addresses allowed to access during maintenance (optional)
+     */
+    allowedIPs?:
+      | {
+          ip: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Platform-wide announcements and notifications
+   */
+  platformAnnouncements?: {
+    /**
+     * Show announcement banner to all users
+     */
+    enabled?: boolean | null;
+    /**
+     * Announcement message
+     */
+    message?: string | null;
+    /**
+     * Announcement type/color
+     */
+    type?: ('info' | 'warning' | 'success' | 'error') | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "platform-settings_select".
+ */
+export interface PlatformSettingsSelect<T extends boolean = true> {
+  maintenanceMode?:
+    | T
+    | {
+        enabled?: T;
+        message?: T;
+        endTime?: T;
+        allowedIPs?:
+          | T
+          | {
+              ip?: T;
+              id?: T;
+            };
+      };
+  platformAnnouncements?:
+    | T
+    | {
+        enabled?: T;
+        message?: T;
+        type?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

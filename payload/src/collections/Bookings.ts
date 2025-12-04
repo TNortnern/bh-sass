@@ -1,6 +1,8 @@
 import type { CollectionConfig } from 'payload'
 import { getTenantId } from '../utilities/getTenantId'
 import { getAccessContext } from '../utilities/accessControl'
+import { auditCreateAndUpdate, auditDelete } from '../hooks/auditHooks'
+import { emailService } from '../lib/email'
 
 export const Bookings: CollectionConfig = {
   slug: 'bookings',
@@ -306,8 +308,10 @@ export const Bookings: CollectionConfig = {
   timestamps: true,
   hooks: {
     afterChange: [
+      // Audit logging
+      auditCreateAndUpdate,
+      // Update customer totalBookings when a new booking is created
       ({ doc, operation, req }) => {
-        // Update customer totalBookings when a new booking is created
         // Run async without blocking the response
         if (operation === 'create' && doc.customerId) {
           const customerId = typeof doc.customerId === 'object' ? doc.customerId.id : doc.customerId
@@ -333,6 +337,128 @@ export const Bookings: CollectionConfig = {
           })
         }
       },
+      // Trigger webhooks
+      async ({ doc, operation, previousDoc, req }) => {
+        const { queueWebhook } = await import('../lib/webhooks')
+        const tenantId = typeof doc.tenantId === 'object' ? doc.tenantId.id : doc.tenantId
+
+        setImmediate(async () => {
+          try {
+            if (operation === 'create') {
+              await queueWebhook(req.payload, tenantId, 'booking.created', doc)
+            } else if (operation === 'update') {
+              await queueWebhook(req.payload, tenantId, 'booking.updated', doc)
+
+              // Trigger specific status change events
+              if (previousDoc.status !== doc.status) {
+                if (doc.status === 'confirmed') {
+                  await queueWebhook(req.payload, tenantId, 'booking.confirmed', doc)
+                } else if (doc.status === 'cancelled') {
+                  await queueWebhook(req.payload, tenantId, 'booking.cancelled', doc)
+                } else if (doc.status === 'delivered') {
+                  await queueWebhook(req.payload, tenantId, 'booking.delivered', doc)
+                } else if (doc.status === 'completed') {
+                  await queueWebhook(req.payload, tenantId, 'booking.completed', doc)
+                }
+              }
+            }
+          } catch (error) {
+            req.payload.logger.error(`Failed to queue booking webhooks: ${error.message}`)
+          }
+        })
+      },
+      // Send email notifications
+      async ({ doc, operation, previousDoc, req }) => {
+        setImmediate(async () => {
+          try {
+            // Get customer data
+            const customerId = typeof doc.customerId === 'object' ? doc.customerId.id : doc.customerId
+            const customer = typeof doc.customerId === 'object'
+              ? doc.customerId
+              : await req.payload.findByID({ collection: 'customers', id: customerId })
+
+            if (!customer?.email) return
+
+            // Get tenant data
+            const tenantId = typeof doc.tenantId === 'object' ? doc.tenantId.id : doc.tenantId
+            const tenant = typeof doc.tenantId === 'object'
+              ? doc.tenantId
+              : await req.payload.findByID({ collection: 'tenants', id: tenantId })
+
+            if (!tenant) return
+
+            // Get rental item data
+            const rentalItemId = typeof doc.rentalItemId === 'object' ? doc.rentalItemId.id : doc.rentalItemId
+            const rentalItem = typeof doc.rentalItemId === 'object'
+              ? doc.rentalItemId
+              : await req.payload.findByID({ collection: 'rental-items', id: rentalItemId })
+
+            // Format location
+            const location = doc.deliveryAddress
+              ? `${doc.deliveryAddress.street}, ${doc.deliveryAddress.city}, ${doc.deliveryAddress.state} ${doc.deliveryAddress.zipCode}`
+              : 'TBD'
+
+            // Send booking confirmation on create (if confirmed) or when status changes to confirmed
+            if (
+              (operation === 'create' && doc.status === 'confirmed') ||
+              (operation === 'update' && previousDoc?.status !== 'confirmed' && doc.status === 'confirmed')
+            ) {
+              await emailService.sendBookingConfirmation(
+                {
+                  id: doc.id,
+                  eventDate: doc.startDate,
+                  eventTime: new Date(doc.startDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+                  location,
+                  totalAmount: doc.totalPrice || 0,
+                  status: doc.status,
+                  item: rentalItem ? { id: rentalItem.id, name: rentalItem.name } : undefined
+                },
+                {
+                  id: customer.id,
+                  name: `${customer.firstName} ${customer.lastName}`,
+                  email: customer.email,
+                  phone: customer.phone
+                },
+                {
+                  id: tenant.id,
+                  name: tenant.name,
+                  domain: tenant.slug
+                }
+              )
+              req.payload.logger.info(`Booking confirmation email sent to ${customer.email}`)
+            }
+
+            // Send cancellation email when status changes to cancelled
+            if (operation === 'update' && previousDoc?.status !== 'cancelled' && doc.status === 'cancelled') {
+              await emailService.sendBookingCancellation(
+                {
+                  id: doc.id,
+                  eventDate: doc.startDate,
+                  eventTime: '',
+                  location,
+                  totalAmount: doc.totalPrice || 0,
+                  status: doc.status,
+                  item: rentalItem ? { id: rentalItem.id, name: rentalItem.name } : undefined
+                },
+                {
+                  id: customer.id,
+                  name: `${customer.firstName} ${customer.lastName}`,
+                  email: customer.email
+                },
+                {
+                  id: tenant.id,
+                  name: tenant.name
+                },
+                doc.depositPaid // refund amount
+              )
+              req.payload.logger.info(`Booking cancellation email sent to ${customer.email}`)
+            }
+          } catch (error: any) {
+            req.payload.logger.error(`Failed to send booking email: ${error.message}`)
+          }
+        })
+      },
     ],
+    afterDelete: [auditDelete],
   },
 }

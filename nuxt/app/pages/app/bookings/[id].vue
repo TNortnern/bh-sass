@@ -70,8 +70,8 @@ const statusActions = computed(() => {
     actions.push({
       label: 'Confirm Booking',
       icon: 'i-lucide-check-circle',
-      color: 'green',
-      click: () => handleStatusUpdate('confirmed')
+      color: 'success',
+      onSelect: () => handleStatusUpdate('confirmed')
     })
   }
 
@@ -79,8 +79,8 @@ const statusActions = computed(() => {
     actions.push({
       label: 'Mark as Delivered',
       icon: 'i-lucide-truck',
-      color: 'blue',
-      click: () => handleStatusUpdate('delivered')
+      color: 'info',
+      onSelect: () => handleStatusUpdate('delivered')
     })
   }
 
@@ -88,8 +88,8 @@ const statusActions = computed(() => {
     actions.push({
       label: 'Complete Booking',
       icon: 'i-lucide-check-circle-2',
-      color: 'green',
-      click: () => handleStatusUpdate('completed')
+      color: 'success',
+      onSelect: () => handleStatusUpdate('completed')
     })
   }
 
@@ -98,16 +98,44 @@ const statusActions = computed(() => {
 
 // Handle status update
 const handleStatusUpdate = async (status: any) => {
-  await updateStatus(bookingId, status)
-  await fetchBooking(bookingId)
+  try {
+    await updateStatus(bookingId, status)
+    await fetchBooking(bookingId)
+    toast.add({
+      title: 'Status Updated',
+      description: `Booking status changed to ${getStatusLabel(status)}`,
+      color: 'success',
+    })
+  } catch (error: any) {
+    console.error('Failed to update status:', error)
+    toast.add({
+      title: 'Update Failed',
+      description: error.message || 'Failed to update booking status',
+      color: 'error',
+    })
+  }
 }
 
 // Handle cancel
 const handleCancel = async () => {
-  await cancelBooking(bookingId, cancelReason.value)
-  showCancelModal.value = false
-  cancelReason.value = ''
-  await fetchBooking(bookingId)
+  try {
+    await cancelBooking(bookingId, cancelReason.value)
+    showCancelModal.value = false
+    cancelReason.value = ''
+    await fetchBooking(bookingId)
+    toast.add({
+      title: 'Booking Cancelled',
+      description: 'The booking has been cancelled',
+      color: 'success',
+    })
+  } catch (error: any) {
+    console.error('Failed to cancel booking:', error)
+    toast.add({
+      title: 'Cancellation Failed',
+      description: error.message || 'Failed to cancel booking',
+      color: 'error',
+    })
+  }
 }
 
 // Handle print

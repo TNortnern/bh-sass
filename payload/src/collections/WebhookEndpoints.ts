@@ -1,12 +1,13 @@
 import type { Access, CollectionConfig } from 'payload'
 import { getTenantId } from '../utilities/getTenantId'
 import { getAccessContext } from '../utilities/accessControl'
+import { generateWebhookSecret } from '../lib/webhooks'
 
 export const WebhookEndpoints: CollectionConfig = {
   slug: 'webhook-endpoints',
   admin: {
-    useAsTitle: 'url',
-    defaultColumns: ['url', 'events', 'active'],
+    useAsTitle: 'name',
+    defaultColumns: ['name', 'url', 'events', 'isActive', 'lastDeliveryAt'],
     group: 'Settings',
   },
   access: {
@@ -98,9 +99,9 @@ export const WebhookEndpoints: CollectionConfig = {
       hooks: {
         beforeValidate: [
           ({ req, value }) => {
-            // Auto-assign tenant for tenant admins
-            if (!value && req.user?.role === 'tenant_admin') {
-              return req.user.tenantId
+            // Auto-assign tenant for tenant admins or staff
+            if (!value && req.user && (req.user.role === 'tenant_admin' || req.user.role === 'staff')) {
+              return getTenantId(req.user)
             }
             return value
           },
@@ -108,12 +109,33 @@ export const WebhookEndpoints: CollectionConfig = {
       },
     },
     {
+      name: 'name',
+      type: 'text',
+      required: true,
+      admin: {
+        description: 'Friendly name for this webhook endpoint',
+        placeholder: 'Zapier Integration',
+      },
+    },
+    {
       name: 'url',
       type: 'text',
       required: true,
       admin: {
-        description: 'Webhook endpoint URL',
+        description: 'Webhook endpoint URL (must be HTTPS)',
         placeholder: 'https://example.com/webhooks/bouncepro',
+      },
+      validate: (value: unknown) => {
+        if (!value || typeof value !== 'string') return 'URL is required'
+        if (!value.startsWith('https://')) {
+          return 'Webhook URLs must use HTTPS for security'
+        }
+        try {
+          new URL(value)
+          return true
+        } catch {
+          return 'Invalid URL format'
+        }
       },
     },
     {
@@ -121,15 +143,15 @@ export const WebhookEndpoints: CollectionConfig = {
       type: 'text',
       required: true,
       admin: {
-        description: 'Webhook signing secret for verification',
+        description: 'Webhook signing secret for verification (auto-generated)',
         readOnly: true,
       },
       hooks: {
         beforeValidate: [
-          ({ value }) => {
-            if (!value) {
-              // Generate secure webhook secret
-              return `whsec_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`
+          ({ value, operation }) => {
+            // Only generate secret on create, not update
+            if (operation === 'create' && !value) {
+              return generateWebhookSecret()
             }
             return value
           },
@@ -150,6 +172,10 @@ export const WebhookEndpoints: CollectionConfig = {
             {
               label: 'Booking Created',
               value: 'booking.created',
+            },
+            {
+              label: 'Booking Updated',
+              value: 'booking.updated',
             },
             {
               label: 'Booking Confirmed',
@@ -179,19 +205,73 @@ export const WebhookEndpoints: CollectionConfig = {
               label: 'Payment Refunded',
               value: 'payment.refunded',
             },
+            {
+              label: 'Customer Created',
+              value: 'customer.created',
+            },
+            {
+              label: 'Customer Updated',
+              value: 'customer.updated',
+            },
+            {
+              label: 'Inventory Low',
+              value: 'inventory.low',
+            },
+            {
+              label: 'Maintenance Due',
+              value: 'maintenance.due',
+            },
           ],
         },
       ],
       admin: {
-        description: 'Events to listen for',
+        description: 'Events that will trigger this webhook',
       },
     },
     {
-      name: 'active',
+      name: 'isActive',
       type: 'checkbox',
       defaultValue: true,
       admin: {
-        description: 'Is this webhook endpoint active?',
+        description: 'Enable or disable this webhook endpoint',
+      },
+    },
+    {
+      name: 'lastDeliveryAt',
+      type: 'date',
+      admin: {
+        description: 'Last time a webhook was delivered to this endpoint',
+        readOnly: true,
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
+    {
+      name: 'lastDeliveryStatus',
+      type: 'select',
+      options: [
+        {
+          label: 'Success',
+          value: 'success',
+        },
+        {
+          label: 'Failed',
+          value: 'failed',
+        },
+      ],
+      admin: {
+        description: 'Status of the last delivery attempt',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'failedDeliveriesCount',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        description: 'Number of consecutive failed deliveries',
+        readOnly: true,
       },
     },
   ],

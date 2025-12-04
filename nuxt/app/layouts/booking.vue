@@ -5,14 +5,46 @@ const { itemCount } = useCart()
 
 const tenantSlug = computed(() => route.params.tenant as string)
 
-// Mock tenant data - in production, this would be fetched from API
+// Fetch tenant data from API
 const tenant = ref({
-  name: 'Acme Party Rentals',
-  logo: '/logo.png',
+  name: 'Loading...',
+  logo: null as string | null,
   primaryColor: '#FF6B35',
+  secondaryColor: '#3b82f6',
+  accentColor: '#10b981',
   phone: '(555) 123-4567',
   email: 'bookings@acmerentals.com'
 })
+
+// Load tenant data from public endpoint
+onMounted(async () => {
+  try {
+    const config = useRuntimeConfig()
+    const response = await $fetch<any>(`${config.public.payloadUrl}/public/tenant/${tenantSlug.value}`)
+
+    if (response) {
+      tenant.value = {
+        name: response.branding?.businessName || response.name || 'Party Rentals',
+        logo: response.logo?.url || null,
+        primaryColor: response.branding?.primaryColor || '#FF6B35',
+        secondaryColor: response.branding?.secondaryColor || '#3b82f6',
+        accentColor: response.branding?.accentColor || '#10b981',
+        phone: response.phone || '(555) 123-4567',
+        email: response.email || 'bookings@example.com'
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load tenant branding:', error)
+    // Keep default values
+  }
+})
+
+// Apply custom colors to CSS variables
+const brandingStyles = computed(() => ({
+  '--primary-color': tenant.value.primaryColor,
+  '--secondary-color': tenant.value.secondaryColor,
+  '--accent-color': tenant.value.accentColor,
+}))
 
 const toggleColorMode = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
@@ -23,7 +55,7 @@ const isConfirmationPage = computed(() => route.path.includes('/confirmation'))
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-950" :style="brandingStyles">
     <!-- Header -->
     <header class="sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
       <div class="container mx-auto px-4 py-4">
@@ -33,7 +65,10 @@ const isConfirmationPage = computed(() => route.path.includes('/confirmation'))
             :to="`/book/${tenantSlug}`"
             class="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl">
+            <div v-if="tenant.logo" class="w-12 h-12 flex items-center justify-center">
+              <img :src="tenant.logo" :alt="tenant.name" class="max-w-full max-h-full object-contain">
+            </div>
+            <div v-else class="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-xl" :style="{ background: `linear-gradient(135deg, ${tenant.primaryColor}, ${tenant.secondaryColor})` }">
               {{ tenant.name.charAt(0) }}
             </div>
             <div>

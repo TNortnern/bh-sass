@@ -85,7 +85,7 @@ const getActionItems = (unit: InventoryUnit) => [
     {
       label: 'Edit Unit',
       icon: 'i-lucide-edit',
-      click: () => emit('edit', unit)
+      onSelect: () => emit('edit', unit)
     }
   ],
   [
@@ -93,7 +93,7 @@ const getActionItems = (unit: InventoryUnit) => [
       label: 'Delete Unit',
       icon: 'i-lucide-trash-2',
       color: 'error' as const,
-      click: () => emit('delete', unit)
+      onSelect: () => emit('delete', unit)
     }
   ]
 ]

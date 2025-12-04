@@ -1,5 +1,6 @@
 import type { Access, CollectionConfig } from 'payload'
 import { getTenantId } from '../utilities/getTenantId'
+import { auditCreateAndUpdate, auditDelete } from '../hooks/auditHooks'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -22,9 +23,14 @@ export const Users: CollectionConfig = {
       // Users can read their own profile
       return { id: { equals: user.id } }
     }) as Access,
-    create: ({ req: { user } }) => {
-      // Super admins and tenant admins can create users
-      return user?.role === 'super_admin' || user?.role === 'tenant_admin'
+    create: ({ req: { user }, data }) => {
+      // Allow public registration for tenant_admin and customer roles
+      if (!user) {
+        // Unauthenticated users can only create tenant_admin or customer accounts
+        return data?.role === 'tenant_admin' || data?.role === 'customer' || !data?.role
+      }
+      // Authenticated users: super admins and tenant admins can create users
+      return user.role === 'super_admin' || user.role === 'tenant_admin'
     },
     update: (({ req: { user } }) => {
       if (!user) return false
@@ -145,4 +151,8 @@ export const Users: CollectionConfig = {
     },
   ],
   timestamps: true,
+  hooks: {
+    afterChange: [auditCreateAndUpdate],
+    afterDelete: [auditDelete],
+  },
 }

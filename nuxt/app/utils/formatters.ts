@@ -92,3 +92,45 @@ export const getStatusLabel = (status: string): string => {
 export const getPaymentStatusLabel = (paymentStatus: string): string => {
   return paymentStatusLabels[paymentStatus] || formatEnumValue(paymentStatus)
 }
+
+/**
+ * Extract plain text from Payload's Lexical richText format
+ * Recursively traverses the Lexical JSON structure and extracts text nodes
+ * @param richText - The Lexical richText object from Payload
+ * @returns Plain text string
+ */
+export const extractTextFromLexical = (richText: any): string => {
+  if (!richText) return ''
+
+  // If it's already a string, return it
+  if (typeof richText === 'string') return richText
+
+  // If it's not an object, return empty string
+  if (typeof richText !== 'object') return ''
+
+  // Extract text from Lexical format
+  const extractFromNode = (node: any): string => {
+    if (!node) return ''
+
+    // If node has text property, it's a text node
+    if (node.text) return node.text
+
+    // If node has children, recursively extract from them
+    if (node.children && Array.isArray(node.children)) {
+      return node.children
+        .map((child: any) => extractFromNode(child))
+        .filter(Boolean)
+        .join(' ')
+    }
+
+    return ''
+  }
+
+  // Start extraction from root
+  if (richText.root) {
+    return extractFromNode(richText.root).trim()
+  }
+
+  // If no root, try extracting directly
+  return extractFromNode(richText).trim()
+}

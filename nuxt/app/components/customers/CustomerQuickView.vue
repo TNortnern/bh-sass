@@ -1,6 +1,6 @@
 <template>
   <USlideover
-    v-model="isOpen"
+    v-model:open="isOpen"
     :ui="{
       width: 'max-w-2xl',
       background: 'bg-slate-900',
@@ -9,7 +9,8 @@
       }
     }"
   >
-    <div class="h-full flex flex-col">
+    <template #content>
+      <div class="h-full flex flex-col">
       <!-- Header -->
       <div class="sticky top-0 z-10 px-8 py-6 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-900/95 border-b border-slate-800/50">
         <div class="flex items-start justify-between gap-4 mb-6">
@@ -36,14 +37,14 @@
                   :href="`mailto:${customer?.email}`"
                   class="flex items-center gap-2 text-slate-300 hover:text-amber-400 transition-colors group"
                 >
-                  <Icon name="heroicons:envelope" class="w-4 h-4" />
+                  <UIcon name="i-lucide-mail" class="w-4 h-4" />
                   <span class="text-sm group-hover:underline">{{ customer?.email }}</span>
                 </a>
                 <a
                   :href="`tel:${customer?.phone}`"
                   class="flex items-center gap-2 text-slate-300 hover:text-amber-400 transition-colors group"
                 >
-                  <Icon name="heroicons:phone" class="w-4 h-4" />
+                  <UIcon name="i-lucide-phone" class="w-4 h-4" />
                   <span class="text-sm group-hover:underline">{{ customer?.phone }}</span>
                 </a>
               </div>
@@ -51,9 +52,9 @@
           </div>
 
           <UButton
-            color="gray"
+            color="neutral"
             variant="ghost"
-            icon="heroicons:x-mark"
+            icon="i-lucide-x"
             size="lg"
             square
             @click="close"
@@ -99,7 +100,7 @@
                 </div>
               </div>
               <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                <Icon name="heroicons:currency-dollar" class="w-6 h-6 text-amber-500" />
+                <UIcon name="i-lucide-dollar-sign" class="w-6 h-6 text-amber-500" />
               </div>
             </div>
           </UCard>
@@ -122,7 +123,7 @@
                 </div>
               </div>
               <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                <Icon name="heroicons:calendar" class="w-6 h-6 text-blue-500" />
+                <UIcon name="i-lucide-calendar" class="w-6 h-6 text-blue-500" />
               </div>
             </div>
           </UCard>
@@ -145,7 +146,7 @@
                 </div>
               </div>
               <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-                <Icon name="heroicons:chart-bar" class="w-6 h-6 text-green-500" />
+                <UIcon name="i-lucide-bar-chart-3" class="w-6 h-6 text-green-500" />
               </div>
             </div>
           </UCard>
@@ -168,7 +169,7 @@
                 </div>
               </div>
               <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                <Icon name="heroicons:clock" class="w-6 h-6 text-purple-500" />
+                <UIcon name="i-lucide-clock" class="w-6 h-6 text-purple-500" />
               </div>
             </div>
           </UCard>
@@ -177,7 +178,7 @@
         <!-- Recent Bookings -->
         <div class="mb-8">
           <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <Icon name="heroicons:calendar-days" class="w-5 h-5 text-amber-500" />
+            <UIcon name="i-lucide-calendar-days" class="w-5 h-5 text-amber-500" />
             Recent Bookings
           </h3>
 
@@ -223,7 +224,7 @@
         <!-- Notes -->
         <div v-if="customer?.notes && customer.notes.length > 0" class="mb-8">
           <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <Icon name="heroicons:document-text" class="w-5 h-5 text-amber-500" />
+            <UIcon name="i-lucide-file-text" class="w-5 h-5 text-amber-500" />
             Notes
           </h3>
 
@@ -253,38 +254,39 @@
       <div class="sticky bottom-0 px-8 py-6 bg-gradient-to-t from-slate-900 via-slate-900 to-slate-900/95 border-t border-slate-800/50">
         <div class="flex gap-3">
           <UButton
-            color="amber"
+            color="primary"
             size="lg"
             block
             :ui="{ rounded: 'rounded-xl' }"
             @click="navigateToDetail"
           >
-            <Icon name="heroicons:arrow-right" class="w-5 h-5 mr-2" />
+            <UIcon name="i-lucide-arrow-right" class="w-5 h-5 mr-2" />
             View Full Profile
           </UButton>
 
           <UButton
-            color="gray"
+            color="neutral"
             variant="outline"
             size="lg"
             :ui="{ rounded: 'rounded-xl' }"
             @click="handleEdit"
           >
-            <Icon name="heroicons:pencil" class="w-5 h-5" />
+            <UIcon name="i-lucide-pencil" class="w-5 h-5" />
           </UButton>
 
           <UButton
-            color="gray"
+            color="neutral"
             variant="outline"
             size="lg"
             :ui="{ rounded: 'rounded-xl' }"
             @click="handleEmail"
           >
-            <Icon name="heroicons:envelope" class="w-5 h-5" />
+            <UIcon name="i-lucide-mail" class="w-5 h-5" />
           </UButton>
         </div>
       </div>
-    </div>
+      </div>
+    </template>
   </USlideover>
 </template>
 
@@ -370,16 +372,16 @@ function formatRelativeDate(date?: string): string {
 
 function getTagColor(tag: string): string {
   const colors: Record<string, string> = {
-    'VIP': 'amber',
-    'Birthday Party': 'pink',
-    'Corporate': 'blue',
-    'Repeat Customer': 'green',
-    'New': 'cyan',
-    'High Value': 'purple',
-    'Referral': 'indigo',
-    'Email List': 'teal',
-    'SMS List': 'orange'
+    'VIP': 'warning',
+    'Birthday Party': 'error',
+    'Corporate': 'info',
+    'Repeat Customer': 'success',
+    'New': 'primary',
+    'High Value': 'secondary',
+    'Referral': 'info',
+    'Email List': 'success',
+    'SMS List': 'warning'
   }
-  return colors[tag] || 'gray'
+  return colors[tag] || 'neutral'
 }
 </script>

@@ -1,386 +1,391 @@
 <script setup lang="ts">
-import { getCategoryLabel, getStatusLabel } from '~/utils/formatters'
-
 definePageMeta({
   layout: 'dashboard'
 })
 
-const { addons, fetchAddons, isLoading } = useInventory()
+const router = useRouter()
+const toast = useToast()
 
-onMounted(() => {
-  fetchAddons()
+const {
+  filteredAddons,
+  stats,
+  isLoading,
+  searchQuery,
+  selectedCategory,
+  selectedStatus,
+  fetchAddOns,
+  deleteAddOn,
+  toggleActive,
+  getCategoryLabel,
+  getPricingTypeLabel
+} = useAddOns()
+
+// State
+const deleteModalOpen = ref(false)
+const addonToDelete = ref<any>(null)
+
+// Fetch add-ons on mount
+onMounted(async () => {
+  await fetchAddOns()
 })
 
-const getCategoryColor = (category: string) => {
-  switch (category) {
-    case 'delivery':
-      return 'blue'
-    case 'setup':
-      return 'purple'
-    case 'equipment':
-      return 'green'
-    case 'service':
-      return 'orange'
-    default:
-      return 'gray'
+// Handle create add-on
+const handleCreate = () => {
+  router.push('/app/addons/new')
+}
+
+// Handle edit add-on
+const handleEdit = (addon: any) => {
+  router.push(`/app/addons/${addon.id}/edit`)
+}
+
+// Handle delete add-on
+const handleDelete = (addon: any) => {
+  addonToDelete.value = addon
+  deleteModalOpen.value = true
+}
+
+// Confirm delete
+const confirmDelete = async () => {
+  if (!addonToDelete.value) return
+
+  const result = await deleteAddOn(addonToDelete.value.id)
+
+  if (result.success) {
+    toast.add({
+      title: 'Add-on deleted',
+      description: `${addonToDelete.value.name} has been removed`,
+      color: 'green'
+    })
+    deleteModalOpen.value = false
+    addonToDelete.value = null
+  } else {
+    toast.add({
+      title: 'Failed to delete add-on',
+      description: result.error,
+      color: 'red'
+    })
   }
 }
 
-const getPricingLabel = (addon: any) => {
-  switch (addon.pricing.type) {
-    case 'flat':
-      return `$${addon.pricing.amount}`
-    case 'per-mile':
-      return `$${addon.pricing.amount}/mile`
-    case 'per-hour':
-      return `$${addon.pricing.amount}/hr`
-    case 'per-item':
-      return `$${addon.pricing.amount}/item`
-    default:
-      return `$${addon.pricing.amount}`
+// Handle toggle active
+const handleToggleActive = async (addon: any) => {
+  const result = await toggleActive(addon.id)
+
+  if (result.success) {
+    toast.add({
+      title: addon.active ? 'Add-on deactivated' : 'Add-on activated',
+      description: `${addon.name} is now ${addon.active ? 'inactive' : 'active'}`,
+      color: 'green'
+    })
+  } else {
+    toast.add({
+      title: 'Failed to update add-on',
+      description: result.error,
+      color: 'red'
+    })
   }
 }
 
-const groupedAddons = computed(() => {
-  const groups: Record<string, typeof addons.value> = {
-    delivery: [],
-    setup: [],
-    equipment: [],
-    service: [],
-    other: []
-  }
+// Category filter options
+const categoryOptions = [
+  { label: 'All Categories', value: 'all' },
+  { label: 'Delivery & Setup', value: 'delivery' },
+  { label: 'Setup', value: 'setup' },
+  { label: 'Equipment', value: 'equipment' },
+  { label: 'Services', value: 'service' },
+  { label: 'Other', value: 'other' }
+]
 
-  addons.value.forEach(addon => {
-    if (groups[addon.category]) {
-      groups[addon.category].push(addon)
-    } else {
-      groups.other.push(addon)
-    }
-  })
+// Status filter options
+const statusOptions = [
+  { label: 'All Status', value: 'all' },
+  { label: 'Active', value: 'active' },
+  { label: 'Inactive', value: 'inactive' }
+]
 
-  return groups
-})
+// Format price
+const formatPrice = (amount: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(amount)
+}
 </script>
 
 <template>
   <div class="space-y-6">
     <!-- Page Header -->
-    <div class="flex items-center justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Add-ons</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">Additional services and equipment</p>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Add-On Services</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">
+          Manage delivery, setup, and additional services
+        </p>
       </div>
+
       <UButton
+        icon="i-lucide-plus"
+        label="Create Add-On"
         color="primary"
-        size="lg"
-      >
-        <UIcon name="i-lucide-plus" class="w-5 h-5 mr-2" />
-        Add Service
-      </UButton>
+        @click="handleCreate"
+      />
     </div>
 
-    <!-- Stats Card -->
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 lg:gap-6">
-      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Add-ons</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ addons.length }}</p>
+    <!-- Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Total Add-Ons</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stats.total }}</p>
           </div>
-          <div class="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
-            <UIcon name="i-lucide-puzzle" class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+            <UIcon name="i-lucide-package" class="w-6 h-6 text-slate-600 dark:text-slate-400" />
           </div>
         </div>
-      </UCard>
+      </div>
 
-      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Delivery</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-              {{ groupedAddons.delivery.length }}
-            </p>
+      <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Active</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stats.active }}</p>
           </div>
-          <div class="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
-            <UIcon name="i-lucide-truck" class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <UIcon name="i-lucide-check-circle" class="w-6 h-6 text-green-600 dark:text-green-400" />
           </div>
         </div>
-      </UCard>
+      </div>
 
-      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Equipment</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-              {{ groupedAddons.equipment.length }}
-            </p>
+      <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Required</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stats.required }}</p>
           </div>
-          <div class="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
-            <UIcon name="i-lucide-box" class="w-6 h-6 text-green-600 dark:text-green-400" />
+          <div class="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+            <UIcon name="i-lucide-star" class="w-6 h-6 text-amber-600 dark:text-amber-400" />
           </div>
         </div>
-      </UCard>
+      </div>
 
-      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Services</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-              {{ groupedAddons.service.length }}
-            </p>
+      <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Optional</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stats.optional }}</p>
           </div>
-          <div class="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center flex-shrink-0">
-            <UIcon name="i-lucide-briefcase" class="w-6 h-6 text-orange-600 dark:text-orange-400" />
+          <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+            <UIcon name="i-lucide-circle-plus" class="w-6 h-6 text-blue-600 dark:text-blue-400" />
           </div>
         </div>
-      </UCard>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-col sm:flex-row gap-4">
+      <div class="flex-1">
+        <UInput
+          v-model="searchQuery"
+          icon="i-lucide-search"
+          placeholder="Search add-ons..."
+          class="w-full"
+        />
+      </div>
+      <div class="flex gap-2">
+        <USelect
+          v-model="selectedCategory"
+          :items="categoryOptions"
+          value-attribute="value"
+          option-attribute="label"
+          placeholder="Category"
+          class="w-48"
+        />
+        <USelect
+          v-model="selectedStatus"
+          :items="statusOptions"
+          value-attribute="value"
+          option-attribute="label"
+          placeholder="Status"
+          class="w-40"
+        />
+      </div>
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="space-y-6">
-      <USkeleton class="h-64" />
-    </div>
-
-    <!-- Addons by Category -->
-    <div v-else class="space-y-8">
-      <!-- Delivery Services -->
-      <div v-if="groupedAddons.delivery.length > 0">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-            <UIcon name="i-lucide-truck" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          </div>
-          <div>
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Delivery Services</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">{{ groupedAddons.delivery.length }} options</p>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <UCard
-            v-for="addon in groupedAddons.delivery"
-            :key="addon.id"
-            class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-200 group cursor-pointer"
-          >
-            <div class="flex items-start gap-4">
-              <div class="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
-                <UIcon :name="addon.icon" class="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between gap-2 mb-1">
-                  <h3 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {{ addon.name }}
-                  </h3>
-                  <UBadge
-                    :color="addon.status === 'active' ? 'green' : 'gray'"
-                    variant="subtle"
-                    size="sm"
-                  >
-                    {{ getStatusLabel(addon.status) }}
-                  </UBadge>
-                </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                  {{ addon.description }}
-                </p>
-                <div class="flex items-center justify-between">
-                  <span class="text-2xl font-bold text-gray-900 dark:text-white">
-                    {{ getPricingLabel(addon) }}
-                  </span>
-                  <UButton
-                    color="neutral"
-                    variant="ghost"
-                    size="sm"
-                    icon="i-lucide-edit"
-                    square
-                  />
-                </div>
-              </div>
-            </div>
-          </UCard>
-        </div>
-      </div>
-
-      <!-- Setup Services -->
-      <div v-if="groupedAddons.setup.length > 0">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-            <UIcon name="i-lucide-wrench" class="w-5 h-5 text-purple-600 dark:text-purple-400" />
-          </div>
-          <div>
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Setup Services</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">{{ groupedAddons.setup.length }} options</p>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <UCard
-            v-for="addon in groupedAddons.setup"
-            :key="addon.id"
-            class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:border-purple-300 dark:hover:border-purple-700 transition-all duration-200 group cursor-pointer"
-          >
-            <div class="flex items-start gap-4">
-              <div class="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center flex-shrink-0">
-                <UIcon :name="addon.icon" class="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between gap-2 mb-1">
-                  <h3 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                    {{ addon.name }}
-                  </h3>
-                  <UBadge
-                    :color="addon.status === 'active' ? 'green' : 'gray'"
-                    variant="subtle"
-                    size="sm"
-                  >
-                    {{ getStatusLabel(addon.status) }}
-                  </UBadge>
-                </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                  {{ addon.description }}
-                </p>
-                <div class="flex items-center justify-between">
-                  <span class="text-2xl font-bold text-gray-900 dark:text-white">
-                    {{ getPricingLabel(addon) }}
-                  </span>
-                  <UButton
-                    color="neutral"
-                    variant="ghost"
-                    size="sm"
-                    icon="i-lucide-edit"
-                    square
-                  />
-                </div>
-              </div>
-            </div>
-          </UCard>
-        </div>
-      </div>
-
-      <!-- Equipment -->
-      <div v-if="groupedAddons.equipment.length > 0">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-            <UIcon name="i-lucide-box" class="w-5 h-5 text-green-600 dark:text-green-400" />
-          </div>
-          <div>
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Equipment Rentals</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">{{ groupedAddons.equipment.length }} options</p>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <UCard
-            v-for="addon in groupedAddons.equipment"
-            :key="addon.id"
-            class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:border-green-300 dark:hover:border-green-700 transition-all duration-200 group cursor-pointer"
-          >
-            <div class="flex items-start gap-4">
-              <div class="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
-                <UIcon :name="addon.icon" class="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between gap-2 mb-1">
-                  <h3 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-                    {{ addon.name }}
-                  </h3>
-                  <UBadge
-                    :color="addon.status === 'active' ? 'green' : 'gray'"
-                    variant="subtle"
-                    size="sm"
-                  >
-                    {{ getStatusLabel(addon.status) }}
-                  </UBadge>
-                </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                  {{ addon.description }}
-                </p>
-                <div class="flex items-center justify-between">
-                  <span class="text-2xl font-bold text-gray-900 dark:text-white">
-                    {{ getPricingLabel(addon) }}
-                  </span>
-                  <UButton
-                    color="neutral"
-                    variant="ghost"
-                    size="sm"
-                    icon="i-lucide-edit"
-                    square
-                  />
-                </div>
-              </div>
-            </div>
-          </UCard>
-        </div>
-      </div>
-
-      <!-- Services -->
-      <div v-if="groupedAddons.service.length > 0">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
-            <UIcon name="i-lucide-briefcase" class="w-5 h-5 text-orange-600 dark:text-orange-400" />
-          </div>
-          <div>
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Additional Services</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">{{ groupedAddons.service.length }} options</p>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <UCard
-            v-for="addon in groupedAddons.service"
-            :key="addon.id"
-            class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:border-orange-300 dark:hover:border-orange-700 transition-all duration-200 group cursor-pointer"
-          >
-            <div class="flex items-start gap-4">
-              <div class="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center flex-shrink-0">
-                <UIcon :name="addon.icon" class="w-6 h-6 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between gap-2 mb-1">
-                  <h3 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                    {{ addon.name }}
-                  </h3>
-                  <UBadge
-                    :color="addon.status === 'active' ? 'green' : 'gray'"
-                    variant="subtle"
-                    size="sm"
-                  >
-                    {{ getStatusLabel(addon.status) }}
-                  </UBadge>
-                </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                  {{ addon.description }}
-                </p>
-                <div class="flex items-center justify-between">
-                  <span class="text-2xl font-bold text-gray-900 dark:text-white">
-                    {{ getPricingLabel(addon) }}
-                  </span>
-                  <UButton
-                    color="neutral"
-                    variant="ghost"
-                    size="sm"
-                    icon="i-lucide-edit"
-                    square
-                  />
-                </div>
-              </div>
-            </div>
-          </UCard>
-        </div>
-      </div>
+    <div v-if="isLoading && filteredAddons.length === 0" class="flex items-center justify-center py-12">
+      <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
     </div>
 
     <!-- Empty State -->
     <div
-      v-if="!isLoading && addons.length === 0"
-      class="text-center py-16"
+      v-else-if="filteredAddons.length === 0"
+      class="flex flex-col items-center justify-center py-16 text-gray-500"
     >
-      <div class="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
-        <UIcon name="i-lucide-puzzle" class="w-10 h-10 text-gray-400 dark:text-gray-600" />
-      </div>
-      <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">No add-ons yet</h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">Add services and equipment to offer with your rentals</p>
+      <UIcon name="i-lucide-package" class="text-6xl mb-4 text-gray-300 dark:text-gray-700" />
+      <p class="text-lg font-medium">No add-ons found</p>
+      <p class="text-sm text-center max-w-sm mt-2 mb-6">
+        Create add-on services like delivery, setup, or equipment rentals
+      </p>
       <UButton
-        color="primary"
-        size="lg"
-      >
-        <UIcon name="i-lucide-plus" class="w-5 h-5 mr-2" />
-        Add First Service
-      </UButton>
+        icon="i-lucide-plus"
+        label="Create First Add-On"
+        @click="handleCreate"
+      />
     </div>
+
+    <!-- Add-Ons Grid -->
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div
+        v-for="addon in filteredAddons"
+        :key="addon.id"
+        class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 hover:border-amber-500/50 dark:hover:border-amber-500/50 transition-all group"
+      >
+        <!-- Header -->
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3 flex-1">
+            <div
+              :class="[
+                'w-12 h-12 rounded-lg flex items-center justify-center',
+                addon.active
+                  ? 'bg-amber-100 dark:bg-amber-900/30'
+                  : 'bg-slate-100 dark:bg-slate-800'
+              ]"
+            >
+              <UIcon
+                :name="addon.icon || 'i-lucide-circle-plus'"
+                :class="[
+                  'w-6 h-6',
+                  addon.active
+                    ? 'text-amber-600 dark:text-amber-400'
+                    : 'text-slate-400'
+                ]"
+              />
+            </div>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-semibold text-gray-900 dark:text-white truncate">
+                {{ addon.name }}
+              </h3>
+              <div class="flex items-center gap-2 mt-1">
+                <UBadge
+                  :label="getCategoryLabel(addon.category)"
+                  color="neutral"
+                  variant="subtle"
+                  size="sm"
+                />
+                <UBadge
+                  v-if="addon.required"
+                  label="Required"
+                  color="amber"
+                  variant="subtle"
+                  size="sm"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <p
+          v-if="addon.description"
+          class="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2"
+        >
+          {{ addon.description }}
+        </p>
+
+        <!-- Pricing -->
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Price</p>
+            <p class="text-lg font-bold text-gray-900 dark:text-white">
+              {{ formatPrice(addon.pricing?.amount || 0) }}
+            </p>
+          </div>
+          <UBadge
+            :label="getPricingTypeLabel(addon.pricing?.type || 'fixed')"
+            color="primary"
+            variant="subtle"
+          />
+        </div>
+
+        <!-- Status Toggle -->
+        <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+          <div class="flex items-center gap-2">
+            <button
+              @click="handleToggleActive(addon)"
+              :class="[
+                'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
+                addon.active ? 'bg-amber-500' : 'bg-slate-200 dark:bg-slate-700'
+              ]"
+            >
+              <span
+                :class="[
+                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                  addon.active ? 'translate-x-5' : 'translate-x-0'
+                ]"
+              />
+            </button>
+            <span class="text-sm text-gray-600 dark:text-gray-400">
+              {{ addon.active ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-2">
+            <UButton
+              icon="i-lucide-pencil"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              @click="handleEdit(addon)"
+            />
+            <UButton
+              icon="i-lucide-trash-2"
+              color="error"
+              variant="ghost"
+              size="sm"
+              @click="handleDelete(addon)"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <UModal v-model:open="deleteModalOpen" title="Delete Add-On">
+      <template #content>
+        <div class="p-6">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+              <UIcon name="i-lucide-trash-2" class="text-red-600 dark:text-red-400 text-xl" />
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Delete Add-On Service
+              </h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Are you sure you want to delete <strong>{{ addonToDelete?.name }}</strong>?
+                This action cannot be undone.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 mt-6">
+            <UButton
+              label="Cancel"
+              color="neutral"
+              variant="ghost"
+              @click="deleteModalOpen = false"
+            />
+            <UButton
+              label="Delete"
+              color="error"
+              @click="confirmDelete"
+            />
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

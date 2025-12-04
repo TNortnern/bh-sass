@@ -10,7 +10,9 @@ import { bunnyStoragePlugin, createBunnyStorageFromEnv } from './lib/bunnyStorag
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Tenants } from './collections/Tenants'
+import { Categories } from './collections/Categories'
 import { RentalItems } from './collections/RentalItems'
+import { Variations } from './collections/Variations'
 import { Bookings } from './collections/Bookings'
 import { Customers } from './collections/Customers'
 import { Availability } from './collections/Availability'
@@ -21,9 +23,23 @@ import { Bundles } from './collections/Bundles'
 import { AddOns } from './collections/AddOns'
 import { Payments } from './collections/Payments'
 import { WebhookEndpoints } from './collections/WebhookEndpoints'
+import { WebhookDeliveries } from './collections/WebhookDeliveries'
 import { Notifications } from './collections/Notifications'
 import { ApiKeys } from './collections/ApiKeys'
+import { AuditLogs } from './collections/AuditLogs'
+import { Invoices } from './collections/Invoices'
+import { Contracts } from './collections/Contracts'
+import { ContractTemplates } from './collections/ContractTemplates'
+import { MaintenanceRecords } from './collections/MaintenanceRecords'
+import { MaintenanceSchedules } from './collections/MaintenanceSchedules'
+import { EmailTemplates } from './collections/EmailTemplates'
+import { PlatformSettings } from './globals/PlatformSettings'
 import { availabilityCheckEndpoint } from './endpoints/availability-check'
+import {
+  maintenanceDueEndpoint,
+  maintenanceCompleteEndpoint,
+  maintenanceHistoryEndpoint,
+} from './endpoints/maintenance'
 import { healthEndpoint, healthDbEndpoint, healthReadyEndpoint } from './endpoints/health'
 import {
   stripeConnectOnboardEndpoint,
@@ -33,11 +49,38 @@ import {
   stripeCheckoutCreateEndpoint,
   stripeCheckoutGetEndpoint,
   stripeWebhookEndpoint,
+  stripeRefundEndpoint,
+  stripePaymentGetEndpoint,
+  stripeSubscriptionGetEndpoint,
+  stripeSubscriptionCreateEndpoint,
+  stripeSubscriptionCancelEndpoint,
+  stripePortalEndpoint,
 } from './endpoints/stripe-endpoints'
 import { sendBookingEmail } from './endpoints/send-booking-email'
+import {
+  registerWebhookEndpoint,
+  regenerateWebhookSecretEndpoint,
+  testWebhookEndpoint,
+  listWebhookDeliveriesEndpoint,
+  retryWebhookDeliveryEndpoint,
+} from './endpoints/webhooks'
+import { generateDocument, downloadDocument, previewDocument } from './endpoints/documents'
+import {
+  generateFromTemplate,
+  signContract,
+  sendContractForSignature,
+} from './endpoints/contracts'
+import { startWebhookRetryJob } from './jobs/webhook-retry'
+import { adminEndpoints } from './endpoints/admin'
+import { emailEndpoints } from './endpoints/email'
+import { registerHandler } from './endpoints/register'
+import { rotateApiKeyEndpoint } from './endpoints/api-keys'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
+
+// Store webhook retry job interval
+let webhookRetryInterval: NodeJS.Timeout | null = null
 
 export default buildConfig({
   admin: {
@@ -45,12 +88,20 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    // Only super_admins can access the admin panel
+    access: async ({ req }) => {
+      const user = req.user
+      if (!user) return false
+      return user.role === 'super_admin'
+    },
   },
   collections: [
     Users,
     Media,
     Tenants,
+    Categories,
     RentalItems,
+    Variations,
     Bookings,
     Customers,
     Availability,
@@ -61,16 +112,37 @@ export default buildConfig({
     AddOns,
     Payments,
     WebhookEndpoints,
+    WebhookDeliveries,
     Notifications,
     ApiKeys,
+    AuditLogs,
+    Invoices,
+    Contracts,
+    ContractTemplates,
+    MaintenanceRecords,
+    MaintenanceSchedules,
+    EmailTemplates,
   ],
+  globals: [PlatformSettings],
   endpoints: [
     // Health check endpoints (should be first for faster routing)
     healthEndpoint,
     healthDbEndpoint,
     healthReadyEndpoint,
+    // Public registration endpoint
+    {
+      path: '/register',
+      method: 'post',
+      handler: registerHandler,
+    },
+    // Admin endpoints (super admin only)
+    ...adminEndpoints,
     // Availability check endpoint
     availabilityCheckEndpoint,
+    // Maintenance endpoints
+    maintenanceDueEndpoint,
+    maintenanceCompleteEndpoint,
+    maintenanceHistoryEndpoint,
     // Stripe Connect endpoints
     stripeConnectOnboardEndpoint,
     stripeConnectRefreshEndpoint,
@@ -79,6 +151,14 @@ export default buildConfig({
     // Stripe Checkout endpoints
     stripeCheckoutCreateEndpoint,
     stripeCheckoutGetEndpoint,
+    // Stripe Payment endpoints
+    stripePaymentGetEndpoint,
+    stripeRefundEndpoint,
+    // Stripe Subscription endpoints
+    stripeSubscriptionGetEndpoint,
+    stripeSubscriptionCreateEndpoint,
+    stripeSubscriptionCancelEndpoint,
+    stripePortalEndpoint,
     // Stripe Webhook endpoint (must support raw body parsing)
     stripeWebhookEndpoint,
     // Booking email endpoint
@@ -87,6 +167,48 @@ export default buildConfig({
       method: 'post',
       handler: sendBookingEmail,
     },
+    // API key management endpoints
+    rotateApiKeyEndpoint,
+    // Webhook management endpoints
+    registerWebhookEndpoint,
+    regenerateWebhookSecretEndpoint,
+    testWebhookEndpoint,
+    listWebhookDeliveriesEndpoint,
+    retryWebhookDeliveryEndpoint,
+    // Document generation endpoints
+    {
+      path: '/documents/generate',
+      method: 'post',
+      handler: generateDocument,
+    },
+    {
+      path: '/documents/:collection/:id/download',
+      method: 'get',
+      handler: downloadDocument,
+    },
+    {
+      path: '/documents/preview',
+      method: 'post',
+      handler: previewDocument,
+    },
+    // Contract management endpoints (paths avoid collection slug conflicts)
+    {
+      path: '/contract-actions/generate',
+      method: 'post',
+      handler: generateFromTemplate,
+    },
+    {
+      path: '/contract-actions/:id/sign',
+      method: 'post',
+      handler: signContract,
+    },
+    {
+      path: '/contract-actions/:id/send',
+      method: 'post',
+      handler: sendContractForSignature,
+    },
+    // Email endpoints
+    ...emailEndpoints,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
@@ -108,4 +230,10 @@ export default buildConfig({
     // Add other plugins here as needed
     // Example: Brevo Email, etc.
   ],
+  onInit: async (payload) => {
+    payload.logger.info('Payload CMS initialized')
+
+    // Start webhook retry job
+    webhookRetryInterval = await startWebhookRetryJob(payload)
+  },
 })

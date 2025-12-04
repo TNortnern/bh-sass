@@ -1,7 +1,7 @@
 export interface User {
   id: string
   email: string
-  role?: 'tenant_admin' | 'staff' | 'customer'
+  role?: 'super_admin' | 'tenant_admin' | 'staff' | 'customer'
   tenantId?: string | { id: string; name: string; slug: string }
   profile?: {
     businessName?: string
@@ -31,9 +31,23 @@ export interface ForgotPasswordData {
   email: string
 }
 
+export interface ResetPasswordData {
+  token: string
+  password: string
+}
+
+export interface VerifyEmailData {
+  token: string
+}
+
+export interface AcceptInviteData {
+  token: string
+  password?: string
+}
+
 export const useAuth = () => {
   const currentUser = useState<User | null>('auth:user', () => null)
-  const isLoading = useState<boolean>('auth:loading', () => true)
+  const isLoading = useState<boolean>('auth:loading', () => false)
   const error = useState<string | null>('auth:error', () => null)
   const toast = useToast()
 
@@ -87,7 +101,7 @@ export const useAuth = () => {
       toast.add({
         title: 'Welcome back!',
         description: `Signed in as ${response.user.email}`,
-        color: 'green'
+        color: 'success'
       })
 
       // Redirect to dashboard
@@ -100,7 +114,7 @@ export const useAuth = () => {
       toast.add({
         title: 'Login failed',
         description: message,
-        color: 'red'
+        color: 'error'
       })
       return { success: false, error: message }
     } finally {
@@ -126,40 +140,37 @@ export const useAuth = () => {
         throw new Error('You must accept the terms and conditions')
       }
 
-      // Create user via Payload API
-      const response = await $fetch<{ doc: User }>('/v1/users', {
+      // Create user and tenant via custom registration endpoint
+      const response = await $fetch<{ user: User; tenant: any; token: string }>('/v1/register', {
         method: 'POST',
         body: {
           email: data.email,
           password: data.password,
-          role: 'tenant_admin',
-          profile: {
-            businessName: data.businessName
-          }
+          businessName: data.businessName
         },
         credentials: 'include'
       })
 
-      // Auto-login after registration
-      await login({ email: data.email, password: data.password })
+      // Set the user from registration response (already logged in)
+      currentUser.value = response.user
 
       toast.add({
         title: 'Account created!',
         description: 'Welcome to your new bounce house business dashboard',
-        color: 'green'
+        color: 'success'
       })
 
       // Redirect to onboarding for new users
       await navigateTo('/app/onboarding')
 
-      return { success: true, user: response.doc }
+      return { success: true, user: response.user }
     } catch (err: any) {
       const message = err?.data?.errors?.[0]?.message || err.message || 'Registration failed. Please try again.'
       error.value = message
       toast.add({
         title: 'Registration failed',
         description: message,
-        color: 'red'
+        color: 'error'
       })
       return { success: false, error: message }
     } finally {
@@ -183,7 +194,7 @@ export const useAuth = () => {
       toast.add({
         title: 'Reset email sent',
         description: 'Check your email for password reset instructions',
-        color: 'green'
+        color: 'success'
       })
 
       return { success: true }
@@ -193,7 +204,7 @@ export const useAuth = () => {
       toast.add({
         title: 'Reset failed',
         description: message,
-        color: 'red'
+        color: 'error'
       })
       return { success: false, error: message }
     } finally {
@@ -217,7 +228,7 @@ export const useAuth = () => {
       toast.add({
         title: 'Signed out',
         description: 'You have been successfully signed out',
-        color: 'green'
+        color: 'success'
       })
     } catch {
       // Ignore logout errors - still clear local state
@@ -225,6 +236,103 @@ export const useAuth = () => {
       currentUser.value = null
       isLoading.value = false
       await navigateTo('/auth/login')
+    }
+  }
+
+  /**
+   * Reset password with token
+   */
+  const resetPassword = async (data: ResetPasswordData) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      await $fetch('/v1/users/reset-password', {
+        method: 'POST',
+        body: {
+          token: data.token,
+          password: data.password
+        }
+      })
+
+      toast.add({
+        title: 'Password reset successful',
+        description: 'You can now sign in with your new password',
+        color: 'success'
+      })
+
+      return { success: true }
+    } catch (err: any) {
+      const message = err?.data?.errors?.[0]?.message || 'Failed to reset password. Please try again.'
+      error.value = message
+      toast.add({
+        title: 'Reset failed',
+        description: message,
+        color: 'error'
+      })
+      return { success: false, error: message }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Verify email with token
+   */
+  const verifyEmail = async (data: VerifyEmailData) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await $fetch<{ user: User }>('/v1/users/verify-email', {
+        method: 'POST',
+        body: { token: data.token },
+        credentials: 'include'
+      })
+
+      currentUser.value = response.user
+
+      return { success: true, user: response.user }
+    } catch (err: any) {
+      const message = err?.data?.errors?.[0]?.message || 'Failed to verify email. Please try again.'
+      error.value = message
+      return { success: false, error: message }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Accept team invite
+   */
+  const acceptInvite = async (data: AcceptInviteData) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await $fetch<{ user: User }>('/v1/users/accept-invite', {
+        method: 'POST',
+        body: {
+          token: data.token,
+          password: data.password
+        },
+        credentials: 'include'
+      })
+
+      currentUser.value = response.user
+
+      return { success: true, user: response.user }
+    } catch (err: any) {
+      const message = err?.data?.errors?.[0]?.message || 'Failed to accept invite. Please try again.'
+      error.value = message
+      toast.add({
+        title: 'Failed to accept invite',
+        description: message,
+        color: 'error'
+      })
+      return { success: false, error: message }
+    } finally {
+      isLoading.value = false
     }
   }
 
@@ -269,6 +377,9 @@ export const useAuth = () => {
     register,
     logout,
     forgotPassword,
+    resetPassword,
+    verifyEmail,
+    acceptInvite,
     loginWithProvider
   }
 }

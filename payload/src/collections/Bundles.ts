@@ -34,7 +34,7 @@ export const Bundles: CollectionConfig = {
       }
     }) as Access,
     create: async ({ req }) => {
-      if (req.user?.role === 'super_admin' || req.user?.role === 'tenant_admin') return true
+      if (req.user?.role === 'super_admin' || req.user?.role === 'tenant_admin' || req.user?.role === 'staff') return true
 
       // API key auth can create bundles
       const context = await getAccessContext(req)
@@ -54,7 +54,7 @@ export const Bundles: CollectionConfig = {
         }
       }
 
-      if (req.user?.role === 'tenant_admin') {
+      if (req.user?.role === 'tenant_admin' || req.user?.role === 'staff') {
         const tenantId = getTenantId(req.user)
         if (!tenantId) return false
         return {
@@ -79,7 +79,7 @@ export const Bundles: CollectionConfig = {
         }
       }
 
-      if (req.user?.role === 'tenant_admin') {
+      if (req.user?.role === 'tenant_admin' || req.user?.role === 'staff') {
         const tenantId = getTenantId(req.user)
         if (!tenantId) return false
         return {
@@ -103,9 +103,9 @@ export const Bundles: CollectionConfig = {
       hooks: {
         beforeValidate: [
           ({ req, value }) => {
-            // Auto-assign tenant for tenant admins
-            if (!value && req.user?.role === 'tenant_admin') {
-              return req.user.tenantId
+            // Auto-assign tenant from current user if not provided
+            if (!value && req.user) {
+              return getTenantId(req.user)
             }
             return value
           },

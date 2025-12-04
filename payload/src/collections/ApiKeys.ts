@@ -98,9 +98,9 @@ export const ApiKeys: CollectionConfig = {
       hooks: {
         beforeValidate: [
           ({ req, value }) => {
-            // Auto-assign tenant for tenant admins
-            if (!value && req.user?.role === 'tenant_admin') {
-              return req.user.tenantId
+            // Auto-assign tenant for tenant admins or staff
+            if (!value && req.user && (req.user.role === 'tenant_admin' || req.user.role === 'staff')) {
+              return getTenantId(req.user)
             }
             return value
           },
@@ -180,27 +180,115 @@ export const ApiKeys: CollectionConfig = {
       },
     },
     {
-      name: 'permissions',
-      type: 'array',
-      admin: {
-        description: 'Specific permissions for this API key (empty = full access)',
-      },
-      fields: [
+      name: 'scopeType',
+      type: 'select',
+      required: true,
+      defaultValue: 'full_access',
+      options: [
         {
-          name: 'permission',
-          type: 'select',
-          options: [
-            { label: 'Read Inventory', value: 'inventory:read' },
-            { label: 'Write Inventory', value: 'inventory:write' },
-            { label: 'Read Bookings', value: 'bookings:read' },
-            { label: 'Write Bookings', value: 'bookings:write' },
-            { label: 'Read Customers', value: 'customers:read' },
-            { label: 'Write Customers', value: 'customers:write' },
-            { label: 'Read Reports', value: 'reports:read' },
-            { label: 'Manage Webhooks', value: 'webhooks:manage' },
-          ],
+          label: 'Full Access',
+          value: 'full_access',
+        },
+        {
+          label: 'Read Only',
+          value: 'read_only',
+        },
+        {
+          label: 'Booking Management',
+          value: 'booking_management',
+        },
+        {
+          label: 'Custom Scopes',
+          value: 'custom',
         },
       ],
+      admin: {
+        description: 'Access level for this API key',
+      },
+    },
+    {
+      name: 'scopes',
+      type: 'json',
+      admin: {
+        description: 'Computed scopes based on scope type (stored as JSON array)',
+        readOnly: true,
+      },
+      hooks: {
+        beforeChange: [
+          ({ siblingData }) => {
+            // Auto-populate scopes based on scopeType
+            const scopeType = siblingData?.scopeType
+
+            if (scopeType === 'full_access') {
+              return [
+                'rental-items:read',
+                'rental-items:write',
+                'rental-items:delete',
+                'bookings:read',
+                'bookings:write',
+                'bookings:delete',
+                'customers:read',
+                'customers:write',
+                'customers:delete',
+                'inventory-units:read',
+                'inventory-units:write',
+                'inventory-units:delete',
+                'add-ons:read',
+                'add-ons:write',
+                'add-ons:delete',
+                'bundles:read',
+                'bundles:write',
+                'bundles:delete',
+                'availability:read',
+                'availability:write',
+                'availability:delete',
+                'payments:read',
+                'invoices:read',
+                'notifications:read',
+                'webhooks:manage',
+                'settings:manage',
+                'reports:read',
+              ]
+            }
+
+            if (scopeType === 'read_only') {
+              return [
+                'rental-items:read',
+                'bookings:read',
+                'customers:read',
+                'inventory-units:read',
+                'add-ons:read',
+                'bundles:read',
+                'availability:read',
+                'payments:read',
+                'invoices:read',
+                'notifications:read',
+                'reports:read',
+              ]
+            }
+
+            if (scopeType === 'booking_management') {
+              return [
+                'rental-items:read',
+                'bookings:read',
+                'bookings:write',
+                'bookings:delete',
+                'customers:read',
+                'customers:write',
+                'inventory-units:read',
+                'add-ons:read',
+                'bundles:read',
+                'availability:read',
+                'availability:write',
+                'notifications:read',
+              ]
+            }
+
+            // For custom, return the existing value or empty array
+            return siblingData?.scopes || []
+          },
+        ],
+      },
     },
     {
       name: 'expiresAt',

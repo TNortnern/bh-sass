@@ -36,14 +36,44 @@ const navigationItems = [
     to: '/app/inventory'
   },
   {
+    label: 'Categories',
+    icon: 'i-lucide-tags',
+    to: '/app/categories'
+  },
+  {
+    label: 'Add-ons',
+    icon: 'i-lucide-plus-circle',
+    to: '/app/addons'
+  },
+  {
+    label: 'Bundles',
+    icon: 'i-lucide-package',
+    to: '/app/bundles'
+  },
+  {
     label: 'Customers',
     icon: 'i-lucide-users',
     to: '/app/customers'
   },
   {
-    label: 'Notifications',
-    icon: 'i-lucide-bell',
-    to: '/app/notifications'
+    label: 'Documents',
+    icon: 'i-lucide-file-text',
+    to: '/app/documents'
+  },
+  {
+    label: 'Contracts',
+    icon: 'i-lucide-file-signature',
+    to: '/app/contracts'
+  },
+  {
+    label: 'Templates',
+    icon: 'i-lucide-layout-template',
+    to: '/app/templates'
+  },
+  {
+    label: 'Maintenance',
+    icon: 'i-lucide-wrench',
+    to: '/app/maintenance'
   },
   {
     label: 'Reports',
@@ -54,6 +84,11 @@ const navigationItems = [
     label: 'Widgets',
     icon: 'i-lucide-puzzle',
     to: '/app/widgets'
+  },
+  {
+    label: 'Notifications',
+    icon: 'i-lucide-bell',
+    to: '/app/notifications'
   },
   {
     label: 'Settings',
@@ -77,7 +112,7 @@ const userDropdownItems = [
   [{
     label: 'Sign out',
     icon: 'i-lucide-log-out',
-    click: () => logout()
+    onSelect: () => logout()
   }]
 ]
 
@@ -102,6 +137,8 @@ watch(() => route.path, () => {
 
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <!-- Toast notifications -->
+    <UToaster />
     <!-- Mobile sidebar overlay -->
     <div
       v-if="isMobileSidebarOpen"
@@ -111,11 +148,11 @@ watch(() => route.path, () => {
 
     <!-- Sidebar -->
     <aside
-      class="fixed top-0 left-0 bottom-0 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-50 transition-transform duration-300 lg:translate-x-0"
+      class="fixed top-0 left-0 bottom-0 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-50 transition-transform duration-300 lg:translate-x-0 flex flex-col"
       :class="isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
     >
       <!-- Logo -->
-      <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-200 dark:border-gray-800">
+      <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
         <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center flex-shrink-0">
           <UIcon name="i-lucide-tent" class="w-5 h-5 text-white" />
         </div>
@@ -123,7 +160,7 @@ watch(() => route.path, () => {
       </div>
 
       <!-- Navigation -->
-      <nav class="p-4 space-y-1">
+      <nav class="p-4 space-y-1 flex-1 overflow-y-auto">
         <NuxtLink
           v-for="item in navigationItems"
           :key="item.to"
@@ -139,7 +176,7 @@ watch(() => route.path, () => {
       </nav>
 
       <!-- Sidebar Footer -->
-      <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-800">
+      <div class="p-4 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
         <UDropdownMenu :items="userDropdownItems" :popper="{ placement: 'top-start' }">
           <button class="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             <div class="flex-shrink-0">
@@ -212,6 +249,11 @@ watch(() => route.path, () => {
 
       <!-- Page Content -->
       <main class="p-4 sm:p-6 lg:p-8">
+        <!-- Breadcrumbs -->
+        <div class="mb-6">
+          <DashboardBreadcrumbs />
+        </div>
+
         <slot />
       </main>
     </div>

@@ -9,18 +9,23 @@ export default defineEventHandler(async (event) => {
   const apiKey = config.payloadApiKey
   const tenantId = config.payloadTenantId
 
-  if (!apiKey) {
+  // Get the cookie header to forward to Payload for session auth
+  const cookieHeader = getHeader(event, 'cookie') || ''
+
+  // Must have either session cookie or API key
+  if (!cookieHeader.includes('payload-token') && !apiKey) {
     throw createError({
-      statusCode: 500,
-      message: 'Payload API key not configured'
+      statusCode: 401,
+      message: 'Authentication required'
     })
   }
 
   const body = await readBody(event)
 
   // Transform the frontend data format to Payload format
-  const payloadData = {
-    tenantId: Number(tenantId),
+  // Only include tenantId if using API key auth (for session auth, Payload gets it from user)
+  const isSessionAuth = cookieHeader.includes('payload-token')
+  const payloadData: Record<string, any> = {
     name: body.name,
     description: body.description,
     category: body.category,
@@ -45,13 +50,24 @@ export default defineEventHandler(async (event) => {
     quantity: 1
   }
 
+  // Always include tenantId - Payload's JWT auth doesn't auto-populate user relationships
+  // Default to tenant 1 if not configured
+  payloadData.tenantId = Number(tenantId) || 1
+
+  // Build headers - prefer session auth, fall back to API key
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+  if (cookieHeader.includes('payload-token')) {
+    headers['Cookie'] = cookieHeader
+  } else if (apiKey) {
+    headers['X-API-Key'] = apiKey
+  }
+
   try {
     const response = await fetch(`${payloadUrl}/api/rental-items`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': apiKey
-      },
+      headers,
       body: JSON.stringify(payloadData)
     })
 

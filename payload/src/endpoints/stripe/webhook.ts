@@ -82,6 +82,27 @@ export const handleWebhook = async (req: PayloadRequest): Promise<Response> => {
         result = await handleAccountDeauthorized(event, payload)
         break
 
+      // Subscription events
+      case 'customer.subscription.created':
+        result = await handleSubscriptionCreated(event, payload)
+        break
+
+      case 'customer.subscription.updated':
+        result = await handleSubscriptionUpdated(event, payload)
+        break
+
+      case 'customer.subscription.deleted':
+        result = await handleSubscriptionDeleted(event, payload)
+        break
+
+      case 'invoice.paid':
+        result = await handleInvoicePaid(event, payload)
+        break
+
+      case 'invoice.payment_failed':
+        result = await handleInvoicePaymentFailed(event, payload)
+        break
+
       default:
         console.log(`Unhandled event type: ${event.type}`)
         result = {
@@ -358,6 +379,341 @@ async function handleAccountDeauthorized(
     }
   } catch (error) {
     console.error('Error handling account.application.deauthorized:', error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}
+
+/**
+ * Handle customer.subscription.created event
+ * Create subscription record in Payload
+ */
+async function handleSubscriptionCreated(
+  event: Stripe.Event,
+  payload: Payload,
+): Promise<WebhookHandlerResult> {
+  const subscription = event.data.object as Stripe.Subscription
+
+  try {
+    const tenantId = subscription.metadata?.tenantId
+
+    if (!tenantId) {
+      console.warn('Subscription created but no tenantId in metadata')
+      return {
+        success: true,
+        message: 'No tenant ID in subscription metadata',
+      }
+    }
+
+    // Get the plan from the subscription
+    const priceId = subscription.items.data[0]?.price.id
+    const plans = await payload.find({
+      collection: 'plans',
+      where: {
+        stripePriceId: { equals: priceId },
+      },
+    })
+
+    const planId = plans.docs[0]?.id
+
+    // Create subscription record
+    await payload.create({
+      collection: 'subscriptions',
+      data: {
+        tenantId,
+        plan: planId,
+        stripeSubscriptionId: subscription.id,
+        stripeCustomerId: subscription.customer as string,
+        stripePriceId: priceId,
+        status: subscription.status,
+        currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        trialStart: subscription.trial_start
+          ? new Date(subscription.trial_start * 1000).toISOString()
+          : undefined,
+        trialEnd: subscription.trial_end
+          ? new Date(subscription.trial_end * 1000).toISOString()
+          : undefined,
+      },
+    })
+
+    console.log('Subscription created:', {
+      tenantId,
+      subscriptionId: subscription.id,
+      status: subscription.status,
+      planId,
+    })
+
+    return {
+      success: true,
+      message: 'Subscription created successfully',
+      data: { tenantId, subscriptionId: subscription.id },
+    }
+  } catch (error) {
+    console.error('Error handling customer.subscription.created:', error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}
+
+/**
+ * Handle customer.subscription.updated event
+ * Update subscription record in Payload
+ */
+async function handleSubscriptionUpdated(
+  event: Stripe.Event,
+  payload: Payload,
+): Promise<WebhookHandlerResult> {
+  const subscription = event.data.object as Stripe.Subscription
+
+  try {
+    // Find existing subscription
+    const existingSubscriptions = await payload.find({
+      collection: 'subscriptions',
+      where: {
+        stripeSubscriptionId: { equals: subscription.id },
+      },
+    })
+
+    if (existingSubscriptions.docs.length === 0) {
+      console.warn('Subscription updated but not found in database:', subscription.id)
+      // Create it instead
+      return await handleSubscriptionCreated(event, payload)
+    }
+
+    const existingSubscription = existingSubscriptions.docs[0]
+
+    // Get the plan from the subscription
+    const priceId = subscription.items.data[0]?.price.id
+    const plans = await payload.find({
+      collection: 'plans',
+      where: {
+        stripePriceId: { equals: priceId },
+      },
+    })
+
+    const planId = plans.docs[0]?.id
+
+    // Update subscription record
+    await payload.update({
+      collection: 'subscriptions',
+      id: existingSubscription.id,
+      data: {
+        plan: planId,
+        stripePriceId: priceId,
+        status: subscription.status,
+        currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        canceledAt: subscription.canceled_at
+          ? new Date(subscription.canceled_at * 1000).toISOString()
+          : undefined,
+        trialStart: subscription.trial_start
+          ? new Date(subscription.trial_start * 1000).toISOString()
+          : undefined,
+        trialEnd: subscription.trial_end
+          ? new Date(subscription.trial_end * 1000).toISOString()
+          : undefined,
+      },
+    })
+
+    console.log('Subscription updated:', {
+      subscriptionId: subscription.id,
+      status: subscription.status,
+      planId,
+    })
+
+    return {
+      success: true,
+      message: 'Subscription updated successfully',
+      data: { subscriptionId: subscription.id },
+    }
+  } catch (error) {
+    console.error('Error handling customer.subscription.updated:', error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}
+
+/**
+ * Handle customer.subscription.deleted event
+ * Mark subscription as canceled in Payload
+ */
+async function handleSubscriptionDeleted(
+  event: Stripe.Event,
+  payload: Payload,
+): Promise<WebhookHandlerResult> {
+  const subscription = event.data.object as Stripe.Subscription
+
+  try {
+    // Find existing subscription
+    const existingSubscriptions = await payload.find({
+      collection: 'subscriptions',
+      where: {
+        stripeSubscriptionId: { equals: subscription.id },
+      },
+    })
+
+    if (existingSubscriptions.docs.length === 0) {
+      console.warn('Subscription deleted but not found in database:', subscription.id)
+      return {
+        success: true,
+        message: 'Subscription not found in database',
+      }
+    }
+
+    const existingSubscription = existingSubscriptions.docs[0]
+
+    // Update subscription record
+    await payload.update({
+      collection: 'subscriptions',
+      id: existingSubscription.id,
+      data: {
+        status: 'canceled',
+        canceledAt: new Date().toISOString(),
+      },
+    })
+
+    console.log('Subscription deleted:', {
+      subscriptionId: subscription.id,
+    })
+
+    return {
+      success: true,
+      message: 'Subscription deleted successfully',
+      data: { subscriptionId: subscription.id },
+    }
+  } catch (error) {
+    console.error('Error handling customer.subscription.deleted:', error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}
+
+/**
+ * Handle invoice.paid event
+ * Update subscription payment status
+ */
+async function handleInvoicePaid(
+  event: Stripe.Event,
+  payload: Payload,
+): Promise<WebhookHandlerResult> {
+  const invoice = event.data.object as Stripe.Invoice
+
+  try {
+    const subscriptionId = invoice.subscription as string
+
+    if (!subscriptionId) {
+      console.warn('Invoice paid but no subscription ID')
+      return {
+        success: true,
+        message: 'No subscription ID in invoice',
+      }
+    }
+
+    console.log('Invoice paid:', {
+      invoiceId: invoice.id,
+      subscriptionId,
+      amount: invoice.amount_paid,
+    })
+
+    // Update subscription status if it was past_due
+    const existingSubscriptions = await payload.find({
+      collection: 'subscriptions',
+      where: {
+        stripeSubscriptionId: { equals: subscriptionId },
+      },
+    })
+
+    if (existingSubscriptions.docs.length > 0) {
+      const existingSubscription = existingSubscriptions.docs[0]
+      if (existingSubscription.status === 'past_due') {
+        await payload.update({
+          collection: 'subscriptions',
+          id: existingSubscription.id,
+          data: {
+            status: 'active',
+          },
+        })
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Invoice paid processed successfully',
+      data: { invoiceId: invoice.id, subscriptionId },
+    }
+  } catch (error) {
+    console.error('Error handling invoice.paid:', error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error',
+    }
+  }
+}
+
+/**
+ * Handle invoice.payment_failed event
+ * Update subscription to past_due status
+ */
+async function handleInvoicePaymentFailed(
+  event: Stripe.Event,
+  payload: Payload,
+): Promise<WebhookHandlerResult> {
+  const invoice = event.data.object as Stripe.Invoice
+
+  try {
+    const subscriptionId = invoice.subscription as string
+
+    if (!subscriptionId) {
+      console.warn('Invoice payment failed but no subscription ID')
+      return {
+        success: true,
+        message: 'No subscription ID in invoice',
+      }
+    }
+
+    console.error('Invoice payment failed:', {
+      invoiceId: invoice.id,
+      subscriptionId,
+      amount: invoice.amount_due,
+    })
+
+    // Update subscription status to past_due
+    const existingSubscriptions = await payload.find({
+      collection: 'subscriptions',
+      where: {
+        stripeSubscriptionId: { equals: subscriptionId },
+      },
+    })
+
+    if (existingSubscriptions.docs.length > 0) {
+      const existingSubscription = existingSubscriptions.docs[0]
+      await payload.update({
+        collection: 'subscriptions',
+        id: existingSubscription.id,
+        data: {
+          status: 'past_due',
+        },
+      })
+    }
+
+    return {
+      success: true,
+      message: 'Invoice payment failure processed',
+      data: { invoiceId: invoice.id, subscriptionId },
+    }
+  } catch (error) {
+    console.error('Error handling invoice.payment_failed:', error)
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error',

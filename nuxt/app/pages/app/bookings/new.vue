@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { format, addDays, differenceInDays, parseISO } from 'date-fns'
 import type { CreateBookingData } from '~/composables/useBookings'
+import type { Customer } from '~/composables/useCustomers'
 import { getCategoryLabel } from '~/utils/formatters'
 
 definePageMeta({
@@ -8,9 +9,18 @@ definePageMeta({
 })
 
 const router = useRouter()
+const route = useRoute()
 const { createBooking } = useBookings()
 const { getServices } = useRbPayload()
+const { fetchCustomers } = useCustomers()
 const toast = useToast()
+
+// Customer selection mode
+const customerMode = ref<'existing' | 'new'>('new')
+const existingCustomers = ref<Customer[]>([])
+const selectedCustomerId = ref<string>('')
+const customerSearchQuery = ref('')
+const isLoadingCustomers = ref(false)
 
 // Form state - updated to include customer info
 const form = ref<CreateBookingData>({
@@ -38,24 +48,20 @@ const form = ref<CreateBookingData>({
   internalNotes: ''
 })
 
-const isSubmitting = ref(false)
-const currentStep = ref(1)
-const isLoadingServices = ref(true)
-
-// Services from rb-payload
-interface ServiceItem {
-  id: string
-  name: string
-  category: string
-  dailyRate: number
-  available: boolean
-  description?: string
-}
-
-const items = ref<ServiceItem[]>([])
-
-// Fetch services from rb-payload on mount
+// Initialize on mount: fetch customers, services, and read query params
 onMounted(async () => {
+  // Fetch customers for dropdown
+  try {
+    isLoadingCustomers.value = true
+    const { customers } = await fetchCustomers({ limit: 100 })
+    existingCustomers.value = customers
+  } catch (error) {
+    console.error('Failed to fetch customers:', error)
+  } finally {
+    isLoadingCustomers.value = false
+  }
+
+  // Fetch services from rb-payload
   try {
     isLoadingServices.value = true
     const services = await getServices()
@@ -85,7 +91,105 @@ onMounted(async () => {
   } finally {
     isLoadingServices.value = false
   }
+
+  // Read query params for customer prefill
+  const customerId = route.query.customerId as string | undefined
+  const customerName = route.query.customerName as string | undefined
+  const customerEmail = route.query.customerEmail as string | undefined
+  const customerPhone = route.query.customerPhone as string | undefined
+
+  if (customerId) {
+    // If customerId is provided, set to existing customer mode and select that customer
+    selectedCustomerId.value = customerId
+    customerMode.value = 'existing'
+  } else if (customerName || customerEmail) {
+    // If name/email provided but no ID, prefill new customer form
+    customerMode.value = 'new'
+    if (customerName) {
+      const nameParts = customerName.split(' ')
+      form.value.customer!.firstName = nameParts[0] || ''
+      form.value.customer!.lastName = nameParts.slice(1).join(' ') || ''
+    }
+    if (customerEmail) {
+      form.value.customer!.email = customerEmail
+    }
+    if (customerPhone) {
+      form.value.customer!.phone = customerPhone
+    }
+  }
 })
+
+// Watch for customer mode changes
+watch(customerMode, (mode) => {
+  if (mode === 'existing') {
+    // Clear new customer form when switching to existing
+    form.value.customer = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: ''
+    }
+  } else {
+    // Clear selected customer ID when switching to new
+    selectedCustomerId.value = ''
+    form.value.customerId = undefined
+  }
+})
+
+// Watch for selected customer changes
+watch(selectedCustomerId, (customerId) => {
+  if (customerId) {
+    const customer = existingCustomers.value.find(c => c.id === customerId)
+    if (customer) {
+      // Set customerId for booking creation
+      form.value.customerId = customer.id
+      // Also populate customer fields for display
+      form.value.customer = {
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        email: customer.email,
+        phone: customer.phone
+      }
+    }
+  }
+})
+
+// Computed: filtered customers for dropdown
+const filteredCustomers = computed(() => {
+  if (!customerSearchQuery.value) return existingCustomers.value
+
+  const query = customerSearchQuery.value.toLowerCase()
+  return existingCustomers.value.filter(c =>
+    `${c.firstName} ${c.lastName}`.toLowerCase().includes(query) ||
+    c.email.toLowerCase().includes(query) ||
+    c.phone.includes(query)
+  )
+})
+
+// Computed: customer options for USelect
+const customerOptions = computed(() => {
+  return filteredCustomers.value.map(c => ({
+    label: `${c.firstName} ${c.lastName}`,
+    value: c.id,
+    description: c.email
+  }))
+})
+
+const isSubmitting = ref(false)
+const currentStep = ref(1)
+const isLoadingServices = ref(true)
+
+// Services from rb-payload
+interface ServiceItem {
+  id: string
+  name: string
+  category: string
+  dailyRate: number
+  available: boolean
+  description?: string
+}
+
+const items = ref<ServiceItem[]>([])
 
 // Mock addons
 const availableAddons = [
@@ -155,10 +259,14 @@ const formatCurrency = (amount: number) => {
 
 // Validation
 const canProceedToStep2 = computed(() => {
-  return form.value.customer?.firstName &&
-         form.value.customer?.lastName &&
-         form.value.customer?.email &&
-         form.value.itemId
+  // Check if customer is selected (existing mode) or filled out (new mode)
+  const hasCustomer = customerMode.value === 'existing'
+    ? selectedCustomerId.value !== ''
+    : (form.value.customer?.firstName &&
+       form.value.customer?.lastName &&
+       form.value.customer?.email)
+
+  return hasCustomer && form.value.itemId
 })
 
 const canProceedToStep3 = computed(() => {
@@ -203,10 +311,26 @@ const handleSubmit = async () => {
     const result = await createBooking(form.value)
 
     if (result.success && result.data) {
+      toast.add({
+        title: 'Booking Created',
+        description: `Booking for ${form.value.customer?.firstName} ${form.value.customer?.lastName} has been created`,
+        color: 'success',
+      })
       router.push(`/app/bookings/${result.data.id}`)
+    } else {
+      toast.add({
+        title: 'Failed to Create Booking',
+        description: result.error || 'An unexpected error occurred',
+        color: 'error',
+      })
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to create booking:', error)
+    toast.add({
+      title: 'Error',
+      description: error.message || 'Failed to create booking',
+      color: 'error',
+    })
   } finally {
     isSubmitting.value = false
   }
@@ -297,7 +421,74 @@ const states = [
             Customer Information *
           </label>
 
-          <div class="space-y-4">
+          <!-- Customer Mode Toggle -->
+          <div class="flex gap-2 mb-4">
+            <button
+              type="button"
+              class="flex-1 px-4 py-3 rounded-lg border font-medium text-sm transition-all"
+              :class="customerMode === 'existing'
+                ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
+                : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-orange-300 dark:hover:border-orange-700'"
+              @click="customerMode = 'existing'"
+            >
+              <UIcon name="i-lucide-user-check" class="w-4 h-4 inline mr-2" />
+              Select Existing Customer
+            </button>
+            <button
+              type="button"
+              class="flex-1 px-4 py-3 rounded-lg border font-medium text-sm transition-all"
+              :class="customerMode === 'new'
+                ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
+                : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-orange-300 dark:hover:border-orange-700'"
+              @click="customerMode = 'new'"
+            >
+              <UIcon name="i-lucide-user-plus" class="w-4 h-4 inline mr-2" />
+              Enter New Customer
+            </button>
+          </div>
+
+          <!-- Existing Customer Selection -->
+          <div v-if="customerMode === 'existing'" class="space-y-4">
+            <UFormField label="Search & Select Customer" required>
+              <USelect
+                v-model="selectedCustomerId"
+                :options="customerOptions"
+                placeholder="Search by name or email..."
+                size="lg"
+                class="w-full"
+                searchable
+                :loading="isLoadingCustomers"
+              >
+                <template #leading>
+                  <UIcon name="i-lucide-search" class="w-4 h-4 text-gray-400" />
+                </template>
+              </USelect>
+            </UFormField>
+
+            <!-- Display selected customer details -->
+            <div
+              v-if="selectedCustomerId"
+              class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold text-lg">
+                  {{ form.customer?.firstName?.[0] }}{{ form.customer?.lastName?.[0] }}
+                </div>
+                <div>
+                  <p class="font-semibold text-gray-900 dark:text-white">
+                    {{ form.customer?.firstName }} {{ form.customer?.lastName }}
+                  </p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">{{ form.customer?.email }}</p>
+                  <p v-if="form.customer?.phone" class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ form.customer?.phone }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- New Customer Form -->
+          <div v-else class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <UFormField label="First Name" required>
                 <UInput

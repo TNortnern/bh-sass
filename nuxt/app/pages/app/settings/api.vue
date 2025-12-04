@@ -1,29 +1,29 @@
 <template>
-  <div class="settings-page">
+  <div class="max-w-[1200px] mx-auto">
     <!-- Page Header -->
-    <div class="page-header">
+    <div class="flex items-center justify-between mb-8 pb-6 border-b border-gray-200 dark:border-white/[0.06]">
       <div>
-        <h2 class="section-title">API Keys & Webhooks</h2>
-        <p class="section-description">Manage programmatic access to your data</p>
+        <h2 class="text-2xl font-bold tracking-tight mb-1.5 text-gray-900 dark:text-white">API Keys & Webhooks</h2>
+        <p class="text-[0.9375rem] text-gray-600 dark:text-[#888] m-0">Manage programmatic access to your data</p>
       </div>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
+    <div v-if="loading" class="flex flex-col items-center justify-center py-16 px-8 gap-4 text-gray-600 dark:text-[#888]">
+      <div class="w-8 h-8 border-[3px] border-amber-100 dark:border-amber-500/10 border-t-amber-600 dark:border-t-amber-400 rounded-full animate-spin"></div>
       <p>Loading settings...</p>
     </div>
 
-    <div v-else class="settings-grid">
+    <div v-else class="flex flex-col gap-6">
       <!-- API Keys -->
-      <UCard class="settings-card">
+      <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:border-amber-300 dark:hover:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-key" class="icon" />
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[0.625rem] text-amber-600 dark:text-amber-400 flex-shrink-0">
+              <UIcon name="i-heroicons-key" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">API Keys</h3>
-              <p class="card-description">
+              <h3 class="text-lg font-semibold tracking-tight mb-1 text-gray-900 dark:text-white">API Keys</h3>
+              <p class="text-sm text-gray-500 dark:text-[#666] m-0">
                 {{ apiKeys.length }} active
                 {{ apiKeys.length === 1 ? 'key' : 'keys' }}
               </p>
@@ -33,17 +33,17 @@
               size="sm"
               icon="i-heroicons-plus"
               @click="showCreateKeyModal = true"
-              class="header-action"
+              class="ml-auto bg-gradient-to-br from-amber-400 to-amber-600 border-none text-black font-semibold"
             >
               Create API Key
             </UButton>
           </div>
         </template>
 
-        <div class="card-content">
-          <div v-if="apiKeys.length === 0" class="empty-state">
-            <UIcon name="i-heroicons-key" class="empty-icon" />
-            <p class="empty-text">No API keys created yet</p>
+        <div class="p-6">
+          <div v-if="apiKeys.length === 0" class="flex flex-col items-center justify-center py-12 px-8 gap-4">
+            <UIcon name="i-heroicons-key" class="w-12 h-12 text-gray-300 dark:text-[#333]" />
+            <p class="text-[0.9375rem] text-gray-500 dark:text-[#666] m-0">No API keys created yet</p>
             <UButton
               color="primary"
               size="lg"
@@ -54,38 +54,87 @@
             </UButton>
           </div>
 
-          <div v-else class="api-keys-list">
-            <div v-for="key in apiKeys" :key="key.id" class="api-key-item">
-              <div class="key-header">
-                <div class="key-info">
-                  <h4 class="key-name">{{ key.name }}</h4>
-                  <div class="key-meta">
-                    <span class="meta-item">
-                      <UIcon name="i-heroicons-calendar" class="meta-icon" />
+          <div v-else class="flex flex-col gap-4">
+            <div v-for="key in apiKeys" :key="key.id" class="p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl flex flex-col gap-4">
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <div class="flex items-center gap-3 flex-wrap mb-2">
+                    <h4 class="text-[0.9375rem] font-semibold m-0 text-gray-900 dark:text-white">{{ key.name }}</h4>
+                    <div class="flex gap-2 flex-wrap">
+                      <UBadge
+                        :color="getScopeTypeBadgeColor(key.scopeType)"
+                        variant="subtle"
+                        size="sm"
+                      >
+                        {{ getScopeTypeLabel(key.scopeType) }}
+                      </UBadge>
+                      <UBadge
+                        v-if="!key.isActive"
+                        color="neutral"
+                        variant="subtle"
+                        size="sm"
+                      >
+                        Disabled
+                      </UBadge>
+                      <UBadge
+                        v-if="isKeyExpired(key.expiresAt)"
+                        color="error"
+                        variant="subtle"
+                        size="sm"
+                      >
+                        Expired
+                      </UBadge>
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap gap-4">
+                    <span class="flex items-center gap-1.5 text-[0.8125rem] text-gray-500 dark:text-[#666]">
+                      <UIcon name="i-heroicons-calendar" class="w-3.5 h-3.5" />
                       Created {{ formatDate(key.createdAt) }}
                     </span>
-                    <span v-if="key.lastUsed" class="meta-item">
-                      <UIcon name="i-heroicons-clock" class="meta-icon" />
+                    <span v-if="key.expiresAt" class="flex items-center gap-1.5 text-[0.8125rem] text-gray-500 dark:text-[#666]">
+                      <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5" />
+                      Expires {{ formatDate(key.expiresAt) }}
+                    </span>
+                    <span v-if="key.lastUsed" class="flex items-center gap-1.5 text-[0.8125rem] text-gray-500 dark:text-[#666]">
+                      <UIcon name="i-heroicons-arrow-path" class="w-3.5 h-3.5" />
                       Last used {{ formatDate(key.lastUsed) }}
                     </span>
-                    <span v-else class="meta-item unused">Never used</span>
+                    <span v-else class="flex items-center gap-1.5 text-[0.8125rem] text-gray-600 dark:text-[#888] italic">Never used</span>
                   </div>
                 </div>
-                <UButton
-                  variant="ghost"
-                  size="sm"
-                  color="error"
-                  @click="confirmDeleteKey(key)"
-                >
-                  Delete
-                </UButton>
+                <div class="flex gap-2 flex-shrink-0">
+                  <UButton
+                    variant="ghost"
+                    size="sm"
+                    icon="i-heroicons-arrow-path"
+                    @click="confirmRotateKey(key)"
+                  >
+                    Rotate
+                  </UButton>
+                  <UButton
+                    variant="ghost"
+                    size="sm"
+                    :color="key.isActive ? 'neutral' : 'success'"
+                    @click="handleToggleKeyStatus(key.id, !key.isActive)"
+                  >
+                    {{ key.isActive ? 'Disable' : 'Enable' }}
+                  </UButton>
+                  <UButton
+                    variant="ghost"
+                    size="sm"
+                    color="error"
+                    @click="confirmDeleteKey(key)"
+                  >
+                    Delete
+                  </UButton>
+                </div>
               </div>
 
-              <div class="key-value-container">
-                <div class="key-value">
-                  <code>{{ showKey[key.id] ? key.key : maskKey(key.key) }}</code>
+              <div class="flex items-center gap-4 py-3.5 px-4 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/[0.08] rounded-lg">
+                <div class="flex-1 min-w-0">
+                  <code class="font-mono text-sm text-green-600 dark:text-green-500 break-all tabular-nums">{{ showKey[key.id] ? key.key : maskKey(key.key) }}</code>
                 </div>
-                <div class="key-actions">
+                <div class="flex gap-2 flex-shrink-0">
                   <UButton
                     variant="ghost"
                     size="sm"
@@ -107,30 +156,30 @@
             </div>
           </div>
 
-          <div class="api-info">
-            <UIcon name="i-heroicons-information-circle" class="info-icon" />
+          <div class="flex items-start gap-3 p-4 mt-4 bg-blue-50 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-500/15 rounded-lg">
+            <UIcon name="i-heroicons-information-circle" class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p class="info-text">
+              <p class="mb-2 text-sm text-blue-900 dark:text-blue-200 leading-relaxed m-0">
                 <strong>Keep your API keys secure.</strong> Never share them publicly
                 or commit them to version control. Use environment variables in your
                 applications.
               </p>
-              <a href="#" class="info-link">View API Documentation →</a>
+              <a href="#" class="text-sm text-blue-700 dark:text-blue-400 no-underline font-medium hover:text-blue-800 dark:hover:text-blue-300 hover:underline">View API Documentation →</a>
             </div>
           </div>
         </div>
       </UCard>
 
       <!-- Webhooks -->
-      <UCard class="settings-card">
+      <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:border-amber-300 dark:hover:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-bolt" class="icon" />
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[0.625rem] text-amber-600 dark:text-amber-400 flex-shrink-0">
+              <UIcon name="i-heroicons-bolt" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Webhook Endpoints</h3>
-              <p class="card-description">
+              <h3 class="text-lg font-semibold tracking-tight mb-1 text-gray-900 dark:text-white">Webhook Endpoints</h3>
+              <p class="text-sm text-gray-500 dark:text-[#666] m-0">
                 {{ webhooks.length }} configured
                 {{ webhooks.length === 1 ? 'endpoint' : 'endpoints' }}
               </p>
@@ -140,17 +189,17 @@
               size="sm"
               icon="i-heroicons-plus"
               @click="showCreateWebhookModal = true"
-              class="header-action"
+              class="ml-auto bg-gradient-to-br from-amber-400 to-amber-600 border-none text-black font-semibold"
             >
               Add Endpoint
             </UButton>
           </div>
         </template>
 
-        <div class="card-content">
-          <div v-if="webhooks.length === 0" class="empty-state">
-            <UIcon name="i-heroicons-bolt" class="empty-icon" />
-            <p class="empty-text">No webhook endpoints configured</p>
+        <div class="p-6">
+          <div v-if="webhooks.length === 0" class="flex flex-col items-center justify-center py-12 px-8 gap-4">
+            <UIcon name="i-heroicons-bolt" class="w-12 h-12 text-gray-300 dark:text-[#333]" />
+            <p class="text-[0.9375rem] text-gray-500 dark:text-[#666] m-0">No webhook endpoints configured</p>
             <UButton
               color="primary"
               size="lg"
@@ -161,27 +210,30 @@
             </UButton>
           </div>
 
-          <div v-else class="webhooks-list">
-            <div v-for="webhook in webhooks" :key="webhook.id" class="webhook-item">
-              <div class="webhook-header">
-                <div class="webhook-info">
-                  <div class="webhook-url">
-                    <code>{{ webhook.url }}</code>
+          <div v-else class="flex flex-col gap-4">
+            <div v-for="webhook in webhooks" :key="webhook.id" class="p-5 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl flex flex-col gap-4">
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-3 flex-wrap mb-2">
+                    <code class="font-mono text-sm text-blue-600 dark:text-blue-400 break-all">{{ webhook.url }}</code>
                     <div
-                      class="webhook-status"
-                      :class="`status-${webhook.status}`"
+                      class="py-1 px-2.5 rounded-md text-xs font-semibold uppercase tracking-wider"
+                      :class="{
+                        'bg-green-100 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 text-green-700 dark:text-green-500': webhook.status === 'active',
+                        'bg-gray-100 dark:bg-[#666]/10 border border-gray-200 dark:border-[#666]/30 text-gray-700 dark:text-[#666]': webhook.status === 'inactive'
+                      }"
                     >
                       {{ capitalizeFirst(webhook.status) }}
                     </div>
                   </div>
-                  <div class="webhook-meta">
-                    <span class="meta-item">
-                      <UIcon name="i-heroicons-calendar" class="meta-icon" />
+                  <div class="flex flex-wrap gap-4">
+                    <span class="flex items-center gap-1.5 text-[0.8125rem] text-gray-500 dark:text-[#666]">
+                      <UIcon name="i-heroicons-calendar" class="w-3.5 h-3.5" />
                       Created {{ formatDate(webhook.createdAt) }}
                     </span>
                   </div>
                 </div>
-                <div class="webhook-actions">
+                <div class="flex gap-2 flex-shrink-0">
                   <UButton
                     variant="ghost"
                     size="sm"
@@ -201,24 +253,24 @@
                 </div>
               </div>
 
-              <div class="webhook-events">
-                <span class="events-label">Events:</span>
-                <div class="events-tags">
+              <div class="flex items-center gap-3 flex-wrap">
+                <span class="text-[0.8125rem] text-gray-500 dark:text-[#666] font-semibold">Events:</span>
+                <div class="flex flex-wrap gap-2">
                   <div
                     v-for="event in webhook.events"
                     :key="event"
-                    class="event-tag"
+                    class="py-1.5 px-3 bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-md text-[0.8125rem] font-medium text-amber-700 dark:text-amber-400 font-mono"
                   >
                     {{ event }}
                   </div>
                 </div>
               </div>
 
-              <div class="webhook-secret">
-                <div class="secret-label">Signing Secret:</div>
-                <div class="secret-value">
-                  <code>{{ showWebhookSecret[webhook.id] ? webhook.secret : maskKey(webhook.secret) }}</code>
-                  <div class="secret-actions">
+              <div class="flex flex-col gap-2">
+                <div class="text-[0.8125rem] text-gray-500 dark:text-[#666] font-semibold">Signing Secret:</div>
+                <div class="flex items-center gap-4 py-3.5 px-4 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/[0.08] rounded-lg">
+                  <code class="flex-1 font-mono text-sm text-purple-600 dark:text-purple-400 break-all tabular-nums">{{ showWebhookSecret[webhook.id] ? webhook.secret : maskKey(webhook.secret) }}</code>
+                  <div class="flex gap-2 flex-shrink-0">
                     <UButton
                       variant="ghost"
                       size="sm"
@@ -237,46 +289,46 @@
             </div>
           </div>
 
-          <div class="webhook-info">
-            <UIcon name="i-heroicons-information-circle" class="info-icon" />
+          <div class="flex items-start gap-3 p-4 mt-4 bg-blue-50 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-500/15 rounded-lg">
+            <UIcon name="i-heroicons-information-circle" class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p class="info-text">
+              <p class="mb-2 text-sm text-blue-900 dark:text-blue-200 leading-relaxed m-0">
                 <strong>Webhook endpoints</strong> receive real-time event notifications.
                 Use the signing secret to verify webhook authenticity.
               </p>
-              <a href="#" class="info-link">View Webhook Documentation →</a>
+              <a href="#" class="text-sm text-blue-700 dark:text-blue-400 no-underline font-medium hover:text-blue-800 dark:hover:text-blue-300 hover:underline">View Webhook Documentation →</a>
             </div>
           </div>
         </div>
       </UCard>
 
       <!-- Available Events -->
-      <UCard class="settings-card">
+      <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] hover:border-amber-300 dark:hover:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-list-bullet" class="icon" />
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[0.625rem] text-amber-600 dark:text-amber-400 flex-shrink-0">
+              <UIcon name="i-heroicons-list-bullet" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Available Events</h3>
-              <p class="card-description">Events you can subscribe to</p>
+              <h3 class="text-lg font-semibold tracking-tight mb-1 text-gray-900 dark:text-white">Available Events</h3>
+              <p class="text-sm text-gray-500 dark:text-[#666] m-0">Events you can subscribe to</p>
             </div>
           </div>
         </template>
 
-        <div class="card-content">
-          <div class="events-grid">
+        <div class="p-6">
+          <div class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
             <div
               v-for="event in availableEvents"
               :key="event.name"
-              class="event-card"
+              class="flex items-start gap-4 p-4 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl"
             >
-              <div class="event-icon-wrapper">
-                <UIcon :name="event.icon" class="icon" />
+              <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-amber-600 dark:text-amber-400 flex-shrink-0">
+                <UIcon :name="event.icon" class="w-5 h-5" />
               </div>
-              <div class="event-info">
-                <h4 class="event-name">{{ event.name }}</h4>
-                <p class="event-description">{{ event.description }}</p>
+              <div class="flex-1">
+                <h4 class="text-sm font-semibold mb-1 text-gray-900 dark:text-white font-mono m-0">{{ event.name }}</h4>
+                <p class="text-[0.8125rem] text-gray-600 dark:text-[#888] leading-snug m-0">{{ event.description }}</p>
               </div>
             </div>
           </div>
@@ -289,26 +341,72 @@
       <template #content>
         <UCard>
           <template #header>
-            <h3 class="modal-title">Create API Key</h3>
+            <h3 class="text-xl font-semibold m-0 text-gray-900 dark:text-white">Create API Key</h3>
           </template>
 
-          <div class="modal-content">
-            <UFormGroup label="Key Name" required help="A descriptive name for this key">
-              <UInput
-                v-model="newKeyName"
-                size="lg"
-                placeholder="Production API Key"
-                class="w-full"
-              />
-            </UFormGroup>
+          <div class="p-6 flex flex-col gap-6">
+            <template v-if="!createdKey">
+              <UFormField label="Key Name" required help="A descriptive name for this key">
+                <UInput
+                  v-model="newKeyName"
+                  size="lg"
+                  placeholder="Production API Key"
+                  class="w-full"
+                />
+              </UFormField>
 
-            <div v-if="createdKey" class="created-key-display">
-              <div class="key-warning">
-                <UIcon name="i-heroicons-exclamation-triangle" class="warning-icon" />
+              <UFormField
+                label="Access Level"
+                required
+                help="Choose the level of access this key will have"
+              >
+                <USelect
+                  v-model="newKeyScopeType"
+                  :items="scopeTypeOptions"
+                  value-attribute="value"
+                  size="lg"
+                  class="w-full"
+                >
+                  <template #label>
+                    <span>{{ scopeTypeOptions.find(o => o.value === newKeyScopeType)?.label }}</span>
+                  </template>
+                  <template #option="{ option }">
+                    <div class="py-2">
+                      <div class="font-semibold text-gray-900 dark:text-white mb-1">{{ option.label }}</div>
+                      <div class="text-[0.8125rem] text-gray-600 dark:text-[#888] leading-snug">{{ option.description }}</div>
+                    </div>
+                  </template>
+                </USelect>
+              </UFormField>
+
+              <div class="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-500/15 rounded-lg">
+                <UIcon name="i-heroicons-information-circle" class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <p class="text-sm text-blue-900 dark:text-blue-200 leading-relaxed m-0">
+                  {{ scopeTypeOptions.find(o => o.value === newKeyScopeType)?.description }}
+                </p>
+              </div>
+
+              <UFormField
+                label="Expiration Date (Optional)"
+                help="Leave empty for keys that never expire"
+              >
+                <UInput
+                  v-model="newKeyExpiresAt"
+                  type="date"
+                  size="lg"
+                  class="w-full"
+                  :min="new Date().toISOString().split('T')[0]"
+                />
+              </UFormField>
+            </template>
+
+            <div v-if="createdKey" class="flex flex-col gap-4">
+              <div class="flex items-center gap-3 p-4 bg-amber-100 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 rounded-lg text-amber-900 dark:text-amber-200 text-sm">
+                <UIcon name="i-heroicons-exclamation-triangle" class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
                 <strong>Important:</strong> Copy your API key now. You won't be able to see it again!
               </div>
-              <div class="key-display">
-                <code>{{ createdKey.key }}</code>
+              <div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/[0.08] rounded-lg">
+                <code class="flex-1 font-mono text-sm text-green-600 dark:text-green-500 break-all tabular-nums">{{ createdKey.key }}</code>
                 <UButton
                   size="sm"
                   icon="i-heroicons-clipboard-document"
@@ -317,11 +415,26 @@
                   Copy
                 </UButton>
               </div>
+              <div class="flex flex-col gap-3 p-4 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-lg">
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-sm text-gray-600 dark:text-[#888] font-semibold">Access Level:</span>
+                  <UBadge
+                    :color="getScopeTypeBadgeColor(createdKey.scopeType)"
+                    variant="subtle"
+                  >
+                    {{ getScopeTypeLabel(createdKey.scopeType) }}
+                  </UBadge>
+                </div>
+                <div v-if="createdKey.expiresAt" class="flex items-center justify-between gap-4">
+                  <span class="text-sm text-gray-600 dark:text-[#888] font-semibold">Expires:</span>
+                  <span class="text-sm text-gray-900 dark:text-white">{{ formatDate(createdKey.expiresAt) }}</span>
+                </div>
+              </div>
             </div>
           </div>
 
           <template #footer>
-            <div class="modal-actions">
+            <div class="flex gap-3 justify-end">
               <UButton v-if="createdKey" @click="closeCreateKeyModal">
                 Done
               </UButton>
@@ -349,11 +462,11 @@
       <template #content>
         <UCard>
           <template #header>
-            <h3 class="modal-title">Add Webhook Endpoint</h3>
+            <h3 class="text-xl font-semibold m-0 text-gray-900 dark:text-white">Add Webhook Endpoint</h3>
           </template>
 
-          <div class="modal-content">
-            <UFormGroup
+          <div class="p-6 flex flex-col gap-6">
+            <UFormField
               label="Endpoint URL"
               required
               help="The URL where events will be sent"
@@ -365,35 +478,35 @@
                 placeholder="https://api.yourapp.com/webhooks"
                 class="w-full"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Events to Subscribe" required>
-              <div class="event-checkboxes">
+            <UFormField label="Events to Subscribe" required>
+              <div class="flex flex-col gap-2 mt-2">
                 <label
                   v-for="event in availableEvents"
                   :key="event.name"
-                  class="event-checkbox"
+                  class="flex items-start gap-4 p-4 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-50 dark:hover:bg-white/[0.03] hover:border-gray-300 dark:hover:border-white/10"
                 >
                   <input
                     v-model="webhookForm.events"
                     type="checkbox"
                     :value="event.name"
-                    class="checkbox-input"
+                    class="w-[18px] h-[18px] mt-0.5 flex-shrink-0 cursor-pointer"
                   />
-                  <div class="checkbox-content">
-                    <UIcon :name="event.icon" class="checkbox-icon" />
+                  <div class="flex items-start gap-3 flex-1">
+                    <UIcon :name="event.icon" class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <span class="checkbox-label">{{ event.name }}</span>
-                      <span class="checkbox-description">{{ event.description }}</span>
+                      <span class="block text-sm font-semibold text-gray-900 dark:text-white font-mono mb-0.5">{{ event.name }}</span>
+                      <span class="block text-[0.8125rem] text-gray-600 dark:text-[#888]">{{ event.description }}</span>
                     </div>
                   </div>
                 </label>
               </div>
-            </UFormGroup>
+            </UFormField>
           </div>
 
           <template #footer>
-            <div class="modal-actions">
+            <div class="flex gap-3 justify-end">
               <UButton variant="ghost" @click="showCreateWebhookModal = false">
                 Cancel
               </UButton>
@@ -411,26 +524,111 @@
       </template>
     </UModal>
 
+    <!-- Rotate API Key Modal -->
+    <UModal v-model:open="showRotateKeyModal">
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="flex items-center gap-3">
+              <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 text-amber-600 dark:text-amber-400" />
+              <h3 class="text-xl font-semibold m-0 text-gray-900 dark:text-white">Rotate API Key</h3>
+            </div>
+          </template>
+
+          <div class="p-6 flex flex-col gap-6">
+            <template v-if="!rotatedKey">
+              <p class="text-[0.9375rem] text-gray-600 dark:text-[#888] leading-relaxed m-0">
+                Are you sure you want to rotate <strong class="text-gray-900 dark:text-white">{{ selectedKey?.name }}</strong>?
+              </p>
+              <div class="flex items-center gap-3 p-4 bg-amber-100 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 rounded-lg text-amber-900 dark:text-amber-200 text-sm">
+                <UIcon name="i-heroicons-exclamation-triangle" class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                <div>
+                  <strong>Warning:</strong> The old key will be invalidated immediately.
+                  Any applications using the old key will stop working until you update them with the new key.
+                </div>
+              </div>
+            </template>
+
+            <div v-if="rotatedKey" class="flex flex-col gap-4">
+              <div class="flex items-center gap-3 p-4 bg-amber-100 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 rounded-lg text-amber-900 dark:text-amber-200 text-sm">
+                <UIcon name="i-heroicons-exclamation-triangle" class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                <strong>Important:</strong> Copy your new API key now. You won't be able to see it again!
+              </div>
+              <div class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/[0.08] rounded-lg">
+                <code class="flex-1 font-mono text-sm text-green-600 dark:text-green-500 break-all tabular-nums">{{ rotatedKey.key }}</code>
+                <UButton
+                  size="sm"
+                  icon="i-heroicons-clipboard-document"
+                  @click="copyKey(rotatedKey.key)"
+                >
+                  Copy
+                </UButton>
+              </div>
+              <div class="flex flex-col gap-3 p-4 bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-lg">
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-sm text-gray-600 dark:text-[#888] font-semibold">Key Name:</span>
+                  <span class="text-sm text-gray-900 dark:text-white">{{ rotatedKey.name }}</span>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-sm text-gray-600 dark:text-[#888] font-semibold">Access Level:</span>
+                  <UBadge
+                    :color="getScopeTypeBadgeColor(rotatedKey.scopeType)"
+                    variant="subtle"
+                  >
+                    {{ getScopeTypeLabel(rotatedKey.scopeType) }}
+                  </UBadge>
+                </div>
+                <div v-if="rotatedKey.expiresAt" class="flex items-center justify-between gap-4">
+                  <span class="text-sm text-gray-600 dark:text-[#888] font-semibold">Expires:</span>
+                  <span class="text-sm text-gray-900 dark:text-white">{{ formatDate(rotatedKey.expiresAt) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <template #footer>
+            <div class="flex gap-3 justify-end">
+              <UButton v-if="rotatedKey" @click="closeRotateKeyModal">
+                Done
+              </UButton>
+              <template v-else>
+                <UButton variant="ghost" @click="showRotateKeyModal = false">
+                  Cancel
+                </UButton>
+                <UButton
+                  color="warning"
+                  :loading="saving"
+                  @click="handleRotateKey"
+                >
+                  Rotate Key
+                </UButton>
+              </template>
+            </div>
+          </template>
+        </UCard>
+      </template>
+    </UModal>
+
     <!-- Delete API Key Confirmation Modal -->
     <UModal v-model:open="showDeleteKeyModal">
       <template #content>
         <UCard>
           <template #header>
-            <div class="modal-header">
-              <UIcon name="i-heroicons-exclamation-triangle" class="modal-icon" />
-              <h3 class="modal-title">Delete API Key?</h3>
+            <div class="flex items-center gap-3">
+              <UIcon name="i-heroicons-exclamation-triangle" class="w-6 h-6 text-amber-600 dark:text-amber-400" />
+              <h3 class="text-xl font-semibold m-0 text-gray-900 dark:text-white">Delete API Key?</h3>
             </div>
           </template>
 
-          <div class="modal-content">
-            <p class="modal-text">
-              Are you sure you want to delete <strong>{{ selectedKey?.name }}</strong>?
+          <div class="p-6">
+            <p class="text-[0.9375rem] text-gray-600 dark:text-[#888] leading-relaxed m-0">
+              Are you sure you want to delete <strong class="text-gray-900 dark:text-white">{{ selectedKey?.name }}</strong>?
               This action cannot be undone and any applications using this key will stop working immediately.
             </p>
           </div>
 
           <template #footer>
-            <div class="modal-actions">
+            <div class="flex gap-3 justify-end">
               <UButton variant="ghost" @click="showDeleteKeyModal = false">
                 Cancel
               </UButton>
@@ -452,22 +650,22 @@
       <template #content>
         <UCard>
           <template #header>
-            <div class="modal-header">
-              <UIcon name="i-heroicons-exclamation-triangle" class="modal-icon" />
-              <h3 class="modal-title">Delete Webhook Endpoint?</h3>
+            <div class="flex items-center gap-3">
+              <UIcon name="i-heroicons-exclamation-triangle" class="w-6 h-6 text-amber-600 dark:text-amber-400" />
+              <h3 class="text-xl font-semibold m-0 text-gray-900 dark:text-white">Delete Webhook Endpoint?</h3>
             </div>
           </template>
 
-          <div class="modal-content">
-            <p class="modal-text">
+          <div class="p-6">
+            <p class="text-[0.9375rem] text-gray-600 dark:text-[#888] leading-relaxed m-0">
               Are you sure you want to delete the webhook endpoint
-              <code class="webhook-url-text">{{ selectedWebhook?.url }}</code>?
+              <code class="inline font-mono text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 py-0.5 px-1.5 rounded break-all">{{ selectedWebhook?.url }}</code>?
               This action cannot be undone and you will stop receiving events at this endpoint.
             </p>
           </div>
 
           <template #footer>
-            <div class="modal-actions">
+            <div class="flex gap-3 justify-end">
               <UButton variant="ghost" @click="showDeleteWebhookModal = false">
                 Cancel
               </UButton>
@@ -495,6 +693,8 @@ const {
   loading,
   saving,
   createApiKey,
+  toggleApiKeyStatus,
+  rotateApiKey,
   deleteApiKey,
   addWebhookEndpoint,
   deleteWebhookEndpoint,
@@ -507,8 +707,12 @@ const showCreateKeyModal = ref(false)
 const showCreateWebhookModal = ref(false)
 const showDeleteKeyModal = ref(false)
 const showDeleteWebhookModal = ref(false)
+const showRotateKeyModal = ref(false)
 const newKeyName = ref('')
+const newKeyScopeType = ref<'full_access' | 'read_only' | 'booking_management'>('full_access')
+const newKeyExpiresAt = ref<string>('')
 const createdKey = ref<ApiKey | null>(null)
+const rotatedKey = ref<ApiKey | null>(null)
 const showKey = ref<Record<string, boolean>>({})
 const showWebhookSecret = ref<Record<string, boolean>>({})
 const selectedKey = ref<any>(null)
@@ -518,6 +722,47 @@ const webhookForm = ref({
   url: '',
   events: [] as string[],
 })
+
+const scopeTypeOptions = [
+  {
+    label: 'Full Access',
+    value: 'full_access',
+    description: 'Complete read and write access to all resources including inventory, bookings, customers, and settings',
+  },
+  {
+    label: 'Read Only',
+    value: 'read_only',
+    description: 'View-only access to all data. Cannot create, update, or delete any resources',
+  },
+  {
+    label: 'Booking Management',
+    value: 'booking_management',
+    description: 'Read and write access to bookings, customers, and availability. Read-only for inventory',
+  },
+]
+
+const getScopeTypeBadgeColor = (scopeType: string) => {
+  switch (scopeType) {
+    case 'full_access':
+      return 'warning'
+    case 'read_only':
+      return 'primary'
+    case 'booking_management':
+      return 'success'
+    default:
+      return 'neutral'
+  }
+}
+
+const getScopeTypeLabel = (scopeType: string) => {
+  const option = scopeTypeOptions.find((o) => o.value === scopeType)
+  return option?.label || scopeType
+}
+
+const isKeyExpired = (expiresAt: string | null) => {
+  if (!expiresAt) return false
+  return new Date(expiresAt) < new Date()
+}
 
 const availableEvents = [
   {
@@ -595,7 +840,11 @@ const copyKey = async (key: string) => {
 
 const handleCreateKey = async () => {
   try {
-    const key = await createApiKey(newKeyName.value)
+    const key = await createApiKey(
+      newKeyName.value,
+      newKeyScopeType.value,
+      newKeyExpiresAt.value || null
+    )
     createdKey.value = key
   } catch (error) {
     console.error('Failed to create API key:', error)
@@ -605,7 +854,43 @@ const handleCreateKey = async () => {
 const closeCreateKeyModal = () => {
   showCreateKeyModal.value = false
   newKeyName.value = ''
+  newKeyScopeType.value = 'full_access'
+  newKeyExpiresAt.value = ''
   createdKey.value = null
+}
+
+const handleToggleKeyStatus = async (keyId: string, isActive: boolean) => {
+  try {
+    await toggleApiKeyStatus(keyId, isActive)
+  } catch (error) {
+    console.error('Failed to toggle API key status:', error)
+  }
+}
+
+const confirmRotateKey = (key: any) => {
+  selectedKey.value = key
+  rotatedKey.value = null // Reset rotated key
+  showRotateKeyModal.value = true
+}
+
+const handleRotateKey = async () => {
+  if (selectedKey.value) {
+    try {
+      const newKey = await rotateApiKey(selectedKey.value.id)
+      rotatedKey.value = newKey
+      // Keep modal open to show the new key
+    } catch (error) {
+      console.error('Failed to rotate API key:', error)
+      showRotateKeyModal.value = false
+      selectedKey.value = null
+    }
+  }
+}
+
+const closeRotateKeyModal = () => {
+  showRotateKeyModal.value = false
+  selectedKey.value = null
+  rotatedKey.value = null
 }
 
 const confirmDeleteKey = (key: any) => {
@@ -676,651 +961,3 @@ const testWebhookEndpoint = async (webhookId: string) => {
   }
 }
 </script>
-
-<style scoped>
-.settings-page {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 0 0 0.375rem;
-  color: #ffffff;
-}
-
-.section-description {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #888;
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  gap: 1rem;
-  color: #888;
-}
-
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(251, 191, 36, 0.1);
-  border-top-color: #fbbf24;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.settings-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.settings-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 1rem;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.settings-card:hover {
-  border-color: rgba(251, 191, 36, 0.2);
-  box-shadow: 0 8px 32px -8px rgba(251, 191, 36, 0.15);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.card-header-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.2);
-  border-radius: 0.625rem;
-  color: #fbbf24;
-  flex-shrink: 0;
-}
-
-.icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.card-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  margin: 0 0 0.25rem;
-  color: #ffffff;
-}
-
-.card-description {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.header-action {
-  margin-left: auto;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  border: none;
-  color: #000;
-  font-weight: 600;
-}
-
-.card-content {
-  padding: 1.5rem;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem;
-  gap: 1rem;
-}
-
-.empty-icon {
-  width: 3rem;
-  height: 3rem;
-  color: #333;
-}
-
-.empty-text {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #666;
-}
-
-.api-keys-list,
-.webhooks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.api-key-item {
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.key-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.key-info {
-  flex: 1;
-}
-
-.key-name {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem;
-  color: #ffffff;
-}
-
-.key-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.8125rem;
-  color: #666;
-}
-
-.meta-item.unused {
-  color: #888;
-  font-style: italic;
-}
-
-.meta-icon {
-  width: 0.875rem;
-  height: 0.875rem;
-}
-
-.key-value-container {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.875rem 1rem;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0.5rem;
-}
-
-.key-value {
-  flex: 1;
-  min-width: 0;
-}
-
-.key-value code {
-  font-family: 'SF Mono', Monaco, Consolas, monospace;
-  font-size: 0.875rem;
-  color: #22c55e;
-  word-break: break-all;
-  font-variant-numeric: tabular-nums;
-}
-
-.key-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.api-info,
-.webhook-info {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
-  margin-top: 1rem;
-  background: rgba(59, 130, 246, 0.05);
-  border: 1px solid rgba(59, 130, 246, 0.15);
-  border-radius: 0.5rem;
-}
-
-.info-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #3b82f6;
-  flex-shrink: 0;
-  margin-top: 0.125rem;
-}
-
-.info-text {
-  margin: 0 0 0.5rem;
-  font-size: 0.875rem;
-  color: #93c5fd;
-  line-height: 1.5;
-}
-
-.info-link {
-  font-size: 0.875rem;
-  color: #60a5fa;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.info-link:hover {
-  color: #3b82f6;
-  text-decoration: underline;
-}
-
-.webhook-item {
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.webhook-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.webhook-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.webhook-url {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  margin-bottom: 0.5rem;
-}
-
-.webhook-url code {
-  font-family: 'SF Mono', Monaco, Consolas, monospace;
-  font-size: 0.875rem;
-  color: #3b82f6;
-  word-break: break-all;
-}
-
-.webhook-status {
-  padding: 0.25rem 0.625rem;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.webhook-status.status-active {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  color: #22c55e;
-}
-
-.webhook-status.status-inactive {
-  background: rgba(102, 102, 102, 0.1);
-  border: 1px solid rgba(102, 102, 102, 0.3);
-  color: #666;
-}
-
-.webhook-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.webhook-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.webhook-events {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.events-label {
-  font-size: 0.8125rem;
-  color: #666;
-  font-weight: 600;
-}
-
-.events-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.event-tag {
-  padding: 0.375rem 0.75rem;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.2);
-  border-radius: 0.375rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #fbbf24;
-  font-family: 'SF Mono', Monaco, Consolas, monospace;
-}
-
-.webhook-secret {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.secret-label {
-  font-size: 0.8125rem;
-  color: #666;
-  font-weight: 600;
-}
-
-.secret-value {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.875rem 1rem;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0.5rem;
-}
-
-.secret-value code {
-  flex: 1;
-  font-family: 'SF Mono', Monaco, Consolas, monospace;
-  font-size: 0.875rem;
-  color: #a78bfa;
-  word-break: break-all;
-  font-variant-numeric: tabular-nums;
-}
-
-.secret-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.events-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
-}
-
-.event-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
-}
-
-.event-icon-wrapper {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.2);
-  border-radius: 0.5rem;
-  color: #fbbf24;
-  flex-shrink: 0;
-}
-
-.event-info {
-  flex: 1;
-}
-
-.event-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin: 0 0 0.25rem;
-  color: #ffffff;
-  font-family: 'SF Mono', Monaco, Consolas, monospace;
-}
-
-.event-description {
-  margin: 0;
-  font-size: 0.8125rem;
-  color: #888;
-  line-height: 1.4;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.modal-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: #fbbf24;
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-  color: #ffffff;
-}
-
-.modal-content {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.modal-text {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #888;
-  line-height: 1.6;
-}
-
-.modal-text strong {
-  color: #ffffff;
-}
-
-.webhook-url-text {
-  display: inline;
-  font-family: 'SF Mono', Monaco, Consolas, monospace;
-  font-size: 0.875rem;
-  color: #3b82f6;
-  background: rgba(59, 130, 246, 0.1);
-  padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  word-break: break-all;
-}
-
-.created-key-display {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.key-warning {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.3);
-  border-radius: 0.5rem;
-  color: #fde68a;
-  font-size: 0.875rem;
-}
-
-.warning-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #fbbf24;
-  flex-shrink: 0;
-}
-
-.key-display {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0.5rem;
-}
-
-.key-display code {
-  flex: 1;
-  font-family: 'SF Mono', Monaco, Consolas, monospace;
-  font-size: 0.875rem;
-  color: #22c55e;
-  word-break: break-all;
-  font-variant-numeric: tabular-nums;
-}
-
-.event-checkboxes {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.event-checkbox {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.event-checkbox:hover {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.checkbox-input {
-  width: 18px;
-  height: 18px;
-  margin-top: 0.125rem;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.checkbox-content {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  flex: 1;
-}
-
-.checkbox-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #fbbf24;
-  flex-shrink: 0;
-  margin-top: 0.125rem;
-}
-
-.checkbox-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #ffffff;
-  font-family: 'SF Mono', Monaco, Consolas, monospace;
-  margin-bottom: 0.125rem;
-}
-
-.checkbox-description {
-  display: block;
-  font-size: 0.8125rem;
-  color: #888;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-}
-
-@media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .card-header {
-    flex-wrap: wrap;
-  }
-
-  .header-action {
-    width: 100%;
-  }
-
-  .key-value-container,
-  .secret-value {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .key-actions,
-  .secret-actions {
-    justify-content: flex-start;
-  }
-
-  .events-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

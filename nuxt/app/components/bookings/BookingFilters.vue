@@ -145,7 +145,7 @@ const activeFilterCount = computed(() => {
                 </div>
               </div>
 
-              <UDivider />
+              <USeparator />
 
               <!-- Payment Status Filter -->
               <div>
@@ -163,7 +163,7 @@ const activeFilterCount = computed(() => {
                 </div>
               </div>
 
-              <UDivider />
+              <USeparator />
 
               <!-- Date Range -->
               <div>

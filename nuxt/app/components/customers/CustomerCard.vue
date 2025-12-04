@@ -29,7 +29,7 @@
           v-if="customer.tags.includes('VIP')"
           class="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center ring-2 ring-slate-800 shadow-lg animate-pulse-slow"
         >
-          <Icon name="heroicons:star-solid" class="w-3 h-3 text-white" />
+          <UIcon name="i-lucide-star" class="w-3 h-3 text-white" />
         </div>
       </div>
 
@@ -42,11 +42,11 @@
             </h3>
             <div class="flex flex-col gap-1">
               <div class="flex items-center gap-2 text-sm text-slate-400">
-                <Icon name="heroicons:envelope" class="w-4 h-4 shrink-0" />
+                <UIcon name="i-lucide-mail" class="w-4 h-4 shrink-0" />
                 <span class="truncate">{{ customer.email }}</span>
               </div>
               <div class="flex items-center gap-2 text-sm text-slate-400">
-                <Icon name="heroicons:phone" class="w-4 h-4 shrink-0" />
+                <UIcon name="i-lucide-phone" class="w-4 h-4 shrink-0" />
                 <span>{{ customer.phone }}</span>
               </div>
             </div>
@@ -80,7 +80,7 @@
           </UBadge>
           <UBadge
             v-if="customer.tags.length > 3"
-            color="gray"
+            color="neutral"
             variant="subtle"
             size="xs"
             :ui="{ rounded: 'rounded-full' }"
@@ -123,7 +123,7 @@
 
     <!-- Hover Arrow -->
     <div class="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-1">
-      <Icon name="heroicons:arrow-right" class="w-5 h-5 text-amber-500" />
+      <UIcon name="i-lucide-arrow-right" class="w-5 h-5 text-amber-500" />
     </div>
   </UCard>
 </template>
@@ -174,17 +174,17 @@ function formatRelativeDate(date?: string): string {
 
 function getTagColor(tag: string): string {
   const colors: Record<string, string> = {
-    'VIP': 'amber',
-    'Birthday Party': 'pink',
-    'Corporate': 'blue',
-    'Repeat Customer': 'green',
-    'New': 'cyan',
-    'High Value': 'purple',
-    'Referral': 'indigo',
-    'Email List': 'teal',
-    'SMS List': 'orange'
+    'VIP': 'warning',
+    'Birthday Party': 'error',
+    'Corporate': 'info',
+    'Repeat Customer': 'success',
+    'New': 'primary',
+    'High Value': 'secondary',
+    'Referral': 'info',
+    'Email List': 'success',
+    'SMS List': 'warning'
   }
-  return colors[tag] || 'gray'
+  return colors[tag] || 'neutral'
 }
 </script>
 

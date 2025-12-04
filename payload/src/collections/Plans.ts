@@ -110,6 +110,14 @@ export const Plans: CollectionConfig = {
       ],
     },
     {
+      name: 'stripePriceId',
+      type: 'text',
+      admin: {
+        description: 'Stripe Price ID (e.g., price_xxx)',
+        readOnly: false,
+      },
+    },
+    {
       name: 'active',
       type: 'checkbox',
       defaultValue: true,

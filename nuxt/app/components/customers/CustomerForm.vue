@@ -9,7 +9,7 @@
         <!-- Personal Information Section -->
         <div>
           <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <Icon name="heroicons:user" class="w-5 h-5 text-amber-500" />
+            <UIcon name="i-lucide-user" class="w-5 h-5 text-amber-500" />
             Personal Information
           </h3>
 
@@ -57,7 +57,7 @@
         <!-- Contact Information Section -->
         <div>
           <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <Icon name="heroicons:phone" class="w-5 h-5 text-amber-500" />
+            <UIcon name="i-lucide-phone" class="w-5 h-5 text-amber-500" />
             Contact Information
           </h3>
 
@@ -81,7 +81,7 @@
                 }"
               >
                 <template #leading>
-                  <Icon name="heroicons:envelope" class="w-5 h-5 text-slate-500" />
+                  <UIcon name="i-lucide-mail" class="w-5 h-5 text-slate-500" />
                 </template>
               </UInput>
             </UFormGroup>
@@ -105,7 +105,7 @@
                 }"
               >
                 <template #leading>
-                  <Icon name="heroicons:phone" class="w-5 h-5 text-slate-500" />
+                  <UIcon name="i-lucide-phone" class="w-5 h-5 text-slate-500" />
                 </template>
               </UInput>
             </UFormGroup>
@@ -115,7 +115,7 @@
         <!-- Address Section -->
         <div>
           <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <Icon name="heroicons:map-pin" class="w-5 h-5 text-amber-500" />
+            <UIcon name="i-lucide-map-pin" class="w-5 h-5 text-amber-500" />
             Address
           </h3>
 
@@ -199,7 +199,7 @@
         <!-- Tags Section -->
         <div>
           <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <Icon name="heroicons:tag" class="w-5 h-5 text-amber-500" />
+            <UIcon name="i-lucide-tag" class="w-5 h-5 text-amber-500" />
             Tags
           </h3>
 
@@ -208,16 +208,16 @@
               <UButton
                 v-for="tag in availableTags"
                 :key="tag"
-                :color="formState.tags.includes(tag) ? 'amber' : 'gray'"
+                :color="formState.tags.includes(tag) ? 'primary' : 'neutral'"
                 :variant="formState.tags.includes(tag) ? 'solid' : 'outline'"
                 size="sm"
                 :ui="{ rounded: 'rounded-full' }"
                 @click="toggleTag(tag)"
               >
                 {{ tag }}
-                <Icon
+                <UIcon
                   v-if="formState.tags.includes(tag)"
-                  name="heroicons:check"
+                  name="i-lucide-check"
                   class="w-4 h-4 ml-1"
                 />
               </UButton>
@@ -241,13 +241,13 @@
                   @keyup.enter="addCustomTag"
                 />
                 <UButton
-                  color="gray"
+                  color="neutral"
                   variant="outline"
                   size="lg"
                   :ui="{ rounded: 'rounded-xl' }"
                   @click="addCustomTag"
                 >
-                  <Icon name="heroicons:plus" class="w-5 h-5" />
+                  <UIcon name="i-lucide-plus" class="w-5 h-5" />
                 </UButton>
               </div>
             </UFormGroup>
@@ -257,7 +257,7 @@
         <!-- Notes Section -->
         <div>
           <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <Icon name="heroicons:document-text" class="w-5 h-5 text-amber-500" />
+            <UIcon name="i-lucide-file-text" class="w-5 h-5 text-amber-500" />
             Notes
           </h3>
 
@@ -284,31 +284,31 @@
         <div class="flex gap-3 pt-4">
           <UButton
             type="submit"
-            color="amber"
+            color="primary"
             size="lg"
             block
             :loading="loading"
             :ui="{ rounded: 'rounded-xl' }"
           >
-            <Icon name="heroicons:check" class="w-5 h-5 mr-2" />
+            <UIcon name="i-lucide-check" class="w-5 h-5 mr-2" />
             {{ submitLabel }}
           </UButton>
 
           <UButton
             v-if="showCreateAnother"
-            color="gray"
+            color="neutral"
             variant="outline"
             size="lg"
             :ui="{ rounded: 'rounded-xl' }"
             @click="handleCreateAnother"
           >
-            <Icon name="heroicons:plus" class="w-5 h-5 mr-2" />
+            <UIcon name="i-lucide-plus" class="w-5 h-5 mr-2" />
             Create & Add Another
           </UButton>
 
           <UButton
             v-if="showCancel"
-            color="gray"
+            color="neutral"
             variant="ghost"
             size="lg"
             :ui="{ rounded: 'rounded-xl' }"

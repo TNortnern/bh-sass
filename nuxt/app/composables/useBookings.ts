@@ -753,6 +753,29 @@ export const useBookings = () => {
     return filtered
   })
 
+  // Fetch bookings for a specific customer
+  const fetchCustomerBookings = async (customerId: string) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      // Fetch all bookings first
+      const response = await $fetch<{ success: boolean; bookings: any[]; totalDocs: number }>('/booking/bookings')
+
+      // Transform and filter by customer
+      const allBookings = (response.bookings || []).map(transformRbPayloadBooking)
+      const customerBookings = allBookings.filter(booking => booking.customer.id === customerId)
+
+      return { success: true, data: customerBookings }
+    } catch (err: any) {
+      console.error('Failed to fetch customer bookings from rb-payload:', err.message)
+      error.value = err.message || 'Failed to fetch bookings'
+      return { success: false, error: error.value, data: [] }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   // Statistics
   const stats = computed(() => {
     const total = bookings.value.length
@@ -795,6 +818,7 @@ export const useBookings = () => {
     // Actions
     fetchBookings,
     fetchBooking,
+    fetchCustomerBookings,
     createBooking,
     updateBooking,
     updateStatus,

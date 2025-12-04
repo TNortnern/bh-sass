@@ -4,100 +4,160 @@ definePageMeta({
 })
 
 const route = useRoute()
+const router = useRouter()
 const tenantSlug = route.params.tenant as string
 
-// Mock rental items data - in production, this would be fetched from API
-const items = ref([
-  {
-    id: '1',
-    name: 'Princess Castle',
-    slug: 'princess-castle',
-    description: 'Perfect for little princesses! This beautiful pink castle features turrets, a slide, and plenty of bouncing space.',
-    price: 199,
-    image: 'https://images.unsplash.com/photo-1530981785497-a62037228fe9?w=400&h=300&fit=crop',
-    category: 'Bounce Houses',
-    capacity: 8,
-    ageRange: '3-12',
-    featured: true
-  },
-  {
-    id: '2',
-    name: 'Superhero Combo',
-    slug: 'superhero-combo',
-    description: 'Action-packed combo with bounce area, basketball hoop, and climb & slide. Great for active kids!',
-    price: 249,
-    image: 'https://images.unsplash.com/photo-1587731556938-38755d4d7de2?w=400&h=300&fit=crop',
-    category: 'Combo Units',
-    capacity: 10,
-    ageRange: '5-14',
-    featured: true
-  },
-  {
-    id: '3',
-    name: 'Tropical Water Slide',
-    slug: 'tropical-water-slide',
-    description: 'Beat the heat with this amazing tropical-themed water slide. Includes splash pool at the bottom.',
-    price: 299,
-    image: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=400&h=300&fit=crop',
-    category: 'Water Slides',
-    capacity: 6,
-    ageRange: '6-16',
-    featured: true
-  },
-  {
-    id: '4',
-    name: 'Obstacle Course',
-    slug: 'obstacle-course',
-    description: 'Challenge your guests with this exciting obstacle course featuring tunnels, pop-ups, and climbing walls.',
-    price: 349,
-    image: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=400&h=300&fit=crop',
-    category: 'Obstacle Courses',
-    capacity: 8,
-    ageRange: '7-16',
-    featured: false
-  },
-  {
-    id: '5',
-    name: 'Unicorn Bounce House',
-    slug: 'unicorn-bounce-house',
-    description: 'Magical unicorn-themed bounce house with rainbow colors. Perfect for unicorn-loving kids!',
-    price: 189,
-    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&h=300&fit=crop',
-    category: 'Bounce Houses',
-    capacity: 8,
-    ageRange: '3-12',
-    featured: false
-  },
-  {
-    id: '6',
-    name: 'Sports Arena',
-    slug: 'sports-arena',
-    description: 'Multi-sport inflatable with basketball, soccer, and baseball. Great for sports-themed parties!',
-    price: 229,
-    image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400&h=300&fit=crop',
-    category: 'Interactive',
-    capacity: 10,
-    ageRange: '6-16',
-    featured: false
+const { loadTenant, loadItems, tenant, items: rentalItems, loading, error } = usePublicBooking()
+
+// Load tenant and items on mount
+const tenantData = ref<any>(null)
+const items = ref<any[]>([])
+const categories = ref<any[]>([])
+const loadingCategories = ref(false)
+
+onMounted(async () => {
+  // Load tenant first
+  const loadedTenant = await loadTenant(tenantSlug)
+
+  if (!loadedTenant) {
+    // Tenant not found - redirect to 404 or show error
+    router.push('/404')
+    return
   }
-])
 
-const searchQuery = ref('')
-const selectedCategory = ref('All')
+  tenantData.value = loadedTenant
 
-const categories = computed(() => {
-  const cats = new Set(items.value.map(item => item.category))
-  return ['All', ...Array.from(cats)]
+  // Load items and categories in parallel
+  const [loadedItems, loadedCategories] = await Promise.all([
+    loadItems(loadedTenant.id),
+    fetchCategories(loadedTenant.id)
+  ])
+
+  // Map items to display format
+  items.value = loadedItems.map((item: any) => ({
+    id: item.id,
+    name: item.name,
+    slug: item.slug,
+    description: item.description,
+    price: item.pricing?.fullDayRate || 0,
+    image: item.images?.[0]?.url || 'https://images.unsplash.com/photo-1530981785497-a62037228fe9?w=400&h=300&fit=crop',
+    category: item.category,
+    categoryId: item.categoryId,
+    capacity: item.specifications?.capacity || 0,
+    ageRange: item.specifications?.ageRange || 'All ages',
+    featured: item.tags?.includes('featured') || false
+  }))
+
+  categories.value = loadedCategories
 })
 
-const filteredItems = computed(() => {
-  return items.value.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesCategory = selectedCategory.value === 'All' || item.category === selectedCategory.value
+// Fetch categories from Payload API
+async function fetchCategories(tenantId: string) {
+  loadingCategories.value = true
+  try {
+    const config = useRuntimeConfig()
+    const response = await $fetch(`${config.public.payloadUrl}/api/categories`, {
+      params: {
+        'where[tenantId][equals]': tenantId,
+        'where[isActive][equals]': true,
+        sort: 'sortOrder',
+        limit: 100
+      }
+    })
+    return (response as any)?.docs || []
+  } catch (err) {
+    console.error('Failed to fetch categories:', err)
+    return []
+  } finally {
+    loadingCategories.value = false
+  }
+}
 
-    return matchesSearch && matchesCategory
+// Filter state
+const searchQuery = ref('')
+const selectedCategory = ref('all')
+const minPrice = ref<number | null>(null)
+const maxPrice = ref<number | null>(null)
+const selectedDate = ref<string>('')
+const sortBy = ref('name')
+
+// Category items for USelect
+const categoryItems = computed(() => {
+  const items = [{ label: 'All Categories', value: 'all' }]
+
+  categories.value.forEach(cat => {
+    items.push({
+      label: cat.name,
+      value: cat.id
+    })
   })
+
+  return items
+})
+
+// Sort options
+const sortItems = [
+  { label: 'Name (A-Z)', value: 'name' },
+  { label: 'Name (Z-A)', value: 'name-desc' },
+  { label: 'Price (Low to High)', value: 'price' },
+  { label: 'Price (High to Low)', value: 'price-desc' },
+  { label: 'Popular First', value: 'popular' }
+]
+
+// Price range computed
+const priceRange = computed(() => {
+  if (items.value.length === 0) return { min: 0, max: 1000 }
+
+  const prices = items.value.map(item => item.price).filter(p => p > 0)
+  if (prices.length === 0) return { min: 0, max: 1000 }
+
+  return {
+    min: Math.floor(Math.min(...prices) / 10) * 10,
+    max: Math.ceil(Math.max(...prices) / 10) * 10
+  }
+})
+
+// Filtered and sorted items
+const filteredItems = computed(() => {
+  let result = items.value.filter(item => {
+    // Search filter
+    const matchesSearch = !searchQuery.value ||
+      item.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.value.toLowerCase())
+
+    // Category filter
+    const matchesCategory = selectedCategory.value === 'all' ||
+      item.categoryId === selectedCategory.value
+
+    // Price range filter
+    const matchesMinPrice = minPrice.value === null || item.price >= minPrice.value
+    const matchesMaxPrice = maxPrice.value === null || item.price <= maxPrice.value
+
+    // Date availability filter (TODO: implement with availability API)
+    // For now, we'll show all items if date is selected
+    const matchesDate = !selectedDate.value // Will be implemented with availability check
+
+    return matchesSearch && matchesCategory && matchesMinPrice && matchesMaxPrice && matchesDate
+  })
+
+  // Sort items
+  if (sortBy.value === 'name') {
+    result.sort((a, b) => a.name.localeCompare(b.name))
+  } else if (sortBy.value === 'name-desc') {
+    result.sort((a, b) => b.name.localeCompare(a.name))
+  } else if (sortBy.value === 'price') {
+    result.sort((a, b) => a.price - b.price)
+  } else if (sortBy.value === 'price-desc') {
+    result.sort((a, b) => b.price - a.price)
+  } else if (sortBy.value === 'popular') {
+    result.sort((a, b) => {
+      if (a.featured && !b.featured) return -1
+      if (!a.featured && b.featured) return 1
+      return 0
+    })
+  }
+
+  return result
 })
 
 const featuredItems = computed(() => {
@@ -115,12 +175,51 @@ const formatPrice = (price: number) => {
     minimumFractionDigits: 0
   }).format(price)
 }
+
+// Clear all filters
+const clearFilters = () => {
+  searchQuery.value = ''
+  selectedCategory.value = 'all'
+  minPrice.value = null
+  maxPrice.value = null
+  selectedDate.value = ''
+  sortBy.value = 'name'
+}
+
+// Active filters count
+const activeFiltersCount = computed(() => {
+  let count = 0
+  if (searchQuery.value) count++
+  if (selectedCategory.value !== 'all') count++
+  if (minPrice.value !== null) count++
+  if (maxPrice.value !== null) count++
+  if (selectedDate.value) count++
+  return count
+})
 </script>
 
 <template>
   <div>
-    <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-orange-600 to-pink-600 rounded-2xl p-8 md:p-12 mb-8 text-white">
+    <!-- Loading State -->
+    <div v-if="loading" class="flex items-center justify-center py-16">
+      <div class="text-center">
+        <UIcon name="lucide:loader-circle" class="w-12 h-12 text-orange-600 animate-spin mx-auto mb-4" />
+        <p class="text-gray-600 dark:text-gray-400">Loading rentals...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="text-center py-16">
+      <UIcon name="lucide:alert-circle" class="w-16 h-16 text-red-600 mx-auto mb-4" />
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Something went wrong</h2>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">{{ error }}</p>
+      <UButton @click="() => router.go(0)">Try Again</UButton>
+    </div>
+
+    <!-- Content -->
+    <div v-else>
+      <!-- Hero Section -->
+      <div class="bg-gradient-to-r from-orange-600 to-pink-600 rounded-2xl p-8 md:p-12 mb-8 text-white">
       <div class="max-w-3xl">
         <h1 class="text-4xl md:text-5xl font-bold mb-4">
           Book Your Party Equipment
@@ -146,31 +245,98 @@ const formatPrice = (price: number) => {
     </div>
 
     <!-- Search & Filters -->
-    <div class="mb-8">
+    <div class="mb-8 space-y-4">
+      <!-- Main Search Bar -->
       <div class="flex flex-col md:flex-row gap-4">
         <!-- Search -->
         <div class="flex-1">
           <UInput
             v-model="searchQuery"
-            icon="lucide:search"
+            icon="i-lucide-search"
             size="lg"
             placeholder="Search for bounce houses, water slides..."
           />
         </div>
 
-        <!-- Category Filter -->
+        <!-- Sort -->
         <USelect
-          v-model="selectedCategory"
-          :options="categories"
+          v-model="sortBy"
+          :items="sortItems"
           size="lg"
-          icon="lucide:filter"
-          class="w-full md:w-64"
+          icon="i-lucide-arrow-up-down"
+          class="w-full md:w-56"
+        />
+      </div>
+
+      <!-- Advanced Filters -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Category Filter -->
+        <UFormField label="Category">
+          <USelect
+            v-model="selectedCategory"
+            :items="categoryItems"
+            icon="i-lucide-filter"
+            class="w-full"
+          />
+        </UFormField>
+
+        <!-- Price Range - Min -->
+        <UFormField label="Min Price">
+          <UInput
+            v-model.number="minPrice"
+            type="number"
+            :min="priceRange.min"
+            :max="priceRange.max"
+            :placeholder="`$${priceRange.min}`"
+            icon="i-lucide-dollar-sign"
+            class="w-full"
+          />
+        </UFormField>
+
+        <!-- Price Range - Max -->
+        <UFormField label="Max Price">
+          <UInput
+            v-model.number="maxPrice"
+            type="number"
+            :min="priceRange.min"
+            :max="priceRange.max"
+            :placeholder="`$${priceRange.max}`"
+            icon="i-lucide-dollar-sign"
+            class="w-full"
+          />
+        </UFormField>
+
+        <!-- Date Filter -->
+        <UFormField label="Availability Date">
+          <UInput
+            v-model="selectedDate"
+            type="date"
+            icon="i-lucide-calendar"
+            class="w-full"
+            placeholder="Check availability"
+          />
+        </UFormField>
+      </div>
+
+      <!-- Active Filters & Clear -->
+      <div v-if="activeFiltersCount > 0" class="flex items-center gap-3 text-sm">
+        <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+          <UIcon name="i-lucide-filter" class="w-4 h-4" />
+          <span>{{ activeFiltersCount }} filter{{ activeFiltersCount > 1 ? 's' : '' }} active</span>
+        </div>
+        <UButton
+          label="Clear All"
+          size="xs"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-x"
+          @click="clearFilters"
         />
       </div>
     </div>
 
     <!-- Featured Items -->
-    <div v-if="featuredItems.length > 0 && selectedCategory === 'All' && !searchQuery" class="mb-12">
+    <div v-if="featuredItems.length > 0 && selectedCategory === 'all' && !searchQuery && activeFiltersCount === 0" class="mb-12">
       <div class="flex items-center gap-2 mb-6">
         <UIcon name="lucide:star" class="w-6 h-6 text-orange-600 dark:text-orange-500" />
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
@@ -234,9 +400,14 @@ const formatPrice = (price: number) => {
 
     <!-- All Items -->
     <div v-if="regularItems.length > 0">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        {{ selectedCategory === 'All' ? 'More Rentals' : selectedCategory }}
-      </h2>
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+          {{ selectedCategory === 'all' ? 'All Rentals' : categoryItems.find(c => c.value === selectedCategory)?.label }}
+        </h2>
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          {{ filteredItems.length }} {{ filteredItems.length === 1 ? 'item' : 'items' }} found
+        </p>
+      </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <NuxtLink
@@ -297,8 +468,9 @@ const formatPrice = (price: number) => {
       </p>
       <UButton
         label="Clear Filters"
-        @click="() => { searchQuery = ''; selectedCategory = 'All' }"
+        @click="clearFilters"
       />
+    </div>
     </div>
   </div>
 </template>

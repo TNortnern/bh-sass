@@ -3,13 +3,13 @@
     <!-- Back Button -->
     <div class="mb-6">
       <UButton
-        color="gray"
+        color="neutral"
         variant="ghost"
         size="md"
         :ui="{ rounded: 'rounded-lg' }"
         @click="navigateTo('/app/customers')"
       >
-        <Icon name="heroicons:arrow-left" class="w-5 h-5 mr-2" />
+        <UIcon name="i-lucide-arrow-left" class="w-5 h-5 mr-2" />
         Back to Customers
       </UButton>
     </div>
@@ -44,7 +44,7 @@
             v-if="customer.tags.includes('VIP')"
             class="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center ring-4 ring-slate-900 shadow-lg"
           >
-            <Icon name="heroicons:star-solid" class="w-5 h-5 text-white" />
+            <UIcon name="i-lucide-star" class="w-5 h-5 text-white" />
           </div>
         </div>
 
@@ -92,7 +92,7 @@
                     }"
                   >
                     <template #leading>
-                      <Icon name="heroicons:envelope" class="w-4 h-4 text-slate-500" />
+                      <UIcon name="i-lucide-mail" class="w-4 h-4 text-slate-500" />
                     </template>
                   </UInput>
                   <UInput
@@ -106,7 +106,7 @@
                     }"
                   >
                     <template #leading>
-                      <Icon name="heroicons:phone" class="w-4 h-4 text-slate-500" />
+                      <UIcon name="i-lucide-phone" class="w-4 h-4 text-slate-500" />
                     </template>
                   </UInput>
                 </div>
@@ -116,21 +116,21 @@
                     :href="`mailto:${customer.email}`"
                     class="flex items-center gap-3 text-slate-300 hover:text-amber-400 transition-colors group"
                   >
-                    <Icon name="heroicons:envelope" class="w-5 h-5" />
+                    <UIcon name="i-lucide-mail" class="w-5 h-5" />
                     <span class="text-lg group-hover:underline">{{ customer.email }}</span>
                   </a>
                   <a
                     :href="`tel:${customer.phone}`"
                     class="flex items-center gap-3 text-slate-300 hover:text-amber-400 transition-colors group"
                   >
-                    <Icon name="heroicons:phone" class="w-5 h-5" />
+                    <UIcon name="i-lucide-phone" class="w-5 h-5" />
                     <span class="text-lg group-hover:underline">{{ customer.phone }}</span>
                   </a>
                   <div
                     v-if="customer.address && customer.address.street"
                     class="flex items-start gap-3 text-slate-300"
                   >
-                    <Icon name="heroicons:map-pin" class="w-5 h-5 mt-1" />
+                    <UIcon name="i-lucide-map-pin" class="w-5 h-5 mt-1" />
                     <div>
                       <div>{{ customer.address.street }}</div>
                       <div>{{ customer.address.city }}, {{ customer.address.state }} {{ customer.address.zip }}</div>
@@ -149,16 +149,16 @@
             <div class="flex gap-2">
               <template v-if="editMode">
                 <UButton
-                  color="amber"
+                  color="primary"
                   size="md"
                   :ui="{ rounded: 'rounded-lg' }"
                   @click="saveEdit"
                 >
-                  <Icon name="heroicons:check" class="w-5 h-5 mr-2" />
+                  <UIcon name="i-lucide-check" class="w-5 h-5 mr-2" />
                   Save
                 </UButton>
                 <UButton
-                  color="gray"
+                  color="neutral"
                   variant="ghost"
                   size="md"
                   :ui="{ rounded: 'rounded-lg' }"
@@ -169,22 +169,22 @@
               </template>
               <template v-else>
                 <UButton
-                  color="gray"
+                  color="neutral"
                   variant="outline"
                   size="md"
                   :ui="{ rounded: 'rounded-lg' }"
                   @click="startEdit"
                 >
-                  <Icon name="heroicons:pencil" class="w-5 h-5 mr-2" />
+                  <UIcon name="i-lucide-pencil" class="w-5 h-5 mr-2" />
                   Edit
                 </UButton>
                 <UButton
-                  color="amber"
+                  color="primary"
                   size="md"
                   :ui="{ rounded: 'rounded-lg' }"
                   @click="quickBook"
                 >
-                  <Icon name="heroicons:calendar-plus" class="w-5 h-5 mr-2" />
+                  <UIcon name="i-lucide-calendar-plus" class="w-5 h-5 mr-2" />
                   Quick Book
                 </UButton>
               </template>
@@ -209,20 +209,20 @@
                 class="ml-1 hover:text-red-400"
                 @click="removeTag(tag)"
               >
-                <Icon name="heroicons:x-mark" class="w-3 h-3" />
+                <UIcon name="i-lucide-x" class="w-3 h-3" />
               </button>
             </UBadge>
 
             <!-- Add Tag in Edit Mode -->
             <UButton
               v-if="editMode"
-              color="gray"
+              color="neutral"
               variant="outline"
               size="xs"
               :ui="{ rounded: 'rounded-full' }"
               @click="showAddTag = true"
             >
-              <Icon name="heroicons:plus" class="w-3 h-3 mr-1" />
+              <UIcon name="i-lucide-plus" class="w-3 h-3 mr-1" />
               Add Tag
             </UButton>
           </div>
@@ -258,7 +258,7 @@
             </div>
           </div>
           <div class="w-14 h-14 rounded-xl bg-blue-500/10 flex items-center justify-center">
-            <Icon name="heroicons:calendar" class="w-7 h-7 text-blue-500" />
+            <UIcon name="i-lucide-calendar" class="w-7 h-7 text-blue-500" />
           </div>
         </div>
       </UCard>
@@ -284,7 +284,7 @@
             </div>
           </div>
           <div class="w-14 h-14 rounded-xl bg-amber-500/10 flex items-center justify-center">
-            <Icon name="heroicons:currency-dollar" class="w-7 h-7 text-amber-500" />
+            <UIcon name="i-lucide-dollar-sign" class="w-7 h-7 text-amber-500" />
           </div>
         </div>
       </UCard>
@@ -310,7 +310,7 @@
             </div>
           </div>
           <div class="w-14 h-14 rounded-xl bg-green-500/10 flex items-center justify-center">
-            <Icon name="heroicons:chart-bar" class="w-7 h-7 text-green-500" />
+            <UIcon name="i-lucide-bar-chart-3" class="w-7 h-7 text-green-500" />
           </div>
         </div>
       </UCard>
@@ -336,7 +336,7 @@
             </div>
           </div>
           <div class="w-14 h-14 rounded-xl bg-purple-500/10 flex items-center justify-center">
-            <Icon name="heroicons:clock" class="w-7 h-7 text-purple-500" />
+            <UIcon name="i-lucide-clock" class="w-7 h-7 text-purple-500" />
           </div>
         </div>
       </UCard>
@@ -373,47 +373,81 @@
             body: { padding: 'p-0' }
           }"
         >
-          <div class="divide-y divide-slate-700/30">
+          <!-- Loading State -->
+          <div v-if="bookingsLoading" class="flex items-center justify-center py-16">
+            <UIcon name="i-lucide-loader-2" class="w-8 h-8 text-amber-500 animate-spin" />
+          </div>
+
+          <!-- Empty State -->
+          <div v-else-if="customerBookings.length === 0" class="flex flex-col items-center justify-center py-16 px-6 text-center">
+            <UIcon name="i-lucide-calendar-x" class="w-16 h-16 text-slate-600 mb-4" />
+            <h3 class="text-lg font-semibold text-slate-300 mb-2">No Bookings Yet</h3>
+            <p class="text-sm text-slate-500 mb-6 max-w-sm">
+              This customer hasn't made any bookings yet. Create a new booking to get started.
+            </p>
+            <UButton
+              color="primary"
+              icon="i-lucide-calendar-plus"
+              @click="quickBook"
+            >
+              Create First Booking
+            </UButton>
+          </div>
+
+          <!-- Bookings List -->
+          <div v-else class="divide-y divide-slate-700/30">
             <div
-              v-for="i in 8"
-              :key="i"
+              v-for="booking in customerBookings"
+              :key="booking.id"
               class="p-6 hover:bg-slate-700/20 transition-colors"
             >
               <div class="flex items-start justify-between gap-6">
                 <div class="flex-1">
                   <div class="flex items-center gap-3 mb-3">
                     <h3 class="text-lg font-semibold text-slate-200">
-                      {{ ['Birthday Party Package', 'Corporate Event', 'Weekend Special', 'Premium Bounce House'][Math.floor(Math.random() * 4)] }}
+                      {{ booking.item.name }}
                     </h3>
                     <UBadge
-                      :color="['green', 'blue', 'yellow', 'red'][Math.floor(Math.random() * 4)]"
+                      :color="getBookingStatusColor(booking.status)"
                       variant="subtle"
                     >
-                      {{ ['Completed', 'Upcoming', 'Pending', 'Cancelled'][Math.floor(Math.random() * 4)] }}
+                      {{ formatBookingStatus(booking.status) }}
                     </UBadge>
                   </div>
 
                   <div class="grid grid-cols-2 gap-4 text-sm text-slate-400">
                     <div class="flex items-center gap-2">
-                      <Icon name="heroicons:calendar" class="w-4 h-4" />
-                      <span>{{ formatDate(new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000)) }}</span>
+                      <UIcon name="i-lucide-calendar" class="w-4 h-4" />
+                      <span>{{ formatDate(booking.dates.start) }} - {{ formatDate(booking.dates.end) }}</span>
                     </div>
                     <div class="flex items-center gap-2">
-                      <Icon name="heroicons:map-pin" class="w-4 h-4" />
-                      <span>{{ customer.address?.city || 'Austin' }}, TX</span>
+                      <UIcon name="i-lucide-map-pin" class="w-4 h-4" />
+                      <span>{{ booking.deliveryAddress.city }}, {{ booking.deliveryAddress.state }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <UIcon name="i-lucide-receipt" class="w-4 h-4" />
+                      <span>{{ booking.bookingNumber }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <UIcon
+                        :name="booking.paymentStatus === 'paid' ? 'i-lucide-check-circle' : 'i-lucide-circle-dashed'"
+                        class="w-4 h-4"
+                      />
+                      <span>{{ formatPaymentStatus(booking.paymentStatus) }}</span>
                     </div>
                   </div>
                 </div>
 
                 <div class="text-right">
                   <div class="text-2xl font-bold text-amber-400 mb-2">
-                    ${{ (Math.random() * 400 + 100).toFixed(0) }}
+                    {{ formatCurrency(booking.payment.total) }}
                   </div>
                   <UButton
-                    color="gray"
+                    color="neutral"
                     variant="ghost"
                     size="sm"
                     :ui="{ rounded: 'rounded-lg' }"
+                    @click="navigateTo(`/app/bookings/${booking.id}`)"
                   >
                     View Details
                   </UButton>
@@ -449,20 +483,29 @@
                 class="flex-1"
               />
               <UButton
-                color="amber"
+                color="primary"
                 size="lg"
                 :ui="{ rounded: 'rounded-xl' }"
                 :disabled="!newNote.trim()"
                 @click="handleAddNote"
               >
-                <Icon name="heroicons:plus" class="w-5 h-5 mr-2" />
+                <UIcon name="i-lucide-plus" class="w-5 h-5 mr-2" />
                 Add Note
               </UButton>
             </div>
           </UCard>
 
+          <!-- Empty State -->
+          <div v-if="!customer.notes || customer.notes.length === 0" class="flex flex-col items-center justify-center py-12 px-6 text-center">
+            <UIcon name="i-lucide-sticky-note" class="w-16 h-16 text-slate-600 mb-4" />
+            <h3 class="text-lg font-semibold text-slate-300 mb-2">No Notes Yet</h3>
+            <p class="text-sm text-slate-500 max-w-sm">
+              Add notes to keep track of important information about this customer.
+            </p>
+          </div>
+
           <!-- Notes List -->
-          <div class="space-y-3">
+          <div v-else class="space-y-3">
             <UCard
               v-for="note in customer.notes"
               :key="note.id"
@@ -476,12 +519,12 @@
               <p class="text-slate-300 mb-3 leading-relaxed">{{ note.content }}</p>
               <div class="flex items-center gap-3 text-sm text-slate-500">
                 <div class="flex items-center gap-2">
-                  <Icon name="heroicons:user" class="w-4 h-4" />
+                  <UIcon name="i-lucide-user" class="w-4 h-4" />
                   <span>{{ note.createdBy }}</span>
                 </div>
                 <span>•</span>
                 <div class="flex items-center gap-2">
-                  <Icon name="heroicons:clock" class="w-4 h-4" />
+                  <UIcon name="i-lucide-clock" class="w-4 h-4" />
                   <span>{{ formatRelativeDate(note.createdAt) }}</span>
                 </div>
               </div>
@@ -492,9 +535,19 @@
 
       <!-- Activity Timeline Tab -->
       <template #activity>
-        <div class="space-y-4">
+        <!-- Empty State -->
+        <div v-if="activityTimeline.length === 0" class="flex flex-col items-center justify-center py-16 px-6 text-center">
+          <UIcon name="i-lucide-activity" class="w-16 h-16 text-slate-600 mb-4" />
+          <h3 class="text-lg font-semibold text-slate-300 mb-2">No Activity Yet</h3>
+          <p class="text-sm text-slate-500 max-w-sm">
+            Customer activity will appear here once they make bookings or you add notes.
+          </p>
+        </div>
+
+        <!-- Activity List -->
+        <div v-else class="space-y-4">
           <div
-            v-for="(activity, index) in customer.activities"
+            v-for="(activity, index) in activityTimeline"
             :key="activity.id"
             class="flex gap-4"
           >
@@ -509,18 +562,18 @@
                   activity.type === 'tag' ? 'bg-amber-500' : ''
                 ]"
               >
-                <Icon
+                <UIcon
                   :name="
-                    activity.type === 'booking' ? 'heroicons:calendar' :
-                    activity.type === 'payment' ? 'heroicons:currency-dollar' :
-                    activity.type === 'note' ? 'heroicons:document-text' :
-                    'heroicons:tag'
+                    activity.type === 'booking' ? 'i-lucide-calendar' :
+                    activity.type === 'payment' ? 'i-lucide-dollar-sign' :
+                    activity.type === 'note' ? 'i-lucide-file-text' :
+                    'i-lucide-tag'
                   "
                   class="w-5 h-5 text-white"
                 />
               </div>
               <div
-                v-if="index < customer.activities.length - 1"
+                v-if="index < activityTimeline.length - 1"
                 class="w-0.5 h-full bg-slate-700/50 mt-2"
               />
             </div>
@@ -546,10 +599,10 @@
                 </div>
                 <UBadge
                   :color="
-                    activity.type === 'booking' ? 'blue' :
-                    activity.type === 'payment' ? 'green' :
-                    activity.type === 'note' ? 'purple' :
-                    'amber'
+                    activity.type === 'booking' ? 'primary' :
+                    activity.type === 'payment' ? 'success' :
+                    activity.type === 'note' ? 'secondary' :
+                    'warning'
                   "
                   variant="subtle"
                   size="xs"
@@ -564,25 +617,14 @@
     </UTabs>
 
     <!-- Add Tag Modal -->
-    <UModal v-model:open="showAddTag">
-      <UCard
-        :ui="{
-          background: 'bg-slate-900',
-          ring: 'ring-1 ring-slate-700/50',
-          rounded: 'rounded-xl',
-          body: { padding: 'p-6' }
-        }"
-      >
-        <template #header>
-          <h3 class="text-xl font-semibold text-slate-200">Add Tag</h3>
-        </template>
-
-        <div class="space-y-4">
-          <div class="flex flex-wrap gap-2">
+    <UModal v-model:open="showAddTag" title="Add Tag">
+      <template #content>
+        <div class="p-6">
+          <div class="flex flex-wrap gap-2 mb-6">
             <UButton
               v-for="tag in availableTags.filter(t => !customer.tags.includes(t))"
               :key="tag"
-              color="gray"
+              color="neutral"
               variant="outline"
               size="sm"
               :ui="{ rounded: 'rounded-full' }"
@@ -590,41 +632,47 @@
             >
               {{ tag }}
             </UButton>
+            <p v-if="availableTags.filter(t => !customer.tags.includes(t)).length === 0" class="text-slate-400 text-sm">
+              All available tags have been added.
+            </p>
           </div>
-        </div>
 
-        <template #footer>
           <div class="flex justify-end">
             <UButton
-              color="gray"
+              color="neutral"
               variant="ghost"
               @click="showAddTag = false"
             >
               Close
             </UButton>
           </div>
-        </template>
-      </UCard>
+        </div>
+      </template>
     </UModal>
   </div>
 
   <!-- Loading State -->
   <div v-else class="flex items-center justify-center py-16">
-    <Icon name="heroicons:arrow-path" class="w-8 h-8 text-amber-500 animate-spin" />
+    <UIcon name="i-lucide-loader-2" class="w-8 h-8 text-amber-500 animate-spin" />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { Customer } from '~/composables/useCustomers'
+import type { Booking } from '~/composables/useBookings'
 
 definePageMeta({
   layout: 'dashboard'
 })
 
 const route = useRoute()
+const toast = useToast()
 const { fetchCustomer, updateCustomer, addTag, removeTag: removeTagFromCustomer, addNote, getAllTags } = useCustomers()
+const { fetchCustomerBookings } = useBookings()
 
 const customer = ref<Customer | null>(null)
+const customerBookings = ref<Booking[]>([])
+const bookingsLoading = ref(false)
 const editMode = ref(false)
 const activeTab = ref(0)
 const newNote = ref('')
@@ -640,17 +688,17 @@ const editForm = reactive({
 const tabs = [
   {
     label: 'Booking History',
-    icon: 'heroicons:calendar',
+    icon: 'i-lucide-calendar',
     slot: 'bookings'
   },
   {
     label: 'Notes',
-    icon: 'heroicons:document-text',
+    icon: 'i-lucide-file-text',
     slot: 'notes'
   },
   {
     label: 'Activity Timeline',
-    icon: 'heroicons:clock',
+    icon: 'i-lucide-clock',
     slot: 'activity'
   }
 ]
@@ -662,10 +710,99 @@ const initials = computed(() => {
   return `${customer.value.firstName.charAt(0)}${customer.value.lastName.charAt(0)}`.toUpperCase()
 })
 
-// Load customer on mount
+// Generate activity timeline from bookings and notes
+const activityTimeline = computed(() => {
+  if (!customer.value) return []
+
+  const activities: Array<{
+    id: string
+    type: 'booking' | 'payment' | 'note' | 'tag'
+    description: string
+    timestamp: string
+    metadata?: any
+  }> = []
+
+  // Add booking activities
+  customerBookings.value.forEach(booking => {
+    activities.push({
+      id: `booking-${booking.id}`,
+      type: 'booking',
+      description: `Booked ${booking.item.name} for ${formatDate(booking.dates.start)}`,
+      timestamp: booking.createdAt,
+      metadata: { bookingId: booking.id, status: booking.status }
+    })
+
+    // Add payment activity if paid
+    if (booking.paymentStatus === 'paid') {
+      activities.push({
+        id: `payment-${booking.id}`,
+        type: 'payment',
+        description: `Payment received for ${booking.bookingNumber} - ${formatCurrency(booking.payment.total)}`,
+        timestamp: booking.updatedAt,
+        metadata: { bookingId: booking.id, amount: booking.payment.total }
+      })
+    }
+  })
+
+  // Add note activities
+  customer.value.notes.forEach(note => {
+    activities.push({
+      id: `note-${note.id}`,
+      type: 'note',
+      description: `Note added: ${note.content.substring(0, 60)}${note.content.length > 60 ? '...' : ''}`,
+      timestamp: note.createdAt,
+      metadata: { noteId: note.id }
+    })
+  })
+
+  // Sort by timestamp descending (newest first)
+  return activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+})
+
+// Load customer and bookings on mount
 onMounted(async () => {
   const customerId = route.params.id as string
   customer.value = await fetchCustomer(customerId)
+
+  // Fetch customer's booking history
+  bookingsLoading.value = true
+  const result = await fetchCustomerBookings(customerId)
+  if (result.success && result.data) {
+    customerBookings.value = result.data
+
+    // Update customer booking stats from real data
+    if (customer.value) {
+      customer.value.bookings.total = customerBookings.value.length
+      customer.value.bookings.upcoming = customerBookings.value.filter(b =>
+        b.status === 'confirmed' || b.status === 'pending'
+      ).length
+      customer.value.bookings.completed = customerBookings.value.filter(b =>
+        b.status === 'completed'
+      ).length
+      customer.value.bookings.cancelled = customerBookings.value.filter(b =>
+        b.status === 'cancelled'
+      ).length
+
+      // Calculate total spent from completed bookings
+      customer.value.totalSpent = customerBookings.value
+        .filter(b => b.status === 'completed')
+        .reduce((sum, b) => sum + b.payment.total, 0)
+
+      // Calculate average order value
+      customer.value.averageOrder = customer.value.bookings.completed > 0
+        ? customer.value.totalSpent / customer.value.bookings.completed
+        : 0
+
+      // Get last booking date
+      if (customerBookings.value.length > 0) {
+        const sortedBookings = [...customerBookings.value].sort((a, b) =>
+          new Date(b.dates.start).getTime() - new Date(a.dates.start).getTime()
+        )
+        customer.value.lastBooking = sortedBookings[0].dates.start
+      }
+    }
+  }
+  bookingsLoading.value = false
 })
 
 function startEdit() {
@@ -684,8 +821,18 @@ async function saveEdit() {
       const updated = await updateCustomer(customer.value.id, editForm)
       customer.value = { ...customer.value, ...updated }
       editMode.value = false
-    } catch (error) {
+      toast.add({
+        title: 'Customer Updated',
+        description: 'Customer information has been saved',
+        color: 'success',
+      })
+    } catch (error: any) {
       console.error('Failed to update customer:', error)
+      toast.add({
+        title: 'Update Failed',
+        description: error.message || 'Failed to update customer',
+        color: 'error',
+      })
     }
   }
 }
@@ -701,8 +848,18 @@ async function handleAddNote() {
       // Refresh customer data
       customer.value = await fetchCustomer(customer.value.id)
       newNote.value = ''
-    } catch (error) {
+      toast.add({
+        title: 'Note Added',
+        description: 'Note has been added to the customer',
+        color: 'success',
+      })
+    } catch (error: any) {
       console.error('Failed to add note:', error)
+      toast.add({
+        title: 'Failed to Add Note',
+        description: error.message || 'Could not add note',
+        color: 'error',
+      })
     }
   }
 }
@@ -714,8 +871,18 @@ async function handleAddTag(tag: string) {
       // Refresh customer data
       customer.value = await fetchCustomer(customer.value.id)
       showAddTag.value = false
-    } catch (error) {
+      toast.add({
+        title: 'Tag Added',
+        description: `"${tag}" tag has been added`,
+        color: 'success',
+      })
+    } catch (error: any) {
       console.error('Failed to add tag:', error)
+      toast.add({
+        title: 'Failed to Add Tag',
+        description: error.message || 'Could not add tag',
+        color: 'error',
+      })
     }
   }
 }
@@ -726,15 +893,34 @@ async function removeTag(tag: string) {
       await removeTagFromCustomer(customer.value.id, tag)
       // Refresh customer data
       customer.value = await fetchCustomer(customer.value.id)
-    } catch (error) {
+      toast.add({
+        title: 'Tag Removed',
+        description: `"${tag}" tag has been removed`,
+        color: 'success',
+      })
+    } catch (error: any) {
       console.error('Failed to remove tag:', error)
+      toast.add({
+        title: 'Failed to Remove Tag',
+        description: error.message || 'Could not remove tag',
+        color: 'error',
+      })
     }
   }
 }
 
 function quickBook() {
-  // TODO: Navigate to booking page with customer pre-filled
-  console.log('Quick book for customer:', customer.value?.id)
+  if (customer.value) {
+    navigateTo({
+      path: '/app/bookings/new',
+      query: {
+        customerId: customer.value.id,
+        customerName: `${customer.value.firstName} ${customer.value.lastName}`,
+        customerEmail: customer.value.email,
+        customerPhone: customer.value.phone
+      }
+    })
+  }
 }
 
 function formatCurrency(amount: number): string {
@@ -772,16 +958,48 @@ function formatRelativeDate(date?: string): string {
 
 function getTagColor(tag: string): string {
   const colors: Record<string, string> = {
-    'VIP': 'amber',
-    'Birthday Party': 'pink',
-    'Corporate': 'blue',
-    'Repeat Customer': 'green',
-    'New': 'cyan',
-    'High Value': 'purple',
-    'Referral': 'indigo',
-    'Email List': 'teal',
-    'SMS List': 'orange'
+    'VIP': 'warning',
+    'Birthday Party': 'error',
+    'Corporate': 'info',
+    'Repeat Customer': 'success',
+    'New': 'primary',
+    'High Value': 'secondary',
+    'Referral': 'info',
+    'Email List': 'success',
+    'SMS List': 'warning'
   }
-  return colors[tag] || 'gray'
+  return colors[tag] || 'neutral'
+}
+
+function getBookingStatusColor(status: string): string {
+  const colors: Record<string, string> = {
+    'pending': 'warning',
+    'confirmed': 'success',
+    'delivered': 'primary',
+    'completed': 'neutral',
+    'cancelled': 'error'
+  }
+  return colors[status] || 'neutral'
+}
+
+function formatBookingStatus(status: string): string {
+  const statusMap: Record<string, string> = {
+    'pending': 'Pending',
+    'confirmed': 'Confirmed',
+    'delivered': 'Delivered',
+    'completed': 'Completed',
+    'cancelled': 'Cancelled'
+  }
+  return statusMap[status] || status
+}
+
+function formatPaymentStatus(status: string): string {
+  const statusMap: Record<string, string> = {
+    'unpaid': 'Unpaid',
+    'deposit': 'Deposit Paid',
+    'paid': 'Paid in Full',
+    'refunded': 'Refunded'
+  }
+  return statusMap[status] || status
 }
 </script>

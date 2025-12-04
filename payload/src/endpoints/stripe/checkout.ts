@@ -3,6 +3,7 @@ import Stripe from 'stripe'
 import { getStripeClient } from '../../lib/stripe/client'
 import { calculateApplicationFee } from '../../lib/stripe/fees'
 import type { CheckoutSessionResponse, PricingTier } from '../../lib/stripe/types'
+import { isDemoMode, createDemoCheckoutSession, completeDemoPayment } from '../../lib/demo-mode'
 
 /**
  * POST /api/stripe/checkout/create-session
@@ -45,6 +46,28 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
         },
         { status: 400 },
       )
+    }
+
+    // Check for demo mode - bypass Stripe entirely
+    if (isDemoMode()) {
+      console.log('[DEMO MODE] Creating demo checkout session for booking:', bookingId)
+
+      // Calculate payment amount (deposit or full)
+      let paymentAmount = amount
+      if (depositPercentage && depositPercentage > 0 && depositPercentage <= 100) {
+        paymentAmount = Math.round(amount * (depositPercentage / 100))
+      }
+
+      const demoResult = createDemoCheckoutSession(bookingId, paymentAmount)
+
+      // Auto-complete the payment in demo mode
+      await completeDemoPayment(payload, bookingId, tenantId, paymentAmount)
+
+      return Response.json({
+        sessionId: demoResult.sessionId,
+        url: demoResult.checkoutUrl,
+        mode: 'demo',
+      })
     }
 
     // Fetch tenant

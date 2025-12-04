@@ -1,9 +1,19 @@
 # Run lint-staged for linting
-pnpm exec lint-staged
+echo "Running lint-staged..."
+pnpm exec lint-staged || exit 1
 
-# Run typecheck on staged files
-echo "Running TypeScript checks..."
+# Run typecheck on Nuxt
+echo "Running Nuxt TypeScript checks..."
 cd nuxt && pnpm typecheck || exit 1
 cd ..
 
-echo "Pre-commit checks passed!"
+# Run typecheck on Payload
+echo "Running Payload TypeScript checks..."
+cd payload && pnpm typecheck || exit 1
+cd ..
+
+# Run unit tests (fast, not E2E)
+echo "Running unit tests..."
+pnpm test:unit || exit 1
+
+echo "✅ Pre-commit checks passed!"

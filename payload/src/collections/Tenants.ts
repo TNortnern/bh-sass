@@ -1,5 +1,6 @@
 import type { Access, CollectionConfig } from 'payload'
 import { getTenantId } from '../utilities/getTenantId'
+import { auditCreateAndUpdate, auditDelete } from '../hooks/auditHooks'
 
 export const Tenants: CollectionConfig = {
   slug: 'tenants',
@@ -245,6 +246,262 @@ export const Tenants: CollectionConfig = {
         ],
       },
     },
+    // Business Contact Information
+    {
+      name: 'phone',
+      type: 'text',
+      admin: {
+        description: 'Business phone number',
+        placeholder: '(555) 123-4567',
+      },
+    },
+    {
+      name: 'email',
+      type: 'email',
+      admin: {
+        description: 'Business email address',
+        placeholder: 'hello@yourbusiness.com',
+      },
+    },
+    {
+      name: 'description',
+      type: 'textarea',
+      admin: {
+        description: 'Business description for customers',
+      },
+    },
+    {
+      name: 'address',
+      type: 'group',
+      admin: {
+        description: 'Business address',
+      },
+      fields: [
+        {
+          name: 'street',
+          type: 'text',
+          admin: { placeholder: '123 Main Street' },
+        },
+        {
+          name: 'city',
+          type: 'text',
+          admin: { placeholder: 'Austin' },
+        },
+        {
+          name: 'state',
+          type: 'text',
+          admin: { placeholder: 'TX' },
+        },
+        {
+          name: 'zip',
+          type: 'text',
+          admin: { placeholder: '78701' },
+        },
+      ],
+    },
+    {
+      name: 'businessHours',
+      type: 'group',
+      admin: {
+        description: 'Weekly business hours',
+      },
+      fields: [
+        {
+          name: 'monday',
+          type: 'group',
+          fields: [
+            { name: 'enabled', type: 'checkbox', defaultValue: true },
+            { name: 'open', type: 'text', defaultValue: '09:00' },
+            { name: 'close', type: 'text', defaultValue: '18:00' },
+          ],
+        },
+        {
+          name: 'tuesday',
+          type: 'group',
+          fields: [
+            { name: 'enabled', type: 'checkbox', defaultValue: true },
+            { name: 'open', type: 'text', defaultValue: '09:00' },
+            { name: 'close', type: 'text', defaultValue: '18:00' },
+          ],
+        },
+        {
+          name: 'wednesday',
+          type: 'group',
+          fields: [
+            { name: 'enabled', type: 'checkbox', defaultValue: true },
+            { name: 'open', type: 'text', defaultValue: '09:00' },
+            { name: 'close', type: 'text', defaultValue: '18:00' },
+          ],
+        },
+        {
+          name: 'thursday',
+          type: 'group',
+          fields: [
+            { name: 'enabled', type: 'checkbox', defaultValue: true },
+            { name: 'open', type: 'text', defaultValue: '09:00' },
+            { name: 'close', type: 'text', defaultValue: '18:00' },
+          ],
+        },
+        {
+          name: 'friday',
+          type: 'group',
+          fields: [
+            { name: 'enabled', type: 'checkbox', defaultValue: true },
+            { name: 'open', type: 'text', defaultValue: '09:00' },
+            { name: 'close', type: 'text', defaultValue: '20:00' },
+          ],
+        },
+        {
+          name: 'saturday',
+          type: 'group',
+          fields: [
+            { name: 'enabled', type: 'checkbox', defaultValue: true },
+            { name: 'open', type: 'text', defaultValue: '08:00' },
+            { name: 'close', type: 'text', defaultValue: '20:00' },
+          ],
+        },
+        {
+          name: 'sunday',
+          type: 'group',
+          fields: [
+            { name: 'enabled', type: 'checkbox', defaultValue: true },
+            { name: 'open', type: 'text', defaultValue: '10:00' },
+            { name: 'close', type: 'text', defaultValue: '16:00' },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'serviceArea',
+      type: 'group',
+      admin: {
+        description: 'Service delivery area',
+      },
+      fields: [
+        {
+          name: 'radius',
+          type: 'number',
+          defaultValue: 25,
+          admin: { description: 'Service radius in miles/km' },
+        },
+        {
+          name: 'unit',
+          type: 'select',
+          defaultValue: 'miles',
+          options: [
+            { label: 'Miles', value: 'miles' },
+            { label: 'Kilometers', value: 'km' },
+          ],
+        },
+        {
+          name: 'zipCodes',
+          type: 'array',
+          admin: { description: 'Specific ZIP codes served' },
+          fields: [
+            {
+              name: 'code',
+              type: 'text',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'branding',
+      type: 'group',
+      admin: {
+        description: 'Brand identity and theming',
+      },
+      fields: [
+        {
+          name: 'businessName',
+          type: 'text',
+          admin: {
+            description: 'Business name for branding (overrides tenant name)',
+          },
+        },
+        {
+          name: 'tagline',
+          type: 'text',
+          admin: {
+            description: 'Short tagline or slogan',
+            placeholder: 'We bring the fun to your event!',
+          },
+        },
+        {
+          name: 'primaryColor',
+          type: 'text',
+          defaultValue: '#fbbf24',
+          admin: {
+            description: 'Primary brand color (hex)',
+            placeholder: '#fbbf24',
+          },
+        },
+        {
+          name: 'secondaryColor',
+          type: 'text',
+          defaultValue: '#3b82f6',
+          admin: {
+            description: 'Secondary brand color (hex)',
+            placeholder: '#3b82f6',
+          },
+        },
+        {
+          name: 'accentColor',
+          type: 'text',
+          defaultValue: '#10b981',
+          admin: {
+            description: 'Accent color for buttons and CTAs (hex)',
+            placeholder: '#10b981',
+          },
+        },
+        {
+          name: 'emailHeaderBg',
+          type: 'text',
+          defaultValue: '#fbbf24',
+          admin: {
+            description: 'Email header background color (hex)',
+          },
+        },
+        {
+          name: 'emailButtonColor',
+          type: 'text',
+          defaultValue: '#10b981',
+          admin: {
+            description: 'Email button color (hex)',
+          },
+        },
+        {
+          name: 'emailFooter',
+          type: 'textarea',
+          admin: {
+            description: 'Custom footer text for emails',
+          },
+        },
+        {
+          name: 'invoiceHeader',
+          type: 'text',
+          defaultValue: 'INVOICE',
+          admin: {
+            description: 'Invoice header text',
+          },
+        },
+        {
+          name: 'termsAndConditions',
+          type: 'textarea',
+          admin: {
+            description: 'Terms & Conditions for contracts',
+          },
+        },
+        {
+          name: 'safetyGuidelines',
+          type: 'textarea',
+          admin: {
+            description: 'Safety guidelines for rental agreements',
+          },
+        },
+      ],
+    },
     {
       name: 'settings',
       type: 'group',
@@ -398,4 +655,8 @@ export const Tenants: CollectionConfig = {
     },
   ],
   timestamps: true,
+  hooks: {
+    afterChange: [auditCreateAndUpdate],
+    afterDelete: [auditDelete],
+  },
 }

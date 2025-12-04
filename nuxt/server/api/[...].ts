@@ -23,17 +23,41 @@ export default defineEventHandler(async (event) => {
     const cookieHeader = getHeader(event, 'cookie')
     if (cookieHeader) headers['Cookie'] = cookieHeader
 
-    const contentType = getHeader(event, 'content-type')
-    if (contentType) headers['Content-Type'] = contentType
-
     const authorization = getHeader(event, 'authorization')
     if (authorization) headers['Authorization'] = authorization
 
+    const contentType = getHeader(event, 'content-type')
+
     // Get body for non-GET requests
-    let body: string | undefined
+    let body: string | FormData | Buffer | undefined
     if (method !== 'GET' && method !== 'HEAD') {
-      const rawBody = await readRawBody(event)
-      if (rawBody) body = rawBody
+      // Check if this is a multipart/form-data request (file upload)
+      if (contentType?.includes('multipart/form-data')) {
+        // For multipart form data, read and reconstruct the FormData
+        const formData = await readMultipartFormData(event)
+        if (formData) {
+          const newFormData = new FormData()
+          for (const field of formData) {
+            if (field.filename) {
+              // This is a file field
+              const blob = new Blob([field.data], { type: field.type || 'application/octet-stream' })
+              newFormData.append(field.name || 'file', blob, field.filename)
+            } else {
+              // This is a regular field
+              newFormData.append(field.name || '', field.data.toString())
+            }
+          }
+          body = newFormData
+          // Don't set Content-Type for FormData - fetch will set it with the boundary
+        }
+      } else {
+        // For other content types, read as raw body
+        if (contentType) headers['Content-Type'] = contentType
+        const rawBody = await readRawBody(event)
+        if (rawBody) body = rawBody
+      }
+    } else {
+      if (contentType) headers['Content-Type'] = contentType
     }
 
     // Make the proxied request

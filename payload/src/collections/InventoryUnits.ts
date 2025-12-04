@@ -98,9 +98,9 @@ export const InventoryUnits: CollectionConfig = {
       hooks: {
         beforeValidate: [
           ({ req, value }) => {
-            // Auto-assign tenant for tenant admins
-            if (!value && req.user?.role === 'tenant_admin') {
-              return req.user.tenantId
+            // Auto-assign tenant for tenant admins or staff
+            if (!value && req.user && (req.user.role === 'tenant_admin' || req.user.role === 'staff')) {
+              return getTenantId(req.user)
             }
             return value
           },
@@ -226,6 +226,36 @@ export const InventoryUnits: CollectionConfig = {
         date: {
           pickerAppearance: 'dayOnly',
         },
+      },
+    },
+    {
+      name: 'nextMaintenanceDate',
+      type: 'date',
+      admin: {
+        description: 'Date when next maintenance is due',
+        date: {
+          pickerAppearance: 'dayOnly',
+        },
+      },
+    },
+    {
+      name: 'maintenanceStatus',
+      type: 'select',
+      defaultValue: 'up_to_date',
+      options: [
+        { label: 'Up to Date', value: 'up_to_date' },
+        { label: 'Due Soon', value: 'due_soon' },
+        { label: 'Overdue', value: 'overdue' },
+      ],
+      admin: {
+        description: 'Current maintenance status',
+      },
+    },
+    {
+      name: 'maintenanceNotes',
+      type: 'textarea',
+      admin: {
+        description: 'Maintenance notes specific to this unit',
       },
     },
   ],

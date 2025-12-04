@@ -64,13 +64,13 @@ const getPaymentColor = (status: string) => {
 // Quick status update dropdown
 const statusActions = [
   [
-    { label: 'Pending', click: () => emit('statusChange', props.booking.id, 'pending') },
-    { label: 'Confirmed', click: () => emit('statusChange', props.booking.id, 'confirmed') },
-    { label: 'Delivered', click: () => emit('statusChange', props.booking.id, 'delivered') }
+    { label: 'Pending', onSelect: () => emit('statusChange', props.booking.id, 'pending') },
+    { label: 'Confirmed', onSelect: () => emit('statusChange', props.booking.id, 'confirmed') },
+    { label: 'Delivered', onSelect: () => emit('statusChange', props.booking.id, 'delivered') }
   ],
   [
-    { label: 'Completed', click: () => emit('statusChange', props.booking.id, 'completed') },
-    { label: 'Cancelled', click: () => emit('statusChange', props.booking.id, 'cancelled') }
+    { label: 'Completed', onSelect: () => emit('statusChange', props.booking.id, 'completed') },
+    { label: 'Cancelled', color: 'error' as const, onSelect: () => emit('statusChange', props.booking.id, 'cancelled') }
   ]
 ]
 

@@ -8,11 +8,23 @@ export default defineEventHandler(async (event) => {
   const payloadUrl = config.payloadApiUrl || 'http://payload:3000'
   const apiKey = config.payloadApiKey
 
-  if (!apiKey) {
+  // Get the cookie header to forward to Payload for session auth
+  const cookieHeader = getHeader(event, 'cookie') || ''
+
+  // Must have either session cookie or API key
+  if (!cookieHeader.includes('payload-token') && !apiKey) {
     throw createError({
-      statusCode: 500,
-      message: 'Payload API key not configured'
+      statusCode: 401,
+      message: 'Authentication required'
     })
+  }
+
+  // Build headers - prefer session auth, fall back to API key
+  const headers: Record<string, string> = {}
+  if (cookieHeader.includes('payload-token')) {
+    headers['Cookie'] = cookieHeader
+  } else if (apiKey) {
+    headers['X-API-Key'] = apiKey
   }
 
   const id = getRouterParam(event, 'id')
@@ -27,9 +39,7 @@ export default defineEventHandler(async (event) => {
   try {
     // Fetch rental item
     const response = await fetch(`${payloadUrl}/api/rental-items/${id}`, {
-      headers: {
-        'X-API-Key': apiKey
-      }
+      headers
     })
 
     if (!response.ok) {
@@ -43,9 +53,7 @@ export default defineEventHandler(async (event) => {
 
     // Fetch inventory units for this rental item
     const unitsResponse = await fetch(`${payloadUrl}/api/inventory-units?where[rentalItem][equals]=${id}`, {
-      headers: {
-        'X-API-Key': apiKey
-      }
+      headers
     })
 
     let units: any[] = []

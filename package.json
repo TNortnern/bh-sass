@@ -12,6 +12,7 @@
     "lint": "pnpm --filter '*' lint",
     "typecheck": "pnpm --filter '*' typecheck",
     "test": "pnpm --filter '*' test",
+    "test:unit": "pnpm --filter bh-nuxt test && pnpm --filter bh-payload test",
     "test:e2e": "pnpm --filter bh-nuxt test:e2e",
     "prepare": "husky"
   },
@@ -32,5 +33,10 @@
   "engines": {
     "node": ">=20.9.0",
     "pnpm": ">=10"
+  },
+  "dependencies": {
+    "@sentry/node": "^10.28.0",
+    "pino": "^10.1.0",
+    "pino-pretty": "^13.1.3"
   }
 }

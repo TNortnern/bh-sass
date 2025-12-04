@@ -246,7 +246,7 @@ const selectDate = (date: Date) => {
   }
 }
 
-const openBookingModal = (booking: Booking) => {
+const openBookingModal = (booking: CalendarBooking) => {
   selectedBooking.value = booking
   isBookingModalOpen.value = true
 }
@@ -267,7 +267,156 @@ const closeNewBookingModal = () => {
   isNewBookingModalOpen.value = false
   setTimeout(() => {
     selectedDate.value = null
+    newBookingForm.value = {
+      customer: {
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: ''
+      },
+      itemId: '',
+      startDate: format(selectedDate.value || new Date(), 'yyyy-MM-dd'),
+      endDate: format(addDays(selectedDate.value || new Date(), 1), 'yyyy-MM-dd'),
+      deliveryAddress: {
+        street: '',
+        city: '',
+        state: '',
+        zip: '',
+        instructions: ''
+      },
+      addons: [],
+      paymentType: 'deposit',
+      customerNotes: '',
+      internalNotes: ''
+    }
   }, 200)
+}
+
+// Navigate to edit page
+const router = useRouter()
+const editBooking = (id: string) => {
+  router.push(`/app/bookings/${id}/edit`)
+}
+
+// New booking form state
+const { createBooking } = useBookings()
+const { getServices } = useRbPayload()
+const isSubmittingBooking = ref(false)
+const isLoadingServices = ref(false)
+const availableItems = ref<Array<{ id: string; name: string; dailyRate: number }>>([])
+
+const newBookingForm = ref({
+  customer: {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: ''
+  },
+  itemId: '',
+  startDate: '',
+  endDate: '',
+  deliveryAddress: {
+    street: '',
+    city: '',
+    state: '',
+    zip: '',
+    instructions: ''
+  },
+  addons: [] as Array<{ id: string; quantity: number }>,
+  paymentType: 'deposit' as 'deposit' | 'full',
+  customerNotes: '',
+  internalNotes: ''
+})
+
+// US States for dropdown
+const states = [
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+]
+
+// Load services when new booking modal opens
+watch(isNewBookingModalOpen, async (isOpen) => {
+  if (isOpen && availableItems.value.length === 0) {
+    isLoadingServices.value = true
+    try {
+      const services = await getServices()
+      availableItems.value = services.map(service => ({
+        id: service.id.toString(),
+        name: service.name,
+        dailyRate: service.price || 0
+      }))
+
+      // Initialize form dates with selected date
+      if (selectedDate.value) {
+        newBookingForm.value.startDate = format(selectedDate.value, 'yyyy-MM-dd')
+        newBookingForm.value.endDate = format(addDays(selectedDate.value, 1), 'yyyy-MM-dd')
+      }
+    } catch (error) {
+      console.error('Failed to load services:', error)
+    } finally {
+      isLoadingServices.value = false
+    }
+  }
+})
+
+// Form validation
+const canSubmitBooking = computed(() => {
+  return newBookingForm.value.customer.firstName &&
+         newBookingForm.value.customer.lastName &&
+         newBookingForm.value.customer.email &&
+         newBookingForm.value.itemId &&
+         newBookingForm.value.startDate &&
+         newBookingForm.value.endDate &&
+         newBookingForm.value.deliveryAddress.street &&
+         newBookingForm.value.deliveryAddress.city &&
+         newBookingForm.value.deliveryAddress.state &&
+         newBookingForm.value.deliveryAddress.zip
+})
+
+// Submit new booking
+const handleCreateBooking = async () => {
+  if (!canSubmitBooking.value) {
+    const toast = useToast()
+    toast.add({
+      title: 'Required Fields',
+      description: 'Please fill in all required fields',
+      color: 'error'
+    })
+    return
+  }
+
+  isSubmittingBooking.value = true
+
+  try {
+    const selectedItem = availableItems.value.find(item => item.id === newBookingForm.value.itemId)
+
+    const result = await createBooking({
+      customer: newBookingForm.value.customer,
+      itemId: newBookingForm.value.itemId,
+      itemName: selectedItem?.name || '',
+      itemPrice: selectedItem?.dailyRate || 0,
+      startDate: newBookingForm.value.startDate,
+      endDate: newBookingForm.value.endDate,
+      deliveryAddress: newBookingForm.value.deliveryAddress,
+      addons: newBookingForm.value.addons,
+      paymentType: newBookingForm.value.paymentType,
+      customerNotes: newBookingForm.value.customerNotes,
+      internalNotes: newBookingForm.value.internalNotes
+    })
+
+    if (result.success) {
+      closeNewBookingModal()
+      // Refresh bookings to show new booking
+      fetchBookings()
+    }
+  } catch (error) {
+    console.error('Failed to create booking:', error)
+  } finally {
+    isSubmittingBooking.value = false
+  }
 }
 
 const getStatusColor = (status: Booking['status']) => {
@@ -914,7 +1063,7 @@ const statusOptions = [
               <UButton color="neutral" variant="outline" @click="closeBookingModal">
                 Close
               </UButton>
-              <UButton color="primary">
+              <UButton color="primary" @click="selectedBooking && editBooking(selectedBooking.id)">
                 Edit Booking
               </UButton>
             </div>
@@ -924,7 +1073,7 @@ const statusOptions = [
     </UModal>
 
     <!-- New Booking Modal -->
-    <UModal v-model:open="isNewBookingModalOpen" :ui="{ width: 'sm:max-w-lg' }">
+    <UModal v-model:open="isNewBookingModalOpen" :ui="{ width: 'sm:max-w-3xl' }">
       <template #content>
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
@@ -938,14 +1087,176 @@ const statusOptions = [
             </div>
           </template>
 
-          <div class="text-center py-8">
-            <div class="w-16 h-16 mx-auto rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center mb-4">
-              <UIcon name="i-lucide-calendar-plus" class="w-8 h-8 text-orange-600 dark:text-orange-400" />
+          <!-- Loading state -->
+          <div v-if="isLoadingServices" class="flex items-center justify-center py-8">
+            <UIcon name="i-lucide-loader-2" class="w-8 h-8 text-orange-500 animate-spin" />
+            <span class="ml-2 text-gray-600 dark:text-gray-400">Loading services...</span>
+          </div>
+
+          <!-- Booking Form -->
+          <div v-else class="space-y-6">
+            <!-- Customer Information -->
+            <div>
+              <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Customer Information</h4>
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <UFormField label="First Name" required>
+                    <UInput
+                      v-model="newBookingForm.customer.firstName"
+                      placeholder="John"
+                      class="w-full"
+                    />
+                  </UFormField>
+                  <UFormField label="Last Name" required>
+                    <UInput
+                      v-model="newBookingForm.customer.lastName"
+                      placeholder="Smith"
+                      class="w-full"
+                    />
+                  </UFormField>
+                </div>
+
+                <UFormField label="Email" required>
+                  <UInput
+                    v-model="newBookingForm.customer.email"
+                    type="email"
+                    placeholder="john@example.com"
+                    icon="i-lucide-mail"
+                    class="w-full"
+                  />
+                </UFormField>
+
+                <UFormField label="Phone">
+                  <UInput
+                    v-model="newBookingForm.customer.phone"
+                    type="tel"
+                    placeholder="(555) 123-4567"
+                    icon="i-lucide-phone"
+                    class="w-full"
+                  />
+                </UFormField>
+              </div>
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Booking Form Coming Soon</h3>
-            <p class="text-gray-600 dark:text-gray-400">
-              This will open a form to create a new booking for the selected date.
-            </p>
+
+            <!-- Rental Item Selection -->
+            <div>
+              <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Select Rental Item</h4>
+              <div class="grid grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                <button
+                  v-for="item in availableItems"
+                  :key="item.id"
+                  class="flex gap-3 p-3 rounded-lg border transition-all text-left"
+                  :class="newBookingForm.itemId === item.id
+                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-700'"
+                  @click="newBookingForm.itemId = item.id"
+                >
+                  <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 flex items-center justify-center flex-shrink-0">
+                    <UIcon name="i-lucide-tent" class="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-2">
+                      <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                        {{ item.name }}
+                      </p>
+                      <UIcon
+                        v-if="newBookingForm.itemId === item.id"
+                        name="i-lucide-check-circle"
+                        class="w-5 h-5 text-orange-500 flex-shrink-0"
+                      />
+                    </div>
+                    <p class="text-xs text-orange-600 dark:text-orange-400">${{ item.dailyRate }}/day</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Dates -->
+            <div class="grid grid-cols-2 gap-4">
+              <UFormField label="Start Date" required>
+                <UInput
+                  v-model="newBookingForm.startDate"
+                  type="date"
+                  class="w-full"
+                />
+              </UFormField>
+              <UFormField label="End Date" required>
+                <UInput
+                  v-model="newBookingForm.endDate"
+                  type="date"
+                  class="w-full"
+                />
+              </UFormField>
+            </div>
+
+            <!-- Delivery Address -->
+            <div>
+              <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Delivery Address</h4>
+              <div class="space-y-4">
+                <UFormField label="Street Address" required>
+                  <UInput
+                    v-model="newBookingForm.deliveryAddress.street"
+                    placeholder="1234 Main St"
+                    class="w-full"
+                  />
+                </UFormField>
+
+                <div class="grid grid-cols-3 gap-4">
+                  <UFormField label="City" required>
+                    <UInput
+                      v-model="newBookingForm.deliveryAddress.city"
+                      placeholder="San Francisco"
+                      class="w-full"
+                    />
+                  </UFormField>
+                  <UFormField label="State" required>
+                    <USelect
+                      v-model="newBookingForm.deliveryAddress.state"
+                      :items="states"
+                      placeholder="CA"
+                      class="w-full"
+                    />
+                  </UFormField>
+                  <UFormField label="ZIP Code" required>
+                    <UInput
+                      v-model="newBookingForm.deliveryAddress.zip"
+                      placeholder="94102"
+                      class="w-full"
+                    />
+                  </UFormField>
+                </div>
+
+                <UFormField label="Delivery Instructions">
+                  <UTextarea
+                    v-model="newBookingForm.deliveryAddress.instructions"
+                    placeholder="Gate code, parking instructions, etc."
+                    :rows="2"
+                    class="w-full"
+                  />
+                </UFormField>
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="grid grid-cols-2 gap-4">
+              <UFormField label="Customer Notes">
+                <UTextarea
+                  v-model="newBookingForm.customerNotes"
+                  placeholder="Special requests from customer"
+                  :rows="2"
+                  class="w-full"
+                />
+              </UFormField>
+
+              <UFormField label="Internal Notes">
+                <UTextarea
+                  v-model="newBookingForm.internalNotes"
+                  placeholder="Internal notes (not visible to customer)"
+                  :rows="2"
+                  class="w-full"
+                />
+              </UFormField>
+            </div>
           </div>
 
           <template #footer>
@@ -953,7 +1264,13 @@ const statusOptions = [
               <UButton color="neutral" variant="outline" @click="closeNewBookingModal">
                 Cancel
               </UButton>
-              <UButton color="primary" @click="closeNewBookingModal">
+              <UButton
+                color="primary"
+                :loading="isSubmittingBooking"
+                :disabled="!canSubmitBooking"
+                @click="handleCreateBooking"
+              >
+                <UIcon name="i-lucide-check" class="w-4 h-4 mr-2" />
                 Create Booking
               </UButton>
             </div>

@@ -34,7 +34,7 @@ export const AddOns: CollectionConfig = {
       }
     }) as Access,
     create: async ({ req }) => {
-      if (req.user?.role === 'super_admin' || req.user?.role === 'tenant_admin') return true
+      if (req.user?.role === 'super_admin' || req.user?.role === 'tenant_admin' || req.user?.role === 'staff') return true
 
       // API key auth can create add-ons
       const context = await getAccessContext(req)
@@ -103,9 +103,9 @@ export const AddOns: CollectionConfig = {
       hooks: {
         beforeValidate: [
           ({ req, value }) => {
-            // Auto-assign tenant for tenant admins
-            if (!value && req.user?.role === 'tenant_admin') {
-              return req.user.tenantId
+            // Auto-assign tenant from current user if not provided
+            if (!value && req.user) {
+              return getTenantId(req.user)
             }
             return value
           },
@@ -125,6 +125,28 @@ export const AddOns: CollectionConfig = {
       type: 'textarea',
       admin: {
         description: 'Description of the add-on service',
+      },
+    },
+    {
+      name: 'icon',
+      type: 'text',
+      admin: {
+        description: 'Icon class name (e.g., i-lucide-truck)',
+      },
+    },
+    {
+      name: 'category',
+      type: 'select',
+      defaultValue: 'other',
+      options: [
+        { label: 'Delivery & Setup', value: 'delivery' },
+        { label: 'Setup', value: 'setup' },
+        { label: 'Equipment', value: 'equipment' },
+        { label: 'Services', value: 'service' },
+        { label: 'Other', value: 'other' },
+      ],
+      admin: {
+        description: 'Category for organizing add-ons',
       },
     },
     {

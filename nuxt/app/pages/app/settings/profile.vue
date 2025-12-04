@@ -1,10 +1,10 @@
 <template>
-  <div class="settings-page">
+  <div class="max-w-7xl mx-auto">
     <!-- Page Header -->
-    <div class="page-header">
+    <div class="flex items-center justify-between mb-8 pb-6 border-b border-gray-200 dark:border-white/[0.06] max-md:flex-col max-md:items-start max-md:gap-4">
       <div>
-        <h2 class="section-title">Profile Settings</h2>
-        <p class="section-description">Manage your business information and service area</p>
+        <h2 class="text-2xl font-bold tracking-tight mb-1.5 text-gray-900 dark:text-white">Profile Settings</h2>
+        <p class="m-0 text-base text-gray-600 dark:text-[#888]">Manage your business information and service area</p>
       </div>
       <UButton
         color="primary"
@@ -12,34 +12,34 @@
         :loading="saving"
         :disabled="!hasUnsavedChanges"
         @click="saveSettings"
-        class="save-button"
+        class="bg-gradient-to-br from-amber-400 to-amber-500 border-none text-black font-semibold tracking-tight transition-all duration-200 shadow-none disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:-translate-y-px hover:enabled:shadow-[0_8px_16px_-4px_rgba(251,191,36,0.4)]"
       >
         Save Changes
       </UButton>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
+    <div v-if="loading" class="flex flex-col items-center justify-center py-16 px-8 gap-4 text-gray-600 dark:text-[#888]">
+      <div class="w-8 h-8 border-[3px] border-amber-100 dark:border-amber-500/10 border-t-amber-500 dark:border-t-amber-400 rounded-full animate-spin"></div>
       <p>Loading settings...</p>
     </div>
 
-    <div v-else-if="business" class="settings-grid">
+    <div v-else-if="business" class="flex flex-col gap-6">
       <!-- Business Information -->
-      <UCard class="settings-card">
+      <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 hover:border-amber-300 hover:dark:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-building-storefront" class="icon" />
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-amber-600 dark:text-amber-400 flex-shrink-0">
+              <UIcon name="i-heroicons-building-storefront" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Business Information</h3>
-              <p class="card-description">Your business name and description</p>
+              <h3 class="text-lg font-semibold tracking-tight m-0 mb-1 text-gray-900 dark:text-white">Business Information</h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">Your business name and description</p>
             </div>
           </div>
         </template>
 
-        <div class="card-content">
-          <UFormGroup label="Business Name" required class="form-group">
+        <div class="p-6 flex flex-col gap-6">
+          <UFormGroup label="Business Name" required class="flex flex-col gap-2">
             <UInput
               v-model="business.name"
               size="lg"
@@ -49,23 +49,35 @@
             />
           </UFormGroup>
 
-          <UFormGroup label="Business Logo" class="form-group">
-            <div class="logo-upload">
-              <div v-if="business.logo" class="logo-preview">
-                <img :src="business.logo" alt="Business logo" />
-                <button class="logo-remove" @click="removeLogo">
+          <UFormGroup label="Business Logo" class="flex flex-col gap-2">
+            <div class="mt-2">
+              <!-- Hidden file input -->
+              <input
+                ref="logoFileInput"
+                type="file"
+                accept="image/*"
+                class="hidden"
+                @change="handleLogoChange"
+              />
+
+              <div v-if="business.logo" class="relative w-[120px] h-[120px] rounded-xl overflow-hidden border-2 border-amber-300 dark:border-amber-500/30">
+                <img :src="business.logo" alt="Business logo" class="w-full h-full object-cover" />
+                <button class="absolute top-2 right-2 w-7 h-7 bg-black/80 border border-white/10 rounded-full flex items-center justify-center text-white cursor-pointer transition-all duration-200 hover:bg-red-500 hover:border-red-500" @click="handleRemoveLogo">
                   <UIcon name="i-heroicons-x-mark" />
                 </button>
               </div>
-              <div v-else class="logo-placeholder">
-                <UIcon name="i-heroicons-photo" class="placeholder-icon" />
-                <p>Upload logo</p>
-                <UButton size="sm" variant="outline">Choose File</UButton>
+              <div v-else class="w-[200px] p-8 border-2 border-dashed border-gray-300 dark:border-white/10 rounded-xl flex flex-col items-center gap-3 text-center transition-all duration-200 cursor-pointer hover:border-amber-300 hover:dark:border-amber-500/30 hover:bg-amber-50 hover:dark:bg-amber-500/[0.03]" @click="triggerLogoUpload">
+                <UIcon v-if="uploadingLogo" name="i-heroicons-arrow-path" class="w-8 h-8 text-gray-500 dark:text-[#666] animate-spin" />
+                <UIcon v-else name="i-heroicons-photo" class="w-8 h-8 text-gray-500 dark:text-[#666]" />
+                <p class="m-0 text-sm text-gray-600 dark:text-[#888]">{{ uploadingLogo ? 'Uploading...' : 'Upload logo' }}</p>
+                <UButton size="sm" variant="outline" :loading="uploadingLogo" @click.stop="triggerLogoUpload">
+                  Choose File
+                </UButton>
               </div>
             </div>
           </UFormGroup>
 
-          <UFormGroup label="Description" class="form-group">
+          <UFormGroup label="Description" class="flex flex-col gap-2">
             <UTextarea
               v-model="business.description"
               :rows="4"
@@ -79,22 +91,22 @@
       </UCard>
 
       <!-- Contact Information -->
-      <UCard class="settings-card">
+      <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 hover:border-amber-300 hover:dark:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-phone" class="icon" />
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-amber-600 dark:text-amber-400 flex-shrink-0">
+              <UIcon name="i-heroicons-phone" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Contact Information</h3>
-              <p class="card-description">How customers can reach you</p>
+              <h3 class="text-lg font-semibold tracking-tight m-0 mb-1 text-gray-900 dark:text-white">Contact Information</h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">How customers can reach you</p>
             </div>
           </div>
         </template>
 
-        <div class="card-content">
-          <div class="form-row">
-            <UFormGroup label="Phone Number" required class="form-group">
+        <div class="p-6 flex flex-col gap-6">
+          <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 max-md:grid-cols-1">
+            <UFormGroup label="Phone Number" required class="flex flex-col gap-2">
               <UInput
                 v-model="business.phone"
                 size="lg"
@@ -105,7 +117,7 @@
               />
             </UFormGroup>
 
-            <UFormGroup label="Email Address" required class="form-group">
+            <UFormGroup label="Email Address" required class="flex flex-col gap-2">
               <UInput
                 v-model="business.email"
                 size="lg"
@@ -117,7 +129,7 @@
             </UFormGroup>
           </div>
 
-          <UFormGroup label="Street Address" required class="form-group">
+          <UFormGroup label="Street Address" required class="flex flex-col gap-2">
             <UInput
               v-model="business.address.street"
               size="lg"
@@ -127,8 +139,8 @@
             />
           </UFormGroup>
 
-          <div class="form-row">
-            <UFormGroup label="City" required class="form-group">
+          <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 max-md:grid-cols-1">
+            <UFormGroup label="City" required class="flex flex-col gap-2">
               <UInput
                 v-model="business.address.city"
                 size="lg"
@@ -138,17 +150,17 @@
               />
             </UFormGroup>
 
-            <UFormGroup label="State" required class="form-group">
+            <UFormGroup label="State" required class="flex flex-col gap-2">
               <USelect
                 v-model="business.address.state"
-                :options="states"
+                :items="states"
                 size="lg"
                 class="w-full"
                 @change="markHasChanges"
               />
             </UFormGroup>
 
-            <UFormGroup label="ZIP Code" required class="form-group">
+            <UFormGroup label="ZIP Code" required class="flex flex-col gap-2">
               <UInput
                 v-model="business.address.zip"
                 size="lg"
@@ -162,53 +174,53 @@
       </UCard>
 
       <!-- Timezone & Hours -->
-      <UCard class="settings-card">
+      <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 hover:border-amber-300 hover:dark:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-clock" class="icon" />
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-amber-600 dark:text-amber-400 flex-shrink-0">
+              <UIcon name="i-heroicons-clock" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Timezone & Business Hours</h3>
-              <p class="card-description">When you're available for rentals</p>
+              <h3 class="text-lg font-semibold tracking-tight m-0 mb-1 text-gray-900 dark:text-white">Timezone & Business Hours</h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">When you're available for rentals</p>
             </div>
           </div>
         </template>
 
-        <div class="card-content">
-          <UFormGroup label="Timezone" required class="form-group">
+        <div class="p-6 flex flex-col gap-6">
+          <UFormGroup label="Timezone" required class="flex flex-col gap-2">
             <USelect
               v-model="business.timezone"
-              :options="timezones"
+              :items="timezones"
               size="lg"
               class="w-full"
               @change="markHasChanges"
             />
           </UFormGroup>
 
-          <div class="business-hours">
-            <div class="hours-header">
-              <span class="hours-label">Business Hours</span>
+          <div class="mt-2 flex flex-col gap-3">
+            <div class="text-sm font-semibold text-gray-800 dark:text-[#e5e5e5] uppercase tracking-widest mb-2">
+              <span>Business Hours</span>
             </div>
             <div
               v-for="(day, key) in business.businessHours"
               :key="key"
-              class="hours-row"
+              class="flex items-center gap-4 p-3 px-4 bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.05] rounded-lg tabular-nums max-md:flex-wrap"
             >
               <UToggle
                 v-model="day.enabled"
                 size="md"
                 @change="markHasChanges"
               />
-              <span class="day-name">{{ formatDayName(key) }}</span>
-              <div v-if="day.enabled" class="time-inputs">
+              <span class="w-[100px] text-[15px] font-medium text-gray-800 dark:text-[#e5e5e5]">{{ formatDayName(key) }}</span>
+              <div v-if="day.enabled" class="flex items-center gap-3 flex-1 max-md:w-full">
                 <UInput
                   v-model="day.open"
                   type="time"
                   size="md"
                   @input="markHasChanges"
                 />
-                <span class="time-separator">to</span>
+                <span class="text-gray-500 dark:text-[#666] text-sm">to</span>
                 <UInput
                   v-model="day.close"
                   type="time"
@@ -216,29 +228,29 @@
                   @input="markHasChanges"
                 />
               </div>
-              <span v-else class="closed-label">Closed</span>
+              <span v-else class="text-gray-500 dark:text-[#666] text-sm italic">Closed</span>
             </div>
           </div>
         </div>
       </UCard>
 
       <!-- Service Area -->
-      <UCard class="settings-card">
+      <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 hover:border-amber-300 hover:dark:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
-          <div class="card-header">
-            <div class="card-header-icon">
-              <UIcon name="i-heroicons-map-pin" class="icon" />
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-amber-600 dark:text-amber-400 flex-shrink-0">
+              <UIcon name="i-heroicons-map-pin" class="w-5 h-5" />
             </div>
             <div>
-              <h3 class="card-title">Service Area</h3>
-              <p class="card-description">Define where you deliver rentals</p>
+              <h3 class="text-lg font-semibold tracking-tight m-0 mb-1 text-gray-900 dark:text-white">Service Area</h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">Define where you deliver rentals</p>
             </div>
           </div>
         </template>
 
-        <div class="card-content">
-          <div class="form-row">
-            <UFormGroup label="Service Radius" required class="form-group">
+        <div class="p-6 flex flex-col gap-6">
+          <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 max-md:grid-cols-1">
+            <UFormGroup label="Service Radius" required class="flex flex-col gap-2">
               <UInput
                 v-model.number="business.serviceArea.radius"
                 type="number"
@@ -249,10 +261,10 @@
               />
             </UFormGroup>
 
-            <UFormGroup label="Unit" required class="form-group">
+            <UFormGroup label="Unit" required class="flex flex-col gap-2">
               <USelect
                 v-model="business.serviceArea.unit"
-                :options="['miles', 'km']"
+                :items="['miles', 'km']"
                 size="lg"
                 class="w-full"
                 @change="markHasChanges"
@@ -263,16 +275,16 @@
           <UFormGroup
             label="Service ZIP Codes (optional)"
             help="Add specific ZIP codes you serve"
-            class="form-group"
+            class="flex flex-col gap-2"
           >
-            <div class="zip-codes">
-              <div v-for="(zip, index) in business.serviceArea.zipCodes" :key="index" class="zip-tag">
+            <div class="flex flex-wrap gap-2 mt-2">
+              <div v-for="(zip, index) in business.serviceArea.zipCodes" :key="index" class="flex items-center gap-2 py-2 px-3 bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-amber-700 dark:text-amber-400 text-sm font-medium tabular-nums">
                 <span>{{ zip }}</span>
-                <button @click="removeZipCode(index)">
+                <button class="flex items-center justify-center w-[18px] h-[18px] bg-black/30 border-none rounded-full text-amber-700 dark:text-amber-400 cursor-pointer transition-all duration-200 hover:bg-black/50" @click="removeZipCode(index)">
                   <UIcon name="i-heroicons-x-mark" />
                 </button>
               </div>
-              <button class="add-zip-button" @click="showAddZipModal = true">
+              <button class="flex items-center gap-1.5 py-2 px-3 bg-transparent border border-dashed border-gray-300 dark:border-white/20 rounded-lg text-gray-600 dark:text-[#888] text-sm font-medium cursor-pointer transition-all duration-200 hover:border-amber-300 hover:dark:border-amber-500/40 hover:text-amber-600 hover:dark:text-amber-400 hover:bg-amber-50 hover:dark:bg-amber-500/[0.05]" @click="showAddZipModal = true">
                 <UIcon name="i-heroicons-plus" />
                 Add ZIP
               </button>
@@ -287,10 +299,10 @@
       <template #content>
         <UCard>
           <template #header>
-            <h3 class="modal-title">Add ZIP Code</h3>
+            <h3 class="text-xl font-semibold m-0 text-gray-900 dark:text-white">Add ZIP Code</h3>
           </template>
 
-          <div class="modal-content">
+          <div class="p-6">
             <UFormGroup label="ZIP Code" required>
               <UInput
                 v-model="newZipCode"
@@ -303,7 +315,7 @@
           </div>
 
           <template #footer>
-            <div class="modal-actions">
+            <div class="flex gap-3 justify-end">
               <UButton variant="ghost" @click="showAddZipModal = false">
                 Cancel
               </UButton>
@@ -317,11 +329,21 @@
 </template>
 
 <script setup lang="ts">
-const { business, loading, saving, hasUnsavedChanges, updateSettings, markHasChanges } =
-  useSettings()
+const {
+  business,
+  loading,
+  saving,
+  hasUnsavedChanges,
+  updateSettings,
+  uploadLogo,
+  removeLogo: removeLogoFromSettings,
+  markHasChanges
+} = useSettings()
 
 const showAddZipModal = ref(false)
 const newZipCode = ref('')
+const logoFileInput = ref<HTMLInputElement | null>(null)
+const uploadingLogo = ref(false)
 
 const states = [
   'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
@@ -345,11 +367,33 @@ const formatDayName = (day: string) => {
   return day.charAt(0).toUpperCase() + day.slice(1)
 }
 
-const removeLogo = () => {
-  if (business.value) {
-    business.value.logo = null
-    markHasChanges()
+const triggerLogoUpload = () => {
+  logoFileInput.value?.click()
+}
+
+const handleLogoChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  if (!input.files || input.files.length === 0) return
+
+  const file = input.files[0]
+  if (!file.type.startsWith('image/')) {
+    return
   }
+
+  uploadingLogo.value = true
+  try {
+    await uploadLogo(file)
+  } finally {
+    uploadingLogo.value = false
+    // Reset input
+    if (logoFileInput.value) {
+      logoFileInput.value.value = ''
+    }
+  }
+}
+
+const handleRemoveLogo = async () => {
+  await removeLogoFromSettings()
 }
 
 const addZipCode = () => {
@@ -374,375 +418,3 @@ const saveSettings = async () => {
   }
 }
 </script>
-
-<style scoped>
-.settings-page {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 0 0 0.375rem;
-  color: #ffffff;
-}
-
-.section-description {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #888;
-}
-
-.save-button {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  border: none;
-  color: #000;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  transition: all 0.2s;
-  box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4);
-}
-
-.save-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 16px -4px rgba(251, 191, 36, 0.4);
-}
-
-.save-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  gap: 1rem;
-  color: #888;
-}
-
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(251, 191, 36, 0.1);
-  border-top-color: #fbbf24;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.settings-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.settings-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 1rem;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.settings-card:hover {
-  border-color: rgba(251, 191, 36, 0.2);
-  box-shadow: 0 8px 32px -8px rgba(251, 191, 36, 0.15);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.card-header-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.2);
-  border-radius: 0.625rem;
-  color: #fbbf24;
-  flex-shrink: 0;
-}
-
-.icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.card-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  margin: 0 0 0.25rem;
-  color: #ffffff;
-}
-
-.card-description {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.card-content {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.logo-upload {
-  margin-top: 0.5rem;
-}
-
-.logo-preview {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  border: 2px solid rgba(251, 191, 36, 0.3);
-}
-
-.logo-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.logo-remove {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 28px;
-  height: 28px;
-  background: rgba(0, 0, 0, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.logo-remove:hover {
-  background: #ef4444;
-  border-color: #ef4444;
-}
-
-.logo-placeholder {
-  width: 200px;
-  padding: 2rem;
-  border: 2px dashed rgba(255, 255, 255, 0.1);
-  border-radius: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  text-align: center;
-  transition: all 0.2s;
-  cursor: pointer;
-}
-
-.logo-placeholder:hover {
-  border-color: rgba(251, 191, 36, 0.3);
-  background: rgba(251, 191, 36, 0.03);
-}
-
-.placeholder-icon {
-  width: 2rem;
-  height: 2rem;
-  color: #666;
-}
-
-.logo-placeholder p {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #888;
-}
-
-.business-hours {
-  margin-top: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.hours-header {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #e5e5e5;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
-}
-
-.hours-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 0.5rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.day-name {
-  width: 100px;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: #e5e5e5;
-}
-
-.time-inputs {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex: 1;
-}
-
-.time-separator {
-  color: #666;
-  font-size: 0.875rem;
-}
-
-.closed-label {
-  color: #666;
-  font-size: 0.875rem;
-  font-style: italic;
-}
-
-.zip-codes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.zip-tag {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.2);
-  border-radius: 0.5rem;
-  color: #fbbf24;
-  font-size: 0.875rem;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-}
-
-.zip-tag button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  background: rgba(0, 0, 0, 0.3);
-  border: none;
-  border-radius: 50%;
-  color: #fbbf24;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.zip-tag button:hover {
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.add-zip-button {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  background: transparent;
-  border: 1px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 0.5rem;
-  color: #888;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.add-zip-button:hover {
-  border-color: rgba(251, 191, 36, 0.4);
-  color: #fbbf24;
-  background: rgba(251, 191, 36, 0.05);
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-  color: #ffffff;
-}
-
-.modal-content {
-  padding: 1.5rem;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-}
-
-@media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .hours-row {
-    flex-wrap: wrap;
-  }
-
-  .time-inputs {
-    width: 100%;
-  }
-}
-</style>

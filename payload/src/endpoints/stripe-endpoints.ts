@@ -7,7 +7,15 @@ import {
   createCheckoutSession,
   getCheckoutSession,
   handleWebhook,
+  refundPayment,
+  getPayment,
 } from './stripe'
+import {
+  getSubscription,
+  createSubscriptionCheckout,
+  cancelSubscription,
+  getCustomerPortal,
+} from './stripe/subscription'
 
 /**
  * Stripe Connect onboarding endpoint
@@ -80,4 +88,64 @@ export const stripeWebhookEndpoint: Endpoint = {
   path: '/stripe/webhook',
   method: 'post',
   handler: handleWebhook,
+}
+
+/**
+ * Refund payment endpoint
+ * POST /api/stripe/payments/:id/refund
+ */
+export const stripeRefundEndpoint: Endpoint = {
+  path: '/stripe/payments/:id/refund',
+  method: 'post',
+  handler: refundPayment,
+}
+
+/**
+ * Get payment details endpoint
+ * GET /api/stripe/payments/:id
+ */
+export const stripePaymentGetEndpoint: Endpoint = {
+  path: '/stripe/payments/:id',
+  method: 'get',
+  handler: getPayment,
+}
+
+/**
+ * Get current subscription endpoint
+ * GET /api/stripe/subscription
+ */
+export const stripeSubscriptionGetEndpoint: Endpoint = {
+  path: '/stripe/subscription',
+  method: 'get',
+  handler: getSubscription,
+}
+
+/**
+ * Create subscription checkout session endpoint
+ * POST /api/stripe/subscription/create
+ */
+export const stripeSubscriptionCreateEndpoint: Endpoint = {
+  path: '/stripe/subscription/create',
+  method: 'post',
+  handler: createSubscriptionCheckout,
+}
+
+/**
+ * Cancel subscription endpoint
+ * POST /api/stripe/subscription/cancel
+ */
+export const stripeSubscriptionCancelEndpoint: Endpoint = {
+  path: '/stripe/subscription/cancel',
+  method: 'post',
+  handler: cancelSubscription,
+}
+
+/**
+ * Get Stripe Customer Portal endpoint
+ * GET /api/stripe/portal
+ */
+export const stripePortalEndpoint: Endpoint = {
+  path: '/stripe/portal',
+  method: 'get',
+  handler: getCustomerPortal,
 }

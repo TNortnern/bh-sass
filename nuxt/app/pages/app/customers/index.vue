@@ -13,12 +13,12 @@
         </div>
 
         <UButton
-          color="amber"
+          color="primary"
           size="lg"
+          icon="i-lucide-plus"
           :ui="{ rounded: 'rounded-xl' }"
           @click="navigateTo('/app/customers/new')"
         >
-          <Icon name="heroicons:plus" class="w-5 h-5 mr-2" />
           Add Customer
         </UButton>
       </div>
@@ -43,7 +43,7 @@
               </div>
             </div>
             <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
-              <Icon name="heroicons:users" class="w-6 h-6 text-blue-500" />
+              <UIcon name="i-lucide-users" class="w-6 h-6 text-blue-500" />
             </div>
           </div>
         </UCard>
@@ -66,7 +66,7 @@
               </div>
             </div>
             <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-              <Icon name="heroicons:star" class="w-6 h-6 text-amber-500" />
+              <UIcon name="i-lucide-star" class="w-6 h-6 text-amber-500" />
             </div>
           </div>
         </UCard>
@@ -89,7 +89,7 @@
               </div>
             </div>
             <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-              <Icon name="heroicons:user-plus" class="w-6 h-6 text-green-500" />
+              <UIcon name="i-lucide-user-plus" class="w-6 h-6 text-green-500" />
             </div>
           </div>
         </UCard>
@@ -112,7 +112,7 @@
               </div>
             </div>
             <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
-              <Icon name="heroicons:currency-dollar" class="w-6 h-6 text-purple-500" />
+              <UIcon name="i-lucide-dollar-sign" class="w-6 h-6 text-purple-500" />
             </div>
           </div>
         </UCard>
@@ -125,6 +125,7 @@
             v-model="searchQuery"
             placeholder="Search by name, email, or phone..."
             size="lg"
+            class="w-full"
             :ui="{
               base: 'bg-white dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500/50 text-gray-900 dark:text-slate-200 placeholder-gray-500 dark:placeholder-slate-500',
               rounded: 'rounded-xl'
@@ -132,13 +133,13 @@
             @input="handleSearch"
           >
             <template #leading>
-              <Icon name="heroicons:magnifying-glass" class="w-5 h-5 text-gray-500 dark:text-slate-500" />
+              <UIcon name="i-lucide-search" class="w-5 h-5 text-gray-500 dark:text-slate-500" />
             </template>
             <template v-if="searchQuery" #trailing>
               <UButton
-                color="gray"
+                color="neutral"
                 variant="link"
-                icon="heroicons:x-mark"
+                icon="i-lucide-x"
                 :padded="false"
                 @click="clearSearch"
               />
@@ -147,17 +148,17 @@
         </div>
 
         <UButton
-          color="gray"
+          color="neutral"
           variant="outline"
           size="lg"
+          icon="i-lucide-filter"
           :ui="{ rounded: 'rounded-xl' }"
           @click="showFilters = !showFilters"
         >
-          <Icon name="heroicons:funnel" class="w-5 h-5 mr-2" />
           Filters
           <UBadge
             v-if="activeFiltersCount > 0"
-            color="amber"
+            color="primary"
             size="xs"
             class="ml-2"
           >
@@ -166,13 +167,13 @@
         </UButton>
 
         <UButton
-          color="gray"
+          color="neutral"
           variant="outline"
           size="lg"
+          icon="i-lucide-download"
           :ui="{ rounded: 'rounded-xl' }"
           @click="handleExport"
         >
-          <Icon name="heroicons:arrow-down-tray" class="w-5 h-5 mr-2" />
           Export
         </UButton>
       </div>
@@ -192,16 +193,16 @@
               <UButton
                 v-for="tag in availableTags"
                 :key="tag"
-                :color="selectedTags.includes(tag) ? 'amber' : 'gray'"
+                :color="selectedTags.includes(tag) ? 'primary' : 'neutral'"
                 :variant="selectedTags.includes(tag) ? 'solid' : 'outline'"
                 size="sm"
                 :ui="{ rounded: 'rounded-full' }"
                 @click="toggleTag(tag)"
               >
                 {{ tag }}
-                <Icon
+                <UIcon
                   v-if="selectedTags.includes(tag)"
-                  name="heroicons:check"
+                  name="i-lucide-check"
                   class="w-4 h-4 ml-1"
                 />
               </UButton>
@@ -219,6 +220,7 @@
                 type="number"
                 placeholder="Min"
                 size="md"
+                class="w-full"
                 :ui="{
                   base: 'bg-white dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500/50 text-gray-900 dark:text-slate-200 placeholder-gray-500 dark:placeholder-slate-500',
                   rounded: 'rounded-lg'
@@ -233,6 +235,7 @@
                 type="number"
                 placeholder="Max"
                 size="md"
+                class="w-full"
                 :ui="{
                   base: 'bg-white dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500/50 text-gray-900 dark:text-slate-200 placeholder-gray-500 dark:placeholder-slate-500',
                   rounded: 'rounded-lg'
@@ -256,6 +259,7 @@
                 type="number"
                 placeholder="Min bookings"
                 size="md"
+                class="w-full"
                 :ui="{
                   base: 'bg-white dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500/50 text-gray-900 dark:text-slate-200 placeholder-gray-500 dark:placeholder-slate-500',
                   rounded: 'rounded-lg'
@@ -266,6 +270,7 @@
                 type="number"
                 placeholder="Max bookings"
                 size="md"
+                class="w-full"
                 :ui="{
                   base: 'bg-white dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500/50 text-gray-900 dark:text-slate-200 placeholder-gray-500 dark:placeholder-slate-500',
                   rounded: 'rounded-lg'
@@ -277,7 +282,7 @@
 
         <div class="flex gap-3 mt-6">
           <UButton
-            color="amber"
+            color="primary"
             size="md"
             :ui="{ rounded: 'rounded-lg' }"
             @click="applyFilters"
@@ -285,7 +290,7 @@
             Apply Filters
           </UButton>
           <UButton
-            color="gray"
+            color="neutral"
             variant="ghost"
             size="md"
             :ui="{ rounded: 'rounded-lg' }"
@@ -342,7 +347,7 @@
                       {{ customer.firstName }} {{ customer.lastName }}
                     </div>
                     <div v-if="customer.tags.includes('VIP')" class="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                      <Icon name="heroicons:star-solid" class="w-3 h-3" />
+                      <UIcon name="i-lucide-star" class="w-3 h-3" />
                       <span>VIP</span>
                     </div>
                   </div>
@@ -424,7 +429,7 @@
           </tbody>
         </table>
         <div v-if="loading" class="flex justify-center py-12">
-          <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-gray-500 dark:text-slate-500" />
+          <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-gray-500 dark:text-slate-500" />
         </div>
       </div>
     </UCard>
@@ -445,7 +450,7 @@
       class="text-center py-16"
     >
       <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 dark:bg-slate-800/60 flex items-center justify-center">
-        <Icon name="heroicons:users" class="w-10 h-10 text-gray-400 dark:text-slate-600" />
+        <UIcon name="i-lucide-users" class="w-10 h-10 text-gray-400 dark:text-slate-600" />
       </div>
       <h3 class="text-xl font-semibold text-gray-900 dark:text-slate-300 mb-2">
         No customers found
@@ -455,12 +460,12 @@
       </p>
       <UButton
         v-if="!searchQuery && activeFiltersCount === 0"
-        color="amber"
+        color="primary"
         size="lg"
         :ui="{ rounded: 'rounded-xl' }"
         @click="navigateTo('/app/customers/new')"
       >
-        <Icon name="heroicons:plus" class="w-5 h-5 mr-2" />
+        <UIcon name="i-lucide-plus" class="w-5 h-5 mr-2" />
         Add Customer
       </UButton>
     </div>
@@ -501,32 +506,27 @@
 
     <!-- Delete Confirmation Dialog -->
     <UModal v-model:open="showDeleteDialog">
-      <UCard>
-        <template #header>
-          <div class="flex items-center gap-3">
+      <template #content>
+        <div class="p-6">
+          <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-              <Icon name="i-lucide-trash-2" class="text-red-600 dark:text-red-400 text-xl" />
+              <UIcon name="i-lucide-trash-2" class="text-red-600 dark:text-red-400 text-xl" />
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-200">Delete Customer</h3>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Delete Customer</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone</p>
+            </div>
           </div>
-        </template>
-
-        <div class="space-y-3">
-          <p class="text-gray-700 dark:text-slate-300">
+          <p class="text-gray-700 dark:text-gray-300 mb-6">
             Are you sure you want to delete
             <strong>{{ customerToDelete?.firstName }} {{ customerToDelete?.lastName }}</strong>?
+            All customer data, including booking history, will be permanently removed.
           </p>
-          <p class="text-sm text-gray-500 dark:text-slate-400">
-            This action cannot be undone. All customer data, including booking history, will be permanently removed.
-          </p>
-        </div>
-
-        <template #footer>
-          <div class="flex justify-end gap-2">
+          <div class="flex justify-end gap-3">
             <UButton
               label="Cancel"
               color="neutral"
-              variant="ghost"
+              variant="outline"
               @click="showDeleteDialog = false"
             />
             <UButton
@@ -536,8 +536,8 @@
               @click="confirmDelete"
             />
           </div>
-        </template>
-      </UCard>
+        </div>
+      </template>
     </UModal>
 
   </div>
@@ -683,8 +683,47 @@ function handleEdit(customer: Customer) {
 }
 
 function handleExport() {
-  // TODO: Implement CSV export
-  console.log('Exporting customers...')
+  if (customers.value.length === 0) {
+    toast.add({
+      title: 'No customers to export',
+      description: 'Add some customers first before exporting.',
+      color: 'warning'
+    })
+    return
+  }
+
+  // Create CSV content
+  const headers = ['First Name', 'Last Name', 'Email', 'Phone', 'Total Bookings', 'Total Spent', 'Tags', 'Last Booking']
+  const rows = customers.value.map(c => [
+    c.firstName,
+    c.lastName,
+    c.email,
+    c.phone,
+    c.bookings.total,
+    c.totalSpent,
+    c.tags.join('; '),
+    c.lastBooking || 'Never'
+  ])
+
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+  ].join('\n')
+
+  // Create and download file
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `customers-${new Date().toISOString().split('T')[0]}.csv`
+  link.click()
+  URL.revokeObjectURL(url)
+
+  toast.add({
+    title: 'Export successful',
+    description: `Exported ${customers.value.length} customers to CSV.`,
+    color: 'success'
+  })
 }
 
 function formatCurrency(amount: number): string {
@@ -714,17 +753,17 @@ function formatRelativeDate(date?: string): string {
 
 function getTagColor(tag: string): string {
   const colors: Record<string, string> = {
-    'VIP': 'amber',
-    'Birthday Party': 'pink',
-    'Corporate': 'blue',
-    'Repeat Customer': 'green',
-    'New': 'cyan',
-    'High Value': 'purple',
-    'Referral': 'indigo',
-    'Email List': 'teal',
-    'SMS List': 'orange'
+    'VIP': 'warning',
+    'Birthday Party': 'error',
+    'Corporate': 'info',
+    'Repeat Customer': 'success',
+    'New': 'primary',
+    'High Value': 'secondary',
+    'Referral': 'info',
+    'Email List': 'success',
+    'SMS List': 'warning'
   }
-  return colors[tag] || 'gray'
+  return colors[tag] || 'neutral'
 }
 
 function getCustomerActions(customer: Customer) {
@@ -732,17 +771,18 @@ function getCustomerActions(customer: Customer) {
     {
       label: 'View Details',
       icon: 'i-lucide-eye',
-      click: () => navigateTo(`/app/customers/${customer.id}`)
+      onSelect: () => navigateTo(`/app/customers/${customer.id}`)
     },
     {
       label: 'Edit Customer',
       icon: 'i-lucide-pencil',
-      click: () => navigateTo(`/app/customers/${customer.id}/edit`)
+      onSelect: () => navigateTo(`/app/customers/${customer.id}/edit`)
     },
     {
       label: 'Delete Customer',
       icon: 'i-lucide-trash-2',
-      click: () => openDeleteDialog(customer)
+      color: 'error',
+      onSelect: () => openDeleteDialog(customer)
     }
   ]]
 }

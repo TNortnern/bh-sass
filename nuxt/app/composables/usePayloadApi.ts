@@ -26,6 +26,19 @@ interface PayloadParams {
 }
 
 export const usePayloadApi = () => {
+  const { currentUser } = useAuth()
+
+  /**
+   * Get the tenant ID from the current user
+   */
+  function getTenantId(): string | null {
+    if (!currentUser.value?.tenantId) return null
+    if (typeof currentUser.value.tenantId === 'object') {
+      return currentUser.value.tenantId.id
+    }
+    return currentUser.value.tenantId
+  }
+
   /**
    * Fetch a list of documents from a Payload collection
    */
@@ -59,15 +72,19 @@ export const usePayloadApi = () => {
 
   /**
    * Create a new document in a Payload collection
+   * Automatically includes tenantId for multi-tenant collections
    */
   async function createDocument<T>(
     collection: string,
     data: Partial<T>
   ): Promise<T> {
+    const tenantId = getTenantId()
+    const bodyData = tenantId ? { tenantId, ...data } : data
+
     const response = await $fetch<T>(`/v1/${collection}`, {
       method: 'POST',
       credentials: 'include',
-      body: data
+      body: bodyData
     })
 
     return response

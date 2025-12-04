@@ -99,6 +99,12 @@ const tabs = [
     to: '/app/settings/profile',
   },
   {
+    label: 'Branding',
+    description: 'Logo, colors, and themes',
+    icon: 'i-heroicons-paint-brush',
+    to: '/app/settings/branding',
+  },
+  {
     label: 'Booking',
     description: 'Rental policies and requirements',
     icon: 'i-heroicons-calendar-days',
@@ -123,16 +129,45 @@ const tabs = [
     to: '/app/settings/notifications',
   },
   {
+    label: 'Email Templates',
+    description: 'Preview and test email templates',
+    icon: 'i-heroicons-envelope',
+    to: '/app/settings/emails',
+  },
+  {
     label: 'API Keys',
-    description: 'API access and webhooks',
+    description: 'API access and integrations',
     icon: 'i-heroicons-key',
     to: '/app/settings/api',
   },
+  {
+    label: 'Webhooks',
+    description: 'Event webhooks and delivery logs',
+    icon: 'i-heroicons-arrow-path',
+    to: '/app/settings/webhooks',
+  },
+  {
+    label: 'Security',
+    description: 'Password, sessions, and 2FA',
+    icon: 'i-heroicons-shield-exclamation',
+    to: '/app/settings/security',
+  },
+  {
+    label: 'Billing',
+    description: 'Plan, invoices, and subscription',
+    icon: 'i-heroicons-banknotes',
+    to: '/app/settings/billing',
+  },
 ]
 
-// Load settings on mount
-onMounted(() => {
-  fetchSettings()
+// Load settings on mount - ensure user is loaded first
+onMounted(async () => {
+  const { fetchUser, isAuthenticated } = useAuth()
+  // Ensure user is fetched before loading settings
+  if (!isAuthenticated.value) {
+    await fetchUser()
+  }
+  await fetchSettings()
 })
 
 // Redirect to profile if on base settings page

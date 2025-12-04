@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bouncepro_network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  payload:
+    build:
+      context: ./payload
+      dockerfile: Dockerfile.prod
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URI: postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET}
+      NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      BREVO_API_KEY: ${BREVO_API_KEY}
+      BUNNY_STORAGE_API_KEY: ${BUNNY_STORAGE_API_KEY}
+      BUNNY_STORAGE_ZONE: ${BUNNY_STORAGE_ZONE}
+      BUNNY_CDN_HOSTNAME: ${BUNNY_CDN_HOSTNAME}
+      SENTRY_DSN: ${SENTRY_DSN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - bouncepro_network
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  nuxt:
+    build:
+      context: ./nuxt
+      dockerfile: Dockerfile.prod
+    restart: always
+    environment:
+      NODE_ENV: production
+      NUXT_PAYLOAD_API_URL: http://payload:3000
+      NUXT_PUBLIC_PAYLOAD_URL: ${NUXT_PUBLIC_PAYLOAD_URL}
+      SENTRY_DSN: ${SENTRY_DSN}
+    depends_on:
+      payload:
+        condition: service_healthy
+    networks:
+      - bouncepro_network
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - nginx_cache:/var/cache/nginx
+    depends_on:
+      - nuxt
+      - payload
+    networks:
+      - bouncepro_network
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+  nginx_cache:
+    driver: local
+
+networks:
+  bouncepro_network:
+    driver: bridge
