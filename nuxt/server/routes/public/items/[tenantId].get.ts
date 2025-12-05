@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Fetch active rental items from Payload
-    const url = `${payloadUrl}/api/rental-items?where[tenantId][equals]=${tenantId}&where[availability.isActive][equals]=true&limit=100`
+    const url = `${payloadUrl}/api/rental-items?where[tenantId][equals]=${tenantId}&where[isActive][equals]=true&limit=100`
 
     const response = await $fetch<{ docs: any[] }>(url, {
       headers: {
@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
         alt: typeof img === 'object' ? img.alt : item.name
       })) || [],
       availability: {
-        isActive: item.availability?.isActive || false
+        isActive: item.isActive || false
       },
       rbPayloadServiceId: item.rbPayloadServiceId,
       tags: item.tags || [],

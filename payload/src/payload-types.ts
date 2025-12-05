@@ -392,6 +392,93 @@ export interface Tenant {
      */
     safetyGuidelines?: string | null;
   };
+  /**
+   * Public website configuration
+   */
+  website?: {
+    /**
+     * Enable public website for this tenant
+     */
+    enabled?: boolean | null;
+    /**
+     * Main headline on the website
+     */
+    heroTitle?: string | null;
+    /**
+     * Subheadline text
+     */
+    heroSubtitle?: string | null;
+    /**
+     * Hero background image
+     */
+    heroImage?: (number | null) | Media;
+    /**
+     * About section title
+     */
+    aboutTitle?: string | null;
+    /**
+     * About section content
+     */
+    aboutContent?: string | null;
+    /**
+     * Show services/inventory section
+     */
+    showServices?: boolean | null;
+    /**
+     * Services section title
+     */
+    servicesTitle?: string | null;
+    /**
+     * Show testimonials section
+     */
+    showTestimonials?: boolean | null;
+    /**
+     * Customer testimonials
+     */
+    testimonials?:
+      | {
+          name: string;
+          content: string;
+          rating?: number | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Show photo gallery section
+     */
+    showGallery?: boolean | null;
+    /**
+     * Gallery images
+     */
+    galleryImages?:
+      | {
+          image: number | Media;
+          caption?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Call-to-action button text
+     */
+    ctaText?: string | null;
+    /**
+     * SEO settings
+     */
+    seo?: {
+      /**
+       * Page title (defaults to business name)
+       */
+      title?: string | null;
+      /**
+       * Meta description for search engines
+       */
+      description?: string | null;
+      /**
+       * Comma-separated keywords
+       */
+      keywords?: string | null;
+    };
+  };
   settings?: {
     timezone?: ('America/New_York' | 'America/Chicago' | 'America/Denver' | 'America/Los_Angeles' | 'UTC') | null;
     currency?: ('USD' | 'EUR' | 'GBP' | 'CAD') | null;
@@ -2496,6 +2583,43 @@ export interface TenantsSelect<T extends boolean = true> {
         invoiceHeader?: T;
         termsAndConditions?: T;
         safetyGuidelines?: T;
+      };
+  website?:
+    | T
+    | {
+        enabled?: T;
+        heroTitle?: T;
+        heroSubtitle?: T;
+        heroImage?: T;
+        aboutTitle?: T;
+        aboutContent?: T;
+        showServices?: T;
+        servicesTitle?: T;
+        showTestimonials?: T;
+        testimonials?:
+          | T
+          | {
+              name?: T;
+              content?: T;
+              rating?: T;
+              id?: T;
+            };
+        showGallery?: T;
+        galleryImages?:
+          | T
+          | {
+              image?: T;
+              caption?: T;
+              id?: T;
+            };
+        ctaText?: T;
+        seo?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              keywords?: T;
+            };
       };
   settings?:
     | T
