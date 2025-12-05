@@ -121,7 +121,7 @@ export function usePublicBooking() {
     error.value = null
 
     try {
-      const { data, error: fetchError } = await useFetch(`/api/public/tenant/${slug}`)
+      const { data, error: fetchError } = await useFetch(`/public/tenant/${slug}`)
 
       if (fetchError.value) {
         error.value = fetchError.value.message || 'Failed to load tenant'
@@ -143,7 +143,7 @@ export function usePublicBooking() {
     error.value = null
 
     try {
-      const { data, error: fetchError } = await useFetch(`/api/public/items/${tenantId}`)
+      const { data, error: fetchError } = await useFetch(`/public/items/${tenantId}`)
 
       if (fetchError.value) {
         error.value = fetchError.value.message || 'Failed to load items'
@@ -165,7 +165,7 @@ export function usePublicBooking() {
     error.value = null
 
     try {
-      const { data, error: fetchError } = await useFetch(`/api/public/addons/${tenantId}`)
+      const { data, error: fetchError } = await useFetch(`/public/addons/${tenantId}`)
 
       if (fetchError.value) {
         error.value = fetchError.value.message || 'Failed to load add-ons'
