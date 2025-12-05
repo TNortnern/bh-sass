@@ -493,6 +493,12 @@ export const useSettings = () => {
             }
           }
           break
+        case 'website':
+          // Website settings go in website field
+          payload = {
+            website: data
+          }
+          break
         default:
           payload = data
       }

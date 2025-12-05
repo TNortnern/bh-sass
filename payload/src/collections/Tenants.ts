@@ -503,6 +503,113 @@ export const Tenants: CollectionConfig = {
       ],
     },
     {
+      name: 'website',
+      type: 'group',
+      admin: {
+        description: 'Public website configuration',
+      },
+      fields: [
+        {
+          name: 'enabled',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: { description: 'Enable public website for this tenant' },
+        },
+        {
+          name: 'heroTitle',
+          type: 'text',
+          admin: { description: 'Main headline on the website', placeholder: 'Book Your Party Equipment Today!' },
+        },
+        {
+          name: 'heroSubtitle',
+          type: 'textarea',
+          admin: { description: 'Subheadline text', placeholder: 'Premium bounce houses and party rentals for your next event' },
+        },
+        {
+          name: 'heroImage',
+          type: 'upload',
+          relationTo: 'media',
+          admin: { description: 'Hero background image' },
+        },
+        {
+          name: 'aboutTitle',
+          type: 'text',
+          defaultValue: 'About Us',
+          admin: { description: 'About section title' },
+        },
+        {
+          name: 'aboutContent',
+          type: 'textarea',
+          admin: { description: 'About section content' },
+        },
+        {
+          name: 'showServices',
+          type: 'checkbox',
+          defaultValue: true,
+          admin: { description: 'Show services/inventory section' },
+        },
+        {
+          name: 'servicesTitle',
+          type: 'text',
+          defaultValue: 'Our Rentals',
+          admin: { description: 'Services section title' },
+        },
+        {
+          name: 'showTestimonials',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: { description: 'Show testimonials section' },
+        },
+        {
+          name: 'testimonials',
+          type: 'array',
+          admin: {
+            description: 'Customer testimonials',
+            condition: (data) => data.website?.showTestimonials,
+          },
+          fields: [
+            { name: 'name', type: 'text', required: true },
+            { name: 'content', type: 'textarea', required: true },
+            { name: 'rating', type: 'number', min: 1, max: 5, defaultValue: 5 },
+          ],
+        },
+        {
+          name: 'showGallery',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: { description: 'Show photo gallery section' },
+        },
+        {
+          name: 'galleryImages',
+          type: 'array',
+          admin: {
+            description: 'Gallery images',
+            condition: (data) => data.website?.showGallery,
+          },
+          fields: [
+            { name: 'image', type: 'upload', relationTo: 'media', required: true },
+            { name: 'caption', type: 'text' },
+          ],
+        },
+        {
+          name: 'ctaText',
+          type: 'text',
+          defaultValue: 'Book Now',
+          admin: { description: 'Call-to-action button text' },
+        },
+        {
+          name: 'seo',
+          type: 'group',
+          admin: { description: 'SEO settings' },
+          fields: [
+            { name: 'title', type: 'text', admin: { description: 'Page title (defaults to business name)' } },
+            { name: 'description', type: 'textarea', admin: { description: 'Meta description for search engines' } },
+            { name: 'keywords', type: 'text', admin: { description: 'Comma-separated keywords' } },
+          ],
+        },
+      ],
+    },
+    {
       name: 'settings',
       type: 'group',
       fields: [
