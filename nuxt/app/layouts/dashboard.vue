@@ -86,6 +86,11 @@ const navigationItems = [
     to: '/app/widgets'
   },
   {
+    label: 'Website',
+    icon: 'i-lucide-globe',
+    to: '/app/settings/website'
+  },
+  {
     label: 'Notifications',
     icon: 'i-lucide-bell',
     to: '/app/notifications'

@@ -6,17 +6,30 @@
         <h2 class="text-2xl font-bold tracking-tight mb-1.5 text-gray-900 dark:text-white">Website Settings</h2>
         <p class="text-base text-gray-600 dark:text-[#888]">Configure your public website and booking pages</p>
       </div>
-      <UButton
-        v-if="hasChanges"
-        color="primary"
-        size="lg"
-        icon="i-lucide-save"
-        :loading="saving"
-        @click="saveWebsite"
-        class="bg-gradient-to-br from-amber-400 to-amber-500 border-none text-black font-semibold tracking-tight transition-all duration-200 shadow-none hover:-translate-y-px hover:shadow-[0_8px_16px_-4px_rgba(251,191,36,0.4)]"
-      >
-        Save Changes
-      </UButton>
+      <div class="flex items-center gap-3">
+        <UButton
+          v-if="tenantSlug"
+          color="neutral"
+          variant="outline"
+          size="lg"
+          icon="i-lucide-external-link"
+          :to="`/site/${tenantSlug}`"
+          target="_blank"
+        >
+          Preview Website
+        </UButton>
+        <UButton
+          v-if="hasChanges"
+          color="primary"
+          size="lg"
+          icon="i-lucide-save"
+          :loading="saving"
+          @click="saveWebsite"
+          class="bg-gradient-to-br from-amber-400 to-amber-500 border-none text-black font-semibold tracking-tight transition-all duration-200 shadow-none hover:-translate-y-px hover:shadow-[0_8px_16px_-4px_rgba(251,191,36,0.4)]"
+        >
+          Save Changes
+        </UButton>
+      </div>
     </div>
 
     <div v-if="loading" class="flex flex-col items-center justify-center py-16 px-8 gap-4 text-gray-600 dark:text-[#888]">
@@ -47,20 +60,55 @@
         </template>
 
         <div v-if="websiteConfig.enabled" class="p-6">
-          <div class="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-500/20 rounded-lg">
-            <UIcon name="i-lucide-info" class="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-            <div>
-              <p class="m-0 text-sm text-blue-700 dark:text-blue-300 leading-relaxed mb-2">
-                Your website is <strong>live</strong> and accessible to customers.
+          <div class="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-500/20 rounded-lg mb-4">
+            <UIcon name="i-lucide-check-circle" class="w-5 h-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+            <div class="flex-1">
+              <p class="m-0 text-sm text-green-700 dark:text-green-300 leading-relaxed mb-2">
+                Your website is <strong>live</strong> and accessible to customers!
               </p>
-              <a
-                :href="`/site/${tenantSlug}`"
-                target="_blank"
-                class="text-sm text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
-              >
-                View your website
-                <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5" />
-              </a>
+            </div>
+          </div>
+
+          <!-- Website URLs -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-lg">
+              <div class="flex items-center gap-2 mb-2">
+                <UIcon name="i-lucide-globe" class="w-4 h-4 text-gray-500 dark:text-[#666]" />
+                <span class="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">Public Website</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <code class="flex-1 text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1.5 rounded text-gray-600 dark:text-gray-400 truncate">
+                  /site/{{ tenantSlug }}
+                </code>
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-external-link"
+                  :to="`/site/${tenantSlug}`"
+                  target="_blank"
+                />
+              </div>
+            </div>
+
+            <div class="p-4 bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-lg">
+              <div class="flex items-center gap-2 mb-2">
+                <UIcon name="i-lucide-calendar" class="w-4 h-4 text-gray-500 dark:text-[#666]" />
+                <span class="text-sm font-medium text-gray-700 dark:text-[#e5e5e5]">Booking Page</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <code class="flex-1 text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1.5 rounded text-gray-600 dark:text-gray-400 truncate">
+                  /book/{{ tenantSlug }}
+                </code>
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-external-link"
+                  :to="`/book/${tenantSlug}`"
+                  target="_blank"
+                />
+              </div>
             </div>
           </div>
         </div>
