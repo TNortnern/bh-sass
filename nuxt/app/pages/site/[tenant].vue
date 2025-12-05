@@ -13,7 +13,7 @@ const { data: tenant, error: tenantError, status } = await useFetch(`/api/tenant
 // Fetch rental items for services section
 const { data: itemsData } = await useFetch(() => {
   if (!tenant.value?.id) return null
-  return `/api/public/items/${tenant.value.id}`
+  return `/public/items/${tenant.value.id}`
 })
 
 const items = computed(() => (itemsData.value as any)?.items || [])
