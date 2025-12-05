@@ -7,13 +7,15 @@ const route = useRoute()
 const router = useRouter()
 const tenantSlug = route.params.tenant as string
 
-const { loadTenant, loadItems, tenant, items: rentalItems, loading, error } = usePublicBooking()
+const { loadTenant, loadItems, checkAvailability, tenant, items: rentalItems, loading, error } = usePublicBooking()
 
 // Load tenant and items on mount
 const tenantData = ref<any>(null)
 const items = ref<any[]>([])
 const categories = ref<any[]>([])
 const loadingCategories = ref(false)
+const availabilityMap = ref<Record<string, boolean>>({})
+const checkingAvailability = ref(false)
 
 onMounted(async () => {
   // Load tenant first
@@ -133,9 +135,10 @@ const filteredItems = computed(() => {
     const matchesMinPrice = minPrice.value === null || item.price >= minPrice.value
     const matchesMaxPrice = maxPrice.value === null || item.price <= maxPrice.value
 
-    // Date availability filter (TODO: implement with availability API)
-    // For now, we'll show all items if date is selected
-    const matchesDate = !selectedDate.value // Will be implemented with availability check
+    // Date availability filter - uses availability map when date is selected
+    const matchesDate = !selectedDate.value ||
+      !Object.keys(availabilityMap.value).length ||
+      availabilityMap.value[item.id] !== false
 
     return matchesSearch && matchesCategory && matchesMinPrice && matchesMaxPrice && matchesDate
   })
@@ -176,6 +179,44 @@ const formatPrice = (price: number) => {
   }).format(price)
 }
 
+// Check availability for all items on a specific date
+async function checkAllAvailability(date: string) {
+  if (!date || !items.value.length) {
+    availabilityMap.value = {}
+    return
+  }
+
+  checkingAvailability.value = true
+  const newAvailabilityMap: Record<string, boolean> = {}
+
+  try {
+    // Check availability for each item in parallel
+    const promises = items.value.map(async (item) => {
+      try {
+        const result = await checkAvailability(item.id, date, date)
+        newAvailabilityMap[item.id] = result.available
+      } catch (err) {
+        // If check fails, assume available
+        newAvailabilityMap[item.id] = true
+      }
+    })
+
+    await Promise.all(promises)
+    availabilityMap.value = newAvailabilityMap
+  } finally {
+    checkingAvailability.value = false
+  }
+}
+
+// Watch for date changes to check availability
+watch(selectedDate, async (newDate) => {
+  if (newDate) {
+    await checkAllAvailability(newDate)
+  } else {
+    availabilityMap.value = {}
+  }
+})
+
 // Clear all filters
 const clearFilters = () => {
   searchQuery.value = ''
@@ -184,6 +225,7 @@ const clearFilters = () => {
   maxPrice.value = null
   selectedDate.value = ''
   sortBy.value = 'name'
+  availabilityMap.value = {}
 }
 
 // Active filters count
@@ -268,6 +310,26 @@ const activeFiltersCount = computed(() => {
         />
       </div>
 
+      <!-- Category Chips for Quick Filtering -->
+      <div v-if="categories.length > 0" class="flex flex-wrap gap-2">
+        <button
+          v-for="cat in [{ id: 'all', name: 'All' }, ...categories]"
+          :key="cat.id"
+          :class="[
+            'px-4 py-2 rounded-full text-sm font-medium transition-all',
+            selectedCategory === cat.id
+              ? 'bg-orange-600 text-white shadow-md'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+          ]"
+          @click="selectedCategory = cat.id"
+        >
+          {{ cat.name }}
+          <span v-if="cat.id !== 'all'" class="ml-1 text-xs opacity-75">
+            ({{ items.filter(i => i.categoryId === cat.id).length }})
+          </span>
+        </button>
+      </div>
+
       <!-- Advanced Filters -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Category Filter -->
@@ -308,14 +370,32 @@ const activeFiltersCount = computed(() => {
 
         <!-- Date Filter -->
         <UFormField label="Availability Date">
-          <UInput
-            v-model="selectedDate"
-            type="date"
-            icon="i-lucide-calendar"
-            class="w-full"
-            placeholder="Check availability"
-          />
+          <div class="relative">
+            <UInput
+              v-model="selectedDate"
+              type="date"
+              icon="i-lucide-calendar"
+              class="w-full"
+              placeholder="Check availability"
+              :min="new Date().toISOString().split('T')[0]"
+            />
+            <div v-if="checkingAvailability" class="absolute right-3 top-1/2 -translate-y-1/2">
+              <UIcon name="i-lucide-loader-circle" class="w-4 h-4 text-orange-600 animate-spin" />
+            </div>
+          </div>
         </UFormField>
+      </div>
+
+      <!-- Availability Status -->
+      <div v-if="selectedDate && Object.keys(availabilityMap).length > 0" class="flex items-center gap-4 text-sm px-1">
+        <div class="flex items-center gap-2 text-green-600 dark:text-green-400">
+          <UIcon name="i-lucide-check-circle" class="w-4 h-4" />
+          <span>{{ Object.values(availabilityMap).filter(v => v).length }} available</span>
+        </div>
+        <div v-if="Object.values(availabilityMap).filter(v => !v).length > 0" class="flex items-center gap-2 text-red-600 dark:text-red-400">
+          <UIcon name="i-lucide-x-circle" class="w-4 h-4" />
+          <span>{{ Object.values(availabilityMap).filter(v => !v).length }} booked</span>
+        </div>
       </div>
 
       <!-- Active Filters & Clear -->
@@ -359,10 +439,23 @@ const activeFiltersCount = computed(() => {
                 :alt="item.name"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               >
-              <div class="absolute top-3 right-3">
+              <div class="absolute top-3 right-3 flex flex-col gap-2">
                 <span class="inline-flex items-center gap-1 px-2 py-1 bg-orange-600 text-white text-xs font-semibold rounded">
                   <UIcon name="lucide:star" class="w-3 h-3" />
                   Featured
+                </span>
+                <!-- Availability Badge -->
+                <span
+                  v-if="selectedDate && availabilityMap[item.id] !== undefined"
+                  :class="[
+                    'inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded',
+                    availabilityMap[item.id]
+                      ? 'bg-green-600 text-white'
+                      : 'bg-red-600 text-white'
+                  ]"
+                >
+                  <UIcon :name="availabilityMap[item.id] ? 'lucide:check' : 'lucide:x'" class="w-3 h-3" />
+                  {{ availabilityMap[item.id] ? 'Available' : 'Booked' }}
                 </span>
               </div>
             </div>
@@ -424,6 +517,23 @@ const activeFiltersCount = computed(() => {
                 :alt="item.name"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               >
+              <!-- Availability Badge -->
+              <div
+                v-if="selectedDate && availabilityMap[item.id] !== undefined"
+                class="absolute top-3 right-3"
+              >
+                <span
+                  :class="[
+                    'inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded',
+                    availabilityMap[item.id]
+                      ? 'bg-green-600 text-white'
+                      : 'bg-red-600 text-white'
+                  ]"
+                >
+                  <UIcon :name="availabilityMap[item.id] ? 'lucide:check' : 'lucide:x'" class="w-3 h-3" />
+                  {{ availabilityMap[item.id] ? 'Available' : 'Booked' }}
+                </span>
+              </div>
             </div>
 
             <!-- Content -->
