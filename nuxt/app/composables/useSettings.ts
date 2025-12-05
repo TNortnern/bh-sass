@@ -85,6 +85,7 @@ export interface ApiKey {
   isActive: boolean
   createdAt: string
   lastUsed: string | null
+  lastRotatedAt?: string | null
 }
 
 export interface WebhookEndpoint {
@@ -396,6 +397,7 @@ export const useSettings = () => {
           isActive: key.isActive !== false,
           createdAt: key.createdAt?.split('T')[0] || '',
           lastUsed: key.lastUsed?.split('T')[0] || null,
+          lastRotatedAt: key.lastRotatedAt?.split('T')[0] || null,
         }))
       } catch (error) {
         console.warn('Failed to fetch API keys, using empty array:', error)
@@ -947,6 +949,7 @@ export const useSettings = () => {
         isActive: response.doc.isActive !== false,
         createdAt: response.doc.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
         lastUsed: null,
+        lastRotatedAt: null,
       }
 
       state.apiKeys.value.push(newKey)
@@ -1183,6 +1186,63 @@ export const useSettings = () => {
     }
   }
 
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    state.saving.value = true
+    try {
+      // Get current user from auth
+      const { currentUser } = useAuth()
+
+      if (!currentUser.value?.id) {
+        throw new Error('User not authenticated')
+      }
+
+      // Call Payload's update user endpoint with password
+      await $fetch(`/api/users/${currentUser.value.id}`, {
+        method: 'PATCH',
+        body: {
+          password: newPassword,
+          // Payload requires current password for password changes
+          currentPassword
+        },
+        credentials: 'include',
+      })
+
+      toast.add({
+        title: 'Password updated',
+        description: 'Your password has been changed successfully.',
+        color: 'success',
+      })
+
+      return { success: true }
+    } catch (error: any) {
+      console.error('Failed to change password:', error)
+
+      // Handle specific error cases
+      let errorMessage = 'Failed to change password. Please try again.'
+
+      if (error?.data?.errors) {
+        const errorDetails = error.data.errors[0]
+        if (errorDetails?.message?.includes('password')) {
+          errorMessage = errorDetails.message
+        } else if (errorDetails?.message?.includes('current')) {
+          errorMessage = 'Current password is incorrect.'
+        }
+      } else if (error?.message) {
+        errorMessage = error.message
+      }
+
+      toast.add({
+        title: 'Error changing password',
+        description: errorMessage,
+        color: 'error',
+      })
+
+      return { success: false, error: errorMessage }
+    } finally {
+      state.saving.value = false
+    }
+  }
+
   const markHasChanges = () => {
     state.hasUnsavedChanges.value = true
   }
@@ -1219,6 +1279,7 @@ export const useSettings = () => {
     addWebhookEndpoint,
     deleteWebhookEndpoint,
     testWebhook,
+    changePassword,
     markHasChanges,
   }
 }

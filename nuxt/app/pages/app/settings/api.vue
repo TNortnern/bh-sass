@@ -91,12 +91,16 @@
                       <UIcon name="i-heroicons-calendar" class="w-3.5 h-3.5" />
                       Created {{ formatDate(key.createdAt) }}
                     </span>
+                    <span v-if="key.lastRotatedAt" class="flex items-center gap-1.5 text-[0.8125rem] text-gray-500 dark:text-[#666]">
+                      <UIcon name="i-heroicons-arrow-path" class="w-3.5 h-3.5" />
+                      Rotated {{ formatDate(key.lastRotatedAt) }}
+                    </span>
                     <span v-if="key.expiresAt" class="flex items-center gap-1.5 text-[0.8125rem] text-gray-500 dark:text-[#666]">
                       <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5" />
                       Expires {{ formatDate(key.expiresAt) }}
                     </span>
                     <span v-if="key.lastUsed" class="flex items-center gap-1.5 text-[0.8125rem] text-gray-500 dark:text-[#666]">
-                      <UIcon name="i-heroicons-arrow-path" class="w-3.5 h-3.5" />
+                      <UIcon name="i-heroicons-chart-bar" class="w-3.5 h-3.5" />
                       Last used {{ formatDate(key.lastUsed) }}
                     </span>
                     <span v-else class="flex items-center gap-1.5 text-[0.8125rem] text-gray-600 dark:text-[#888] italic">Never used</span>

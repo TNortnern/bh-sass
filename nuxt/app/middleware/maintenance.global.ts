@@ -3,19 +3,21 @@
  * when platform-wide maintenance is enabled
  */
 export default defineNuxtRouteMiddleware(async (to) => {
-  // Skip on server-side during SSR (only check client-side)
-  if (import.meta.server) {
-    return
-  }
-
-  // Skip check for maintenance page itself and admin routes
-  if (to.path === '/maintenance' || to.path.startsWith('/admin')) {
+  // Skip check for maintenance page itself, admin routes, and API routes
+  if (to.path === '/maintenance' || to.path.startsWith('/admin') || to.path.startsWith('/api') || to.path.startsWith('/v1')) {
     return
   }
 
   try {
-    // Fetch platform settings to check maintenance mode
-    const settings = await $fetch('/v1/globals/platform-settings', {
+    // Fetch platform settings via public endpoint that doesn't require auth
+    const settings = await $fetch<{
+      maintenanceMode?: {
+        enabled: boolean
+        message?: string
+        endTime?: string
+        isIPAllowed?: boolean
+      }
+    }>('/api/platform-settings/public', {
       credentials: 'include',
     })
 
@@ -29,18 +31,17 @@ export default defineNuxtRouteMiddleware(async (to) => {
         return
       }
 
-      // Check if user's IP is in allowed list (optional feature for future)
-      // const allowedIPs = settings.maintenanceMode?.allowedIPs || []
-      // const userIP = await getUserIP() // Would need to implement this
-      // if (allowedIPs.some(item => item.ip === userIP)) {
-      //   return
-      // }
+      // Check if user's IP is in the allowed list
+      if (settings.maintenanceMode.isIPAllowed) {
+        return
+      }
 
       // Redirect to maintenance page
       return navigateTo('/maintenance')
     }
   } catch (error) {
     // If we can't fetch settings, assume maintenance is off
+    // This prevents blocking users if the API is temporarily unavailable
     console.error('Failed to check maintenance mode:', error)
   }
 })

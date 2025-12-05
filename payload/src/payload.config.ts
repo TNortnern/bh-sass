@@ -41,6 +41,7 @@ import {
   maintenanceHistoryEndpoint,
 } from './endpoints/maintenance'
 import { healthEndpoint, healthDbEndpoint, healthReadyEndpoint } from './endpoints/health'
+import { platformSettingsPublicEndpoint } from './endpoints/platform-settings-public'
 import {
   stripeConnectOnboardEndpoint,
   stripeConnectRefreshEndpoint,
@@ -129,6 +130,8 @@ export default buildConfig({
     healthEndpoint,
     healthDbEndpoint,
     healthReadyEndpoint,
+    // Public platform settings endpoint (for maintenance mode check)
+    platformSettingsPublicEndpoint,
     // Public registration endpoint
     {
       path: '/register',

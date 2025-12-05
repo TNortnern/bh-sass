@@ -130,11 +130,11 @@ export const ApiKeys: CollectionConfig = {
         beforeValidate: [
           ({ value }) => {
             if (!value) {
-              // Generate secure API key with tenant prefix
+              // Generate secure API key with tk_ prefix (32 random characters)
               const randomPart = Array.from({ length: 32 }, () =>
                 Math.random().toString(36).charAt(2)
               ).join('')
-              return `bp_live_${randomPart}`
+              return `tk_${randomPart}`
             }
             return value
           },
@@ -166,6 +166,16 @@ export const ApiKeys: CollectionConfig = {
       type: 'date',
       admin: {
         description: 'When this API key was last used',
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
+    {
+      name: 'lastRotatedAt',
+      type: 'date',
+      admin: {
+        description: 'When this API key was last rotated',
         date: {
           pickerAppearance: 'dayAndTime',
         },

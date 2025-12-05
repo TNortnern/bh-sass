@@ -88,15 +88,17 @@ const recentNotifications = computed(() => notifications.value.slice(0, 5))
       size="lg"
       icon="i-lucide-bell"
       class="relative"
+      :badge="false"
       @click="isOpen = !isOpen"
     >
-      <!-- Unread Badge -->
-      <span
-        v-if="unreadCount > 0"
-        class="absolute -top-1 -right-1 flex items-center justify-center min-w-5 h-5 px-1 text-xs font-bold text-white bg-red-500 rounded-full border-2 border-white dark:border-gray-900"
-      >
-        {{ unreadCount > 99 ? '99+' : unreadCount }}
-      </span>
+      <!-- Unread Count Badge (only show if > 0) -->
+      <template v-if="unreadCount > 0" #trailing>
+        <span
+          class="absolute -top-1 -right-1 flex items-center justify-center min-w-5 h-5 px-1 text-xs font-bold text-white bg-red-500 rounded-full border-2 border-white dark:border-gray-900"
+        >
+          {{ unreadCount > 99 ? '99+' : unreadCount }}
+        </span>
+      </template>
     </UButton>
 
     <!-- Dropdown -->

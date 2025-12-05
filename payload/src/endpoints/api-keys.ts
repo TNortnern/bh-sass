@@ -50,11 +50,11 @@ export const rotateApiKeyEndpoint: Endpoint = {
         }
       }
 
-      // Generate new secure API key
+      // Generate new secure API key with tk_ prefix (32 random characters)
       const randomPart = Array.from({ length: 32 }, () =>
         Math.random().toString(36).charAt(2)
       ).join('')
-      const newKey = `bp_live_${randomPart}`
+      const newKey = `tk_${randomPart}`
 
       // Generate new key prefix for display
       const newKeyPrefix = newKey.substring(0, 12)
@@ -68,6 +68,8 @@ export const rotateApiKeyEndpoint: Endpoint = {
           keyPrefix: newKeyPrefix,
           // Reset lastUsed since it's a new key
           lastUsed: null,
+          // Set lastRotatedAt to current timestamp
+          lastRotatedAt: new Date().toISOString(),
         },
       })
 

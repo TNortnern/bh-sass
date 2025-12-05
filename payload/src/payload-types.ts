@@ -1598,6 +1598,10 @@ export interface ApiKey {
    */
   lastUsed?: string | null;
   /**
+   * When this API key was last rotated
+   */
+  lastRotatedAt?: string | null;
+  /**
    * Is this API key active?
    */
   isActive?: boolean | null;
@@ -2942,6 +2946,7 @@ export interface ApiKeysSelect<T extends boolean = true> {
   key?: T;
   keyPrefix?: T;
   lastUsed?: T;
+  lastRotatedAt?: T;
   isActive?: T;
   scopeType?: T;
   scopes?: T;

@@ -292,6 +292,102 @@
           </UFormGroup>
         </div>
       </UCard>
+
+      <!-- Change Password -->
+      <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 hover:border-amber-300 hover:dark:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
+        <template #header>
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-amber-600 dark:text-amber-400 flex-shrink-0">
+              <UIcon name="i-heroicons-lock-closed" class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold tracking-tight m-0 mb-1 text-gray-900 dark:text-white">Change Password</h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">Update your account password</p>
+            </div>
+          </div>
+        </template>
+
+        <div class="p-6 flex flex-col gap-6">
+          <UFormGroup label="Current Password" required :error="passwordErrors.current" class="flex flex-col gap-2">
+            <div class="relative">
+              <UInput
+                v-model="passwordForm.currentPassword"
+                :type="showCurrentPassword ? 'text' : 'password'"
+                size="lg"
+                placeholder="Enter current password"
+                class="w-full"
+                autocomplete="current-password"
+              />
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-[#666] hover:text-gray-700 dark:hover:text-[#888] transition-colors"
+                @click="showCurrentPassword = !showCurrentPassword"
+              >
+                <UIcon :name="showCurrentPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'" class="w-5 h-5" />
+              </button>
+            </div>
+          </UFormGroup>
+
+          <UFormGroup label="New Password" required :error="passwordErrors.new" class="flex flex-col gap-2">
+            <div class="relative">
+              <UInput
+                v-model="passwordForm.newPassword"
+                :type="showNewPassword ? 'text' : 'password'"
+                size="lg"
+                placeholder="Enter new password (min. 8 characters)"
+                class="w-full"
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-[#666] hover:text-gray-700 dark:hover:text-[#888] transition-colors"
+                @click="showNewPassword = !showNewPassword"
+              >
+                <UIcon :name="showNewPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'" class="w-5 h-5" />
+              </button>
+            </div>
+            <p v-if="passwordForm.newPassword && passwordForm.newPassword.length < 8" class="text-xs text-amber-600 dark:text-amber-400 mt-1">
+              Password must be at least 8 characters long
+            </p>
+          </UFormGroup>
+
+          <UFormGroup label="Confirm New Password" required :error="passwordErrors.confirm" class="flex flex-col gap-2">
+            <div class="relative">
+              <UInput
+                v-model="passwordForm.confirmPassword"
+                :type="showConfirmPassword ? 'text' : 'password'"
+                size="lg"
+                placeholder="Re-enter new password"
+                class="w-full"
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-[#666] hover:text-gray-700 dark:hover:text-[#888] transition-colors"
+                @click="showConfirmPassword = !showConfirmPassword"
+              >
+                <UIcon :name="showConfirmPassword ? 'i-heroicons-eye-slash' : 'i-heroicons-eye'" class="w-5 h-5" />
+              </button>
+            </div>
+            <p v-if="passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword" class="text-xs text-red-600 dark:text-red-400 mt-1">
+              Passwords do not match
+            </p>
+          </UFormGroup>
+
+          <div class="flex justify-end">
+            <UButton
+              color="primary"
+              size="lg"
+              :loading="changingPassword"
+              :disabled="!isPasswordFormValid"
+              @click="handleChangePassword"
+              class="bg-gradient-to-br from-amber-400 to-amber-500 border-none text-black font-semibold tracking-tight transition-all duration-200 shadow-none disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:-translate-y-px hover:enabled:shadow-[0_8px_16px_-4px_rgba(251,191,36,0.4)]"
+            >
+              Update Password
+            </UButton>
+          </div>
+        </div>
+      </UCard>
     </div>
 
     <!-- Add ZIP Code Modal -->
@@ -337,6 +433,7 @@ const {
   updateSettings,
   uploadLogo,
   removeLogo: removeLogoFromSettings,
+  changePassword,
   markHasChanges
 } = useSettings()
 
@@ -344,6 +441,35 @@ const showAddZipModal = ref(false)
 const newZipCode = ref('')
 const logoFileInput = ref<HTMLInputElement | null>(null)
 const uploadingLogo = ref(false)
+
+// Password change state
+const passwordForm = ref({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
+const passwordErrors = ref({
+  current: '',
+  new: '',
+  confirm: ''
+})
+
+const showCurrentPassword = ref(false)
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
+const changingPassword = ref(false)
+
+// Computed property for password form validation
+const isPasswordFormValid = computed(() => {
+  const { currentPassword, newPassword, confirmPassword } = passwordForm.value
+  return (
+    currentPassword.length > 0 &&
+    newPassword.length >= 8 &&
+    confirmPassword.length >= 8 &&
+    newPassword === confirmPassword
+  )
+})
 
 const states = [
   'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
@@ -415,6 +541,61 @@ const removeZipCode = (index: number) => {
 const saveSettings = async () => {
   if (business.value) {
     await updateSettings('business', business.value)
+  }
+}
+
+const handleChangePassword = async () => {
+  // Clear previous errors
+  passwordErrors.value = {
+    current: '',
+    new: '',
+    confirm: ''
+  }
+
+  // Validate form
+  const { currentPassword, newPassword, confirmPassword } = passwordForm.value
+
+  if (!currentPassword) {
+    passwordErrors.value.current = 'Current password is required'
+    return
+  }
+
+  if (newPassword.length < 8) {
+    passwordErrors.value.new = 'Password must be at least 8 characters'
+    return
+  }
+
+  if (newPassword !== confirmPassword) {
+    passwordErrors.value.confirm = 'Passwords do not match'
+    return
+  }
+
+  // Call the changePassword function from composable
+  changingPassword.value = true
+  try {
+    const result = await changePassword(currentPassword, newPassword)
+
+    if (result.success) {
+      // Clear the form on success
+      passwordForm.value = {
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }
+      // Hide passwords
+      showCurrentPassword.value = false
+      showNewPassword.value = false
+      showConfirmPassword.value = false
+    } else {
+      // Handle specific error cases
+      if (result.error?.includes('current')) {
+        passwordErrors.value.current = result.error
+      } else {
+        passwordErrors.value.new = result.error || 'Failed to change password'
+      }
+    }
+  } finally {
+    changingPassword.value = false
   }
 }
 </script>

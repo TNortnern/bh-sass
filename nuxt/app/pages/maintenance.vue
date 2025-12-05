@@ -4,8 +4,15 @@ definePageMeta({
   middleware: [] // Skip all middleware for this page
 })
 
-// Fetch platform settings
-const { data: settings } = await useFetch('/v1/globals/platform-settings', {
+// Fetch platform settings from public endpoint
+const { data: settings } = await useFetch<{
+  maintenanceMode?: {
+    enabled: boolean
+    message?: string
+    endTime?: string
+    isIPAllowed?: boolean
+  }
+}>('/api/platform-settings/public', {
   credentials: 'include'
 })
 
