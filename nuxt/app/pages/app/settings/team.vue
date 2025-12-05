@@ -80,7 +80,7 @@
                   }"
                 >
                   <UIcon :name="getRoleIcon(member.role)" class="w-4 h-4" />
-                  {{ capitalizeFirst(member.role) }}
+                  {{ formatRole(member.role) }}
                 </div>
               </div>
 
@@ -141,7 +141,7 @@
 
               <div class="flex-shrink-0">
                 <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-gray-500/10 border border-gray-200 dark:border-gray-500/30 text-gray-600 dark:text-gray-400">
-                  {{ capitalizeFirst(member.role) }}
+                  {{ formatRole(member.role) }}
                 </div>
               </div>
 
@@ -202,7 +202,7 @@
 
               <div class="flex-shrink-0">
                 <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold bg-gray-100 dark:bg-gray-500/10 border border-gray-200 dark:border-gray-500/30 text-gray-500 dark:text-gray-400">
-                  {{ capitalizeFirst(member.role) }}
+                  {{ formatRole(member.role) }}
                 </div>
               </div>
 
@@ -564,8 +564,13 @@ const formatDate = (dateString: string) => {
   })
 }
 
-const capitalizeFirst = (str: string) => {
-  return str.charAt(0).toUpperCase() + str.slice(1)
+const formatRole = (str: string) => {
+  // Handle snake_case and convert to Title Case
+  // e.g., "Tenant_admin" -> "Tenant Admin", "staff" -> "Staff"
+  return str
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
 }
 
 const getDropdownItems = (member: TeamMember) => {
