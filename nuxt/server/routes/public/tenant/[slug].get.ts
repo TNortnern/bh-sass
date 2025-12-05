@@ -44,13 +44,16 @@ export default defineEventHandler(async (event) => {
         alt: tenant.name
       } : undefined,
       businessInfo: {
-        phone: tenant.businessInfo?.phone,
-        email: tenant.businessInfo?.email,
+        phone: tenant.phone,
+        email: tenant.email,
         address: {
-          city: tenant.businessInfo?.address?.city,
-          state: tenant.businessInfo?.address?.state
+          street: tenant.address?.street,
+          city: tenant.address?.city,
+          state: tenant.address?.state,
+          zip: tenant.address?.zip
         }
       },
+      branding: tenant.branding,
       settings: {
         timezone: tenant.settings?.timezone || 'America/New_York',
         currency: tenant.settings?.currency || 'USD'
