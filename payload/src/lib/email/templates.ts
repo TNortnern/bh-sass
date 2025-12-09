@@ -1139,7 +1139,7 @@ ${params.refundAmount ? `💰 Your refund will be processed in 5-7 business days
 const PAYMENT_RECEIVED_MODERN: EmailTemplateVariant = {
   id: 'modern',
   name: 'Modern Dark',
-  subject: 'Payment Received – \\${{amount}}',
+  subject: 'Payment Received – $' + '{{amount}}',
 
   html: (params) => modernDarkWrapper(`
     <div style="text-align: center; margin-bottom: 40px;">
@@ -1178,7 +1178,7 @@ const PAYMENT_RECEIVED_MODERN: EmailTemplateVariant = {
             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
               <tr>
                 <td style="color: #94a3b8; font-size: 16px;">Amount Paid</td>
-                <td style="color: #10b981; font-size: 28px; font-weight: 900; text-align: right;">\\${{amount}}</td>
+                <td style="color: #10b981; font-size: 28px; font-weight: 900; text-align: right;">${'$'}{{amount}}</td>
               </tr>
             </table>
           </td>
@@ -1186,7 +1186,7 @@ const PAYMENT_RECEIVED_MODERN: EmailTemplateVariant = {
         ${params.remainingBalance ? `
         <tr>
           <td style="color: #94a3b8; padding: 8px 0;">Remaining Balance</td>
-          <td style="color: #f59e0b; font-weight: 700; text-align: right; padding: 8px 0; font-size: 18px;">\${{remainingBalance}}</td>
+          <td style="color: #f59e0b; font-weight: 700; text-align: right; padding: 8px 0; font-size: 18px;">${'$'}{{remainingBalance}}</td>
         </tr>
         ` : ''}
       </table>
@@ -1196,7 +1196,7 @@ const PAYMENT_RECEIVED_MODERN: EmailTemplateVariant = {
     <div style="background-color: #0f172a; border-left: 4px solid #f59e0b; border-radius: 8px; padding: 24px; margin: 0 0 32px;">
       <p style="margin: 0; font-size: 15px; line-height: 1.7; color: #cbd5e1;">
         <strong style="color: #f59e0b;">⚠️ Balance Due:</strong><br>
-        You have a remaining balance of <strong style="color: #f59e0b;">\${{remainingBalance}}</strong>. Please pay before your event date.
+        You have a remaining balance of <strong style="color: #f59e0b;">${'$'}{{remainingBalance}}</strong>. Please pay before your event date.
       </p>
     </div>
     ` : `
@@ -1213,7 +1213,7 @@ const PAYMENT_RECEIVED_MODERN: EmailTemplateVariant = {
         Download Receipt
       </a>
     </div>
-  `, `Payment of \\${{amount}} received for booking #{{bookingId}}`),
+  `, 'Payment of $' + '{{amount}}' + ' received for booking #' + '{{bookingId}}'),
 
   text: (params) => `
 ✓ PAYMENT RECEIVED
@@ -1228,8 +1228,8 @@ Date: {{paymentDate}}
 Method: {{paymentMethod}}
 Booking: {{bookingId}}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Amount Paid: \\${{amount}}
-${params.remainingBalance ? `Balance Due: \$${params.remainingBalance}` : 'Status: PAID IN FULL ✅'}
+Amount Paid: ${'$'}{{amount}}
+${params.remainingBalance ? `Balance Due: ${'$'}${params.remainingBalance}` : 'Status: PAID IN FULL ✅'}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Download receipt: {{receiptUrl}}
@@ -1286,7 +1286,7 @@ const PAYMENT_RECEIVED_CLASSIC: EmailTemplateVariant = {
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                   <tr>
                     <td style="color: #212529; font-size: 18px; font-weight: 600;">Amount Paid:</td>
-                    <td style="color: #10b981; font-size: 24px; font-weight: 700; text-align: right;">\\${{amount}}</td>
+                    <td style="color: #10b981; font-size: 24px; font-weight: 700; text-align: right;">${'$'}{{amount}}</td>
                   </tr>
                 </table>
               </td>
@@ -1294,7 +1294,7 @@ const PAYMENT_RECEIVED_CLASSIC: EmailTemplateVariant = {
             ${params.remainingBalance ? `
             <tr>
               <td style="color: #6c757d; padding: 6px 0;">Remaining Balance:</td>
-              <td style="color: #f59e0b; font-weight: 700; text-align: right; padding: 6px 0; font-size: 18px;">\${{remainingBalance}}</td>
+              <td style="color: #f59e0b; font-weight: 700; text-align: right; padding: 6px 0; font-size: 18px;">${'$'}{{remainingBalance}}</td>
             </tr>
             ` : ''}
           </table>
@@ -1305,7 +1305,7 @@ const PAYMENT_RECEIVED_CLASSIC: EmailTemplateVariant = {
     ${params.remainingBalance ? `
     <div style="background-color: #fff7ed; border-left: 4px solid #f59e0b; padding: 20px; margin: 0 0 28px;">
       <p style="margin: 0; font-size: 14px; line-height: 1.7; color: #92400e;">
-        <strong>Outstanding Balance:</strong> A balance of <strong>\${{remainingBalance}}</strong> remains. Please ensure this is settled prior to your event date.
+        <strong>Outstanding Balance:</strong> A balance of <strong>${'$'}{{remainingBalance}}</strong> remains. Please ensure this is settled prior to your event date.
       </p>
     </div>
     ` : `
@@ -1321,7 +1321,7 @@ const PAYMENT_RECEIVED_CLASSIC: EmailTemplateVariant = {
         Download Receipt
       </a>
     </div>
-  `, `Payment receipt #{{paymentId}} from {{businessName}}`),
+  `, 'Payment receipt #{{paymentId}} from {{businessName}}'),
 
   text: (params) => `
 {{businessName}}
@@ -1338,8 +1338,8 @@ Payment Date: {{paymentDate}}
 Payment Method: {{paymentMethod}}
 Booking Reference: {{bookingId}}
 ─────────────────────────────
-Amount Paid: \\${{amount}}
-${params.remainingBalance ? `Remaining Balance: \$${params.remainingBalance}` : 'Status: PAID IN FULL'}
+Amount Paid: ${'$'}{{amount}}
+${params.remainingBalance ? `Remaining Balance: ${'$'}${params.remainingBalance}` : 'Status: PAID IN FULL'}
 ─────────────────────────────
 
 Download receipt: {{receiptUrl}}
@@ -1353,7 +1353,7 @@ Sincerely,
 const PAYMENT_RECEIVED_BOLD: EmailTemplateVariant = {
   id: 'bold',
   name: 'Bold Gradient',
-  subject: '💰 Payment Received - \\${{amount}}',
+  subject: '💰 Payment Received - $' + '{{amount}}',
 
   html: (params) => boldGradientWrapper(`
     <div style="text-align: center; margin-bottom: 36px;">
@@ -1393,7 +1393,7 @@ const PAYMENT_RECEIVED_BOLD: EmailTemplateVariant = {
               <tr>
                 <td style="color: #1a202c; font-size: 20px; font-weight: 900;">PAID</td>
                 <td style="text-align: right;">
-                  <span style="color: #10b981; font-size: 36px; font-weight: 900; line-height: 1;">\\${{amount}}</span>
+                  <span style="color: #10b981; font-size: 36px; font-weight: 900; line-height: 1;">${'$'}{{amount}}</span>
                 </td>
               </tr>
             </table>
@@ -1402,7 +1402,7 @@ const PAYMENT_RECEIVED_BOLD: EmailTemplateVariant = {
         ${params.remainingBalance ? `
         <tr>
           <td style="color: #065f46; font-weight: 700; padding: 8px 0;">BALANCE</td>
-          <td style="color: #f59e0b; font-weight: 900; text-align: right; padding: 8px 0; font-size: 20px;">\${{remainingBalance}}</td>
+          <td style="color: #f59e0b; font-weight: 900; text-align: right; padding: 8px 0; font-size: 20px;">${'$'}{{remainingBalance}}</td>
         </tr>
         ` : ''}
       </table>
@@ -1411,7 +1411,7 @@ const PAYMENT_RECEIVED_BOLD: EmailTemplateVariant = {
     ${params.remainingBalance ? `
     <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; padding: 24px; margin: 0 0 32px; border: 3px solid #f59e0b;">
       <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #92400e; font-weight: 700; text-align: center;">
-        ⚠️ Balance Due: <span style="font-size: 20px;">\${{remainingBalance}}</span> - Pay before your event!
+        ⚠️ Balance Due: <span style="font-size: 20px;">${'$'}{{remainingBalance}}</span> - Pay before your event!
       </p>
     </div>
     ` : `
@@ -1427,7 +1427,7 @@ const PAYMENT_RECEIVED_BOLD: EmailTemplateVariant = {
         GET RECEIPT →
       </a>
     </div>
-  `, `Payment received: \\${{amount}} for booking #{{bookingId}}`),
+  `, 'Payment received: $' + '{{amount}}' + ' for booking #' + '{{bookingId}}'),
 
   text: (params) => `
 💰 PAYMENT RECEIVED!
@@ -1441,8 +1441,8 @@ DATE: {{paymentDate}}
 METHOD: {{paymentMethod}}
 BOOKING: {{bookingId}}
 ═══════════════════════════════
-PAID: \\${{amount}}
-${params.remainingBalance ? `BALANCE: \$${params.remainingBalance}` : 'STATUS: PAID IN FULL ✅'}
+PAID: ${'$'}{{amount}}
+${params.remainingBalance ? `BALANCE: ${'$'}${params.remainingBalance}` : 'STATUS: PAID IN FULL ✅'}
 ═══════════════════════════════
 
 👉 GET RECEIPT: {{receiptUrl}}

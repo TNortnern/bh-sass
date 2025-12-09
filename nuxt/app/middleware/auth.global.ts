@@ -1,6 +1,17 @@
 export default defineNuxtRouteMiddleware(async (to) => {
-  // Define route access rules
-  const publicPaths = ['/', '/auth/', '/booking/']
+  // Define route access rules - these paths don't require authentication
+  const publicPaths = [
+    '/',           // Landing page
+    '/auth/',      // Auth pages (login, register, etc.)
+    '/booking/',   // Legacy booking routes
+    '/book/',      // Public booking pages
+    '/site/',      // Public tenant websites
+    '/widget/',    // Embedded booking widgets
+    '/pricing',    // Pricing page
+    '/features',   // Features page
+    '/admin/',     // Payload admin (has its own auth)
+    '/maintenance' // Maintenance mode page
+  ]
 
   const isPublicPath = publicPaths.some(path =>
     to.path === path || (path.endsWith('/') && to.path.startsWith(path))

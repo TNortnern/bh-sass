@@ -4,7 +4,6 @@ import type { TableColumn } from '@nuxt/ui'
 
 definePageMeta({
   layout: 'dashboard',
-  middleware: 'auth',
 })
 
 const toast = useToast()
@@ -35,6 +34,7 @@ const { data: contracts, pending, refresh } = await useLazyFetch<{ docs: Contrac
     sort: '-createdAt',
     depth: 1,
   },
+  server: false, // Client-side only to ensure cookies are sent
 })
 
 // Modal states
@@ -286,7 +286,7 @@ const bookingOptions = computed(() => {
 <template>
   <UDashboardPanel>
     <template #header>
-      <UDashboardNavbar title="Contracts & Documents">
+      <UDashboardNavbar title="Contracts">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>

@@ -4,7 +4,6 @@ import type { TableColumn } from '@nuxt/ui'
 
 definePageMeta({
   layout: 'dashboard',
-  middleware: 'auth',
 })
 
 const UBadge = resolveComponent('UBadge')
@@ -24,7 +23,7 @@ type ContractTemplate = {
   createdAt: string
 }
 
-// Fetch templates
+// Fetch templates (client-side only to ensure auth cookies are sent)
 const { data: templates, pending, refresh } = await useLazyFetch<{ docs: ContractTemplate[] }>(
   '/api/contract-templates',
   {
@@ -32,6 +31,7 @@ const { data: templates, pending, refresh } = await useLazyFetch<{ docs: Contrac
       limit: 100,
       sort: '-createdAt',
     },
+    server: false, // Client-side only to ensure cookies are sent
   },
 )
 
