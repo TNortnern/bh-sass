@@ -87,6 +87,21 @@ export function useCustomers() {
     const firstName = nameParts[0] || ''
     const lastName = nameParts.slice(1).join(' ') || ''
 
+    // Transform tags from Payload format [{id, tag}] to string[]
+    const tags: string[] = Array.isArray(rbCustomer.tags)
+      ? rbCustomer.tags.map((t: any) => typeof t === 'string' ? t : t?.tag || '').filter(Boolean)
+      : []
+
+    // Transform notes from Payload format to expected format
+    const notes = Array.isArray(rbCustomer.notes)
+      ? rbCustomer.notes.map((n: any) => ({
+          id: n.id || String(Math.random()),
+          content: typeof n === 'string' ? n : n?.content || n?.note || '',
+          createdAt: n?.createdAt || new Date().toISOString(),
+          createdBy: n?.createdBy || 'System'
+        })).filter((n: any) => n.content)
+      : []
+
     return {
       id: rbCustomer.id?.toString() || '',
       firstName: rbCustomer.firstName || firstName,
@@ -94,8 +109,8 @@ export function useCustomers() {
       email: rbCustomer.email || '',
       phone: rbCustomer.phone || '',
       address: rbCustomer.address || undefined,
-      tags: rbCustomer.tags || [],
-      notes: rbCustomer.notes || [],
+      tags,
+      notes,
       bookings: {
         total: 0,
         upcoming: 0,

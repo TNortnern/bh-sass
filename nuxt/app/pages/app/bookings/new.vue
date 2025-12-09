@@ -48,13 +48,60 @@ const form = ref<CreateBookingData>({
   internalNotes: ''
 })
 
+// Store query params for customer prefill
+const prefillCustomerId = ref<string | undefined>()
+
 // Initialize on mount: fetch customers, services, and read query params
 onMounted(async () => {
+  // Read query params for customer prefill FIRST
+  const customerId = route.query.customerId as string | undefined
+  const customerName = route.query.customerName as string | undefined
+  const customerEmail = route.query.customerEmail as string | undefined
+  const customerPhone = route.query.customerPhone as string | undefined
+
+  // Store prefill customer ID for later
+  prefillCustomerId.value = customerId
+
+  // If we have query params for a new customer, prefill now
+  if (!customerId && (customerName || customerEmail)) {
+    customerMode.value = 'new'
+    if (customerName) {
+      const nameParts = customerName.split(' ')
+      form.value.customer!.firstName = nameParts[0] || ''
+      form.value.customer!.lastName = nameParts.slice(1).join(' ') || ''
+    }
+    if (customerEmail) {
+      form.value.customer!.email = customerEmail
+    }
+    if (customerPhone) {
+      form.value.customer!.phone = customerPhone
+    }
+  } else if (customerId) {
+    // Set mode to existing, customer will be selected after load
+    customerMode.value = 'existing'
+  }
+
   // Fetch customers for dropdown
   try {
     isLoadingCustomers.value = true
     const { customers } = await fetchCustomers({ limit: 100 })
     existingCustomers.value = customers
+
+    // NOW that customers are loaded, if we have a prefill customerId, select it
+    if (prefillCustomerId.value) {
+      selectedCustomerId.value = prefillCustomerId.value
+      // Manually trigger the form population since watcher may have missed it
+      const customer = existingCustomers.value.find(c => c.id === prefillCustomerId.value)
+      if (customer) {
+        form.value.customerId = customer.id
+        form.value.customer = {
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          email: customer.email,
+          phone: customer.phone
+        }
+      }
+    }
   } catch (error) {
     console.error('Failed to fetch customers:', error)
   } finally {
@@ -90,32 +137,6 @@ onMounted(async () => {
     })
   } finally {
     isLoadingServices.value = false
-  }
-
-  // Read query params for customer prefill
-  const customerId = route.query.customerId as string | undefined
-  const customerName = route.query.customerName as string | undefined
-  const customerEmail = route.query.customerEmail as string | undefined
-  const customerPhone = route.query.customerPhone as string | undefined
-
-  if (customerId) {
-    // If customerId is provided, set to existing customer mode and select that customer
-    selectedCustomerId.value = customerId
-    customerMode.value = 'existing'
-  } else if (customerName || customerEmail) {
-    // If name/email provided but no ID, prefill new customer form
-    customerMode.value = 'new'
-    if (customerName) {
-      const nameParts = customerName.split(' ')
-      form.value.customer!.firstName = nameParts[0] || ''
-      form.value.customer!.lastName = nameParts.slice(1).join(' ') || ''
-    }
-    if (customerEmail) {
-      form.value.customer!.email = customerEmail
-    }
-    if (customerPhone) {
-      form.value.customer!.phone = customerPhone
-    }
   }
 })
 
