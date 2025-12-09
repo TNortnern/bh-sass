@@ -2167,6 +2167,8 @@ access: {
 4. Push and create pull request
 5. Code review and merge
 
+**IMPORTANT: Never use `--no-verify` when committing.** If pre-commit hooks fail, fix the underlying issue (linting errors, type errors, etc.) rather than bypassing the hooks.
+
 ### Code Style
 
 - **TypeScript** for type safety
