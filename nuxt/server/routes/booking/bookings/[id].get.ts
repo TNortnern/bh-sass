@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
     const url = `${rbPayloadUrl}/api/bookings/${id}`
     console.log(`Fetching booking from rb-payload: ${url}`)
 
-    const response = await $fetch<any>(url, { headers })
+    const response: Record<string, unknown> = await $fetch(url, { headers })
 
     // rb-payload returns the booking directly, not wrapped
     return {

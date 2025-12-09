@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const url = `${rbPayloadUrl}/api/customers/${id}`
-    const response = await $fetch<any>(url, { headers })
+    const response: Record<string, unknown> = await $fetch(url, { headers })
 
     return {
       success: true,

@@ -2,10 +2,10 @@ export default defineEventHandler(async (event) => {
   try {
     // Get authenticated user from Payload using the session cookie
     const config = useRuntimeConfig()
-    const payloadUrl = config.payloadApiUrl || 'http://payload:3000'
+    const payloadUrl: string = config.payloadApiUrl || 'http://payload:3000'
 
     // First, get the current user from Payload
-    const user = await $fetch<any>(`${payloadUrl}/api/users/me`, {
+    const user: { user?: { tenantId?: { id: string } | string } } = await $fetch(`${payloadUrl}/api/users/me`, {
       headers: {
         Cookie: event.headers.get('cookie') || '',
       },
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Get tenant ID from user
-    const tenantId = typeof user.user.tenantId === 'object' ? user.user.tenantId.id : user.user.tenantId
+    const tenantId: string | undefined = typeof user.user.tenantId === 'object' ? user.user.tenantId?.id : user.user.tenantId
 
     if (!tenantId) {
       throw createError({
@@ -29,14 +29,14 @@ export default defineEventHandler(async (event) => {
     }
 
     // Fetch tenant from Payload
-    const tenant = await $fetch<any>(`${payloadUrl}/api/tenants/${tenantId}`, {
+    const tenant: Record<string, any> = await $fetch(`${payloadUrl}/api/tenants/${tenantId}`, {
       headers: {
         Cookie: event.headers.get('cookie') || '',
       },
     })
 
     // Extract branding settings from tenant
-    const branding = {
+    const branding: Record<string, any> = {
       logo: tenant.logo?.url || null,
       logoId: typeof tenant.logo === 'object' ? tenant.logo.id : tenant.logo,
       businessName: tenant.branding?.businessName || tenant.name || '',

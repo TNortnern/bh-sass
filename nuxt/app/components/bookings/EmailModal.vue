@@ -81,7 +81,7 @@ const sendEmail = async () => {
     toast.add({
       title: 'Error',
       description: 'Recipient email is required',
-      color: 'red'
+      color: 'error'
     })
     return
   }
@@ -94,7 +94,7 @@ const sendEmail = async () => {
     toast.add({
       title: 'Email Client Opened',
       description: 'Your default email client should open with a pre-filled message',
-      color: 'blue'
+      color: 'info'
     })
 
     isOpen.value = false
@@ -120,7 +120,7 @@ const sendEmail = async () => {
     toast.add({
       title: 'Email Sent',
       description: `${emailTypeOptions.find(opt => opt.value === emailType.value)?.label} sent to ${recipientEmail.value}`,
-      color: 'green',
+      color: 'success',
       icon: 'i-lucide-check-circle'
     })
 
@@ -136,7 +136,7 @@ const sendEmail = async () => {
       toast.add({
         title: 'Email Service Not Configured',
         description: 'Opening your email client instead...',
-        color: 'yellow',
+        color: 'warning',
         icon: 'i-lucide-alert-triangle'
       })
 
@@ -148,7 +148,7 @@ const sendEmail = async () => {
       toast.add({
         title: 'Failed to Send Email',
         description: error.data?.message || 'Please try again or use the email link below to contact the customer',
-        color: 'red',
+        color: 'error',
         icon: 'i-lucide-alert-circle'
       })
     }
@@ -165,20 +165,20 @@ const openEmailClient = () => {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen" :ui="{ width: 'sm:max-w-2xl' }">
-    <UCard>
-      <template #header>
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-            <UIcon name="i-lucide-mail" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          </div>
-          <div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Send Email</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Booking {{ booking.bookingNumber }}</p>
-          </div>
+  <UModal v-model:open="isOpen" :ui="{ width: 'sm:max-w-2xl' }" title="Send Email" :description="`Booking ${booking.bookingNumber}`">
+    <template #header>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+          <UIcon name="i-lucide-mail" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
         </div>
-      </template>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Send Email</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Booking {{ booking.bookingNumber }}</p>
+        </div>
+      </div>
+    </template>
 
+    <template #body>
       <div class="space-y-6">
         <!-- Email Type Selection -->
         <UFormField label="Email Type" required>
@@ -249,39 +249,39 @@ const openEmailClient = () => {
           </div>
         </div>
       </div>
+    </template>
 
-      <template #footer>
-        <div class="flex items-center justify-between gap-4">
-          <!-- Mailto fallback link -->
+    <template #footer>
+      <div class="flex items-center justify-between gap-4">
+        <!-- Mailto fallback link -->
+        <UButton
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          icon="i-lucide-external-link"
+          @click="openEmailClient"
+        >
+          Open Email Client
+        </UButton>
+
+        <div class="flex items-center gap-2">
           <UButton
             color="neutral"
-            variant="ghost"
-            size="sm"
-            icon="i-lucide-external-link"
-            @click="openEmailClient"
+            variant="outline"
+            @click="isOpen = false"
           >
-            Open Email Client
+            Cancel
           </UButton>
-
-          <div class="flex items-center gap-2">
-            <UButton
-              color="neutral"
-              variant="outline"
-              @click="isOpen = false"
-            >
-              Cancel
-            </UButton>
-            <UButton
-              :loading="isSending"
-              :disabled="!recipientEmail || !subject"
-              icon="i-lucide-send"
-              @click="sendEmail"
-            >
-              Send Email
-            </UButton>
-          </div>
+          <UButton
+            :loading="isSending"
+            :disabled="!recipientEmail || !subject"
+            icon="i-lucide-send"
+            @click="sendEmail"
+          >
+            Send Email
+          </UButton>
         </div>
-      </template>
-    </UCard>
+      </div>
+    </template>
   </UModal>
 </template>

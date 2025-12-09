@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const url = `${rbPayloadUrl}/api/tenants/${TENANT_ID}`
-    const response = await $fetch<any>(url, { headers })
+    const response: Record<string, unknown> = await $fetch(url, { headers })
 
     return {
       success: true,

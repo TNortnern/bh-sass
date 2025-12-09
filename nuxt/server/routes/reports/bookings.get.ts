@@ -149,10 +149,10 @@ export default defineEventHandler(async (event) => {
     ]
 
     // Busiest days of week
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-    const dayOfWeekCounts = filteredBookings.reduce((acc: any, booking: any) => {
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const
+    const dayOfWeekCounts = filteredBookings.reduce((acc: Record<string, number>, booking: any) => {
       const dayOfWeek = getDay(parseISO(booking.createdAt))
-      const dayName = dayNames[dayOfWeek]
+      const dayName = dayNames[dayOfWeek] ?? 'Unknown'
       acc[dayName] = (acc[dayName] || 0) + 1
       return acc
     }, {})

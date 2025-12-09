@@ -23,6 +23,16 @@ const formatCurrency = (amount: number) => {
 const formatDate = (dateStr: string) => {
   return format(new Date(dateStr), 'MMM d, yyyy')
 }
+
+const formatTime = (time24: string): string => {
+  if (!time24) return ''
+  const parts = time24.split(':').map(Number)
+  const hours = parts[0] ?? 0
+  const minutes = parts[1] ?? 0
+  const period = hours >= 12 ? 'PM' : 'AM'
+  const displayHour = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours
+  return `${displayHour}:${minutes.toString().padStart(2, '0')} ${period}`
+}
 </script>
 
 <template>
@@ -30,14 +40,14 @@ const formatDate = (dateStr: string) => {
     <!-- Header -->
     <div class="p-4 border-b border-gray-200 dark:border-gray-800">
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-        <UIcon name="lucide:shopping-cart" class="w-5 h-5" />
+        <UIcon name="i-lucide-shopping-cart" class="w-5 h-5" />
         Cart Summary
       </h3>
     </div>
 
     <!-- Items -->
     <div v-if="items.length === 0" class="p-8 text-center">
-      <UIcon name="lucide:shopping-cart" class="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
+      <UIcon name="i-lucide-shopping-cart" class="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
       <p class="text-sm text-gray-500 dark:text-gray-400">
         Your cart is empty
       </p>
@@ -66,12 +76,21 @@ const formatDate = (dateStr: string) => {
                 <h4 class="font-medium text-gray-900 dark:text-white truncate">
                   {{ item.itemName }}
                 </h4>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  {{ formatDate(item.startDate) }} - {{ formatDate(item.endDate) }}
+                <div class="text-sm text-gray-600 dark:text-gray-400 mt-1 space-y-0.5">
+                  <p class="flex items-center gap-1.5">
+                    <UIcon name="i-lucide-truck" class="w-3.5 h-3.5 text-green-600" />
+                    <span>{{ formatDate(item.startDate) }}</span>
+                    <span v-if="item.deliveryTime" class="text-gray-500">at {{ formatTime(item.deliveryTime) }}</span>
+                  </p>
+                  <p class="flex items-center gap-1.5">
+                    <UIcon name="i-lucide-package-check" class="w-3.5 h-3.5 text-blue-600" />
+                    <span>{{ formatDate(item.endDate) }}</span>
+                    <span v-if="item.pickupTime" class="text-gray-500">at {{ formatTime(item.pickupTime) }}</span>
+                  </p>
                   <span class="text-xs text-gray-500 dark:text-gray-500">
                     ({{ calculateDays(item.startDate, item.endDate) }} {{ calculateDays(item.startDate, item.endDate) === 1 ? 'day' : 'days' }})
                   </span>
-                </p>
+                </div>
 
                 <!-- Add-ons -->
                 <div v-if="item.addOns.length > 0" class="mt-2">
@@ -84,7 +103,7 @@ const formatDate = (dateStr: string) => {
                       :key="addOn.id"
                       class="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1"
                     >
-                      <UIcon name="lucide:plus" class="w-3 h-3" />
+                      <UIcon name="i-lucide-plus" class="w-3 h-3" />
                       {{ addOn.name }} (+{{ formatCurrency(addOn.price) }})
                     </li>
                   </ul>
@@ -99,9 +118,9 @@ const formatDate = (dateStr: string) => {
               <!-- Remove Button -->
               <UButton
                 v-if="showActions"
-                color="red"
+                color="error"
                 variant="ghost"
-                icon="lucide:trash-2"
+                icon="i-lucide-trash-2"
                 size="xs"
                 @click="removeItem(item.id)"
               />
@@ -125,7 +144,7 @@ const formatDate = (dateStr: string) => {
 
       <div class="flex items-center justify-between text-sm">
         <span class="text-gray-600 dark:text-gray-400 flex items-center gap-1">
-          <UIcon name="lucide:truck" class="w-4 h-4" />
+          <UIcon name="i-lucide-truck" class="w-4 h-4" />
           Delivery
         </span>
         <span class="font-medium text-gray-900 dark:text-white">{{ formatCurrency(deliveryFee) }}</span>
