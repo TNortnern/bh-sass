@@ -11,6 +11,12 @@ import {
   adminUsersListEndpoint,
   adminUserStatusEndpoint
 } from './users'
+import { adminBookingsListEndpoint } from './bookings'
+import {
+  adminApiKeysListEndpoint,
+  adminRevokeApiKeyEndpoint
+} from './api-keys'
+import { inventorySyncEndpoints } from './inventory-sync'
 
 /**
  * Admin endpoints - Super admin only
@@ -19,6 +25,8 @@ import {
  * - Platform statistics and metrics
  * - Tenant management
  * - User management across all tenants
+ * - Booking management across all tenants
+ * - API key management
  * - Impersonation for support
  * - Audit logging
  */
@@ -35,5 +43,15 @@ export const adminEndpoints: Endpoint[] = [
 
   // Users
   adminUsersListEndpoint,
-  adminUserStatusEndpoint
+  adminUserStatusEndpoint,
+
+  // Bookings
+  adminBookingsListEndpoint,
+
+  // API Keys
+  adminApiKeysListEndpoint,
+  adminRevokeApiKeyEndpoint,
+
+  // Inventory Sync
+  ...inventorySyncEndpoints
 ]

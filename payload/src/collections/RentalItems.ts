@@ -1,7 +1,40 @@
-import type { Access, CollectionConfig } from 'payload'
+import type { Access, CollectionConfig, CollectionAfterChangeHook } from 'payload'
 import { getTenantId } from '../utilities/getTenantId'
 import { getAccessContext } from '../utilities/accessControl'
 import { auditCreateAndUpdate, auditDelete } from '../hooks/auditHooks'
+import { syncRentalItemToRbPayload } from '../lib/inventory-sync'
+
+/**
+ * Hook to automatically sync rental items to rb-payload after create/update
+ */
+const syncToRbPayloadHook: CollectionAfterChangeHook = async ({
+  doc,
+  req,
+  operation,
+}) => {
+  // Skip if sync is disabled or item is not active
+  if (!doc.isActive) {
+    console.log(`[Inventory Sync] Skipping inactive item ${doc.id}`)
+    return doc
+  }
+
+  // Skip if already synced and not out of sync
+  if (operation === 'update' && doc.syncStatus === 'synced' && doc.rbPayloadServiceId) {
+    // Only sync if data might have changed
+    // For now, always sync on update to ensure consistency
+  }
+
+  // Run sync in background to not block the response
+  setImmediate(async () => {
+    try {
+      await syncRentalItemToRbPayload(req.payload, doc)
+    } catch (error) {
+      console.error(`[Inventory Sync] Background sync failed for item ${doc.id}:`, error)
+    }
+  })
+
+  return doc
+}
 
 export const RentalItems: CollectionConfig = {
   slug: 'rental-items',
@@ -507,7 +540,7 @@ export const RentalItems: CollectionConfig = {
   ],
   timestamps: true,
   hooks: {
-    afterChange: [auditCreateAndUpdate],
+    afterChange: [auditCreateAndUpdate, syncToRbPayloadHook],
     afterDelete: [auditDelete],
   },
 }
