@@ -35,6 +35,130 @@ const { data: templates, pending, refresh } = await useLazyFetch<{ docs: Contrac
   },
 )
 
+// Auto-create default waiver if tenant has no templates
+const hasCreatedDefaultWaiver = ref(false)
+
+watch([templates, pending], async ([templatesData, isLoading]) => {
+  // Only run once when templates load and are empty
+  if (!isLoading && templatesData?.docs?.length === 0 && !hasCreatedDefaultWaiver.value) {
+    hasCreatedDefaultWaiver.value = true
+
+    try {
+      console.log('Creating default waiver template for tenant...')
+
+      await $fetch('/api/contract-templates', {
+        method: 'POST',
+        body: {
+          name: 'Equipment Rental Waiver & Agreement',
+          templateType: 'waiver',
+          description: 'Standard liability waiver and rental agreement for equipment rentals. Covers safety rules, liability release, and rental terms.',
+          isDefault: false,
+          requiresSignature: true,
+          isActive: true,
+          content: {
+            root: {
+              type: 'root',
+              direction: 'ltr',
+              format: '',
+              indent: 0,
+              version: 1,
+              children: [
+                {
+                  type: 'heading',
+                  tag: 'h1',
+                  children: [{ type: 'text', text: 'EQUIPMENT RENTAL AGREEMENT & LIABILITY WAIVER' }],
+                },
+                {
+                  type: 'paragraph',
+                  children: [{ type: 'text', text: 'This Agreement is entered into between {{tenantName}} ("Company") and {{customerName}} ("Renter") on {{bookingDate}}.' }],
+                },
+                {
+                  type: 'heading',
+                  tag: 'h2',
+                  children: [{ type: 'text', text: '1. RENTAL DETAILS' }],
+                },
+                {
+                  type: 'paragraph',
+                  children: [{ type: 'text', text: 'Equipment: {{itemName}}\nRental Period: {{startDate}} to {{endDate}}\nDelivery Address: {{deliveryAddress}}\nTotal Amount: {{totalAmount}}' }],
+                },
+                {
+                  type: 'heading',
+                  tag: 'h2',
+                  children: [{ type: 'text', text: '2. ASSUMPTION OF RISK & RELEASE OF LIABILITY' }],
+                },
+                {
+                  type: 'paragraph',
+                  children: [{ type: 'text', text: 'I, {{customerName}}, acknowledge that the use of inflatable equipment and party rental items involves inherent risks, including but not limited to: physical injury, falls, collisions with other users, equipment malfunction, and other hazards.' }],
+                },
+                {
+                  type: 'paragraph',
+                  children: [{ type: 'text', text: 'I VOLUNTARILY ASSUME ALL RISKS associated with the use of the rented equipment. I hereby RELEASE, WAIVE, AND DISCHARGE {{tenantName}}, its owners, employees, agents, and representatives from any and all liability, claims, demands, and causes of action arising from any injury, loss, or damage to myself, my family members, guests, or property that may occur during the rental period.' }],
+                },
+                {
+                  type: 'heading',
+                  tag: 'h2',
+                  children: [{ type: 'text', text: '3. SAFETY RULES & GUIDELINES' }],
+                },
+                {
+                  type: 'paragraph',
+                  children: [{ type: 'text', text: 'The Renter agrees to enforce the following safety rules at all times:\n\n- Adult supervision is REQUIRED at all times when equipment is in use\n- Remove shoes, eyeglasses, jewelry, and sharp objects before use\n- No food, drinks, gum, silly string, or water near equipment\n- No flips, wrestling, rough play, or climbing on walls\n- Separate users by age and size groups\n- Do not exceed maximum capacity as specified\n- Do not use in high winds (15+ mph), rain, or severe weather\n- Keep blower running at all times during use' }],
+                },
+                {
+                  type: 'heading',
+                  tag: 'h2',
+                  children: [{ type: 'text', text: '4. DAMAGE & RESPONSIBILITY' }],
+                },
+                {
+                  type: 'paragraph',
+                  children: [{ type: 'text', text: 'The Renter is responsible for the equipment from delivery until pickup. The Renter agrees to pay for any damage, excessive cleaning, or loss of equipment caused by misuse, negligence, or failure to follow safety guidelines. A damage assessment will be conducted upon pickup.' }],
+                },
+                {
+                  type: 'heading',
+                  tag: 'h2',
+                  children: [{ type: 'text', text: '5. WEATHER & CANCELLATION POLICY' }],
+                },
+                {
+                  type: 'paragraph',
+                  children: [{ type: 'text', text: '{{cancellationPolicy}}\n\nIn the event of severe weather (winds over 15 mph, lightning, heavy rain), the equipment must be deflated immediately. The Company reserves the right to remove equipment if weather conditions become unsafe.' }],
+                },
+                {
+                  type: 'heading',
+                  tag: 'h2',
+                  children: [{ type: 'text', text: '6. INDEMNIFICATION' }],
+                },
+                {
+                  type: 'paragraph',
+                  children: [{ type: 'text', text: 'The Renter agrees to indemnify, defend, and hold harmless {{tenantName}} from any claims, lawsuits, judgments, costs, or expenses (including attorney fees) arising from the use of the rented equipment, the Renter\'s negligence, or any breach of this Agreement.' }],
+                },
+                {
+                  type: 'heading',
+                  tag: 'h2',
+                  children: [{ type: 'text', text: '7. AGREEMENT' }],
+                },
+                {
+                  type: 'paragraph',
+                  children: [{ type: 'text', text: 'By signing below, I acknowledge that I have read, understand, and agree to all terms and conditions of this Agreement. I confirm that I am at least 18 years of age and legally authorized to enter into this Agreement.\n\nRenter Signature: _________________________\nPrinted Name: {{customerName}}\nDate: {{signatureDate}}\nPhone: {{customerPhone}}\nEmail: {{customerEmail}}' }],
+                },
+              ],
+            },
+          },
+        },
+      })
+
+      toast.add({
+        title: 'Default Template Created',
+        description: 'A default waiver template has been added to get you started.',
+        color: 'success',
+      })
+
+      await refresh()
+    } catch (error) {
+      console.error('Error creating default waiver:', error)
+      // Don't show error to user - they can create their own template
+    }
+  }
+}, { immediate: true })
+
 // Modal states
 const isCreateModalOpen = ref(false)
 const isEditModalOpen = ref(false)
@@ -422,24 +546,21 @@ function insertVariable(variable: string) {
 </script>
 
 <template>
-  <UDashboardPanel>
-    <template #header>
-      <UDashboardNavbar title="Contract Templates">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-        <template #trailing>
-          <UButton
-            icon="i-lucide-plus"
-            label="Create Template"
-            @click="isCreateModalOpen = true"
-          />
-        </template>
-      </UDashboardNavbar>
-    </template>
+  <div>
+    <!-- Page Header -->
+    <div class="flex items-start justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Contract Templates</h1>
+        <p class="text-gray-600 dark:text-gray-400">Create reusable templates for rental agreements and waivers</p>
+      </div>
+      <UButton
+        icon="i-lucide-plus"
+        label="Create Template"
+        @click="isCreateModalOpen = true"
+      />
+    </div>
 
-    <template #body>
-      <div class="p-6">
+    <div>
         <!-- Info Banner -->
         <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <div class="flex items-start gap-3">
@@ -480,9 +601,8 @@ function insertVariable(variable: string) {
         <div v-else class="flex items-center justify-center py-12">
           <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
         </div>
-      </div>
-    </template>
-  </UDashboardPanel>
+    </div>
+  </div>
 
   <!-- Create Template Modal -->
   <UModal v-model:open="isCreateModalOpen" title="Create Contract Template">

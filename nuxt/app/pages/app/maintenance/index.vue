@@ -75,31 +75,30 @@ const getUrgencyColor = (scheduledDate: string) => {
 </script>
 
 <template>
-  <UDashboardPanel>
-    <template #header>
-      <UDashboardNavbar title="Maintenance">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-        <template #trailing>
-          <UButton
-            icon="i-lucide-calendar"
-            label="Schedules"
-            color="neutral"
-            variant="ghost"
-            @click="router.push('/app/maintenance/schedule')"
-          />
-          <UButton
-            icon="i-lucide-plus"
-            label="Log Maintenance"
-            @click="router.push('/app/maintenance/new')"
-          />
-        </template>
-      </UDashboardNavbar>
-    </template>
+  <div>
+    <!-- Page Header -->
+    <div class="flex items-start justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Maintenance</h1>
+        <p class="text-gray-600 dark:text-gray-400">Track equipment maintenance and repair schedules</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <UButton
+          icon="i-lucide-calendar"
+          label="Schedules"
+          color="neutral"
+          variant="ghost"
+          @click="router.push('/app/maintenance/schedule')"
+        />
+        <UButton
+          icon="i-lucide-plus"
+          label="Log Maintenance"
+          @click="router.push('/app/maintenance/new')"
+        />
+      </div>
+    </div>
 
-    <template #body>
-      <div class="p-6 space-y-6">
+    <div class="space-y-6">
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <UCard>
@@ -275,7 +274,6 @@ const getUrgencyColor = (scheduledDate: string) => {
         <div v-if="isLoading" class="flex items-center justify-center py-12">
           <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
         </div>
-      </div>
-    </template>
-  </UDashboardPanel>
+    </div>
+  </div>
 </template>

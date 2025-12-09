@@ -284,24 +284,21 @@ const bookingOptions = computed(() => {
 </script>
 
 <template>
-  <UDashboardPanel>
-    <template #header>
-      <UDashboardNavbar title="Contracts">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-        <template #trailing>
-          <UButton
-            icon="i-lucide-plus"
-            label="Generate Contract"
-            @click="isGenerateModalOpen = true"
-          />
-        </template>
-      </UDashboardNavbar>
-    </template>
+  <div>
+    <!-- Page Header -->
+    <div class="flex items-start justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Contracts</h1>
+        <p class="text-gray-600 dark:text-gray-400">Generate and manage customer contracts from templates</p>
+      </div>
+      <UButton
+        icon="i-lucide-plus"
+        label="Generate Contract"
+        @click="isGenerateModalOpen = true"
+      />
+    </div>
 
-    <template #body>
-      <div class="p-6">
+    <div>
         <!-- Contracts Table -->
         <div v-if="!pending && contracts?.docs.length" class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
           <UTable :data="contracts.docs" :columns="columns" />
@@ -328,9 +325,8 @@ const bookingOptions = computed(() => {
         <div v-else class="flex items-center justify-center py-12">
           <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
         </div>
-      </div>
-    </template>
-  </UDashboardPanel>
+    </div>
+  </div>
 
   <!-- Generate Contract Modal -->
   <UModal v-model:open="isGenerateModalOpen" title="Generate Contract">
