@@ -112,23 +112,24 @@ export function useCustomers() {
   }
 
   /**
-   * Fetch customers with optional filters and pagination from rb-payload
+   * Fetch customers with optional filters and pagination from local Payload
    */
   async function fetchCustomers(params: FetchCustomersParams = {}) {
     loading.value = true
     error.value = null
 
     try {
-      // Fetch from rb-payload via server route
-      const response = await $fetch<{ success: boolean; customers: any[]; totalDocs: number; totalPages: number }>('/booking/customers', {
+      // Fetch from local Payload API
+      const response = await $fetch<{ docs: any[]; totalDocs: number; totalPages: number }>('/api/customers', {
+        credentials: 'include',
         params: {
           page: params.page || 1,
           limit: params.limit || 10
         }
       })
 
-      // Transform rb-payload customers to local format
-      let transformed = (response.customers || []).map(transformRbPayloadCustomer)
+      // Transform Payload customers to local format
+      let transformed = (response.docs || []).map(transformRbPayloadCustomer)
 
       // Apply client-side filtering (rb-payload may not support all filters)
       if (params.search) {
@@ -167,17 +168,19 @@ export function useCustomers() {
   }
 
   /**
-   * Fetch a single customer by ID from rb-payload
+   * Fetch a single customer by ID from local Payload
    */
   async function fetchCustomer(id: string): Promise<Customer | null> {
     loading.value = true
     error.value = null
 
     try {
-      const response = await $fetch<{ success: boolean; customer: any }>(`/booking/customers/${id}`)
-      return transformRbPayloadCustomer(response.customer)
+      const response = await $fetch<any>(`/api/customers/${id}`, {
+        credentials: 'include'
+      })
+      return transformRbPayloadCustomer(response)
     } catch (err: any) {
-      console.error('Failed to fetch customer from rb-payload:', err)
+      console.error('Failed to fetch customer:', err)
       error.value = err.message || 'Failed to fetch customer'
       throw err
     } finally {
@@ -240,7 +243,7 @@ export function useCustomers() {
   }
 
   /**
-   * Update an existing customer in rb-payload
+   * Update an existing customer in local Payload
    */
   async function updateCustomer(id: string, data: Partial<CustomerInput>): Promise<Customer> {
     loading.value = true
@@ -248,15 +251,28 @@ export function useCustomers() {
 
     try {
       // Build update payload - include name if firstName/lastName changed
-      const updatePayload: any = { ...data }
+      const updatePayload: any = {}
       if (data.firstName || data.lastName) {
         const currentFirstName = data.firstName || ''
         const currentLastName = data.lastName || ''
         updatePayload.name = `${currentFirstName} ${currentLastName}`.trim()
       }
+      if (data.email) updatePayload.email = data.email
+      if (data.phone) updatePayload.phone = data.phone
+      if (data.address) {
+        updatePayload.address = {
+          street: data.address.street,
+          city: data.address.city,
+          state: data.address.state,
+          zipCode: data.address.zip
+        }
+      }
+      if (data.notes) updatePayload.notes = data.notes
+      if (data.tags) updatePayload.tags = data.tags.map(tag => ({ tag }))
 
-      const response = await $fetch<{ success: boolean; customer: any }>(`/booking/customers/${id}`, {
+      const response = await $fetch<{ doc: any }>(`/api/customers/${id}`, {
         method: 'PATCH',
+        credentials: 'include',
         body: updatePayload
       })
 
@@ -266,9 +282,9 @@ export function useCustomers() {
         color: 'success'
       })
 
-      return transformRbPayloadCustomer(response.customer)
+      return transformRbPayloadCustomer(response.doc)
     } catch (err: any) {
-      console.error('Failed to update customer in rb-payload:', err)
+      console.error('Failed to update customer:', err)
       error.value = err.message || 'Failed to update customer'
       toast.add({
         title: 'Error',
@@ -282,15 +298,16 @@ export function useCustomers() {
   }
 
   /**
-   * Delete a customer from rb-payload
+   * Delete a customer from local Payload
    */
   async function deleteCustomer(id: string): Promise<void> {
     loading.value = true
     error.value = null
 
     try {
-      await $fetch(`/booking/customers/${id}`, {
-        method: 'DELETE'
+      await $fetch(`/api/customers/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
       })
 
       toast.add({
@@ -299,7 +316,7 @@ export function useCustomers() {
         color: 'success'
       })
     } catch (err: any) {
-      console.error('Failed to delete customer from rb-payload:', err)
+      console.error('Failed to delete customer:', err)
       error.value = err.message || 'Failed to delete customer'
       toast.add({
         title: 'Error',
