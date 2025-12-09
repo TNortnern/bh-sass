@@ -91,8 +91,12 @@ export const Customers: CollectionConfig = {
       hooks: {
         beforeValidate: [
           ({ req, value }) => {
-            if (!value && req.user?.role === 'tenant_admin') {
-              return getTenantId(req.user)
+            // Auto-assign tenantId from logged-in user if not provided
+            if (!value && req.user) {
+              const tenantId = getTenantId(req.user)
+              if (tenantId) {
+                return tenantId
+              }
             }
             return value
           },

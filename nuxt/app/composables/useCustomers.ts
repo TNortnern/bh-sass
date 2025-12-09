@@ -186,22 +186,29 @@ export function useCustomers() {
   }
 
   /**
-   * Create a new customer in rb-payload
+   * Create a new customer in local Payload CMS
    */
   async function createCustomer(data: CustomerInput): Promise<Customer> {
     loading.value = true
     error.value = null
 
     try {
-      const response = await $fetch<{ success: boolean; customer: any; created: boolean }>('/booking/customers', {
+      // Call local Payload API directly - tenantId will be auto-assigned from session
+      const response = await $fetch<{ doc: any }>('/api/customers', {
         method: 'POST',
+        credentials: 'include', // Include session cookie for authentication
         body: {
-          firstName: data.firstName,
-          lastName: data.lastName,
           name: `${data.firstName} ${data.lastName}`,
           email: data.email,
           phone: data.phone,
-          address: data.address
+          address: data.address ? {
+            street: data.address.street,
+            city: data.address.city,
+            state: data.address.state,
+            zipCode: data.address.zip
+          } : undefined,
+          notes: data.notes,
+          tags: data.tags?.map(tag => ({ tag })) // Transform to Payload array format
         }
       })
 
@@ -211,13 +218,19 @@ export function useCustomers() {
         color: 'success'
       })
 
-      return transformRbPayloadCustomer(response.customer)
+      return transformRbPayloadCustomer(response.doc)
     } catch (err: any) {
-      console.error('Failed to create customer in rb-payload:', err)
+      console.error('Failed to create customer:', err)
       error.value = err.message || 'Failed to create customer'
+
+      // Better error message for 403
+      const errorMessage = err.statusCode === 403
+        ? 'Permission denied. Please ensure you are logged in.'
+        : 'Failed to create customer'
+
       toast.add({
         title: 'Error',
-        description: 'Failed to create customer',
+        description: errorMessage,
         color: 'error'
       })
       throw err

@@ -31,8 +31,8 @@ export default defineEventHandler(async (event) => {
     // Parse request body
     const body = await readBody(event)
 
-    // Build branding payload
-    const brandingPayload = {
+    // Build branding payload (includes both branding and website.templateId)
+    const brandingPayload: Record<string, any> = {
       branding: {
         businessName: body.businessName || '',
         tagline: body.tagline || '',
@@ -48,8 +48,21 @@ export default defineEventHandler(async (event) => {
       },
     }
 
-    // If logo is provided and it's a string URL (already uploaded), we don't need to update it
-    // Logo upload is handled separately via the media upload endpoint
+    // Include templateId in website settings if provided
+    if (body.templateId) {
+      brandingPayload.website = {
+        templateId: body.templateId,
+      }
+    }
+
+    // If logo is provided, it should be a media ID (from the upload endpoint)
+    // The frontend uploads the file first and gets back a media ID
+    if (body.logoId) {
+      brandingPayload.logo = body.logoId
+    } else if (body.logo === null) {
+      // Allow removing logo by setting to null
+      brandingPayload.logo = null
+    }
 
     // Update tenant in Payload
     const updatedTenant = await $fetch<any>(`${payloadUrl}/api/tenants/${tenantId}`, {
@@ -66,8 +79,10 @@ export default defineEventHandler(async (event) => {
       success: true,
       branding: {
         logo: updatedTenant.logo?.url || null,
+        logoId: typeof updatedTenant.logo === 'object' ? updatedTenant.logo.id : updatedTenant.logo,
         businessName: updatedTenant.branding?.businessName || updatedTenant.name || '',
         tagline: updatedTenant.branding?.tagline || '',
+        templateId: updatedTenant.website?.templateId || 'classic',
         primaryColor: updatedTenant.branding?.primaryColor || '#fbbf24',
         secondaryColor: updatedTenant.branding?.secondaryColor || '#3b82f6',
         accentColor: updatedTenant.branding?.accentColor || '#10b981',

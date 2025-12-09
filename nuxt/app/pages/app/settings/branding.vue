@@ -195,6 +195,81 @@
         </div>
       </UCard>
 
+      <!-- Website Template -->
+      <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 hover:border-amber-200 dark:hover:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
+        <template #header>
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[10px] text-amber-600 dark:text-amber-400 shrink-0">
+              <UIcon name="i-lucide-layout-grid" class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold tracking-tight mb-1 text-gray-900 dark:text-white">Website Template</h3>
+              <p class="text-sm text-gray-500 dark:text-[#666] m-0">Choose a design style for your booking pages</p>
+            </div>
+          </div>
+        </template>
+
+        <div class="p-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <button
+              v-for="template in availableTemplates"
+              :key="template.id"
+              class="group relative flex flex-col rounded-xl border-2 overflow-hidden transition-all duration-200 cursor-pointer"
+              :class="[
+                brandSettings.templateId === template.id
+                  ? 'border-amber-500 ring-2 ring-amber-500/20'
+                  : 'border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20'
+              ]"
+              @click="selectTemplate(template.id)"
+            >
+              <!-- Template Preview -->
+              <div
+                class="aspect-[16/10] relative overflow-hidden"
+                :style="{
+                  background: `linear-gradient(135deg, ${template.colors.heroGradientFrom}, ${template.colors.heroGradientTo})`
+                }"
+              >
+                <!-- Mini preview of template style -->
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-white p-4">
+                  <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center mb-2">
+                    <UIcon name="i-lucide-castle" class="w-5 h-5" />
+                  </div>
+                  <div class="text-sm font-semibold">{{ template.name }}</div>
+                </div>
+                <!-- Selected indicator -->
+                <div
+                  v-if="brandSettings.templateId === template.id"
+                  class="absolute top-2 right-2 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center"
+                >
+                  <UIcon name="i-lucide-check" class="w-4 h-4 text-white" />
+                </div>
+              </div>
+              <!-- Template Info -->
+              <div class="p-3 bg-white dark:bg-gray-900">
+                <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">{{ template.name }}</h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 m-0">{{ template.description }}</p>
+                <!-- Style indicators -->
+                <div class="flex items-center gap-2 mt-2">
+                  <span class="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded">
+                    {{ template.styles.cardStyle }}
+                  </span>
+                  <span class="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded">
+                    {{ template.styles.buttonStyle }}
+                  </span>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <div class="flex items-start gap-3 p-4 mt-4 bg-amber-50 dark:bg-amber-900/5 border border-amber-200 dark:border-amber-500/15 rounded-lg">
+            <UIcon name="i-lucide-lightbulb" class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <p class="m-0 text-sm text-amber-700 dark:text-amber-300 leading-relaxed">
+              Templates define the overall look and feel of your booking pages. Your brand colors above will be applied to the selected template.
+            </p>
+          </div>
+        </div>
+      </UCard>
+
       <!-- Widget Preview -->
       <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 hover:border-amber-200 dark:hover:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
@@ -378,16 +453,22 @@
 <script setup lang="ts">
 const toast = useToast()
 const { user } = useAuth()
+const { getAllTemplates } = useTemplates()
 
 const loading = ref(false)
 const saving = ref(false)
 const hasChanges = ref(false)
 const logoInput = ref<HTMLInputElement | null>(null)
 
+// Get all available templates
+const availableTemplates = getAllTemplates()
+
 const brandSettings = ref({
   logo: null as string | null,
+  logoId: null as string | null,
   businessName: '',
   tagline: '',
+  templateId: 'classic',
   primaryColor: '#fbbf24',
   secondaryColor: '#3b82f6',
   accentColor: '#10b981',
@@ -398,6 +479,10 @@ const brandSettings = ref({
   termsAndConditions: '',
   safetyGuidelines: '',
 })
+
+const selectTemplate = (templateId: string) => {
+  brandSettings.value.templateId = templateId
+}
 
 const originalSettings = ref<typeof brandSettings.value>({} as any)
 
@@ -486,11 +571,11 @@ const handleLogoUpload = async (event: Event) => {
   const file = input.files?.[0]
   if (!file) return
 
-  // Validate file size (max 2MB)
-  if (file.size > 2 * 1024 * 1024) {
+  // Validate file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
     toast.add({
       title: 'File too large',
-      description: 'Logo must be less than 2MB',
+      description: 'Logo must be less than 5MB',
       color: 'error',
     })
     return
@@ -501,11 +586,13 @@ const handleLogoUpload = async (event: Event) => {
   formData.append('file', file)
 
   try {
-    const response = await $fetch('/api/media/upload', {
+    const response = await $fetch<any>('/api/media/upload', {
       method: 'POST',
       body: formData,
     })
+    // Store both URL (for display) and ID (for saving to tenant)
     brandSettings.value.logo = response.url
+    brandSettings.value.logoId = response.id
     toast.add({
       title: 'Logo uploaded successfully',
       color: 'success',
@@ -521,6 +608,7 @@ const handleLogoUpload = async (event: Event) => {
 
 const removeLogo = () => {
   brandSettings.value.logo = null
+  brandSettings.value.logoId = null
 }
 
 const applyColorPreset = (preset: typeof colorPresets[0]) => {

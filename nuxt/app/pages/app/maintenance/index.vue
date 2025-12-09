@@ -9,17 +9,20 @@ const router = useRouter()
 const toast = useToast()
 
 const {
+  records,
   dueSoon,
   overdue,
   stats,
   isLoading,
   fetchDueItems,
+  fetchRecords,
   completeMaintenance
 } = useMaintenance()
 
-// Fetch due items on mount
+// Fetch both due items AND all records on mount
 onMounted(() => {
   fetchDueItems(30) // Get items due in next 30 days
+  fetchRecords() // Get all records for stats calculation
 })
 
 // Handle complete maintenance
@@ -72,6 +75,18 @@ const getUrgencyColor = (scheduledDate: string) => {
   if (days <= 3) return 'warning'
   return 'neutral'
 }
+
+// Get recently completed records (last 10)
+const recentlyCompleted = computed(() => {
+  return records.value
+    .filter((r: any) => r.status === 'completed')
+    .sort((a: any, b: any) => {
+      const dateA = new Date(a.completedDate || a.updatedAt).getTime()
+      const dateB = new Date(b.completedDate || b.updatedAt).getTime()
+      return dateB - dateA // Most recent first
+    })
+    .slice(0, 10)
+})
 </script>
 
 <template>
@@ -248,8 +263,52 @@ const getUrgencyColor = (scheduledDate: string) => {
           </div>
         </div>
 
+        <!-- Recently Completed -->
+        <div v-if="recentlyCompleted.length > 0">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold flex items-center gap-2">
+              <UIcon name="i-lucide-check-circle" class="text-green-600 dark:text-green-400" />
+              Recently Completed
+            </h2>
+          </div>
+
+          <div class="space-y-3">
+            <UCard v-for="record in recentlyCompleted" :key="record.id" class="border-l-4 border-green-500">
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <div class="flex items-center gap-3 mb-2">
+                    <UIcon :name="getTypeIcon(record.type)" class="text-gray-400" />
+                    <h3 class="font-medium">{{ record.description }}</h3>
+                    <UBadge label="completed" color="success" variant="subtle" />
+                  </div>
+                  <div class="flex items-center gap-4 text-sm text-gray-500">
+                    <span>
+                      <strong>Item:</strong>
+                      {{ typeof record.rentalItem === 'object' ? record.rentalItem.name : record.rentalItem }}
+                    </span>
+                    <span>
+                      <strong>Completed:</strong> {{ formatDate(record.completedDate || record.scheduledDate) }}
+                    </span>
+                    <span v-if="record.cost">
+                      <strong>Cost:</strong> ${{ record.cost.toFixed(2) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <UButton
+                    icon="i-lucide-eye"
+                    color="neutral"
+                    variant="ghost"
+                    @click="handleView(record)"
+                  />
+                </div>
+              </div>
+            </UCard>
+          </div>
+        </div>
+
         <!-- Empty State -->
-        <div v-if="!isLoading && overdue.length === 0 && dueSoon.length === 0" class="flex flex-col items-center justify-center py-16 text-gray-500">
+        <div v-if="!isLoading && overdue.length === 0 && dueSoon.length === 0 && recentlyCompleted.length === 0" class="flex flex-col items-center justify-center py-16 text-gray-500">
           <UIcon name="i-lucide-check-circle-2" class="text-6xl mb-4 text-green-400" />
           <p class="text-lg font-medium">All Caught Up!</p>
           <p class="text-sm mb-6 text-center max-w-sm">

@@ -38,8 +38,10 @@ export default defineEventHandler(async (event) => {
     // Extract branding settings from tenant
     const branding = {
       logo: tenant.logo?.url || null,
+      logoId: typeof tenant.logo === 'object' ? tenant.logo.id : tenant.logo,
       businessName: tenant.branding?.businessName || tenant.name || '',
       tagline: tenant.branding?.tagline || '',
+      templateId: tenant.website?.templateId || 'classic',
       primaryColor: tenant.branding?.primaryColor || '#fbbf24',
       secondaryColor: tenant.branding?.secondaryColor || '#3b82f6',
       accentColor: tenant.branding?.accentColor || '#10b981',

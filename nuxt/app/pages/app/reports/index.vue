@@ -280,7 +280,7 @@ const averageOrderValue = computed(() => {
         <div
           v-for="day in bookingsData?.busiestDays || []"
           :key="day.day"
-          class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+          class="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
         >
           <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">
             {{ day.day }}

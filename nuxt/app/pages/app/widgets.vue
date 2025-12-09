@@ -109,7 +109,7 @@ const viewMode = ref<'embedded' | 'simple'>('embedded')
 
     <!-- Embedded Config Editor (Full Editor Mode) -->
     <div v-if="viewMode === 'embedded'" class="space-y-4">
-      <div class="bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
         <div class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <UIcon name="i-lucide-external-link" class="w-4 h-4" />
@@ -158,7 +158,7 @@ const viewMode = ref<'embedded' | 'simple'>('embedded')
           <p class="text-sm text-gray-600 dark:text-gray-400">
             Use this link in emails, social media, or anywhere you want customers to book directly.
           </p>
-          <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div class="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
             <code class="text-sm text-orange-600 dark:text-orange-400 break-all">
               {{ directWidgetLink }}
             </code>
@@ -203,7 +203,7 @@ const viewMode = ref<'embedded' | 'simple'>('embedded')
           <p class="text-sm text-gray-600 dark:text-gray-400">
             Customize colors, display options, and generate embed codes for your website.
           </p>
-          <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div class="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
             <code class="text-sm text-purple-600 dark:text-purple-400 break-all">
               {{ widgetConfigUrl }}
             </code>
@@ -245,19 +245,19 @@ const viewMode = ref<'embedded' | 'simple'>('embedded')
         </template>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div class="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <h4 class="font-medium text-gray-900 dark:text-white mb-1">Direct Link</h4>
             <p class="text-sm text-gray-500 dark:text-gray-400">
               Perfect for email campaigns, social media, and direct customer communication.
             </p>
           </div>
-          <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div class="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <h4 class="font-medium text-gray-900 dark:text-white mb-1">iFrame Embed</h4>
             <p class="text-sm text-gray-500 dark:text-gray-400">
               Works on WordPress, Wix, Squarespace, and any website. No coding required.
             </p>
           </div>
-          <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div class="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <h4 class="font-medium text-gray-900 dark:text-white mb-1">Customization</h4>
             <p class="text-sm text-gray-500 dark:text-gray-400">
               Match your brand colors and choose what information to display.

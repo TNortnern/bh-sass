@@ -193,13 +193,28 @@ export const useMaintenance = () => {
     error.value = null
 
     try {
+      // Payload returns the created document directly (not wrapped in { doc: ... })
       const newRecord = await $fetch<MaintenanceRecord>('/api/maintenance-records', {
         method: 'POST',
         credentials: 'include',
         body: data,
       })
 
+      // Add to local state
       records.value.push(newRecord)
+
+      // Also update due lists if the record is scheduled/in_progress
+      if (newRecord.status === 'scheduled' || newRecord.status === 'in_progress') {
+        const scheduledDate = new Date(newRecord.scheduledDate)
+        const now = new Date()
+
+        if (scheduledDate < now) {
+          overdue.value.push(newRecord)
+        } else {
+          dueSoon.value.push(newRecord)
+        }
+      }
+
       return { success: true, record: newRecord }
     } catch (err: any) {
       console.error('Failed to create maintenance record:', err.message)

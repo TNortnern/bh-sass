@@ -269,7 +269,7 @@
             <h3 class="text-xl font-semibold m-0 text-gray-900 dark:text-white">Add Webhook Endpoint</h3>
           </template>
 
-          <div class="p-6 flex flex-col gap-6">
+          <div class="p-6 flex flex-col gap-6 max-h-[70vh] overflow-y-auto">
             <UFormField label="Name" required help="A friendly name for this endpoint">
               <UInput
                 v-model="webhookForm.name"

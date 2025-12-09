@@ -70,6 +70,32 @@ export const Media: CollectionConfig = {
       },
     },
   ],
-  upload: true,
+  upload: {
+    staticDir: './public/media',
+    adminThumbnail: 'thumbnail',
+    mimeTypes: ['image/*'],
+    imageSizes: [
+      {
+        name: 'thumbnail',
+        width: 400,
+        height: 300,
+        position: 'centre',
+      },
+      {
+        name: 'card',
+        width: 768,
+        height: 1024,
+        position: 'centre',
+      },
+      {
+        name: 'tablet',
+        width: 1024,
+        height: undefined,
+        position: 'centre',
+      },
+    ],
+    // Set max file size to 5MB
+    maxSize: 5 * 1024 * 1024, // 5MB in bytes
+  },
   timestamps: true,
 }
