@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { format } from 'date-fns'
 import type { MaintenanceChecklistItem } from '~/composables/useMaintenance'
 
@@ -8,7 +9,7 @@ definePageMeta({
 
 const router = useRouter()
 const toast = useToast()
-const { createRecord, isLoading } = useMaintenance()
+const { createRecord } = useMaintenance()
 const { items: rentalItems, fetchItems } = useInventory()
 const { currentUser } = useAuth()
 
@@ -16,7 +17,7 @@ const { currentUser } = useAuth()
 const getTenantId = (): string | number | null => {
   if (!currentUser.value?.tenantId) return null
   if (typeof currentUser.value.tenantId === 'object') {
-    return (currentUser.value.tenantId as any).id
+    return (currentUser.value.tenantId).id
   }
   return currentUser.value.tenantId
 }
@@ -31,11 +32,11 @@ const form = reactive({
   rentalItem: '',
   type: 'inspection' as 'inspection' | 'cleaning' | 'repair' | 'replacement' | 'certification',
   description: '',
-  scheduledDate: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+  scheduledDate: format(new Date(), 'yyyy-MM-dd\'T\'HH:mm'),
   performedBy: '',
   cost: undefined as number | undefined,
   notes: '',
-  nextMaintenanceDate: '',
+  nextMaintenanceDate: ''
 })
 
 // Type options
@@ -44,7 +45,7 @@ const typeItems = [
   { label: 'Cleaning', value: 'cleaning' },
   { label: 'Repair', value: 'repair' },
   { label: 'Replacement', value: 'replacement' },
-  { label: 'Certification', value: 'certification' },
+  { label: 'Certification', value: 'certification' }
 ]
 
 // Rental items for select
@@ -77,8 +78,8 @@ const handleSubmit = async () => {
   }
 
   const result = await createRecord({
-    tenantId: Number(tenantId),
-    rentalItem: Number(form.rentalItem),
+    tenantId: String(tenantId),
+    rentalItem: String(form.rentalItem),
     type: form.type,
     description: form.description,
     scheduledDate: form.scheduledDate,
@@ -87,7 +88,7 @@ const handleSubmit = async () => {
     performedBy: form.performedBy,
     cost: form.cost || undefined,
     notes: form.notes || undefined,
-    nextMaintenanceDate: form.nextMaintenanceDate || undefined,
+    nextMaintenanceDate: form.nextMaintenanceDate || undefined
   })
 
   if (result.success) {
@@ -125,8 +126,14 @@ const handleSubmit = async () => {
     <template #body>
       <div class="p-6 max-w-4xl mx-auto">
         <UCard>
-          <form @submit.prevent="handleSubmit" class="space-y-6">
-            <UFormField label="Rental Item" required>
+          <form
+            class="space-y-6"
+            @submit.prevent="handleSubmit"
+          >
+            <UFormField
+              label="Rental Item"
+              required
+            >
               <USelect
                 v-model="form.rentalItem"
                 :items="rentalItemsSelect"
@@ -135,7 +142,10 @@ const handleSubmit = async () => {
               />
             </UFormField>
 
-            <UFormField label="Maintenance Type" required>
+            <UFormField
+              label="Maintenance Type"
+              required
+            >
               <USelect
                 v-model="form.type"
                 :items="typeItems"
@@ -143,7 +153,10 @@ const handleSubmit = async () => {
               />
             </UFormField>
 
-            <UFormField label="Description" required>
+            <UFormField
+              label="Description"
+              required
+            >
               <UTextarea
                 v-model="form.description"
                 placeholder="Describe the maintenance work performed..."
@@ -153,7 +166,10 @@ const handleSubmit = async () => {
             </UFormField>
 
             <div class="grid grid-cols-2 gap-4">
-              <UFormField label="Date Completed" required>
+              <UFormField
+                label="Date Completed"
+                required
+              >
                 <UInput
                   v-model="form.scheduledDate"
                   type="datetime-local"
@@ -161,7 +177,10 @@ const handleSubmit = async () => {
                 />
               </UFormField>
 
-              <UFormField label="Performed By" required>
+              <UFormField
+                label="Performed By"
+                required
+              >
                 <UInput
                   v-model="form.performedBy"
                   placeholder="Staff name or vendor"

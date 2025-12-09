@@ -11,21 +11,23 @@ export default defineEventHandler(async (event) => {
   if (!id) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Variation ID is required',
+      statusMessage: 'Variation ID is required'
     })
   }
 
   try {
-    await $fetch<any>(`${config.payloadApiUrl}/api/variations/${id}`, {
-      method: 'DELETE',
+    await $fetch<Record<string, unknown>>(`${config.payloadApiUrl}/api/variations/${id}`, {
+      method: 'DELETE'
     })
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting variation:', error)
+
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.message || 'Failed to delete variation',
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      statusMessage: message || 'Failed to delete variation'
     })
   }
 })

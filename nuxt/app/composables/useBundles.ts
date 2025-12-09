@@ -1,4 +1,10 @@
-import type { RentalItem } from './useInventory'
+// RentalItem type for bundle calculations
+export interface RentalItem {
+  id: string
+  pricing: {
+    daily: number
+  }
+}
 
 export interface BundleItem {
   rentalItem: string | RentalItem
@@ -106,9 +112,9 @@ export const useBundles = () => {
       })
 
       bundles.value = response.docs || []
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to fetch bundles:', err)
-      error.value = err.message || 'Failed to fetch bundles'
+      error.value = err instanceof Error ? err.message : 'Failed to fetch bundles'
       bundles.value = []
     } finally {
       isLoading.value = false
@@ -128,9 +134,9 @@ export const useBundles = () => {
       })
 
       return bundle
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to fetch bundle:', err)
-      error.value = err.message || 'Failed to fetch bundle'
+      error.value = err instanceof Error ? err.message : 'Failed to fetch bundle'
       throw err
     } finally {
       isLoading.value = false
@@ -153,9 +159,9 @@ export const useBundles = () => {
 
       bundles.value.push(newBundle)
       return { success: true, bundle: newBundle }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to create bundle:', err)
-      error.value = err.message || 'Failed to create bundle'
+      error.value = err instanceof Error ? err.message : 'Failed to create bundle'
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -182,9 +188,9 @@ export const useBundles = () => {
       }
 
       return { success: true, bundle: updatedBundle }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to update bundle:', err)
-      error.value = err.message || 'Failed to update bundle'
+      error.value = err instanceof Error ? err.message : 'Failed to update bundle'
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -206,9 +212,9 @@ export const useBundles = () => {
 
       bundles.value = bundles.value.filter(b => b.id !== id)
       return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to delete bundle:', err)
-      error.value = err.message || 'Failed to delete bundle'
+      error.value = err instanceof Error ? err.message : 'Failed to delete bundle'
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -279,15 +285,15 @@ export const useBundles = () => {
     // Search filter
     if (searchQuery.value) {
       const query = searchQuery.value.toLowerCase()
-      result = result.filter(bundle => {
+      result = result.filter((bundle) => {
         const descriptionText = typeof bundle.description === 'string'
           ? bundle.description
-          : bundle.description?.root
+          : typeof bundle.description === 'object' && bundle.description !== null
             ? JSON.stringify(bundle.description)
             : ''
 
-        return bundle.name?.toLowerCase().includes(query) ||
-               descriptionText.toLowerCase().includes(query)
+        return bundle.name?.toLowerCase().includes(query)
+          || descriptionText.toLowerCase().includes(query)
       })
     }
 

@@ -2,9 +2,18 @@
 // Extend Window interface for Google Maps
 declare global {
   interface Window {
-    google?: typeof google
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    google?: any
   }
 }
+
+// Type definitions for Google Maps API (third-party library with complex types)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Autocomplete = any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PlaceResult = any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type GeocoderAddressComponent = any
 
 export interface ParsedAddress {
   street: string
@@ -31,7 +40,7 @@ const emit = defineEmits<{
 
 const config = useRuntimeConfig()
 const inputRef = ref<HTMLInputElement | null>(null)
-const autocomplete = ref<google.maps.places.Autocomplete | null>(null)
+const autocomplete = ref<Autocomplete | null>(null)
 const isLoaded = ref(false)
 const isLoading = ref(false)
 const inputValue = ref(props.modelValue || '')
@@ -86,7 +95,8 @@ const initAutocomplete = async () => {
     await loadGoogleMaps()
     isLoaded.value = true
 
-    autocomplete.value = new google.maps.places.Autocomplete(inputRef.value, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    autocomplete.value = new (window.google as any).maps.places.Autocomplete(inputRef.value, {
       types: ['address'],
       componentRestrictions: { country: 'us' },
       fields: ['address_components', 'geometry', 'formatted_address']
@@ -101,18 +111,18 @@ const initAutocomplete = async () => {
 }
 
 // Parse address components from Google Place result
-const parseAddressComponents = (place: google.maps.places.PlaceResult): ParsedAddress => {
+const parseAddressComponents = (place: PlaceResult): ParsedAddress => {
   const components = place.address_components || []
 
   const getComponent = (types: string[]): string => {
-    const component = components.find((c: google.maps.GeocoderAddressComponent) =>
+    const component = components.find((c: GeocoderAddressComponent) =>
       types.some(type => c.types.includes(type))
     )
     return component?.long_name || ''
   }
 
   const getShortComponent = (types: string[]): string => {
-    const component = components.find((c: google.maps.GeocoderAddressComponent) =>
+    const component = components.find((c: GeocoderAddressComponent) =>
       types.some(type => c.types.includes(type))
     )
     return component?.short_name || ''
@@ -166,8 +176,9 @@ onMounted(() => {
 
 // Cleanup on unmount
 onUnmounted(() => {
-  if (autocomplete.value) {
-    google.maps.event.clearInstanceListeners(autocomplete.value)
+  if (autocomplete.value && window.google) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window.google as any).maps.event.clearInstanceListeners(autocomplete.value)
     autocomplete.value = null
   }
 })
@@ -190,7 +201,10 @@ onUnmounted(() => {
       v-if="isLoading"
       class="absolute right-3 top-1/2 -translate-y-1/2"
     >
-      <UIcon name="i-lucide-loader-2" class="w-4 h-4 animate-spin text-gray-400" />
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-4 h-4 animate-spin text-gray-400"
+      />
     </div>
   </div>
 </template>

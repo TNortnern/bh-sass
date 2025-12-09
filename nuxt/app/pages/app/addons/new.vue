@@ -46,7 +46,7 @@ const handleSubmit = async () => {
     toast.add({
       title: 'Validation Error',
       description: 'Add-on name is required',
-      color: 'red'
+      color: 'error'
     })
     return
   }
@@ -55,27 +55,28 @@ const handleSubmit = async () => {
     toast.add({
       title: 'Validation Error',
       description: 'Price must be greater than 0',
-      color: 'red'
+      color: 'error'
     })
     return
   }
 
   isSubmitting.value = true
 
-  const result = await createAddOn(form.value)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const result = await createAddOn(form.value as any)
 
   if (result.success) {
     toast.add({
       title: 'Add-on created',
       description: `${form.value.name} has been added`,
-      color: 'green'
+      color: 'success'
     })
     router.push('/app/addons')
   } else {
     toast.add({
       title: 'Failed to create add-on',
       description: result.error,
-      color: 'red'
+      color: 'error'
     })
   }
 
@@ -99,7 +100,9 @@ const handleCancel = () => {
         @click="handleCancel"
       />
       <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Create Add-On Service</h1>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+          Create Add-On Service
+        </h1>
         <p class="text-gray-600 dark:text-gray-400 mt-1">
           Add a new service or equipment to offer with bookings
         </p>
@@ -111,9 +114,14 @@ const handleCancel = () => {
       <div class="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 space-y-6">
         <!-- Basic Information -->
         <div class="space-y-4">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Basic Information</h2>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Basic Information
+          </h2>
 
-          <UFormField label="Service Name" required>
+          <UFormField
+            label="Service Name"
+            required
+          >
             <UInput
               v-model="form.name"
               placeholder="e.g., Delivery & Setup, Generator Rental"
@@ -130,7 +138,10 @@ const handleCancel = () => {
             />
           </UFormField>
 
-          <UFormField label="Category" required>
+          <UFormField
+            label="Category"
+            required
+          >
             <USelect
               v-model="form.category"
               :items="categoryOptions"
@@ -143,15 +154,22 @@ const handleCancel = () => {
 
         <!-- Icon Selection -->
         <div class="space-y-4">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Icon</h2>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Icon
+          </h2>
           <IconPicker v-model="form.icon" />
         </div>
 
         <!-- Pricing -->
         <div class="space-y-4">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Pricing</h2>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Pricing
+          </h2>
 
-          <UFormField label="Pricing Type" required>
+          <UFormField
+            label="Pricing Type"
+            required
+          >
             <USelect
               v-model="form.pricing.type"
               :items="pricingTypeOptions"
@@ -161,7 +179,10 @@ const handleCancel = () => {
             />
           </UFormField>
 
-          <UFormField label="Price" required>
+          <UFormField
+            label="Price"
+            required
+          >
             <UInput
               v-model.number="form.pricing.amount"
               type="number"
@@ -172,13 +193,22 @@ const handleCancel = () => {
               class="w-full"
             />
             <template #help>
-              <p v-if="form.pricing.type === 'fixed'" class="text-xs text-gray-500">
+              <p
+                v-if="form.pricing.type === 'fixed'"
+                class="text-xs text-gray-500"
+              >
                 This is a one-time charge added to the booking
               </p>
-              <p v-else-if="form.pricing.type === 'perItem'" class="text-xs text-gray-500">
+              <p
+                v-else-if="form.pricing.type === 'perItem'"
+                class="text-xs text-gray-500"
+              >
                 This will be multiplied by the number of items in the booking
               </p>
-              <p v-else-if="form.pricing.type === 'perDay'" class="text-xs text-gray-500">
+              <p
+                v-else-if="form.pricing.type === 'perDay'"
+                class="text-xs text-gray-500"
+              >
                 This will be multiplied by the number of rental days
               </p>
             </template>
@@ -187,7 +217,9 @@ const handleCancel = () => {
 
         <!-- Options -->
         <div class="space-y-4">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Options</h2>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Options
+          </h2>
 
           <div class="space-y-3">
             <label class="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
@@ -195,7 +227,7 @@ const handleCancel = () => {
                 v-model="form.required"
                 type="checkbox"
                 class="w-4 h-4 text-amber-600 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 rounded focus:ring-amber-500 focus:ring-offset-2"
-              />
+              >
               <div class="flex-1">
                 <p class="font-medium text-gray-900 dark:text-white">Required</p>
                 <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -209,7 +241,7 @@ const handleCancel = () => {
                 v-model="form.active"
                 type="checkbox"
                 class="w-4 h-4 text-amber-600 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 rounded focus:ring-amber-500 focus:ring-offset-2"
-              />
+              >
               <div class="flex-1">
                 <p class="font-medium text-gray-900 dark:text-white">Active</p>
                 <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -226,8 +258,8 @@ const handleCancel = () => {
             label="Cancel"
             color="neutral"
             variant="ghost"
-            @click="handleCancel"
             :disabled="isSubmitting"
+            @click="handleCancel"
           />
           <UButton
             label="Create Add-On"

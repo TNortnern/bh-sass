@@ -1,4 +1,5 @@
-import { Page, expect } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import { expect } from '@playwright/test'
 
 /**
  * Test user credentials
@@ -187,10 +188,11 @@ export async function expectDashboard(page: Page) {
 /**
  * Take screenshot on failure
  */
-export async function takeScreenshotOnFailure(page: Page, testInfo: any) {
-  if (testInfo.status !== testInfo.expectedStatus) {
+export async function takeScreenshotOnFailure(page: Page, testInfo: unknown) {
+  const info = testInfo as { status: string, expectedStatus: string, attach: (name: string, options: { body: Buffer, contentType: string }) => Promise<void> }
+  if (info.status !== info.expectedStatus) {
     const screenshot = await page.screenshot()
-    await testInfo.attach('screenshot', {
+    await info.attach('screenshot', {
       body: screenshot,
       contentType: 'image/png'
     })

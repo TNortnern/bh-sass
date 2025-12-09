@@ -26,17 +26,19 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Forward to Payload API
-    const response = await $fetch(`${config.payloadApiUrl}/api/email/send-test`, {
+    const _response = await $fetch(`${config.payloadApiUrl}/api/email/send-test`, {
       method: 'POST',
       body: { templateName: name, toEmail: email }
     })
 
     return { success: true, message: `Test email sent to ${email}` }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to send test email:', error)
+
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to send test email'
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      message: message || 'Failed to send test email'
     })
   }
 })

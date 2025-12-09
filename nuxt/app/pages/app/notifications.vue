@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 definePageMeta({
   layout: 'dashboard'
 })
@@ -16,7 +17,7 @@ const {
   formatNotificationTime
 } = useNotifications()
 
-const router = useRouter()
+// const router = useRouter()
 
 // State
 const activeFilter = ref<'all' | 'unread'>('all')
@@ -54,6 +55,7 @@ const handleFilterChange = async (filter: 'all' | 'unread') => {
 }
 
 // Handle notification click
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleNotificationClick = async (notification: any) => {
   await navigateToNotification(notification)
 }
@@ -111,7 +113,9 @@ const getTypeLabel = (type: string) => {
     <!-- Page Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Notifications</h1>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+          Notifications
+        </h1>
         <p class="text-gray-600 dark:text-gray-400 mt-1">
           Stay updated on bookings and payments
         </p>
@@ -150,8 +154,14 @@ const getTypeLabel = (type: string) => {
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading && notifications.length === 0" class="flex items-center justify-center py-12">
-      <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
+    <div
+      v-if="isLoading && notifications.length === 0"
+      class="flex items-center justify-center py-12"
+    >
+      <UIcon
+        name="i-lucide-loader-circle"
+        class="animate-spin text-4xl text-gray-400"
+      />
     </div>
 
     <!-- Empty State -->
@@ -159,7 +169,10 @@ const getTypeLabel = (type: string) => {
       v-else-if="notifications.length === 0"
       class="flex flex-col items-center justify-center py-16 text-gray-500"
     >
-      <UIcon name="i-lucide-inbox" class="text-6xl mb-4 text-gray-300 dark:text-gray-700" />
+      <UIcon
+        name="i-lucide-inbox"
+        class="text-6xl mb-4 text-gray-300 dark:text-gray-700"
+      />
       <p class="text-lg font-medium">
         {{ activeFilter === 'unread' ? 'No unread notifications' : 'No notifications yet' }}
       </p>
@@ -173,78 +186,87 @@ const getTypeLabel = (type: string) => {
     </div>
 
     <!-- Notifications List -->
-    <div v-else class="space-y-3">
-        <button
-          v-for="notification in notifications"
-          :key="notification.id"
-          class="w-full flex items-start gap-4 p-5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all hover:shadow-sm"
-          :class="!notification.read && 'ring-2 ring-orange-100 dark:ring-orange-900/30 border-orange-200 dark:border-orange-800'"
-          @click="handleNotificationClick(notification)"
+    <div
+      v-else
+      class="space-y-3"
+    >
+      <button
+        v-for="notification in notifications"
+        :key="notification.id"
+        class="w-full flex items-start gap-4 p-5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-all hover:shadow-sm"
+        :class="!notification.read && 'ring-2 ring-orange-100 dark:ring-orange-900/30 border-orange-200 dark:border-orange-800'"
+        @click="handleNotificationClick(notification)"
+      >
+        <!-- Icon -->
+        <div
+          class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center"
+          :class="[
+            notification.read
+              ? 'bg-gray-100 dark:bg-gray-800'
+              : 'bg-orange-100 dark:bg-orange-900/30'
+          ]"
         >
-          <!-- Icon -->
-          <div
-            class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center"
+          <UIcon
+            :name="getNotificationIcon(notification.type)"
             :class="[
+              'text-xl',
               notification.read
-                ? 'bg-gray-100 dark:bg-gray-800'
-                : 'bg-orange-100 dark:bg-orange-900/30'
+                ? 'text-gray-500 dark:text-gray-400'
+                : 'text-orange-600 dark:text-orange-400'
             ]"
-          >
-            <UIcon
-              :name="getNotificationIcon(notification.type)"
-              :class="[
-                'text-xl',
-                notification.read
-                  ? 'text-gray-500 dark:text-gray-400'
-                  : 'text-orange-600 dark:text-orange-400'
-              ]"
-            />
-          </div>
+          />
+        </div>
 
-          <!-- Content -->
-          <div class="flex-1 min-w-0 text-left">
-            <div class="flex items-start justify-between gap-3 mb-1">
-              <p
-                class="text-base font-medium text-gray-900 dark:text-white"
-                :class="!notification.read && 'font-semibold'"
-              >
-                {{ notification.title }}
-              </p>
-              <div class="flex items-center gap-2 flex-shrink-0">
-                <UBadge
-                  :label="getTypeLabel(notification.type)"
-                  :color="getNotificationColor(notification.type)"
-                  variant="subtle"
-                  size="sm"
-                />
-                <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                  {{ formatNotificationTime(notification.createdAt) }}
-                </span>
-              </div>
-            </div>
-            <p class="text-sm text-gray-600 dark:text-gray-400">
-              {{ notification.body }}
+        <!-- Content -->
+        <div class="flex-1 min-w-0 text-left">
+          <div class="flex items-start justify-between gap-3 mb-1">
+            <p
+              class="text-base font-medium text-gray-900 dark:text-white"
+              :class="!notification.read && 'font-semibold'"
+            >
+              {{ notification.title }}
             </p>
-
-            <!-- Unread indicator -->
-            <div v-if="!notification.read" class="flex items-center gap-1.5 mt-3">
-              <div class="w-1.5 h-1.5 rounded-full bg-orange-500" />
-              <span class="text-xs text-orange-600 dark:text-orange-400 font-medium">
-                Unread
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <UBadge
+                :label="getTypeLabel(notification.type)"
+                :color="getNotificationColor(notification.type)"
+                variant="subtle"
+                size="sm"
+              />
+              <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                {{ formatNotificationTime(notification.createdAt) }}
               </span>
             </div>
           </div>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            {{ notification.body }}
+          </p>
 
-          <!-- Arrow -->
-          <UIcon
-            name="i-lucide-chevron-right"
-            class="flex-shrink-0 text-gray-400 dark:text-gray-600 text-xl"
-          />
-        </button>
+          <!-- Unread indicator -->
+          <div
+            v-if="!notification.read"
+            class="flex items-center gap-1.5 mt-3"
+          >
+            <div class="w-1.5 h-1.5 rounded-full bg-orange-500" />
+            <span class="text-xs text-orange-600 dark:text-orange-400 font-medium">
+              Unread
+            </span>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <UIcon
+          name="i-lucide-chevron-right"
+          class="flex-shrink-0 text-gray-400 dark:text-gray-600 text-xl"
+        />
+      </button>
     </div>
 
     <!-- Load More -->
-    <div v-if="hasNextPage" class="flex justify-center">
+    <div
+      v-if="hasNextPage"
+      class="flex justify-center"
+    >
       <UButton
         label="Load more"
         icon="i-lucide-chevron-down"
@@ -256,7 +278,10 @@ const getTypeLabel = (type: string) => {
     </div>
 
     <!-- Pagination Info -->
-    <div v-if="notifications.length > 0" class="text-center">
+    <div
+      v-if="notifications.length > 0"
+      class="text-center"
+    >
       <p class="text-sm text-gray-500 dark:text-gray-400">
         Page {{ currentPage }} of {{ totalPages }}
       </p>

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner, navigateToDashboard } from './helpers'
+import { loginAsOwner } from './helpers'
 
 test.describe('Dashboard Navigation', () => {
   test.beforeEach(async ({ page }) => {
@@ -202,7 +202,7 @@ test.describe('Dashboard Navigation', () => {
 
     // Allow some expected errors (like missing API data in tests)
     const criticalErrors = consoleErrors.filter(
-      (error) => !error.includes('404') && !error.includes('fetch')
+      error => !error.includes('404') && !error.includes('fetch')
     )
 
     expect(criticalErrors.length).toBeLessThan(3)

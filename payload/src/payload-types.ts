@@ -93,6 +93,8 @@ export interface Config {
     'maintenance-records': MaintenanceRecord;
     'maintenance-schedules': MaintenanceSchedule;
     'email-templates': EmailTemplate;
+    documents: Document;
+    'signed-documents': SignedDocument;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -126,6 +128,8 @@ export interface Config {
     'maintenance-records': MaintenanceRecordsSelect<false> | MaintenanceRecordsSelect<true>;
     'maintenance-schedules': MaintenanceSchedulesSelect<false> | MaintenanceSchedulesSelect<true>;
     'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
+    documents: DocumentsSelect<false> | DocumentsSelect<true>;
+    'signed-documents': SignedDocumentsSelect<false> | SignedDocumentsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -260,9 +264,25 @@ export interface Tenant {
    */
   stripePayoutsEnabled?: boolean | null;
   /**
-   * API key for widget authentication
+   * API key for widget authentication (BH-SaaS internal)
    */
   apiKey: string;
+  /**
+   * Tenant ID in rb-payload booking engine
+   */
+  rbPayloadTenantId?: number | null;
+  /**
+   * API key for rb-payload booking engine
+   */
+  rbPayloadApiKey?: string | null;
+  /**
+   * Status of rb-payload tenant provisioning
+   */
+  rbPayloadSyncStatus?: ('pending' | 'provisioned' | 'failed') | null;
+  /**
+   * Error message if rb-payload provisioning failed
+   */
+  rbPayloadSyncError?: string | null;
   /**
    * Business phone number
    */
@@ -400,6 +420,10 @@ export interface Tenant {
      * Enable public website for this tenant
      */
     enabled?: boolean | null;
+    /**
+     * Website design template - choose the style that fits your brand
+     */
+    templateId?: ('classic' | 'modern' | 'bold' | 'playful' | 'elegant') | null;
     /**
      * Main headline on the website
      */
@@ -559,6 +583,32 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+  sizes?: {
+    thumbnail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    card?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    tablet?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -939,6 +989,14 @@ export interface Booking {
    * Rental end date and time
    */
   endDate: string;
+  /**
+   * Preferred delivery time (e.g., 9:00 AM)
+   */
+  deliveryTime?: string | null;
+  /**
+   * Preferred pickup time (e.g., 5:00 PM)
+   */
+  pickupTime?: string | null;
   deliveryAddress: {
     /**
      * Delivery street address
@@ -964,7 +1022,7 @@ export interface Booking {
   /**
    * Booking status
    */
-  status: 'pending' | 'confirmed' | 'delivered' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'preparing' | 'in_route' | 'delivered' | 'picked_up' | 'completed' | 'cancelled';
   /**
    * Total rental price
    */
@@ -1873,7 +1931,7 @@ export interface Contract {
   /**
    * Contract type
    */
-  type: 'rental-agreement' | 'liability-waiver' | 'custom';
+  type: 'rental-agreement' | 'liability-waiver' | 'damage-policy' | 'safety-rules' | 'weather-policy' | 'custom';
   /**
    * Contract terms and conditions
    */
@@ -2258,6 +2316,173 @@ export interface EmailTemplate {
   createdAt: string;
 }
 /**
+ * Document templates for terms, waivers, and contracts
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "documents".
+ */
+export interface Document {
+  id: number;
+  /**
+   * Internal name for this document
+   */
+  title: string;
+  /**
+   * The type of document
+   */
+  type: 'terms' | 'waiver' | 'contract' | 'policy';
+  /**
+   * Document content. Use merge fields like {{customer.name}} for dynamic content.
+   */
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * If checked, customers must provide a signature
+   */
+  requiresSignature?: boolean | null;
+  /**
+   * Use this as the default document for its type
+   */
+  isDefault?: boolean | null;
+  /**
+   * Whether this document is currently in use
+   */
+  isActive?: boolean | null;
+  /**
+   * Document version number
+   */
+  version?: number | null;
+  /**
+   * When this version becomes effective
+   */
+  effectiveDate?: string | null;
+  /**
+   * The tenant this document belongs to
+   */
+  tenantId: number | Tenant;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Signed document records with customer signatures
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "signed-documents".
+ */
+export interface SignedDocument {
+  id: number;
+  displayTitle?: string | null;
+  /**
+   * The original document template
+   */
+  document: number | Document;
+  /**
+   * Type of document signed
+   */
+  documentType?: ('terms' | 'waiver' | 'contract' | 'policy') | null;
+  /**
+   * Version of the document at time of signing
+   */
+  documentVersion?: number | null;
+  /**
+   * Associated booking (if applicable)
+   */
+  booking?: (number | null) | Booking;
+  /**
+   * Customer who signed
+   */
+  customer?: (number | null) | Customer;
+  signerInfo: {
+    /**
+     * Full legal name as entered by signer
+     */
+    signerName: string;
+    /**
+     * Email address of signer
+     */
+    signerEmail?: string | null;
+    /**
+     * Phone number of signer
+     */
+    signerPhone?: string | null;
+  };
+  /**
+   * Name that appears in the signature
+   */
+  signerName: string;
+  /**
+   * Snapshot of document content at time of signing with merge fields replaced
+   */
+  signedContent?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  signature: {
+    type: 'drawn' | 'typed';
+    /**
+     * Base64 image data for drawn signatures, or text for typed
+     */
+    data: string;
+    /**
+     * Font used for typed signatures
+     */
+    fontFamily?: string | null;
+  };
+  metadata: {
+    /**
+     * Timestamp when document was signed
+     */
+    signedAt: string;
+    /**
+     * IP address of signer
+     */
+    ipAddress?: string | null;
+    /**
+     * Browser/device information
+     */
+    userAgent?: string | null;
+    /**
+     * Signer confirmed agreement to terms
+     */
+    consentGiven?: boolean | null;
+  };
+  signedAt?: string | null;
+  /**
+   * Current status of this signed document
+   */
+  status?: ('valid' | 'superseded' | 'revoked') | null;
+  /**
+   * The tenant this signed document belongs to
+   */
+  tenantId: number | Tenant;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -2384,6 +2609,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'email-templates';
         value: number | EmailTemplate;
+      } | null)
+    | ({
+        relationTo: 'documents';
+        value: number | Document;
+      } | null)
+    | ({
+        relationTo: 'signed-documents';
+        value: number | SignedDocument;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -2476,6 +2709,40 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+  sizes?:
+    | T
+    | {
+        thumbnail?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        card?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        tablet?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2493,6 +2760,10 @@ export interface TenantsSelect<T extends boolean = true> {
   stripeChargesEnabled?: T;
   stripePayoutsEnabled?: T;
   apiKey?: T;
+  rbPayloadTenantId?: T;
+  rbPayloadApiKey?: T;
+  rbPayloadSyncStatus?: T;
+  rbPayloadSyncError?: T;
   phone?: T;
   email?: T;
   description?: T;
@@ -2588,6 +2859,7 @@ export interface TenantsSelect<T extends boolean = true> {
     | T
     | {
         enabled?: T;
+        templateId?: T;
         heroTitle?: T;
         heroSubtitle?: T;
         heroImage?: T;
@@ -2796,6 +3068,8 @@ export interface BookingsSelect<T extends boolean = true> {
   customerId?: T;
   startDate?: T;
   endDate?: T;
+  deliveryTime?: T;
+  pickupTime?: T;
   deliveryAddress?:
     | T
     | {
@@ -3253,6 +3527,64 @@ export interface EmailTemplatesSelect<T extends boolean = true> {
   textBody?: T;
   isActive?: T;
   variables?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "documents_select".
+ */
+export interface DocumentsSelect<T extends boolean = true> {
+  title?: T;
+  type?: T;
+  content?: T;
+  requiresSignature?: T;
+  isDefault?: T;
+  isActive?: T;
+  version?: T;
+  effectiveDate?: T;
+  tenantId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "signed-documents_select".
+ */
+export interface SignedDocumentsSelect<T extends boolean = true> {
+  displayTitle?: T;
+  document?: T;
+  documentType?: T;
+  documentVersion?: T;
+  booking?: T;
+  customer?: T;
+  signerInfo?:
+    | T
+    | {
+        signerName?: T;
+        signerEmail?: T;
+        signerPhone?: T;
+      };
+  signerName?: T;
+  signedContent?: T;
+  signature?:
+    | T
+    | {
+        type?: T;
+        data?: T;
+        fontFamily?: T;
+      };
+  metadata?:
+    | T
+    | {
+        signedAt?: T;
+        ipAddress?: T;
+        userAgent?: T;
+        consentGiven?: T;
+      };
+  signedAt?: T;
+  status?: T;
+  tenantId?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -6,7 +6,7 @@
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event)
-    const { bookingId, emailType, customMessage } = body
+    const { bookingId, emailType, subject, customMessage, recipientEmail, recipientName } = body
 
     if (!bookingId) {
       throw createError({
@@ -26,43 +26,60 @@ export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const payloadUrl = config.payloadApiUrl || 'http://payload:3000'
 
-    // Fetch booking details from Payload
-    const bookingResponse = await fetch(`${payloadUrl}/api/bookings/${bookingId}`, {
+    // Forward cookies from the original request for authentication
+    const cookieHeader = getHeader(event, 'cookie') || ''
+
+    // Fetch booking details from Payload with authentication
+    const bookingResponse = await fetch(`${payloadUrl}/api/bookings/${bookingId}?depth=2`, {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Cookie': cookieHeader
       }
     })
 
     if (!bookingResponse.ok) {
+      const errorText = await bookingResponse.text()
+      console.error('Failed to fetch booking:', bookingResponse.status, errorText)
       throw createError({
         statusCode: 404,
         message: 'Booking not found'
       })
     }
 
-    const booking = await bookingResponse.json()
-
-    // Prepare email data based on type
-    let emailData: any = {
-      bookingId: booking.id,
+    // Prepare email data
+    const emailData = {
       emailType,
-      customMessage
+      subject,
+      customMessage,
+      recipientEmail,
+      recipientName
     }
 
-    // Send email via Payload's email endpoint (we'll create this endpoint)
-    const emailResponse = await fetch(`${payloadUrl}/api/bookings/${bookingId}/send-email`, {
+    // Send email via Payload's email endpoint (path: /email/booking/:id/send)
+    const emailResponse = await fetch(`${payloadUrl}/api/email/booking/${bookingId}/send`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Cookie': cookieHeader
       },
       body: JSON.stringify(emailData)
     })
 
     if (!emailResponse.ok) {
-      const error = await emailResponse.json()
+      const errorData = await emailResponse.json().catch(() => ({ message: 'Failed to send email' }))
+
+      // Check if this is a configuration error - return fallback info
+      if (emailResponse.status === 503 || errorData.fallback === 'mailto') {
+        throw createError({
+          statusCode: 503,
+          data: { fallback: 'mailto' },
+          message: 'Email service not configured'
+        })
+      }
+
       throw createError({
         statusCode: emailResponse.status,
-        message: error.message || 'Failed to send email'
+        message: errorData.message || 'Failed to send email'
       })
     }
 
@@ -73,17 +90,17 @@ export default defineEventHandler(async (event) => {
       message: 'Email sent successfully',
       data: result
     }
-
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Email send error:', error)
 
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 
+    const message = error instanceof Error ? error.message : 'Internal server error'
     throw createError({
       statusCode: 500,
-      message: error.message || 'Internal server error'
+      message
     })
   }
 })

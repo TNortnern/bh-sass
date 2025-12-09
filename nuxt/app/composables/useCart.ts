@@ -9,6 +9,8 @@ export interface CartItem {
   itemImage?: string
   startDate: string
   endDate: string
+  deliveryTime?: string // HH:mm format (24h)
+  pickupTime?: string // HH:mm format (24h)
   basePrice: number
   addOns: CartAddOn[]
   quantity: number

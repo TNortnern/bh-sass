@@ -3,7 +3,34 @@
  * Calculate revenue metrics from rb-payload bookings
  * Requires API key for authentication
  */
-import { startOfDay, endOfDay, parseISO, format, eachDayOfInterval } from 'date-fns'
+import { parseISO, format, eachDayOfInterval } from 'date-fns'
+
+interface BookingItem {
+  service?: {
+    id: string
+    name: string
+  }
+}
+
+interface BookingCustomer {
+  id: string
+  name: string
+  email: string
+}
+
+interface Booking {
+  id: string
+  createdAt: string
+  totalPrice: number
+  status: string
+  items?: BookingItem[]
+  customer?: BookingCustomer | string
+  customerId?: string
+}
+
+interface BookingsResponse {
+  docs: Booking[]
+}
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -38,7 +65,7 @@ export default defineEventHandler(async (event) => {
   try {
     // Fetch all bookings for the date range
     const url = `${rbPayloadUrl}/api/bookings?where[tenantId][equals]=${TENANT_ID}&limit=1000`
-    const response = await $fetch<{ docs: any[] }>(url, { headers })
+    const response = await $fetch<BookingsResponse>(url, { headers })
 
     const bookings = response.docs || []
 
@@ -46,13 +73,13 @@ export default defineEventHandler(async (event) => {
     const start = parseISO(startDate)
     const end = parseISO(endDate)
 
-    const filteredBookings = bookings.filter((booking: any) => {
+    const filteredBookings = bookings.filter((booking) => {
       const bookingDate = parseISO(booking.createdAt)
       return bookingDate >= start && bookingDate <= end
     })
 
     // Calculate total revenue
-    const total = filteredBookings.reduce((sum: number, booking: any) => {
+    const total = filteredBookings.reduce((sum, booking) => {
       return sum + (booking.totalPrice || 0)
     }, 0)
 
@@ -63,12 +90,12 @@ export default defineEventHandler(async (event) => {
     const previousEnd = new Date(start)
     previousEnd.setDate(previousEnd.getDate() - 1)
 
-    const previousBookings = bookings.filter((booking: any) => {
+    const previousBookings = bookings.filter((booking) => {
       const bookingDate = parseISO(booking.createdAt)
       return bookingDate >= previousStart && bookingDate <= previousEnd
     })
 
-    const previousTotal = previousBookings.reduce((sum: number, booking: any) => {
+    const previousTotal = previousBookings.reduce((sum, booking) => {
       return sum + (booking.totalPrice || 0)
     }, 0)
 
@@ -77,23 +104,23 @@ export default defineEventHandler(async (event) => {
       : 0
 
     // Revenue by day
-    const byDay = eachDayOfInterval({ start, end }).map(day => {
+    const byDay = eachDayOfInterval({ start, end }).map((day) => {
       const dayStr = format(day, 'yyyy-MM-dd')
-      const dayBookings = filteredBookings.filter((booking: any) => {
+      const dayBookings = filteredBookings.filter((booking) => {
         const bookingDate = format(parseISO(booking.createdAt), 'yyyy-MM-dd')
         return bookingDate === dayStr
       })
-      const amount = dayBookings.reduce((sum: number, booking: any) => {
+      const amount = dayBookings.reduce((sum, booking) => {
         return sum + (booking.totalPrice || 0)
       }, 0)
       return { date: dayStr, amount }
     })
 
     // Revenue by service/item
-    const serviceRevenueMap = new Map<string, { revenue: number; bookings: number }>()
+    const serviceRevenueMap = new Map<string, { revenue: number, bookings: number }>()
 
-    filteredBookings.forEach((booking: any) => {
-      booking.items?.forEach((item: any) => {
+    filteredBookings.forEach((booking) => {
+      booking.items?.forEach((item) => {
         const serviceName = item.service?.name || 'Unknown Service'
         const existing = serviceRevenueMap.get(serviceName) || { revenue: 0, bookings: 0 }
         existing.revenue += booking.totalPrice || 0
@@ -112,12 +139,13 @@ export default defineEventHandler(async (event) => {
       .slice(0, 10) // Top 10 items
 
     // Revenue by customer
-    const customerRevenueMap = new Map<string, { name: string; email: string; revenue: number; bookings: number }>()
+    const customerRevenueMap = new Map<string, { name: string, email: string, revenue: number, bookings: number }>()
 
-    filteredBookings.forEach((booking: any) => {
-      const customerId = booking.customer?.id || booking.customerId
-      const customerName = booking.customer?.name || 'Unknown Customer'
-      const customerEmail = booking.customer?.email || ''
+    filteredBookings.forEach((booking) => {
+      const customer = typeof booking.customer === 'object' ? booking.customer : null
+      const customerId = customer?.id || booking.customerId || 'unknown'
+      const customerName = customer?.name || 'Unknown Customer'
+      const customerEmail = customer?.email || ''
 
       const existing = customerRevenueMap.get(customerId) || {
         name: customerName,
@@ -143,10 +171,10 @@ export default defineEventHandler(async (event) => {
     ]
 
     // Calculate refunds (from cancelled bookings)
-    const cancelledBookings = filteredBookings.filter((booking: any) =>
+    const cancelledBookings = filteredBookings.filter(booking =>
       booking.status === 'cancelled'
     )
-    const refundsTotal = cancelledBookings.reduce((sum: number, booking: any) => {
+    const refundsTotal = cancelledBookings.reduce((sum, booking) => {
       return sum + (booking.totalPrice || 0)
     }, 0)
 
@@ -180,12 +208,13 @@ export default defineEventHandler(async (event) => {
         netRevenue
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch revenue report:', error)
 
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to fetch revenue report'
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      message: message || 'Failed to fetch revenue report'
     })
   }
 })

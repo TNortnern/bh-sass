@@ -3,37 +3,54 @@
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 pb-6 border-b border-gray-200 dark:border-white/[0.06] gap-4">
       <div>
-        <h2 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mb-1.5">Booking Settings</h2>
-        <p class="m-0 text-[0.9375rem] text-gray-600 dark:text-[#888]">Configure rental policies and requirements</p>
+        <h2 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mb-1.5">
+          Booking Settings
+        </h2>
+        <p class="m-0 text-[0.9375rem] text-gray-600 dark:text-[#888]">
+          Configure rental policies and requirements
+        </p>
       </div>
       <UButton
         color="primary"
         size="lg"
         :loading="saving"
         :disabled="!hasUnsavedChanges"
-        @click="saveSettings"
         class="bg-gradient-to-br from-amber-400 to-amber-600 border-none text-gray-900 font-semibold tracking-tight transition-all hover:not(:disabled):-translate-y-px hover:not(:disabled):shadow-[0_8px_16px_-4px_rgba(251,191,36,0.4)] disabled:opacity-40 disabled:cursor-not-allowed"
+        @click="saveSettings"
       >
         Save Changes
       </UButton>
     </div>
 
-    <div v-if="loading" class="flex flex-col items-center justify-center py-16 px-8 gap-4 text-gray-600 dark:text-[#888]">
-      <div class="w-8 h-8 border-3 border-amber-200 dark:border-amber-500/10 border-t-amber-600 dark:border-t-amber-400 rounded-full animate-spin"></div>
+    <div
+      v-if="loading"
+      class="flex flex-col items-center justify-center py-16 px-8 gap-4 text-gray-600 dark:text-[#888]"
+    >
+      <div class="w-8 h-8 border-3 border-amber-200 dark:border-amber-500/10 border-t-amber-600 dark:border-t-amber-400 rounded-full animate-spin" />
       <p>Loading settings...</p>
     </div>
 
-    <div v-else-if="booking" class="flex flex-col gap-6">
+    <div
+      v-else-if="booking"
+      class="flex flex-col gap-6"
+    >
       <!-- Booking Requirements -->
       <UCard class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-300 hover:border-amber-200 hover:dark:border-amber-500/20 hover:shadow-[0_8px_32px_-8px_rgba(251,191,36,0.15)]">
         <template #header>
           <div class="flex items-center gap-4">
             <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[0.625rem] text-amber-600 dark:text-amber-400 shrink-0">
-              <UIcon name="i-heroicons-clock" class="w-5 h-5" />
+              <UIcon
+                name="i-heroicons-clock"
+                class="w-5 h-5"
+              />
             </div>
             <div>
-              <h3 class="text-[1.125rem] font-semibold tracking-tight text-gray-900 dark:text-white mb-1">Booking Requirements</h3>
-              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">Lead time and advance booking limits</p>
+              <h3 class="text-[1.125rem] font-semibold tracking-tight text-gray-900 dark:text-white mb-1">
+                Booking Requirements
+              </h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">
+                Lead time and advance booking limits
+              </p>
             </div>
           </div>
         </template>
@@ -106,11 +123,18 @@
         <template #header>
           <div class="flex items-center gap-4">
             <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[0.625rem] text-amber-600 dark:text-amber-400 shrink-0">
-              <UIcon name="i-heroicons-currency-dollar" class="w-5 h-5" />
+              <UIcon
+                name="i-heroicons-currency-dollar"
+                class="w-5 h-5"
+              />
             </div>
             <div>
-              <h3 class="text-[1.125rem] font-semibold tracking-tight text-gray-900 dark:text-white mb-1">Payment & Deposits</h3>
-              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">Deposit requirements and payment terms</p>
+              <h3 class="text-[1.125rem] font-semibold tracking-tight text-gray-900 dark:text-white mb-1">
+                Payment & Deposits
+              </h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">
+                Deposit requirements and payment terms
+              </p>
             </div>
           </div>
         </template>
@@ -131,7 +155,7 @@
                 step="5"
                 class="flex-1 h-2 bg-gray-200 dark:bg-white/[0.05] rounded-2xl outline-none appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-amber-400 [&::-webkit-slider-thumb]:to-amber-600 [&::-webkit-slider-thumb]:border-3 [&::-webkit-slider-thumb]:border-white dark:[&::-webkit-slider-thumb]:border-[#0a0a0a] [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-[0_2px_8px_rgba(251,191,36,0.3)] [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:hover:shadow-[0_4px_12px_rgba(251,191,36,0.5)] [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:bg-gradient-to-br [&::-moz-range-thumb]:from-amber-400 [&::-moz-range-thumb]:to-amber-600 [&::-moz-range-thumb]:border-3 [&::-moz-range-thumb]:border-white dark:[&::-moz-range-thumb]:border-[#0a0a0a] [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:shadow-[0_2px_8px_rgba(251,191,36,0.3)] [&::-moz-range-thumb]:transition-all"
                 @input="markHasChanges"
-              />
+              >
               <div class="flex items-baseline gap-1 min-w-[80px] py-2 px-4 bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg justify-center">
                 <span class="text-2xl font-bold text-amber-600 dark:text-amber-400 [font-variant-numeric:tabular-nums]">{{ booking.depositPercentage }}</span>
                 <span class="text-base font-semibold text-amber-600/70 dark:text-amber-400/70">%</span>
@@ -156,11 +180,18 @@
         <template #header>
           <div class="flex items-center gap-4">
             <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[0.625rem] text-amber-600 dark:text-amber-400 shrink-0">
-              <UIcon name="i-heroicons-x-circle" class="w-5 h-5" />
+              <UIcon
+                name="i-heroicons-x-circle"
+                class="w-5 h-5"
+              />
             </div>
             <div>
-              <h3 class="text-[1.125rem] font-semibold tracking-tight text-gray-900 dark:text-white mb-1">Cancellation Policy</h3>
-              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">Refund terms for cancelled bookings</p>
+              <h3 class="text-[1.125rem] font-semibold tracking-tight text-gray-900 dark:text-white mb-1">
+                Cancellation Policy
+              </h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">
+                Refund terms for cancelled bookings
+              </p>
             </div>
           </div>
         </template>
@@ -175,17 +206,30 @@
               @click="selectPolicy(policy.value)"
             >
               <div class="flex items-start gap-4 mb-4">
-                <div class="w-5 h-5 border-2 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-all"
-                  :class="booking.cancellationPolicy === policy.value ? 'border-amber-600 dark:border-amber-400' : 'border-gray-300 dark:border-white/20'">
-                  <div v-if="booking.cancellationPolicy === policy.value" class="w-2.5 h-2.5 bg-amber-600 dark:bg-amber-400 rounded-full"></div>
+                <div
+                  class="w-5 h-5 border-2 rounded-full flex items-center justify-center shrink-0 mt-0.5 transition-all"
+                  :class="booking.cancellationPolicy === policy.value ? 'border-amber-600 dark:border-amber-400' : 'border-gray-300 dark:border-white/20'"
+                >
+                  <div
+                    v-if="booking.cancellationPolicy === policy.value"
+                    class="w-2.5 h-2.5 bg-amber-600 dark:bg-amber-400 rounded-full"
+                  />
                 </div>
                 <div>
-                  <h4 class="text-base font-semibold text-gray-900 dark:text-white mb-1">{{ policy.name }}</h4>
-                  <p class="m-0 text-sm text-gray-600 dark:text-[#888]">{{ policy.description }}</p>
+                  <h4 class="text-base font-semibold text-gray-900 dark:text-white mb-1">
+                    {{ policy.name }}
+                  </h4>
+                  <p class="m-0 text-sm text-gray-600 dark:text-[#888]">
+                    {{ policy.description }}
+                  </p>
                 </div>
               </div>
               <ul class="m-0 pl-9 list-none flex flex-col gap-2">
-                <li v-for="(detail, index) in policy.details" :key="index" class="text-sm text-gray-500 dark:text-[#999] pl-5 relative before:content-['•'] before:absolute before:left-0 before:text-amber-600 before:dark:text-amber-400 before:font-bold">
+                <li
+                  v-for="(detail, index) in policy.details"
+                  :key="index"
+                  class="text-sm text-gray-500 dark:text-[#999] pl-5 relative before:content-['•'] before:absolute before:left-0 before:text-amber-600 before:dark:text-amber-400 before:font-bold"
+                >
                   {{ detail }}
                 </li>
               </ul>
@@ -199,11 +243,18 @@
         <template #header>
           <div class="flex items-center gap-4">
             <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-[0.625rem] text-amber-600 dark:text-amber-400 shrink-0">
-              <UIcon name="i-heroicons-cog-6-tooth" class="w-5 h-5" />
+              <UIcon
+                name="i-heroicons-cog-6-tooth"
+                class="w-5 h-5"
+              />
             </div>
             <div>
-              <h3 class="text-[1.125rem] font-semibold tracking-tight text-gray-900 dark:text-white mb-1">Booking Behavior</h3>
-              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">Automation and inventory management</p>
+              <h3 class="text-[1.125rem] font-semibold tracking-tight text-gray-900 dark:text-white mb-1">
+                Booking Behavior
+              </h3>
+              <p class="m-0 text-sm text-gray-500 dark:text-[#666]">
+                Automation and inventory management
+              </p>
             </div>
           </div>
         </template>
@@ -213,10 +264,15 @@
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6 p-5 bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl transition-all hover:bg-gray-100 hover:dark:bg-white/[0.03] hover:border-gray-300 hover:dark:border-white/10">
               <div class="flex items-start gap-4 flex-1">
                 <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-amber-600 dark:text-amber-400 shrink-0">
-                  <UIcon name="i-heroicons-check-badge" class="w-5 h-5" />
+                  <UIcon
+                    name="i-heroicons-check-badge"
+                    class="w-5 h-5"
+                  />
                 </div>
                 <div class="flex-1">
-                  <h4 class="text-[0.9375rem] font-semibold text-gray-900 dark:text-white mb-1">Auto-Confirm Bookings</h4>
+                  <h4 class="text-[0.9375rem] font-semibold text-gray-900 dark:text-white mb-1">
+                    Auto-Confirm Bookings
+                  </h4>
                   <p class="m-0 text-sm text-gray-600 dark:text-[#888] leading-relaxed">
                     Automatically approve bookings without manual review
                   </p>
@@ -232,10 +288,15 @@
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6 p-5 bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-xl transition-all hover:bg-gray-100 hover:dark:bg-white/[0.03] hover:border-gray-300 hover:dark:border-white/10">
               <div class="flex items-start gap-4 flex-1">
                 <div class="w-10 h-10 flex items-center justify-center bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-amber-600 dark:text-amber-400 shrink-0">
-                  <UIcon name="i-heroicons-shield-check" class="w-5 h-5" />
+                  <UIcon
+                    name="i-heroicons-shield-check"
+                    class="w-5 h-5"
+                  />
                 </div>
                 <div class="flex-1">
-                  <h4 class="text-[0.9375rem] font-semibold text-gray-900 dark:text-white mb-1">Prevent Overbooking</h4>
+                  <h4 class="text-[0.9375rem] font-semibold text-gray-900 dark:text-white mb-1">
+                    Prevent Overbooking
+                  </h4>
                   <p class="m-0 text-sm text-gray-600 dark:text-[#888] leading-relaxed">
                     Block bookings when inventory is unavailable
                   </p>
@@ -249,8 +310,14 @@
             </div>
           </div>
 
-          <div v-if="!booking.autoConfirm" class="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg mt-2">
-            <UIcon name="i-heroicons-information-circle" class="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+          <div
+            v-if="!booking.autoConfirm"
+            class="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg mt-2"
+          >
+            <UIcon
+              name="i-heroicons-information-circle"
+              class="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"
+            />
             <div>
               <p class="m-0 text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
                 Manual review is enabled. You'll need to approve each booking before
@@ -259,8 +326,14 @@
             </div>
           </div>
 
-          <div v-if="!booking.preventOverbooking" class="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 rounded-lg mt-2">
-            <UIcon name="i-heroicons-exclamation-triangle" class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div
+            v-if="!booking.preventOverbooking"
+            class="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 rounded-lg mt-2"
+          >
+            <UIcon
+              name="i-heroicons-exclamation-triangle"
+              class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"
+            />
             <div>
               <p class="m-0 text-sm text-amber-900 dark:text-amber-200 leading-relaxed">
                 <strong>Warning:</strong> Disabling overbooking prevention may allow
@@ -275,8 +348,8 @@
 </template>
 
 <script setup lang="ts">
-const { booking, loading, saving, hasUnsavedChanges, updateSettings, markHasChanges } =
-  useSettings()
+const { booking, loading, saving, hasUnsavedChanges, updateSettings, markHasChanges }
+  = useSettings()
 
 const cancellationPolicies = [
   {
@@ -286,8 +359,8 @@ const cancellationPolicies = [
     details: [
       'Full refund if cancelled 24+ hours before event',
       '50% refund if cancelled 12-24 hours before',
-      'No refund if cancelled less than 12 hours before',
-    ],
+      'No refund if cancelled less than 12 hours before'
+    ]
   },
   {
     value: 'moderate',
@@ -296,8 +369,8 @@ const cancellationPolicies = [
     details: [
       'Full refund if cancelled 5+ days before event',
       '50% refund if cancelled 2-5 days before',
-      'No refund if cancelled less than 2 days before',
-    ],
+      'No refund if cancelled less than 2 days before'
+    ]
   },
   {
     value: 'strict',
@@ -306,9 +379,9 @@ const cancellationPolicies = [
     details: [
       'Full refund if cancelled 14+ days before event',
       '50% refund if cancelled 7-14 days before',
-      'No refund if cancelled less than 7 days before',
-    ],
-  },
+      'No refund if cancelled less than 7 days before'
+    ]
+  }
 ]
 
 const selectPolicy = (value: string) => {
@@ -320,7 +393,8 @@ const selectPolicy = (value: string) => {
 
 const saveSettings = async () => {
   if (booking.value) {
-    await updateSettings('booking', booking.value)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await updateSettings('booking', booking.value as any)
   }
 }
 </script>

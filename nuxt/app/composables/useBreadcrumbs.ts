@@ -77,21 +77,21 @@ export const useBreadcrumbs = () => {
 
     // Special cases
     const specialCases: Record<string, string> = {
-      'new': 'New',
-      'edit': 'Edit',
-      'settings': 'Settings',
-      'profile': 'Profile',
-      'api': 'API',
-      'onboarding': 'Setup',
-      'bookings': 'Bookings',
-      'inventory': 'Inventory',
-      'customers': 'Customers',
-      'calendar': 'Calendar',
-      'reports': 'Reports',
-      'widgets': 'Widgets',
-      'notifications': 'Notifications',
-      'addons': 'Add-ons',
-      'bundles': 'Bundles'
+      new: 'New',
+      edit: 'Edit',
+      settings: 'Settings',
+      profile: 'Profile',
+      api: 'API',
+      onboarding: 'Setup',
+      bookings: 'Bookings',
+      inventory: 'Inventory',
+      customers: 'Customers',
+      calendar: 'Calendar',
+      reports: 'Reports',
+      widgets: 'Widgets',
+      notifications: 'Notifications',
+      addons: 'Add-ons',
+      bundles: 'Bundles'
     }
 
     if (specialCases[segment]) {

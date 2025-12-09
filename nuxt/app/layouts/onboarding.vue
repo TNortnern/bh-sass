@@ -2,9 +2,15 @@
   <div class="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 relative overflow-hidden">
     <!-- Animated background elements -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
-      <div class="absolute top-20 -right-20 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl animate-pulse"></div>
-      <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
-      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/3 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+      <div class="absolute top-20 -right-20 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl animate-pulse" />
+      <div
+        class="absolute -bottom-20 -left-20 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl animate-pulse"
+        style="animation-delay: 1s;"
+      />
+      <div
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/3 rounded-full blur-3xl animate-pulse"
+        style="animation-delay: 2s;"
+      />
     </div>
 
     <!-- Header -->
@@ -12,11 +18,17 @@
       <div class="max-w-5xl mx-auto px-6 py-4">
         <div class="flex items-center justify-between">
           <!-- Logo -->
-          <NuxtLink to="/" class="flex items-center gap-3 group">
+          <NuxtLink
+            to="/"
+            class="flex items-center gap-3 group"
+          >
             <div class="relative">
-              <div class="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl blur-md opacity-50 group-hover:opacity-75 transition-opacity"></div>
+              <div class="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
               <div class="relative bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-2.5">
-                <Icon name="lucide:party-popper" class="w-6 h-6 text-white" />
+                <Icon
+                  name="lucide:party-popper"
+                  class="w-6 h-6 text-white"
+                />
               </div>
             </div>
             <div>
@@ -31,7 +43,7 @@
               <div class="text-sm text-gray-400">
                 Step <span class="text-amber-400 font-semibold">{{ state.currentStep }}</span> of {{ state.totalSteps }}
               </div>
-              <div class="h-4 w-px bg-gray-700"></div>
+              <div class="h-4 w-px bg-gray-700" />
               <div class="text-xs text-gray-500">
                 {{ Math.round((state.currentStep / state.totalSteps) * 100) }}% complete
               </div>
@@ -41,11 +53,14 @@
               color="gray"
               variant="ghost"
               size="sm"
-              @click="handleExit"
               class="text-gray-400 hover:text-white"
+              @click="handleExit"
             >
               <template #leading>
-                <Icon name="lucide:x" class="w-4 h-4" />
+                <Icon
+                  name="lucide:x"
+                  class="w-4 h-4"
+                />
               </template>
               Exit
             </UButton>
@@ -58,17 +73,17 @@
             class="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 rounded-full transition-all duration-700 ease-out"
             :style="{ width: `${progress}%` }"
           >
-            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
           </div>
         </div>
 
         <!-- Step indicators (desktop) -->
         <div class="hidden md:flex items-center justify-between mt-6 relative">
-          <div class="absolute top-1/2 left-0 right-0 h-px bg-gray-800 -translate-y-1/2"></div>
+          <div class="absolute top-1/2 left-0 right-0 h-px bg-gray-800 -translate-y-1/2" />
           <div
             class="absolute top-1/2 left-0 h-px bg-gradient-to-r from-amber-500 to-orange-500 -translate-y-1/2 transition-all duration-700"
             :style="{ width: `${((state.currentStep - 1) / (state.totalSteps - 1)) * 100}%` }"
-          ></div>
+          />
 
           <div
             v-for="step in steps"
@@ -82,8 +97,8 @@
                 step.number < state.currentStep
                   ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/25'
                   : step.number === state.currentStep
-                  ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-xl shadow-amber-500/50 scale-110 ring-4 ring-amber-500/20'
-                  : 'bg-gray-800 text-gray-500 group-hover:bg-gray-700 group-hover:text-gray-300'
+                    ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-xl shadow-amber-500/50 scale-110 ring-4 ring-amber-500/20'
+                    : 'bg-gray-800 text-gray-500 group-hover:bg-gray-700 group-hover:text-gray-300'
               ]"
             >
               <Icon

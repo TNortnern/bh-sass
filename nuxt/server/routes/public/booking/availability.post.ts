@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Get the rental item details
-    const itemResponse = await $fetch<any>(`${payloadUrl}/api/rental-items/${body.itemId}`, {
+    const itemResponse = await $fetch<Record<string, unknown>>(`${payloadUrl}/api/rental-items/${body.itemId}`, {
       headers
     })
 
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
     // A booking conflicts if it starts before endDate AND ends after startDate
     const bookingsUrl = `${payloadUrl}/api/bookings?where[items.rentalItemId][equals]=${body.itemId}&where[status][not_equals]=cancelled&where[startDate][less_than_equal]=${body.endDate}&where[endDate][greater_than_equal]=${body.startDate}&limit=100`
 
-    const bookingsResponse = await $fetch<{ docs: any[] }>(bookingsUrl, {
+    const bookingsResponse = await $fetch<{ docs: Record<string, unknown>[] }>(bookingsUrl, {
       headers
     })
 
@@ -61,17 +61,21 @@ export default defineEventHandler(async (event) => {
 
     // Calculate total booked quantity for the date range
     let bookedQuantity = 0
-    conflictingBookings.forEach((booking: any) => {
-      const bookingItem = booking.items?.find((i: any) => {
-        const rentalItemId = typeof i.rentalItemId === 'object' ? i.rentalItemId.id : i.rentalItemId
-        return rentalItemId === body.itemId
+    conflictingBookings.forEach((booking: Record<string, unknown>) => {
+      const items = booking.items as Array<Record<string, unknown>> | undefined
+      const bookingItem = items?.find((i: Record<string, unknown>) => {
+        const rentalItemId = i.rentalItemId
+        const itemIdValue = typeof rentalItemId === 'object' && rentalItemId !== null
+          ? (rentalItemId as Record<string, unknown>).id
+          : rentalItemId
+        return itemIdValue === body.itemId
       })
       if (bookingItem) {
-        bookedQuantity += bookingItem.quantity || 1
+        bookedQuantity += (bookingItem.quantity as number) || 1
       }
     })
 
-    const availableQuantity = itemQuantity - bookedQuantity
+    const availableQuantity = Number(itemQuantity) - bookedQuantity
     const isAvailable = availableQuantity >= quantity
 
     // Calculate pricing
@@ -79,7 +83,8 @@ export default defineEventHandler(async (event) => {
     const endDate = new Date(body.endDate)
     const days = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)))
 
-    const basePrice = (item.pricing?.fullDayRate || 0) * days * quantity
+    const pricing = item.pricing as Record<string, unknown> | undefined
+    const basePrice = ((pricing?.fullDayRate as number) || 0) * days * quantity
     const deliveryFee = 50 // Standard delivery fee
     const taxRate = 0.0825 // 8.25% tax
     const subtotal = basePrice + deliveryFee
@@ -90,7 +95,7 @@ export default defineEventHandler(async (event) => {
       available: isAvailable,
       availableQuantity,
       requestedQuantity: quantity,
-      conflicts: conflictingBookings.map((b: any) => ({
+      conflicts: conflictingBookings.map((b: Record<string, unknown>) => ({
         bookingNumber: b.bookingNumber,
         startDate: b.startDate,
         endDate: b.endDate
@@ -101,13 +106,13 @@ export default defineEventHandler(async (event) => {
         tax: Math.round(tax * 100) / 100,
         total: Math.round(total * 100) / 100,
         days,
-        dailyRate: item.pricing?.fullDayRate || 0
+        dailyRate: ((pricing?.fullDayRate as number) || 0)
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to check availability:', error)
 
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 

@@ -22,6 +22,7 @@ const {
 
 // State
 const deleteModalOpen = ref(false)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const addonToDelete = ref<any>(null)
 
 // Fetch add-ons on mount
@@ -35,11 +36,13 @@ const handleCreate = () => {
 }
 
 // Handle edit add-on
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleEdit = (addon: any) => {
   router.push(`/app/addons/${addon.id}/edit`)
 }
 
 // Handle delete add-on
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleDelete = (addon: any) => {
   addonToDelete.value = addon
   deleteModalOpen.value = true
@@ -55,7 +58,7 @@ const confirmDelete = async () => {
     toast.add({
       title: 'Add-on deleted',
       description: `${addonToDelete.value.name} has been removed`,
-      color: 'green'
+      color: 'success'
     })
     deleteModalOpen.value = false
     addonToDelete.value = null
@@ -63,12 +66,13 @@ const confirmDelete = async () => {
     toast.add({
       title: 'Failed to delete add-on',
       description: result.error,
-      color: 'red'
+      color: 'error'
     })
   }
 }
 
 // Handle toggle active
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleToggleActive = async (addon: any) => {
   const result = await toggleActive(addon.id)
 
@@ -76,13 +80,13 @@ const handleToggleActive = async (addon: any) => {
     toast.add({
       title: addon.active ? 'Add-on deactivated' : 'Add-on activated',
       description: `${addon.name} is now ${addon.active ? 'inactive' : 'active'}`,
-      color: 'green'
+      color: 'success'
     })
   } else {
     toast.add({
       title: 'Failed to update add-on',
       description: result.error,
-      color: 'red'
+      color: 'error'
     })
   }
 }
@@ -118,7 +122,9 @@ const formatPrice = (amount: number) => {
     <!-- Page Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Add-On Services</h1>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+          Add-On Services
+        </h1>
         <p class="text-gray-600 dark:text-gray-400 mt-1">
           Manage delivery, setup, and additional services
         </p>
@@ -137,11 +143,18 @@ const formatPrice = (amount: number) => {
       <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Total Add-Ons</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stats.total }}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Total Add-Ons
+            </p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+              {{ stats.total }}
+            </p>
           </div>
           <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-            <UIcon name="i-lucide-package" class="w-6 h-6 text-slate-600 dark:text-slate-400" />
+            <UIcon
+              name="i-lucide-package"
+              class="w-6 h-6 text-slate-600 dark:text-slate-400"
+            />
           </div>
         </div>
       </div>
@@ -149,11 +162,18 @@ const formatPrice = (amount: number) => {
       <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Active</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stats.active }}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Active
+            </p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+              {{ stats.active }}
+            </p>
           </div>
           <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-            <UIcon name="i-lucide-check-circle" class="w-6 h-6 text-green-600 dark:text-green-400" />
+            <UIcon
+              name="i-lucide-check-circle"
+              class="w-6 h-6 text-green-600 dark:text-green-400"
+            />
           </div>
         </div>
       </div>
@@ -161,11 +181,18 @@ const formatPrice = (amount: number) => {
       <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Required</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stats.required }}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Required
+            </p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+              {{ stats.required }}
+            </p>
           </div>
           <div class="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-            <UIcon name="i-lucide-star" class="w-6 h-6 text-amber-600 dark:text-amber-400" />
+            <UIcon
+              name="i-lucide-star"
+              class="w-6 h-6 text-amber-600 dark:text-amber-400"
+            />
           </div>
         </div>
       </div>
@@ -173,11 +200,18 @@ const formatPrice = (amount: number) => {
       <div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Optional</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ stats.optional }}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Optional
+            </p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+              {{ stats.optional }}
+            </p>
           </div>
           <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-            <UIcon name="i-lucide-circle-plus" class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <UIcon
+              name="i-lucide-circle-plus"
+              class="w-6 h-6 text-blue-600 dark:text-blue-400"
+            />
           </div>
         </div>
       </div>
@@ -214,8 +248,14 @@ const formatPrice = (amount: number) => {
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading && filteredAddons.length === 0" class="flex items-center justify-center py-12">
-      <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
+    <div
+      v-if="isLoading && filteredAddons.length === 0"
+      class="flex items-center justify-center py-12"
+    >
+      <UIcon
+        name="i-lucide-loader-circle"
+        class="animate-spin text-4xl text-gray-400"
+      />
     </div>
 
     <!-- Empty State -->
@@ -223,8 +263,13 @@ const formatPrice = (amount: number) => {
       v-else-if="filteredAddons.length === 0"
       class="flex flex-col items-center justify-center py-16 text-gray-500"
     >
-      <UIcon name="i-lucide-package" class="text-6xl mb-4 text-gray-300 dark:text-gray-700" />
-      <p class="text-lg font-medium">No add-ons found</p>
+      <UIcon
+        name="i-lucide-package"
+        class="text-6xl mb-4 text-gray-300 dark:text-gray-700"
+      />
+      <p class="text-lg font-medium">
+        No add-ons found
+      </p>
       <p class="text-sm text-center max-w-sm mt-2 mb-6">
         Create add-on services like delivery, setup, or equipment rentals
       </p>
@@ -236,7 +281,10 @@ const formatPrice = (amount: number) => {
     </div>
 
     <!-- Add-Ons Grid -->
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div
+      v-else
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+    >
       <div
         v-for="addon in filteredAddons"
         :key="addon.id"
@@ -297,7 +345,9 @@ const formatPrice = (amount: number) => {
         <!-- Pricing -->
         <div class="flex items-center justify-between mb-4">
           <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Price</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Price
+            </p>
             <p class="text-lg font-bold text-gray-900 dark:text-white">
               {{ formatPrice(addon.pricing?.amount || 0) }}
             </p>
@@ -313,11 +363,11 @@ const formatPrice = (amount: number) => {
         <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
           <div class="flex items-center gap-2">
             <button
-              @click="handleToggleActive(addon)"
               :class="[
                 'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
                 addon.active ? 'bg-amber-500' : 'bg-slate-200 dark:bg-slate-700'
               ]"
+              @click="handleToggleActive(addon)"
             >
               <span
                 :class="[
@@ -353,12 +403,18 @@ const formatPrice = (amount: number) => {
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <UModal v-model:open="deleteModalOpen" title="Delete Add-On">
+    <UModal
+      v-model:open="deleteModalOpen"
+      title="Delete Add-On"
+    >
       <template #content>
         <div class="p-6">
           <div class="flex items-start gap-4 mb-4">
             <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
-              <UIcon name="i-lucide-trash-2" class="text-red-600 dark:text-red-400 text-xl" />
+              <UIcon
+                name="i-lucide-trash-2"
+                class="text-red-600 dark:text-red-400 text-xl"
+              />
             </div>
             <div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">

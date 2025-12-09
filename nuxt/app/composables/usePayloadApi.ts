@@ -20,9 +20,9 @@ interface PayloadParams {
   page?: number
   limit?: number
   sort?: string
-  where?: Record<string, any>
+  where?: Record<string, unknown>
   depth?: number
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export const usePayloadApi = () => {

@@ -9,14 +9,23 @@ definePageMeta({
   <div class="admin-page">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Audit Log</h1>
-        <p class="page-description">View all platform activity and admin actions</p>
+        <h1 class="page-title">
+          Audit Log
+        </h1>
+        <p class="page-description">
+          View all platform activity and admin actions
+        </p>
       </div>
     </div>
 
     <div class="placeholder">
-      <UIcon name="i-lucide-file-text" class="placeholder-icon" />
-      <p class="placeholder-text">Audit log coming soon</p>
+      <UIcon
+        name="i-lucide-file-text"
+        class="placeholder-icon"
+      />
+      <p class="placeholder-text">
+        Audit log coming soon
+      </p>
     </div>
   </div>
 </template>

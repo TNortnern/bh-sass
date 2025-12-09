@@ -3,6 +3,12 @@
  * Update a notification (mark as read)
  * Proxies to rb-payload API with proper authentication
  */
+interface FetchError {
+  statusCode?: number
+  message?: string
+  data?: { message?: string }
+}
+
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const rbPayloadUrl = config.rbPayloadUrl || 'https://reusablebook-payload-production.up.railway.app'
@@ -45,29 +51,30 @@ export default defineEventHandler(async (event) => {
       success: true,
       notification: response
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const fetchError = error as FetchError
     console.error('Failed to update notification in rb-payload:', {
       url: `${rbPayloadUrl}/api/notifications/${notificationId}`,
       notificationId,
-      statusCode: error.statusCode,
-      message: error.message,
-      data: error.data
+      statusCode: fetchError.statusCode,
+      message: fetchError.message,
+      data: fetchError.data
     })
 
     // Provide helpful error messages
     let message = 'Failed to update notification'
-    if (error.statusCode === 401 || error.statusCode === 403) {
+    if (fetchError.statusCode === 401 || fetchError.statusCode === 403) {
       message = 'Authentication failed. Please check the API key configuration.'
-    } else if (error.statusCode === 404) {
+    } else if (fetchError.statusCode === 404) {
       message = 'Notification not found'
-    } else if (error.data?.message) {
-      message = error.data.message
-    } else if (error.message) {
-      message = error.message
+    } else if (fetchError.data?.message) {
+      message = fetchError.data.message
+    } else if (fetchError.message) {
+      message = fetchError.message
     }
 
     throw createError({
-      statusCode: error.statusCode || 500,
+      statusCode: fetchError.statusCode || 500,
       message
     })
   }

@@ -40,7 +40,8 @@ export default defineEventHandler(async (event) => {
           for (const field of formData) {
             if (field.filename) {
               // This is a file field
-              const blob = new Blob([field.data], { type: field.type || 'application/octet-stream' })
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const blob = new Blob([field.data as any], { type: field.type || 'application/octet-stream' })
               newFormData.append(field.name || 'file', blob, field.filename)
             } else {
               // This is a regular field
@@ -63,8 +64,10 @@ export default defineEventHandler(async (event) => {
     // Make the proxied request
     const response = await fetch(targetUrl, {
       method,
+
       headers,
-      body
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      body: body as any
     })
 
     // Forward response headers
@@ -83,11 +86,12 @@ export default defineEventHandler(async (event) => {
     } catch {
       return responseText
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Proxy error:', error)
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
       statusCode: 502,
-      message: `Proxy error: ${error.message}`
+      message: `Proxy error: ${message}`
     })
   }
 })

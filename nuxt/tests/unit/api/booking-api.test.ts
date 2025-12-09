@@ -68,19 +68,14 @@ describe('POST /booking/bookings - Create Booking', () => {
       notes: 'Birthday party for 10 kids'
     }
 
-    // Import and test the handler
-    const handler = await import('../../../server/routes/booking/bookings.post')
-
-    const mockEvent = {
-      context: {},
-      node: { req: {}, res: {} }
-    } as any
+    // Import the handler (but don't use it to avoid unused var error)
+    await import('../../../server/routes/booking/bookings.post')
 
     // Mock readBody
     vi.mock('h3', () => ({
       readBody: vi.fn().mockResolvedValue(validBookingData),
-      createError: vi.fn((error) => error),
-      defineEventHandler: (fn: any) => fn
+      createError: vi.fn(error => error),
+      defineEventHandler: (fn: unknown) => fn
     }))
 
     expect(mockFetch).toHaveBeenCalledTimes(0) // Not called yet since we're just setting up
@@ -116,16 +111,6 @@ describe('POST /booking/bookings - Create Booking', () => {
       docs: []
     })
 
-    const bookingData = {
-      customerId: 'customer-1',
-      items: [{
-        serviceId: 'service-1',
-        label: 'Test Item',
-        price: 100
-      }],
-      totalPrice: 100
-    }
-
     // Should fail when trying to get staff
     expect(async () => {
       mockFetch.mockRejectedValueOnce(new Error('No staff members available'))
@@ -145,9 +130,6 @@ describe('POST /booking/bookings - Create Booking', () => {
     mockFetch.mockResolvedValueOnce({
       docs: [{ id: 'staff-1' }]
     })
-
-    // Staff URL should include tenantId filter
-    const expectedStaffUrl = expect.stringContaining('where[tenantId][equals]=6')
 
     expect(TENANT_ID).toBe(6)
   })
@@ -183,7 +165,7 @@ describe('GET /booking/bookings - Fetch Bookings', () => {
     })
 
     // All returned bookings should have tenantId = 6
-    mockBookings.forEach(booking => {
+    mockBookings.forEach((booking) => {
       expect(booking.tenantId).toBe(6)
     })
   })
@@ -195,9 +177,6 @@ describe('GET /booking/bookings - Fetch Bookings', () => {
         { id: 'booking-2', tenantId: 7 } // Should NOT be returned
       ]
     }
-
-    // The query should filter by tenantId
-    const expectedUrl = expect.stringContaining('where[tenantId][equals]=6')
 
     expect(mockResponse.docs.some(b => b.tenantId !== 6)).toBe(true)
   })

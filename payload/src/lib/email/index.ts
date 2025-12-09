@@ -5,7 +5,7 @@
 
 import { brevo } from './brevo'
 import type { BrevoEmailAddress } from './brevo'
-import { emailTemplates } from './templates'
+import { emailTemplates, type EmailTemplateVariant, interpolate } from './templates'
 
 /**
  * Type definitions for email data
@@ -55,6 +55,7 @@ export interface TenantData {
   email?: string
   phone?: string
   domain?: string
+  logo?: string
   address?: {
     street?: string
     city?: string
@@ -71,14 +72,33 @@ export interface TenantData {
  */
 class EmailService {
   /**
+   * Helper: Get default variant from a template
+   */
+  private getDefaultVariant(templateName: string): EmailTemplateVariant {
+    const template = emailTemplates[templateName]
+    if (!template) {
+      throw new Error(`Email template '${templateName}' not found`)
+    }
+    const defaultVariant = template.variants.find(v => v.id === template.defaultVariant)
+    if (!defaultVariant) {
+      throw new Error(`Default variant '${template.defaultVariant}' not found in template '${templateName}'`)
+    }
+    return defaultVariant
+  }
+
+  /**
    * Helper: Get business details from tenant for email templates
    */
   private getBusinessDetails(tenant: TenantData): Record<string, string> {
+    const hasLogo = !!tenant.logo
     return {
       businessName: tenant.branding?.businessName || tenant.name,
       businessEmail: tenant.email || '',
       businessPhone: tenant.phone || '',
       businessAddress: this.formatAddress(tenant.address),
+      businessLogo: tenant.logo || '',
+      // Hide emoji fallback when logo is present
+      businessLogoHide: hasLogo ? 'display: none;' : '',
     }
   }
 
@@ -116,7 +136,7 @@ class EmailService {
       throw new Error('Customer email is required to send booking confirmation')
     }
 
-    const template = emailTemplates.BOOKING_CONFIRMATION
+    const variant = this.getDefaultVariant('BOOKING_CONFIRMATION')
 
     const params = {
       customerName: customer.name,
@@ -132,9 +152,9 @@ class EmailService {
 
     await brevo.sendTransactionalEmail({
       to: [{ email: customer.email, name: customer.name }],
-      subject: template.subject,
-      htmlContent: template.html(params),
-      textContent: template.text(params),
+      subject: interpolate(variant.subject, params),
+      htmlContent: interpolate(variant.html(params), params),
+      textContent: interpolate(variant.text(params), params),
       tags: ['booking-confirmation', `tenant:${tenant.id}`],
     })
   }
@@ -151,7 +171,7 @@ class EmailService {
       throw new Error('Customer email is required to send booking reminder')
     }
 
-    const template = emailTemplates.BOOKING_REMINDER
+    const variant = this.getDefaultVariant('BOOKING_REMINDER')
 
     const params = {
       customerName: customer.name,
@@ -165,9 +185,9 @@ class EmailService {
 
     await brevo.sendTransactionalEmail({
       to: [{ email: customer.email, name: customer.name }],
-      subject: template.subject,
-      htmlContent: template.html(params),
-      textContent: template.text(params),
+      subject: interpolate(variant.subject, params),
+      htmlContent: interpolate(variant.html(params), params),
+      textContent: interpolate(variant.text(params), params),
       tags: ['booking-reminder', `tenant:${tenant.id}`],
     })
   }
@@ -185,7 +205,7 @@ class EmailService {
       throw new Error('Customer email is required to send cancellation notice')
     }
 
-    const template = emailTemplates.BOOKING_CANCELLED
+    const variant = this.getDefaultVariant('BOOKING_CANCELLED')
 
     const params = {
       customerName: customer.name,
@@ -198,9 +218,9 @@ class EmailService {
 
     await brevo.sendTransactionalEmail({
       to: [{ email: customer.email, name: customer.name }],
-      subject: template.subject,
-      htmlContent: template.html(params),
-      textContent: template.text(params),
+      subject: interpolate(variant.subject, params),
+      htmlContent: interpolate(variant.html(params), params),
+      textContent: interpolate(variant.text(params), params),
       tags: ['booking-cancelled', `tenant:${tenant.id}`],
     })
   }
@@ -219,7 +239,7 @@ class EmailService {
       throw new Error('Customer email is required to send payment receipt')
     }
 
-    const template = emailTemplates.PAYMENT_RECEIVED
+    const variant = this.getDefaultVariant('PAYMENT_RECEIVED')
 
     const params = {
       customerName: customer.name,
@@ -235,9 +255,9 @@ class EmailService {
 
     await brevo.sendTransactionalEmail({
       to: [{ email: customer.email, name: customer.name }],
-      subject: template.subject,
-      htmlContent: template.html(params),
-      textContent: template.text(params),
+      subject: interpolate(variant.subject, params),
+      htmlContent: interpolate(variant.html(params), params),
+      textContent: interpolate(variant.text(params), params),
       tags: ['payment-receipt', `tenant:${tenant.id}`],
     })
   }
@@ -250,7 +270,7 @@ class EmailService {
       throw new Error('User email is required to send password reset')
     }
 
-    const template = emailTemplates.PASSWORD_RESET
+    const variant = this.getDefaultVariant('PASSWORD_RESET')
 
     const params = {
       userName: user.name || 'User',
@@ -259,9 +279,9 @@ class EmailService {
 
     await brevo.sendTransactionalEmail({
       to: [{ email: user.email, name: user.name }],
-      subject: template.subject,
-      htmlContent: template.html(params),
-      textContent: template.text(params),
+      subject: interpolate(variant.subject, params),
+      htmlContent: interpolate(variant.html(params), params),
+      textContent: interpolate(variant.text(params), params),
       tags: ['password-reset'],
     })
   }
@@ -274,7 +294,7 @@ class EmailService {
       throw new Error('User email is required to send welcome email')
     }
 
-    const template = emailTemplates.WELCOME
+    const variant = this.getDefaultVariant('WELCOME')
 
     const params = {
       userName: user.name || 'User',
@@ -287,9 +307,9 @@ class EmailService {
 
     await brevo.sendTransactionalEmail({
       to: [{ email: user.email, name: user.name }],
-      subject: template.subject,
-      htmlContent: template.html(params),
-      textContent: template.text(params),
+      subject: interpolate(variant.subject, params),
+      htmlContent: interpolate(variant.html(params), params),
+      textContent: interpolate(variant.text(params), params),
       tags: ['welcome', `tenant:${tenant.id}`],
     })
   }

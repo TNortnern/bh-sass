@@ -69,7 +69,7 @@ const minPickupDate = computed(() => {
 })
 
 // Check if a date is unavailable
-const isDateUnavailable = (dateStr: string): boolean => {
+const _isDateUnavailable = (dateStr: string): boolean => {
   return props.unavailableDates.includes(dateStr)
 }
 
@@ -156,7 +156,10 @@ watch(deliveryDate, (newDate) => {
   <div class="date-time-selector">
     <!-- Timezone Notice -->
     <div class="timezone-notice">
-      <UIcon name="i-lucide-globe" class="w-4 h-4" />
+      <UIcon
+        name="i-lucide-globe"
+        class="w-4 h-4"
+      />
       <span>All times shown in {{ timezoneAbbr }} ({{ timezone }})</span>
     </div>
 
@@ -168,14 +171,23 @@ watch(deliveryDate, (newDate) => {
       >
         <div class="section-header">
           <div class="section-icon delivery-icon">
-            <UIcon name="i-lucide-truck" class="w-5 h-5" />
+            <UIcon
+              name="i-lucide-truck"
+              class="w-5 h-5"
+            />
           </div>
           <div class="section-title">
             <h3>Delivery</h3>
             <p>When should we deliver?</p>
           </div>
-          <div v-if="deliveryDate && deliveryTime" class="check-badge">
-            <UIcon name="i-lucide-check" class="w-4 h-4" />
+          <div
+            v-if="deliveryDate && deliveryTime"
+            class="check-badge"
+          >
+            <UIcon
+              name="i-lucide-check"
+              class="w-4 h-4"
+            />
           </div>
         </div>
 
@@ -191,7 +203,10 @@ watch(deliveryDate, (newDate) => {
               @focus="activeField = 'delivery'"
               @blur="activeField = null"
             />
-            <span v-if="deliveryDate" class="date-preview">
+            <span
+              v-if="deliveryDate"
+              class="date-preview"
+            >
               {{ formatDisplayDate(deliveryDate) }}
             </span>
           </div>
@@ -214,8 +229,14 @@ watch(deliveryDate, (newDate) => {
       <!-- Visual Connector -->
       <div class="connector">
         <div class="connector-line" />
-        <div v-if="rentalDuration" class="duration-badge">
-          <UIcon name="i-lucide-calendar-range" class="w-4 h-4" />
+        <div
+          v-if="rentalDuration"
+          class="duration-badge"
+        >
+          <UIcon
+            name="i-lucide-calendar-range"
+            class="w-4 h-4"
+          />
           <span>{{ rentalDuration }}</span>
         </div>
         <div class="connector-line" />
@@ -228,14 +249,23 @@ watch(deliveryDate, (newDate) => {
       >
         <div class="section-header">
           <div class="section-icon pickup-icon">
-            <UIcon name="i-lucide-package-check" class="w-5 h-5" />
+            <UIcon
+              name="i-lucide-package-check"
+              class="w-5 h-5"
+            />
           </div>
           <div class="section-title">
             <h3>Pickup</h3>
             <p>When should we pick up?</p>
           </div>
-          <div v-if="pickupDate && pickupTime" class="check-badge">
-            <UIcon name="i-lucide-check" class="w-4 h-4" />
+          <div
+            v-if="pickupDate && pickupTime"
+            class="check-badge"
+          >
+            <UIcon
+              name="i-lucide-check"
+              class="w-4 h-4"
+            />
           </div>
         </div>
 
@@ -252,7 +282,10 @@ watch(deliveryDate, (newDate) => {
               @focus="activeField = 'pickup'"
               @blur="activeField = null"
             />
-            <span v-if="pickupDate" class="date-preview">
+            <span
+              v-if="pickupDate"
+              class="date-preview"
+            >
               {{ formatDisplayDate(pickupDate) }}
             </span>
           </div>
@@ -276,9 +309,15 @@ watch(deliveryDate, (newDate) => {
 
     <!-- Summary -->
     <Transition name="fade-slide">
-      <div v-if="isFormValid" class="booking-summary">
+      <div
+        v-if="isFormValid"
+        class="booking-summary"
+      >
         <div class="summary-content">
-          <UIcon name="i-lucide-sparkles" class="w-5 h-5 text-amber-500" />
+          <UIcon
+            name="i-lucide-sparkles"
+            class="w-5 h-5 text-amber-500"
+          />
           <div class="summary-text">
             <strong>{{ formatDisplayDate(deliveryDate) }}</strong>
             <span class="text-gray-500 dark:text-gray-400">at</span>

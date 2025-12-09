@@ -6,18 +6,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
  */
 
 describe('Server Route: POST /booking/bookings', () => {
-  let mockFetch: any
-  let mockConfig: any
+  let mockFetch: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
     // Reset mocks
     vi.clearAllMocks()
-
-    // Mock runtime config
-    mockConfig = {
-      rbPayloadUrl: 'https://test-rb-payload.com',
-      rbPayloadApiKey: 'tk_test_api_key_12345678901234567890'
-    }
 
     // Mock $fetch
     mockFetch = vi.fn()

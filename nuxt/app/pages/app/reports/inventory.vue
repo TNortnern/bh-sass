@@ -26,6 +26,7 @@ definePageMeta({
 
 const { loading, dateRange, fetchInventoryReport, exportToCsv } = useReports()
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const inventoryData = ref<any>(null)
 
 async function loadData() {
@@ -50,10 +51,12 @@ onMounted(() => {
 
 // Utilization chart data
 const utilizationChartData = computed(() => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   labels: (inventoryData.value?.utilizationByItem || []).map((item: any) => item.name),
   datasets: [
     {
       label: 'Utilization Rate',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: (inventoryData.value?.utilizationByItem || []).map((item: any) => item.utilizationRate),
       backgroundColor: 'rgba(16, 185, 129, 0.8)',
       borderColor: '#10b981',
@@ -83,7 +86,7 @@ const utilizationChartOptions: ChartOptions<'bar'> = {
       bodyFont: { family: 'monospace', size: 14 },
       callbacks: {
         label: (context) => {
-          return `${context.parsed.x.toFixed(1)}% utilized`
+          return `${(context.parsed.x || 0).toFixed(1)}% utilized`
         }
       }
     }
@@ -96,7 +99,7 @@ const utilizationChartOptions: ChartOptions<'bar'> = {
         color: '#6b7280',
         font: { family: 'monospace', size: 10 },
         padding: 8,
-        callback: (value) => `${value}%`
+        callback: value => `${value}%`
       },
       max: 100
     },
@@ -115,6 +118,7 @@ const utilizationChartOptions: ChartOptions<'bar'> = {
 
 const averageUtilization = computed(() => {
   if (!inventoryData.value?.utilizationByItem || inventoryData.value.utilizationByItem.length === 0) return 0
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sum = inventoryData.value.utilizationByItem.reduce((acc: number, item: any) => acc + item.utilizationRate, 0)
   return (sum / inventoryData.value.utilizationByItem.length).toFixed(1)
 })
@@ -130,10 +134,16 @@ const averageUtilization = computed(() => {
             to="/app/reports"
             class="w-10 h-10 rounded-lg bg-gray-900 border-2 border-gray-800 hover:border-green-500 flex items-center justify-center transition-all"
           >
-            <UIcon name="i-lucide-chevron-left" class="w-5 h-5 text-gray-400" />
+            <UIcon
+              name="i-lucide-chevron-left"
+              class="w-5 h-5 text-gray-400"
+            />
           </NuxtLink>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-            <UIcon name="i-lucide-box" class="w-6 h-6 text-black" />
+            <UIcon
+              name="i-lucide-box"
+              class="w-6 h-6 text-black"
+            />
           </div>
           <div>
             <h1 class="text-3xl font-bold text-white font-mono tracking-tight">
@@ -223,13 +233,18 @@ const averageUtilization = computed(() => {
       <template #header>
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded bg-emerald-500/20 flex items-center justify-center">
-            <UIcon name="i-lucide-activity" class="w-4 h-4 text-emerald-400" />
+            <UIcon
+              name="i-lucide-activity"
+              class="w-4 h-4 text-emerald-400"
+            />
           </div>
           <div>
             <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
               Utilization Rate by Item
             </h3>
-            <p class="text-xs font-mono text-gray-500">Percentage of time booked</p>
+            <p class="text-xs font-mono text-gray-500">
+              Percentage of time booked
+            </p>
           </div>
         </div>
       </template>
@@ -240,12 +255,18 @@ const averageUtilization = computed(() => {
           class="absolute inset-0 bg-black/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg"
         >
           <div class="flex items-center gap-3 text-emerald-400">
-            <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
+            <UIcon
+              name="i-lucide-loader-circle"
+              class="w-6 h-6 animate-spin"
+            />
             <span class="font-mono text-sm">Loading chart data...</span>
           </div>
         </div>
         <div class="h-96">
-          <Bar :data="utilizationChartData" :options="utilizationChartOptions" />
+          <Bar
+            :data="utilizationChartData"
+            :options="utilizationChartOptions"
+          />
         </div>
       </div>
     </UCard>
@@ -260,13 +281,18 @@ const averageUtilization = computed(() => {
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-emerald-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-trending-up" class="w-4 h-4 text-emerald-400" />
+              <UIcon
+                name="i-lucide-trending-up"
+                class="w-4 h-4 text-emerald-400"
+              />
             </div>
             <div>
               <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
                 Top Performers
               </h3>
-              <p class="text-xs font-mono text-gray-500">Most utilized items</p>
+              <p class="text-xs font-mono text-gray-500">
+                Most utilized items
+              </p>
             </div>
           </div>
         </template>
@@ -306,13 +332,18 @@ const averageUtilization = computed(() => {
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-yellow-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-trending-down" class="w-4 h-4 text-yellow-400" />
+              <UIcon
+                name="i-lucide-trending-down"
+                class="w-4 h-4 text-yellow-400"
+              />
             </div>
             <div>
               <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
                 Underutilized
               </h3>
-              <p class="text-xs font-mono text-gray-500">Items needing attention</p>
+              <p class="text-xs font-mono text-gray-500">
+                Items needing attention
+              </p>
             </div>
           </div>
         </template>
@@ -353,13 +384,18 @@ const averageUtilization = computed(() => {
       <template #header>
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded bg-cyan-500/20 flex items-center justify-center">
-            <UIcon name="i-lucide-clipboard-list" class="w-4 h-4 text-cyan-400" />
+            <UIcon
+              name="i-lucide-clipboard-list"
+              class="w-4 h-4 text-cyan-400"
+            />
           </div>
           <div>
             <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
               Complete Inventory Breakdown
             </h3>
-            <p class="text-xs font-mono text-gray-500">All items with metrics</p>
+            <p class="text-xs font-mono text-gray-500">
+              All items with metrics
+            </p>
           </div>
         </div>
       </template>
@@ -389,7 +425,9 @@ const averageUtilization = computed(() => {
               class="border-b border-gray-800 hover:bg-gray-900/50 transition-colors"
               :style="{ animationDelay: `${index * 50}ms` }"
             >
-              <td class="py-3 px-4 text-white">{{ item.name }}</td>
+              <td class="py-3 px-4 text-white">
+                {{ item.name }}
+              </td>
               <td class="py-3 px-4 text-right">
                 <span
                   class="font-bold"
@@ -398,7 +436,9 @@ const averageUtilization = computed(() => {
                   {{ item.utilizationRate.toFixed(1) }}%
                 </span>
               </td>
-              <td class="py-3 px-4 text-right text-white">{{ item.bookings }}</td>
+              <td class="py-3 px-4 text-right text-white">
+                {{ item.bookings }}
+              </td>
               <td class="py-3 px-4 text-right text-cyan-400 font-bold">
                 ${{ item.revenue.toLocaleString('en-US') }}
               </td>
@@ -418,13 +458,18 @@ const averageUtilization = computed(() => {
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-pink-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-truck" class="w-4 h-4 text-pink-400" />
+              <UIcon
+                name="i-lucide-truck"
+                class="w-4 h-4 text-pink-400"
+              />
             </div>
             <div>
               <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
                 Upcoming Maintenance
               </h3>
-              <p class="text-xs font-mono text-gray-500">Scheduled service</p>
+              <p class="text-xs font-mono text-gray-500">
+                Scheduled service
+              </p>
             </div>
           </div>
         </template>
@@ -443,7 +488,10 @@ const averageUtilization = computed(() => {
               </span>
             </div>
             <div class="flex items-center gap-2 text-xs font-mono text-gray-500">
-              <UIcon name="i-lucide-calendar" class="w-3 h-3" />
+              <UIcon
+                name="i-lucide-calendar"
+                class="w-3 h-3"
+              />
               <span>{{ new Date(schedule.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }}</span>
             </div>
           </div>
@@ -458,13 +506,18 @@ const averageUtilization = computed(() => {
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-yellow-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-calendar-check" class="w-4 h-4 text-yellow-400" />
+              <UIcon
+                name="i-lucide-calendar-check"
+                class="w-4 h-4 text-yellow-400"
+              />
             </div>
             <div>
               <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
                 Availability Overview
               </h3>
-              <p class="text-xs font-mono text-gray-500">Days available vs booked</p>
+              <p class="text-xs font-mono text-gray-500">
+                Days available vs booked
+              </p>
             </div>
           </div>
         </template>

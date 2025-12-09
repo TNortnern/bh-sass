@@ -76,7 +76,7 @@ const helperText = computed(() => {
 
 const selectedIcon = computed({
   get: () => props.modelValue || '',
-  set: (value) => emit('update:modelValue', value)
+  set: value => emit('update:modelValue', value)
 })
 </script>
 
@@ -88,12 +88,17 @@ const selectedIcon = computed({
       class="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg"
     >
       <div class="w-12 h-12 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-        <UIcon :name="selectedIcon" class="w-6 h-6 text-amber-600 dark:text-amber-400" />
+        <UIcon
+          :name="selectedIcon"
+          class="w-6 h-6 text-amber-600 dark:text-amber-400"
+        />
       </div>
       <div>
-        <p class="text-sm font-medium text-amber-900 dark:text-amber-100">Selected Icon</p>
+        <p class="text-sm font-medium text-amber-900 dark:text-amber-100">
+          Selected Icon
+        </p>
         <p class="text-xs text-amber-700 dark:text-amber-300">
-          {{ availableIcons.find(i => i.name === selectedIcon)?.label || 'Custom' }}
+          {{ availableIcons.find((i: { name: string; label: string }) => i.name === selectedIcon)?.label || 'Custom' }}
         </p>
       </div>
     </div>
@@ -104,7 +109,6 @@ const selectedIcon = computed({
         v-for="icon in availableIcons"
         :key="icon.name"
         type="button"
-        @click="selectedIcon = icon.name"
         :class="[
           'group p-3 rounded-lg border transition-all relative',
           selectedIcon === icon.name
@@ -112,6 +116,7 @@ const selectedIcon = computed({
             : 'border-slate-700 dark:border-slate-700 hover:border-slate-600 dark:hover:border-slate-600 hover:bg-slate-800/50'
         ]"
         :title="icon.label"
+        @click="selectedIcon = icon.name"
       >
         <UIcon
           :name="icon.name"
@@ -127,7 +132,10 @@ const selectedIcon = computed({
           v-if="selectedIcon === icon.name"
           class="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center"
         >
-          <UIcon name="i-lucide-check" class="w-3 h-3 text-white" />
+          <UIcon
+            name="i-lucide-check"
+            class="w-3 h-3 text-white"
+          />
         </div>
       </button>
     </div>

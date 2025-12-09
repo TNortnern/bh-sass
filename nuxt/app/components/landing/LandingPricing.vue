@@ -1,10 +1,16 @@
 <template>
-  <section id="pricing" class="py-24 bg-white dark:bg-gray-900 transition-colors duration-300">
+  <section
+    id="pricing"
+    class="py-24 bg-white dark:bg-gray-900 transition-colors duration-300"
+  >
     <div class="container mx-auto px-6 lg:px-8">
       <!-- Section Header -->
       <div class="max-w-3xl mx-auto text-center mb-16">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-medium mb-4">
-          <UIcon name="i-lucide-credit-card" class="w-3 h-3" />
+          <UIcon
+            name="i-lucide-credit-card"
+            class="w-3 h-3"
+          />
           <span>SIMPLE PRICING</span>
         </div>
         <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -17,7 +23,10 @@
 
       <!-- Pricing Toggle -->
       <div class="flex justify-center items-center gap-4 mb-12">
-        <span class="text-sm" :class="!annual ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400'">Monthly</span>
+        <span
+          class="text-sm"
+          :class="!annual ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400'"
+        >Monthly</span>
         <button
           class="relative w-14 h-7 rounded-full transition-colors"
           :class="annual ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-700'"
@@ -26,9 +35,12 @@
           <span
             class="absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform"
             :class="annual ? 'translate-x-7' : 'translate-x-0.5'"
-          ></span>
+          />
         </button>
-        <span class="text-sm" :class="annual ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400'">
+        <span
+          class="text-sm"
+          :class="annual ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400'"
+        >
           Annual
           <span class="ml-1 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs rounded-full">Save 20%</span>
         </span>
@@ -45,7 +57,10 @@
             : 'bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800'"
         >
           <!-- Featured Badge -->
-          <div v-if="plan.featured" class="absolute -top-4 left-1/2 -translate-x-1/2">
+          <div
+            v-if="plan.featured"
+            class="absolute -top-4 left-1/2 -translate-x-1/2"
+          >
             <span class="px-4 py-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-semibold rounded-full shadow-lg">
               MOST POPULAR
             </span>
@@ -53,19 +68,32 @@
 
           <!-- Plan Header -->
           <div class="text-center mb-8">
-            <h3 class="text-xl font-semibold mb-2" :class="plan.featured ? 'text-white' : 'text-gray-900 dark:text-white'">
+            <h3
+              class="text-xl font-semibold mb-2"
+              :class="plan.featured ? 'text-white' : 'text-gray-900 dark:text-white'"
+            >
               {{ plan.name }}
             </h3>
-            <p class="text-sm mb-4" :class="plan.featured ? 'text-gray-300' : 'text-gray-500 dark:text-gray-400'">
+            <p
+              class="text-sm mb-4"
+              :class="plan.featured ? 'text-gray-300' : 'text-gray-500 dark:text-gray-400'"
+            >
               {{ plan.description }}
             </p>
             <div class="flex items-baseline justify-center gap-1">
-              <span class="text-4xl font-bold" :class="plan.featured ? 'text-white' : 'text-gray-900 dark:text-white'">
+              <span
+                class="text-4xl font-bold"
+                :class="plan.featured ? 'text-white' : 'text-gray-900 dark:text-white'"
+              >
                 ${{ annual ? plan.annualPrice : plan.monthlyPrice }}
               </span>
               <span :class="plan.featured ? 'text-gray-400' : 'text-gray-500 dark:text-gray-400'">/mo</span>
             </div>
-            <p v-if="plan.fee" class="text-xs mt-2" :class="plan.featured ? 'text-gray-400' : 'text-gray-500 dark:text-gray-400'">
+            <p
+              v-if="plan.fee"
+              class="text-xs mt-2"
+              :class="plan.featured ? 'text-gray-400' : 'text-gray-500 dark:text-gray-400'"
+            >
               + {{ plan.fee }} transaction fee
             </p>
           </div>
@@ -78,7 +106,11 @@
               class="flex items-center gap-3 text-sm"
               :class="plan.featured ? 'text-gray-300' : 'text-gray-600 dark:text-gray-300'"
             >
-              <UIcon name="i-lucide-check" class="w-5 h-5 flex-shrink-0" :class="plan.featured ? 'text-orange-400' : 'text-orange-500'" />
+              <UIcon
+                name="i-lucide-check"
+                class="w-5 h-5 flex-shrink-0"
+                :class="plan.featured ? 'text-orange-400' : 'text-orange-500'"
+              />
               <span>{{ feature }}</span>
             </li>
           </ul>
@@ -99,13 +131,22 @@
       <!-- Enterprise -->
       <div class="mt-12 max-w-3xl mx-auto text-center">
         <div class="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-8 border border-gray-200 dark:border-gray-800">
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Need a Custom Solution?</h3>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            Need a Custom Solution?
+          </h3>
           <p class="text-gray-600 dark:text-gray-300 mb-6">
             For large fleets, multiple locations, or custom integrations, let's talk about an Enterprise plan.
           </p>
-          <UButton variant="outline" size="lg" class="border-gray-300 dark:border-gray-700">
+          <UButton
+            variant="outline"
+            size="lg"
+            class="border-gray-300 dark:border-gray-700"
+          >
             Contact Sales
-            <UIcon name="i-lucide-arrow-right" class="w-4 h-4 ml-2" />
+            <UIcon
+              name="i-lucide-arrow-right"
+              class="w-4 h-4 ml-2"
+            />
           </UButton>
         </div>
       </div>

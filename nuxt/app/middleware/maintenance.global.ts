@@ -18,7 +18,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
         isIPAllowed?: boolean
       }
     }>('/api/platform-settings/public', {
-      credentials: 'include',
+      credentials: 'include'
     })
 
     // Check if maintenance mode is enabled

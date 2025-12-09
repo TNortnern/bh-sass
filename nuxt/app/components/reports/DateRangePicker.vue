@@ -11,7 +11,7 @@ const emit = defineEmits<{
   'change': [DateRange]
 }>()
 
-const props = defineProps<{
+defineProps<{
   modelValue: DateRange
 }>()
 
@@ -66,7 +66,10 @@ function applyCustomRange() {
 
 // Initialize with 30 days
 onMounted(() => {
-  selectPreset(presets[2])
+  const preset = presets[2]
+  if (preset) {
+    selectPreset(preset)
+  }
 })
 </script>
 
@@ -146,4 +149,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-

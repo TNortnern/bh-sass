@@ -13,7 +13,7 @@ export const useImpersonation = () => {
   const isImpersonating = useState<boolean>('impersonation:active', () => false)
   const originalUserId = useState<string | null>('impersonation:originalUser', () => null)
   const impersonatedTenantId = useState<string | null>('impersonation:tenantId', () => null)
-  const impersonatedTenant = useState<any>('impersonation:tenant', () => null)
+  const impersonatedTenant = useState<ImpersonationState['impersonatedTenant']>('impersonation:tenant', () => null)
   const toast = useToast()
 
   /**
@@ -54,8 +54,9 @@ export const useImpersonation = () => {
       }
 
       return { success: false }
-    } catch (err: any) {
-      const message = err?.data?.message || 'Failed to start impersonation'
+    } catch (err: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const message = (err as any)?.data?.message || 'Failed to start impersonation'
       toast.add({
         title: 'Impersonation failed',
         description: message,
@@ -91,8 +92,9 @@ export const useImpersonation = () => {
       await navigateTo('/admin')
 
       return { success: true }
-    } catch (err: any) {
-      const message = err?.data?.message || 'Failed to stop impersonation'
+    } catch (err: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const message = (err as any)?.data?.message || 'Failed to stop impersonation'
       toast.add({
         title: 'Error',
         description: message,

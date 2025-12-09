@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
     // First, try to find existing customer by email
     const searchUrl = `${rbPayloadUrl}/api/customers?where%5BtenantId%5D%5Bequals%5D=${TENANT_ID}&where%5Bemail%5D%5Bequals%5D=${encodeURIComponent(body.email)}&limit=1`
 
-    const searchResponse = await $fetch<{ docs: any[] }>(searchUrl, { headers })
+    const searchResponse = await $fetch<{ docs: Record<string, unknown>[] }>(searchUrl, { headers })
 
     if (searchResponse.docs && searchResponse.docs.length > 0) {
       return {
@@ -59,7 +59,7 @@ export default defineEventHandler(async (event) => {
       phone: body.phone || ''
     }
 
-    const createResponse = await $fetch<any>(createUrl, {
+    const createResponse = await $fetch<Record<string, unknown>>(createUrl, {
       method: 'POST',
       headers,
       body: customerData
@@ -70,12 +70,16 @@ export default defineEventHandler(async (event) => {
       customer: createResponse.doc || createResponse,
       created: true
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to create/find customer in rb-payload:', error)
 
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    const errorData = (error && typeof error === 'object' && 'data' in error) ? error.data as Record<string, unknown> : null
+    const errors = errorData?.errors as Array<{ message?: string }> | undefined
+    const errorMessage = (errors && errors[0]?.message) || message || 'Failed to create customer'
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.data?.errors?.[0]?.message || error.message || 'Failed to create customer'
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      message: errorMessage as string
     })
   }
 })

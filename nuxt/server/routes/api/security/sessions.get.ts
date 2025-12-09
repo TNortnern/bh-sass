@@ -7,10 +7,10 @@ export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const payloadUrl = config.payloadApiUrl || 'http://payload:3000'
 
-    const userResponse = await $fetch<any>(`${payloadUrl}/api/users/me`, {
+    const userResponse = await $fetch<Record<string, unknown>>(`${payloadUrl}/api/users/me`, {
       headers: {
-        Cookie: event.headers.get('cookie') || '',
-      },
+        Cookie: event.headers.get('cookie') || ''
+      }
     }).catch(() => null)
 
     if (!userResponse || !userResponse.user) {
@@ -26,10 +26,10 @@ export default defineEventHandler(async (event) => {
         location: 'San Francisco, CA',
         ipAddress: '192.168.1.1',
         lastActiveAt: new Date().toISOString(),
-        isCurrent: true,
-      },
+        isCurrent: true
+      }
     ]
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch sessions:', error)
     return []
   }

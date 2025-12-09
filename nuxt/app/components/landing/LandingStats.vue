@@ -2,8 +2,8 @@
   <section class="py-20 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 dark:from-gray-950 dark:via-gray-950 dark:to-gray-900 relative overflow-hidden">
     <!-- Background decoration -->
     <div class="absolute inset-0">
-      <div class="absolute top-0 left-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl"></div>
-      <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl"></div>
+      <div class="absolute top-0 left-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl" />
+      <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
     </div>
 
     <div class="container mx-auto px-6 lg:px-8 relative">
@@ -18,7 +18,9 @@
             <p class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent mb-2">
               {{ stat.value }}
             </p>
-            <p class="text-gray-400 text-sm md:text-base">{{ stat.label }}</p>
+            <p class="text-gray-400 text-sm md:text-base">
+              {{ stat.label }}
+            </p>
           </div>
         </div>
 
@@ -32,8 +34,12 @@
               MR
             </div>
             <div class="text-left">
-              <p class="text-white font-medium">Mike Rodriguez</p>
-              <p class="text-gray-400 text-sm">Jump Around Rentals, Texas</p>
+              <p class="text-white font-medium">
+                Mike Rodriguez
+              </p>
+              <p class="text-gray-400 text-sm">
+                Jump Around Rentals, Texas
+              </p>
             </div>
           </div>
         </div>

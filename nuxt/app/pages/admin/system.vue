@@ -22,10 +22,11 @@ const saving = ref(false)
 // Watch settings data and populate form
 watch(settings, (newSettings) => {
   if (newSettings) {
-    maintenanceEnabled.value = newSettings.maintenanceMode?.enabled || false
-    maintenanceMessage.value = newSettings.maintenanceMode?.message || 'We are currently performing scheduled maintenance. We will be back online shortly. Thank you for your patience!'
-    maintenanceEndTime.value = newSettings.maintenanceMode?.endTime || null
-    allowedIPs.value = newSettings.maintenanceMode?.allowedIPs || []
+    const maintenanceMode = (newSettings as { maintenanceMode?: { enabled?: boolean, message?: string, endTime?: string | null, allowedIPs?: { ip: string }[] } }).maintenanceMode
+    maintenanceEnabled.value = maintenanceMode?.enabled || false
+    maintenanceMessage.value = maintenanceMode?.message || 'We are currently performing scheduled maintenance. We will be back online shortly. Thank you for your patience!'
+    maintenanceEndTime.value = maintenanceMode?.endTime || null
+    allowedIPs.value = maintenanceMode?.allowedIPs || []
   }
 }, { immediate: true })
 
@@ -63,7 +64,8 @@ const saveSettings = async () => {
     })
 
     await refresh()
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as { data?: { errors?: Array<{ message?: string }> } }
     console.error('Failed to save settings:', error)
     toast.add({
       title: 'Failed to save',
@@ -80,8 +82,12 @@ const saveSettings = async () => {
   <div class="admin-page">
     <div class="page-header">
       <div>
-        <h1 class="page-title">System Settings</h1>
-        <p class="page-description">Platform-wide configuration and maintenance</p>
+        <h1 class="page-title">
+          System Settings
+        </h1>
+        <p class="page-description">
+          Platform-wide configuration and maintenance
+        </p>
       </div>
       <UButton
         icon="i-lucide-save"
@@ -92,33 +98,54 @@ const saveSettings = async () => {
     </div>
 
     <!-- Loading State -->
-    <div v-if="pending" class="loading-state">
-      <UIcon name="i-lucide-loader-circle" class="loading-icon" />
+    <div
+      v-if="pending"
+      class="loading-state"
+    >
+      <UIcon
+        name="i-lucide-loader-circle"
+        class="loading-icon"
+      />
       <p>Loading settings...</p>
     </div>
 
     <!-- Settings Form -->
-    <div v-else class="settings-grid">
+    <div
+      v-else
+      class="settings-grid"
+    >
       <!-- Maintenance Mode Card -->
       <div class="settings-card">
         <div class="card-header">
           <div class="header-content">
             <div class="header-icon maintenance">
-              <UIcon name="i-lucide-construction" class="size-5" />
+              <UIcon
+                name="i-lucide-construction"
+                class="size-5"
+              />
             </div>
             <div>
-              <h3 class="card-title">Maintenance Mode</h3>
-              <p class="card-description">Control platform-wide maintenance mode</p>
+              <h3 class="card-title">
+                Maintenance Mode
+              </h3>
+              <p class="card-description">
+                Control platform-wide maintenance mode
+              </p>
             </div>
           </div>
           <UToggle v-model="maintenanceEnabled" />
         </div>
 
-        <div v-if="maintenanceEnabled" class="card-body">
+        <div
+          v-if="maintenanceEnabled"
+          class="card-body"
+        >
           <!-- Maintenance Message -->
           <div class="form-group">
             <label class="form-label">Maintenance Message</label>
-            <p class="form-hint">Message displayed to users during maintenance</p>
+            <p class="form-hint">
+              Message displayed to users during maintenance
+            </p>
             <UTextarea
               v-model="maintenanceMessage"
               :rows="4"
@@ -130,7 +157,9 @@ const saveSettings = async () => {
           <!-- End Time -->
           <div class="form-group">
             <label class="form-label">Expected End Time (Optional)</label>
-            <p class="form-hint">When maintenance is expected to complete</p>
+            <p class="form-hint">
+              When maintenance is expected to complete
+            </p>
             <UInput
               v-model="maintenanceEndTime"
               type="datetime-local"
@@ -142,10 +171,19 @@ const saveSettings = async () => {
           <!-- Allowed IPs -->
           <div class="form-group">
             <label class="form-label">Allowed IP Addresses (Optional)</label>
-            <p class="form-hint">IP addresses that can access during maintenance</p>
+            <p class="form-hint">
+              IP addresses that can access during maintenance
+            </p>
 
-            <div v-if="allowedIPs.length" class="ip-list">
-              <div v-for="(item, index) in allowedIPs" :key="index" class="ip-item">
+            <div
+              v-if="allowedIPs.length"
+              class="ip-list"
+            >
+              <div
+                v-for="(item, index) in allowedIPs"
+                :key="index"
+                class="ip-item"
+              >
                 <UInput
                   v-model="item.ip"
                   placeholder="192.168.1.1"
@@ -173,9 +211,14 @@ const saveSettings = async () => {
 
           <!-- Warning Banner -->
           <div class="warning-banner">
-            <UIcon name="i-lucide-alert-triangle" class="size-5" />
+            <UIcon
+              name="i-lucide-alert-triangle"
+              class="size-5"
+            />
             <div>
-              <p class="warning-title">Maintenance Mode Active</p>
+              <p class="warning-title">
+                Maintenance Mode Active
+              </p>
               <p class="warning-text">
                 All non-super-admin users will be redirected to the maintenance page.
                 You can still access the admin panel as a super admin.
@@ -190,18 +233,30 @@ const saveSettings = async () => {
         <div class="card-header">
           <div class="header-content">
             <div class="header-icon health">
-              <UIcon name="i-lucide-activity" class="size-5" />
+              <UIcon
+                name="i-lucide-activity"
+                class="size-5"
+              />
             </div>
             <div>
-              <h3 class="card-title">System Health</h3>
-              <p class="card-description">Monitor platform performance</p>
+              <h3 class="card-title">
+                System Health
+              </h3>
+              <p class="card-description">
+                Monitor platform performance
+              </p>
             </div>
           </div>
         </div>
         <div class="card-body">
           <div class="placeholder">
-            <UIcon name="i-lucide-activity" class="placeholder-icon" />
-            <p class="placeholder-text">System monitoring coming soon</p>
+            <UIcon
+              name="i-lucide-activity"
+              class="placeholder-icon"
+            />
+            <p class="placeholder-text">
+              System monitoring coming soon
+            </p>
           </div>
         </div>
       </div>

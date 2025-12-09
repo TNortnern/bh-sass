@@ -88,7 +88,10 @@ const handleCardClick = () => {
       <!-- Item Image/Icon -->
       <div class="flex-shrink-0">
         <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 flex items-center justify-center">
-          <UIcon name="i-lucide-tent" class="w-8 h-8 text-orange-600 dark:text-orange-400" />
+          <UIcon
+            name="i-lucide-tent"
+            class="w-8 h-8 text-orange-600 dark:text-orange-400"
+          />
         </div>
       </div>
 
@@ -115,7 +118,10 @@ const handleCardClick = () => {
           </div>
 
           <!-- Quick Actions -->
-          <div class="flex items-center gap-1" @click.stop>
+          <div
+            class="flex items-center gap-1"
+            @click.stop
+          >
             <UDropdownMenu :items="statusActions">
               <UButton
                 color="neutral"
@@ -136,7 +142,10 @@ const handleCardClick = () => {
         <div class="grid grid-cols-2 gap-3 mb-3">
           <!-- Dates -->
           <div class="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
-            <UIcon name="i-lucide-calendar" class="w-4 h-4 flex-shrink-0" />
+            <UIcon
+              name="i-lucide-calendar"
+              class="w-4 h-4 flex-shrink-0"
+            />
             <span class="text-xs truncate">
               {{ formatDate(booking.dates.start) }} - {{ formatDate(booking.dates.end) }}
             </span>
@@ -144,7 +153,10 @@ const handleCardClick = () => {
 
           <!-- Payment Status -->
           <div class="flex items-center gap-1.5">
-            <UIcon name="i-lucide-credit-card" class="w-4 h-4 flex-shrink-0 text-gray-600 dark:text-gray-400" />
+            <UIcon
+              name="i-lucide-credit-card"
+              class="w-4 h-4 flex-shrink-0 text-gray-600 dark:text-gray-400"
+            />
             <UBadge
               :color="getPaymentColor(booking.paymentStatus)"
               variant="subtle"
@@ -158,7 +170,10 @@ const handleCardClick = () => {
         <!-- Footer -->
         <div class="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
           <div class="flex items-center gap-2">
-            <UIcon name="i-lucide-map-pin" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            <UIcon
+              name="i-lucide-map-pin"
+              class="w-4 h-4 text-gray-500 dark:text-gray-400"
+            />
             <span class="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[200px]">
               {{ booking.deliveryAddress.city }}, {{ booking.deliveryAddress.state }}
             </span>
@@ -167,7 +182,10 @@ const handleCardClick = () => {
             <p class="text-lg font-bold text-gray-900 dark:text-white">
               {{ formatCurrency(booking.payment.total) }}
             </p>
-            <p v-if="booking.payment.balance > 0" class="text-xs text-orange-600 dark:text-orange-400">
+            <p
+              v-if="booking.payment.balance > 0"
+              class="text-xs text-orange-600 dark:text-orange-400"
+            >
               {{ formatCurrency(booking.payment.balance) }} due
             </p>
           </div>

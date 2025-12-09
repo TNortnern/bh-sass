@@ -5,6 +5,30 @@
  */
 import { parseISO, format, eachDayOfInterval, differenceInDays } from 'date-fns'
 
+interface BookingService {
+  id?: string | number
+}
+
+interface BookingItemData {
+  service?: BookingService
+  serviceId?: string | number
+}
+
+interface BookingData {
+  id?: string | number
+  status?: string
+  items?: BookingItemData[]
+  totalPrice?: number
+  startDate?: string
+  endDate?: string
+  createdAt: string
+}
+
+interface ServiceData {
+  id: string
+  name: string
+}
+
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const rbPayloadUrl = config.rbPayloadUrl || 'https://reusablebook-payload-production.up.railway.app'
@@ -38,8 +62,8 @@ export default defineEventHandler(async (event) => {
   try {
     // Fetch bookings and services in parallel
     const [bookingsResponse, servicesResponse] = await Promise.all([
-      $fetch<{ docs: any[] }>(`${rbPayloadUrl}/api/bookings?where[tenantId][equals]=${TENANT_ID}&limit=1000`, { headers }),
-      $fetch<{ docs: any[] }>(`${rbPayloadUrl}/api/services?where[tenantId][equals]=${TENANT_ID}&limit=100`, { headers })
+      $fetch<{ docs: BookingData[] }>(`${rbPayloadUrl}/api/bookings?where[tenantId][equals]=${TENANT_ID}&limit=1000`, { headers }),
+      $fetch<{ docs: ServiceData[] }>(`${rbPayloadUrl}/api/services?where[tenantId][equals]=${TENANT_ID}&limit=100`, { headers })
     ])
 
     const bookings = bookingsResponse.docs || []
@@ -49,8 +73,8 @@ export default defineEventHandler(async (event) => {
     const start = parseISO(startDate)
     const end = parseISO(endDate)
 
-    const filteredBookings = bookings.filter((booking: any) => {
-      const bookingDate = parseISO(booking.createdAt)
+    const filteredBookings = bookings.filter((booking: BookingData) => {
+      const bookingDate = parseISO(String(booking.createdAt))
       return bookingDate >= start && bookingDate <= end
     })
 
@@ -65,7 +89,7 @@ export default defineEventHandler(async (event) => {
     }>()
 
     // Initialize map with all services
-    services.forEach((service: any) => {
+    services.forEach((service: ServiceData) => {
       serviceUtilizationMap.set(service.id, {
         name: service.name,
         bookedDays: new Set<string>(),
@@ -75,25 +99,25 @@ export default defineEventHandler(async (event) => {
     })
 
     // Process bookings
-    filteredBookings.forEach((booking: any) => {
+    filteredBookings.forEach((booking: BookingData) => {
       if (booking.status === 'cancelled') return // Don't count cancelled bookings
 
-      booking.items?.forEach((item: any) => {
-        const serviceId = item.service?.id || item.serviceId
+      booking.items?.forEach((item: BookingItemData) => {
+        const serviceId = String(item.service?.id || item.serviceId || '')
         if (!serviceId) return
 
         const data = serviceUtilizationMap.get(serviceId)
         if (!data) return
 
         data.bookings += 1
-        data.revenue += booking.totalPrice || 0
+        data.revenue += (booking.totalPrice || 0)
 
         // Mark days as booked
         if (booking.startDate && booking.endDate) {
-          const bookingStart = parseISO(booking.startDate)
-          const bookingEnd = parseISO(booking.endDate)
+          const bookingStart = parseISO(String(booking.startDate))
+          const bookingEnd = parseISO(String(booking.endDate))
 
-          eachDayOfInterval({ start: bookingStart, end: bookingEnd }).forEach(day => {
+          eachDayOfInterval({ start: bookingStart, end: bookingEnd }).forEach((day) => {
             data.bookedDays.add(format(day, 'yyyy-MM-dd'))
           })
         }
@@ -128,7 +152,7 @@ export default defineEventHandler(async (event) => {
     }))
 
     // Availability overview
-    const availabilityOverview = topItems.slice(0, 4).map(item => {
+    const availabilityOverview = topItems.slice(0, 4).map((item) => {
       const bookedDays = utilizationByItem.find(u => u.name === item.name)?.bookings || 0
       return {
         item: item.name,
@@ -147,12 +171,13 @@ export default defineEventHandler(async (event) => {
         availabilityOverview
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch inventory report:', error)
 
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to fetch inventory report'
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      message: message || 'Failed to fetch inventory report'
     })
   }
 })

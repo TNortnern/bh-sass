@@ -1,10 +1,16 @@
 <template>
-  <section id="faq" class="py-24 bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
+  <section
+    id="faq"
+    class="py-24 bg-gray-50 dark:bg-gray-950 transition-colors duration-300"
+  >
     <div class="container mx-auto px-6 lg:px-8">
       <!-- Section Header -->
       <div class="max-w-3xl mx-auto text-center mb-16">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-medium mb-4">
-          <UIcon name="i-lucide-help-circle" class="w-3 h-3" />
+          <UIcon
+            name="i-lucide-help-circle"
+            class="w-3 h-3"
+          />
           <span>FAQ</span>
         </div>
         <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -24,7 +30,10 @@
             class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-100 dark:border-gray-800"
           >
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-start gap-3">
-              <UIcon name="i-lucide-chevron-right" class="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+              <UIcon
+                name="i-lucide-chevron-right"
+                class="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5"
+              />
               {{ faq.question }}
             </h3>
             <p class="text-gray-600 dark:text-gray-300 leading-relaxed pl-8">
@@ -36,12 +45,17 @@
 
       <!-- Contact CTA -->
       <div class="mt-16 text-center">
-        <p class="text-gray-600 dark:text-gray-300 mb-4">Still have questions?</p>
+        <p class="text-gray-600 dark:text-gray-300 mb-4">
+          Still have questions?
+        </p>
         <UButton
           variant="outline"
           class="border-orange-500 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20"
         >
-          <UIcon name="i-lucide-mail" class="w-4 h-4 mr-2" />
+          <UIcon
+            name="i-lucide-mail"
+            class="w-4 h-4 mr-2"
+          />
           Contact Support
         </UButton>
       </div>

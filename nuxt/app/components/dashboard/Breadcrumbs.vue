@@ -67,12 +67,12 @@ function formatSegment(segment: string | undefined): string {
 
   // Handle special cases
   const specialCases: Record<string, string> = {
-    'new': 'New',
-    'edit': 'Edit',
-    'settings': 'Settings',
-    'profile': 'Profile',
-    'api': 'API',
-    'onboarding': 'Setup'
+    new: 'New',
+    edit: 'Edit',
+    settings: 'Settings',
+    profile: 'Profile',
+    api: 'API',
+    onboarding: 'Setup'
   }
 
   if (specialCases[segment]) {

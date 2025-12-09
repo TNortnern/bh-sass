@@ -21,7 +21,7 @@ ChartJS.register(
 )
 
 const props = defineProps<{
-  data: Array<{ name: string; revenue: number; bookings: number }>
+  data: Array<{ name: string, revenue: number, bookings: number }>
   loading?: boolean
   metric?: 'revenue' | 'bookings'
 }>()
@@ -77,14 +77,16 @@ const chartOptions: ChartOptions<'bar'> = {
       callbacks: {
         label: (context) => {
           const dataItem = sortedData.value[context.dataIndex]
+          if (!dataItem) return ''
+          const parsedX = context.parsed.x ?? 0
           if (metric.value === 'revenue') {
             return [
-              `Revenue: $${context.parsed.x.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+              `Revenue: $${parsedX.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
               `Bookings: ${dataItem.bookings}`
             ]
           } else {
             return [
-              `Bookings: ${context.parsed.x}`,
+              `Bookings: ${parsedX}`,
               `Revenue: $${dataItem.revenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`
             ]
           }
@@ -151,14 +153,20 @@ const chartOptions: ChartOptions<'bar'> = {
       class="absolute inset-0 bg-black/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg"
     >
       <div class="flex items-center gap-3 text-pink-400">
-        <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
+        <UIcon
+          name="i-lucide-loader-circle"
+          class="w-6 h-6 animate-spin"
+        />
         <span class="font-mono text-sm">Loading chart data...</span>
       </div>
     </div>
 
     <!-- Chart container -->
     <div class="h-96">
-      <Bar :data="chartData" :options="chartOptions" />
+      <Bar
+        :data="chartData"
+        :options="chartOptions"
+      />
     </div>
   </div>
 </template>

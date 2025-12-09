@@ -14,7 +14,7 @@ const pricingTypeLabels: Record<string, string> = {
 const getPricingTypeLabel = (type: string) => pricingTypeLabels[type] || type
 
 const { items: rentalItems, fetchItems } = useInventory()
-const { createBundle, isLoading } = useBundles()
+const { createBundle } = useBundles()
 const router = useRouter()
 const toast = useToast()
 
@@ -105,10 +105,10 @@ const savings = computed(() => {
 })
 
 const canSubmit = computed(() => {
-  return formData.value.name &&
-         formData.value.description &&
-         formData.value.selectedItems.length > 0 &&
-         calculatedPrice.value > 0
+  return formData.value.name
+    && formData.value.description
+    && formData.value.selectedItems.length > 0
+    && calculatedPrice.value > 0
 })
 
 const handleSubmit = async () => {
@@ -119,26 +119,28 @@ const handleSubmit = async () => {
   }))
 
   // Convert description to Lexical richText format for Payload
-  const descriptionRichText = formData.value.description ? {
-    root: {
-      type: 'root',
-      children: [
-        {
-          type: 'paragraph',
+  const descriptionRichText = formData.value.description
+    ? {
+        root: {
+          type: 'root',
           children: [
             {
-              type: 'text',
-              text: formData.value.description
+              type: 'paragraph',
+              children: [
+                {
+                  type: 'text',
+                  text: formData.value.description
+                }
+              ]
             }
-          ]
+          ],
+          direction: 'ltr',
+          format: '',
+          indent: 0,
+          version: 1
         }
-      ],
-      direction: 'ltr',
-      format: '',
-      indent: 0,
-      version: 1
-    }
-  } : undefined
+      }
+    : undefined
 
   const bundleData = {
     name: formData.value.name,
@@ -153,7 +155,8 @@ const handleSubmit = async () => {
     featured: formData.value.featured
   }
 
-  const result = await createBundle(bundleData)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const result = await createBundle(bundleData as any)
 
   if (result.success) {
     toast.add({
@@ -184,8 +187,12 @@ const handleSubmit = async () => {
         to="/app/bundles"
       />
       <div class="flex-1">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Create Bundle</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">Package multiple items together</p>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+          Create Bundle
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">
+          Package multiple items together
+        </p>
       </div>
     </div>
 
@@ -195,11 +202,16 @@ const handleSubmit = async () => {
         <!-- Basic Info -->
         <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
           <template #header>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Basic Information</h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Basic Information
+            </h3>
           </template>
 
           <div class="space-y-4">
-            <UFormField label="Bundle Name" required>
+            <UFormField
+              label="Bundle Name"
+              required
+            >
               <UInput
                 v-model="formData.name"
                 size="lg"
@@ -208,7 +220,10 @@ const handleSubmit = async () => {
               />
             </UFormField>
 
-            <UFormField label="Description" required>
+            <UFormField
+              label="Description"
+              required
+            >
               <UTextarea
                 v-model="formData.description"
                 size="lg"
@@ -241,7 +256,9 @@ const handleSubmit = async () => {
         <!-- Items Selection -->
         <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
           <template #header>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Bundle Items</h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Bundle Items
+            </h3>
           </template>
 
           <div class="space-y-4">
@@ -252,7 +269,7 @@ const handleSubmit = async () => {
                   <USelectMenu
                     v-model="selectedItemId"
                     value-key="value"
-                    :items="availableItems.map(i => ({ value: i.id, label: i.name }))"
+                    :items="availableItems.map((i: any) => ({ value: i.id, label: i.name }))"
                     size="lg"
                     placeholder="Select an item..."
                     class="w-full"
@@ -271,8 +288,8 @@ const handleSubmit = async () => {
                     color="primary"
                     size="lg"
                     icon="i-lucide-plus"
-                    @click="addItem"
                     :disabled="!selectedItemId"
+                    @click="addItem"
                   >
                     Add
                   </UButton>
@@ -281,20 +298,26 @@ const handleSubmit = async () => {
             </div>
 
             <!-- Selected Items List -->
-            <div v-if="formData.selectedItems.length > 0" class="space-y-2">
+            <div
+              v-if="formData.selectedItems.length > 0"
+              class="space-y-2"
+            >
               <div
                 v-for="bundleItem in formData.selectedItems"
                 :key="typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id"
                 class="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
               >
                 <div class="flex items-center gap-3 flex-1">
-                  <UIcon name="i-lucide-box" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  <UIcon
+                    name="i-lucide-box"
+                    class="w-5 h-5 text-gray-500 dark:text-gray-400"
+                  />
                   <div class="flex-1">
                     <p class="text-sm font-medium text-gray-900 dark:text-white">
-                      {{ rentalItems.find(i => i.id === (typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id))?.name || 'Unknown Item' }}
+                      {{ rentalItems.find((i: any) => i.id === (typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id))?.name || 'Unknown Item' }}
                     </p>
                     <p class="text-xs text-amber-600 dark:text-amber-400">
-                      ${{ rentalItems.find(i => i.id === (typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id))?.pricing.daily || 0 }}/day × {{ bundleItem.quantity }} = ${{ (rentalItems.find(i => i.id === (typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id))?.pricing.daily || 0) * bundleItem.quantity }}
+                      ${{ rentalItems.find((i: any) => i.id === (typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id))?.pricing.daily || 0 }}/day × {{ bundleItem.quantity }} = ${{ (rentalItems.find((i: any) => i.id === (typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id))?.pricing.daily || 0) * bundleItem.quantity }}
                     </p>
                   </div>
                 </div>
@@ -305,7 +328,7 @@ const handleSubmit = async () => {
                     min="1"
                     size="sm"
                     class="w-20"
-                    @update:model-value="(val) => updateQuantity(typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id, Number(val))"
+                    @update:model-value="(val: any) => updateQuantity(typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id, Number(val))"
                   />
                   <UButton
                     color="neutral"
@@ -324,8 +347,13 @@ const handleSubmit = async () => {
               v-else
               class="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg"
             >
-              <UIcon name="i-lucide-package" class="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-2" />
-              <p class="text-sm text-gray-600 dark:text-gray-400">No items added yet</p>
+              <UIcon
+                name="i-lucide-package"
+                class="w-12 h-12 text-gray-400 dark:text-gray-600 mx-auto mb-2"
+              />
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                No items added yet
+              </p>
             </div>
           </div>
         </UCard>
@@ -333,7 +361,9 @@ const handleSubmit = async () => {
         <!-- Pricing -->
         <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
           <template #header>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Pricing</h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Pricing
+            </h3>
           </template>
 
           <div class="space-y-4">
@@ -352,7 +382,11 @@ const handleSubmit = async () => {
             </UFormField>
 
             <!-- Fixed Price Input -->
-            <UFormField v-if="formData.pricingType === 'fixed'" label="Bundle Price" required>
+            <UFormField
+              v-if="formData.pricingType === 'fixed'"
+              label="Bundle Price"
+              required
+            >
               <UInput
                 v-model.number="formData.fixedPrice"
                 type="number"
@@ -369,7 +403,11 @@ const handleSubmit = async () => {
             </UFormField>
 
             <!-- Discount Percent Input -->
-            <UFormField v-else label="Discount Percentage" required>
+            <UFormField
+              v-else
+              label="Discount Percentage"
+              required
+            >
               <UInput
                 v-model.number="formData.discountPercent"
                 type="number"
@@ -393,7 +431,9 @@ const handleSubmit = async () => {
       <div class="space-y-6">
         <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 sticky top-6 z-10">
           <template #header>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Bundle Summary</h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Bundle Summary
+            </h3>
           </template>
 
           <div class="space-y-4">
@@ -465,7 +505,10 @@ const handleSubmit = async () => {
                 :disabled="!canSubmit"
                 @click="handleSubmit"
               >
-                <UIcon name="i-lucide-check" class="w-5 h-5 mr-2" />
+                <UIcon
+                  name="i-lucide-check"
+                  class="w-5 h-5 mr-2"
+                />
                 Create Bundle
               </UButton>
               <UButton
@@ -485,9 +528,14 @@ const handleSubmit = async () => {
         <UCard class="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
           <div class="space-y-2">
             <div class="flex items-start gap-2">
-              <UIcon name="i-lucide-lightbulb" class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <UIcon
+                name="i-lucide-lightbulb"
+                class="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5"
+              />
               <div>
-                <p class="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">Tips for Bundles</p>
+                <p class="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                  Tips for Bundles
+                </p>
                 <ul class="text-xs text-blue-700 dark:text-blue-300 space-y-1">
                   <li>Combine complementary items</li>
                   <li>Offer 10-20% discount for best results</li>

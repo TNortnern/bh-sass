@@ -8,10 +8,10 @@ export default defineVitestConfig({
         domEnvironment: 'happy-dom',
         overrides: {
           colorMode: {
-            preference: 'light',
-          },
-        },
-      },
+            preference: 'light'
+          }
+        }
+      }
     },
     include: ['tests/unit/**/*.test.ts'],
     exclude: ['tests/e2e/**', 'node_modules/**'],
@@ -24,8 +24,8 @@ export default defineVitestConfig({
         'dist/',
         '**/*.config.{ts,js}',
         '**/*.d.ts',
-        'tests/',
-      ],
-    },
-  },
+        'tests/'
+      ]
+    }
+  }
 })

@@ -126,16 +126,16 @@ export default defineEventHandler(async (event) => {
       size: imageData.length,
       type: contentType
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Upload from URL error:', error)
 
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 
     throw createError({
       statusCode: 500,
-      message: error.message || 'Failed to upload image from URL'
+      message: (error as Error).message || 'Failed to upload image from URL'
     })
   }
 })

@@ -10,8 +10,12 @@
         to="/app/customers"
       />
       <div class="flex-1">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Add New Customer</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">Create a new customer profile to start tracking bookings and interactions</p>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+          Add New Customer
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">
+          Create a new customer profile to start tracking bookings and interactions
+        </p>
       </div>
     </div>
 
@@ -21,11 +25,16 @@
         <div class="space-y-6">
           <!-- Basic Information -->
           <div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Basic Information</h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Basic Information
+            </h3>
 
             <div class="space-y-4">
               <div class="grid grid-cols-2 gap-4">
-                <UFormField label="First Name" required>
+                <UFormField
+                  label="First Name"
+                  required
+                >
                   <UInput
                     v-model="formData.firstName"
                     placeholder="John"
@@ -34,7 +43,10 @@
                   />
                 </UFormField>
 
-                <UFormField label="Last Name" required>
+                <UFormField
+                  label="Last Name"
+                  required
+                >
                   <UInput
                     v-model="formData.lastName"
                     placeholder="Doe"
@@ -44,7 +56,10 @@
                 </UFormField>
               </div>
 
-              <UFormField label="Email" required>
+              <UFormField
+                label="Email"
+                required
+              >
                 <UInput
                   v-model="formData.email"
                   type="email"
@@ -55,7 +70,10 @@
                 />
               </UFormField>
 
-              <UFormField label="Phone" required>
+              <UFormField
+                label="Phone"
+                required
+              >
                 <UInput
                   v-model="formData.phone"
                   type="tel"
@@ -72,7 +90,9 @@
 
           <!-- Address -->
           <div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Address</h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Address
+            </h3>
 
             <div class="space-y-4">
               <UFormField label="Street Address">
@@ -120,10 +140,15 @@
 
           <!-- Additional Information -->
           <div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Additional Information</h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Additional Information
+            </h3>
 
             <div class="space-y-4">
-              <UFormField label="Tags" help="Add tags to categorize this customer">
+              <UFormField
+                label="Tags"
+                help="Add tags to categorize this customer"
+              >
                 <UInput
                   v-model="tagsInput"
                   placeholder="vip, corporate, repeat-customer (comma separated)"
@@ -176,7 +201,10 @@
               :loading="loading"
               :disabled="!canSubmit"
             >
-              <UIcon name="i-lucide-check" class="w-5 h-5 mr-2" />
+              <UIcon
+                name="i-lucide-check"
+                class="w-5 h-5 mr-2"
+              />
               Create Customer
             </UButton>
           </div>
@@ -250,21 +278,21 @@ const states = [
 // Validation
 const canSubmit = computed(() => {
   return !!(
-    formData.value.firstName?.trim() &&
-    formData.value.lastName?.trim() &&
-    formData.value.email?.trim() &&
-    formData.value.phone?.trim()
+    formData.value.firstName?.trim()
+    && formData.value.lastName?.trim()
+    && formData.value.email?.trim()
+    && formData.value.phone?.trim()
   )
 })
 
 const hasUnsavedChanges = computed(() => {
   return !!(
-    formData.value.firstName ||
-    formData.value.lastName ||
-    formData.value.email ||
-    formData.value.phone ||
-    formData.value.address?.street ||
-    formData.value.notes
+    formData.value.firstName
+    || formData.value.lastName
+    || formData.value.email
+    || formData.value.phone
+    || formData.value.address?.street
+    || formData.value.notes
   )
 })
 

@@ -29,7 +29,10 @@
           v-if="customer.tags.includes('VIP')"
           class="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center ring-2 ring-slate-800 shadow-lg animate-pulse-slow"
         >
-          <UIcon name="i-lucide-star" class="w-3 h-3 text-white" />
+          <UIcon
+            name="i-lucide-star"
+            class="w-3 h-3 text-white"
+          />
         </div>
       </div>
 
@@ -42,11 +45,17 @@
             </h3>
             <div class="flex flex-col gap-1">
               <div class="flex items-center gap-2 text-sm text-slate-400">
-                <UIcon name="i-lucide-mail" class="w-4 h-4 shrink-0" />
+                <UIcon
+                  name="i-lucide-mail"
+                  class="w-4 h-4 shrink-0"
+                />
                 <span class="truncate">{{ customer.email }}</span>
               </div>
               <div class="flex items-center gap-2 text-sm text-slate-400">
-                <UIcon name="i-lucide-phone" class="w-4 h-4 shrink-0" />
+                <UIcon
+                  name="i-lucide-phone"
+                  class="w-4 h-4 shrink-0"
+                />
                 <span>{{ customer.phone }}</span>
               </div>
             </div>
@@ -64,7 +73,10 @@
         </div>
 
         <!-- Tags -->
-        <div v-if="customer.tags.length > 0" class="flex flex-wrap gap-2 mb-4">
+        <div
+          v-if="customer.tags.length > 0"
+          class="flex flex-wrap gap-2 mb-4"
+        >
           <UBadge
             v-for="tag in customer.tags.slice(0, 3)"
             :key="tag"
@@ -123,7 +135,10 @@
 
     <!-- Hover Arrow -->
     <div class="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-1">
-      <UIcon name="i-lucide-arrow-right" class="w-5 h-5 text-amber-500" />
+      <UIcon
+        name="i-lucide-arrow-right"
+        class="w-5 h-5 text-amber-500"
+      />
     </div>
   </UCard>
 </template>

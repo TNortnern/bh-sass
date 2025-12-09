@@ -15,13 +15,13 @@ export interface BusinessSettings {
   }
   timezone: string
   businessHours: {
-    monday: { open: string; close: string; enabled: boolean }
-    tuesday: { open: string; close: string; enabled: boolean }
-    wednesday: { open: string; close: string; enabled: boolean }
-    thursday: { open: string; close: string; enabled: boolean }
-    friday: { open: string; close: string; enabled: boolean }
-    saturday: { open: string; close: string; enabled: boolean }
-    sunday: { open: string; close: string; enabled: boolean }
+    monday: { open: string, close: string, enabled: boolean }
+    tuesday: { open: string, close: string, enabled: boolean }
+    wednesday: { open: string, close: string, enabled: boolean }
+    thursday: { open: string, close: string, enabled: boolean }
+    friday: { open: string, close: string, enabled: boolean }
+    saturday: { open: string, close: string, enabled: boolean }
+    sunday: { open: string, close: string, enabled: boolean }
   }
   serviceArea: {
     radius: number
@@ -122,7 +122,7 @@ const state: SettingsState = {
   loading: ref(false),
   saving: ref(false),
   hasUnsavedChanges: ref(false),
-  tenantId: ref(null),
+  tenantId: ref(null)
 }
 
 // Mock data for development
@@ -136,7 +136,7 @@ const mockBusinessSettings: BusinessSettings = {
     street: '123 Business Park Drive',
     city: 'Austin',
     state: 'TX',
-    zip: '78701',
+    zip: '78701'
   },
   timezone: 'America/Chicago',
   businessHours: {
@@ -146,13 +146,13 @@ const mockBusinessSettings: BusinessSettings = {
     thursday: { open: '09:00', close: '18:00', enabled: true },
     friday: { open: '09:00', close: '20:00', enabled: true },
     saturday: { open: '08:00', close: '20:00', enabled: true },
-    sunday: { open: '10:00', close: '16:00', enabled: true },
+    sunday: { open: '10:00', close: '16:00', enabled: true }
   },
   serviceArea: {
     radius: 25,
     unit: 'miles',
-    zipCodes: ['78701', '78702', '78703', '78704'],
-  },
+    zipCodes: ['78701', '78702', '78703', '78704']
+  }
 }
 
 const mockBookingSettings: BookingSettings = {
@@ -162,7 +162,7 @@ const mockBookingSettings: BookingSettings = {
   cancellationPolicy: 'moderate',
   autoConfirm: false,
   preventOverbooking: true,
-  bufferTime: 30,
+  bufferTime: 30
 }
 
 const mockPaymentSettings: PaymentSettings = {
@@ -170,7 +170,7 @@ const mockPaymentSettings: PaymentSettings = {
   stripeAccountId: 'acct_1234567890',
   platformFee: 3.5,
   payoutSchedule: 'weekly',
-  lastPayoutDate: '2024-11-28',
+  lastPayoutDate: '2024-11-28'
 }
 
 const mockTeamMembers: TeamMember[] = [
@@ -181,7 +181,7 @@ const mockTeamMembers: TeamMember[] = [
     role: 'admin',
     status: 'active',
     avatar: null,
-    joinedAt: '2024-01-15',
+    joinedAt: '2024-01-15'
   },
   {
     id: '2',
@@ -190,7 +190,7 @@ const mockTeamMembers: TeamMember[] = [
     role: 'manager',
     status: 'active',
     avatar: null,
-    joinedAt: '2024-03-20',
+    joinedAt: '2024-03-20'
   },
   {
     id: '3',
@@ -199,8 +199,8 @@ const mockTeamMembers: TeamMember[] = [
     role: 'staff',
     status: 'pending',
     avatar: null,
-    joinedAt: '2024-11-28',
-  },
+    joinedAt: '2024-11-28'
+  }
 ]
 
 const mockNotificationSettings: NotificationSettings = {
@@ -209,15 +209,15 @@ const mockNotificationSettings: NotificationSettings = {
     cancellation: true,
     payment: true,
     reminder: true,
-    dailySummary: true,
+    dailySummary: true
   },
   inApp: {
     newBooking: true,
     cancellation: true,
     payment: true,
-    reminder: false,
+    reminder: false
   },
-  reminderTiming: 24,
+  reminderTiming: 24
 }
 
 // Mock API keys removed - now using real Payload API
@@ -250,8 +250,39 @@ export const useSettings = () => {
       // Fetch real tenant data from Payload
       if (tenantId) {
         try {
-          const tenantResponse = await $fetch<any>(`/v1/tenants/${tenantId}`, {
-            credentials: 'include',
+          interface TenantResponse {
+            name?: string
+            logo?: { url?: string }
+            description?: string
+            phone?: string
+            email?: string
+            address?: {
+              street?: string
+              city?: string
+              state?: string
+              zip?: string
+            }
+            settings?: {
+              timezone?: string
+              bookingSettings?: {
+                leadTime?: number
+                maxAdvanceBooking?: number
+                depositPercentage?: number
+                requireApproval?: boolean
+                bufferTime?: number
+              }
+            }
+            businessHours?: Record<string, { open?: string, close?: string, enabled?: boolean }>
+            serviceArea?: {
+              radius?: number
+              unit?: 'miles' | 'km'
+              zipCodes?: Array<{ code: string }>
+            }
+            stripeAccountId?: string
+          }
+
+          const tenantResponse = await $fetch<TenantResponse>(`/v1/tenants/${tenantId}`, {
+            credentials: 'include'
           })
 
           // Store tenant ID for later use in other operations
@@ -268,51 +299,51 @@ export const useSettings = () => {
               street: tenantResponse.address?.street || '',
               city: tenantResponse.address?.city || '',
               state: tenantResponse.address?.state || '',
-              zip: tenantResponse.address?.zip || '',
+              zip: tenantResponse.address?.zip || ''
             },
             timezone: tenantResponse.settings?.timezone || 'America/Chicago',
             businessHours: {
               monday: {
                 open: tenantResponse.businessHours?.monday?.open || '09:00',
                 close: tenantResponse.businessHours?.monday?.close || '18:00',
-                enabled: tenantResponse.businessHours?.monday?.enabled ?? true,
+                enabled: tenantResponse.businessHours?.monday?.enabled ?? true
               },
               tuesday: {
                 open: tenantResponse.businessHours?.tuesday?.open || '09:00',
                 close: tenantResponse.businessHours?.tuesday?.close || '18:00',
-                enabled: tenantResponse.businessHours?.tuesday?.enabled ?? true,
+                enabled: tenantResponse.businessHours?.tuesday?.enabled ?? true
               },
               wednesday: {
                 open: tenantResponse.businessHours?.wednesday?.open || '09:00',
                 close: tenantResponse.businessHours?.wednesday?.close || '18:00',
-                enabled: tenantResponse.businessHours?.wednesday?.enabled ?? true,
+                enabled: tenantResponse.businessHours?.wednesday?.enabled ?? true
               },
               thursday: {
                 open: tenantResponse.businessHours?.thursday?.open || '09:00',
                 close: tenantResponse.businessHours?.thursday?.close || '18:00',
-                enabled: tenantResponse.businessHours?.thursday?.enabled ?? true,
+                enabled: tenantResponse.businessHours?.thursday?.enabled ?? true
               },
               friday: {
                 open: tenantResponse.businessHours?.friday?.open || '09:00',
                 close: tenantResponse.businessHours?.friday?.close || '20:00',
-                enabled: tenantResponse.businessHours?.friday?.enabled ?? true,
+                enabled: tenantResponse.businessHours?.friday?.enabled ?? true
               },
               saturday: {
                 open: tenantResponse.businessHours?.saturday?.open || '08:00',
                 close: tenantResponse.businessHours?.saturday?.close || '20:00',
-                enabled: tenantResponse.businessHours?.saturday?.enabled ?? true,
+                enabled: tenantResponse.businessHours?.saturday?.enabled ?? true
               },
               sunday: {
                 open: tenantResponse.businessHours?.sunday?.open || '10:00',
                 close: tenantResponse.businessHours?.sunday?.close || '16:00',
-                enabled: tenantResponse.businessHours?.sunday?.enabled ?? true,
-              },
+                enabled: tenantResponse.businessHours?.sunday?.enabled ?? true
+              }
             },
             serviceArea: {
               radius: tenantResponse.serviceArea?.radius || 25,
               unit: tenantResponse.serviceArea?.unit || 'miles',
-              zipCodes: tenantResponse.serviceArea?.zipCodes?.map((z: any) => z.code) || [],
-            },
+              zipCodes: tenantResponse.serviceArea?.zipCodes?.map(z => z.code) || []
+            }
           }
 
           // Map booking settings from tenant
@@ -323,7 +354,7 @@ export const useSettings = () => {
             cancellationPolicy: 'moderate',
             autoConfirm: !(tenantResponse.settings?.bookingSettings?.requireApproval ?? false),
             preventOverbooking: true,
-            bufferTime: tenantResponse.settings?.bookingSettings?.bufferTime || 30,
+            bufferTime: tenantResponse.settings?.bookingSettings?.bufferTime || 30
           }
 
           // Map payment settings from tenant
@@ -332,9 +363,8 @@ export const useSettings = () => {
             stripeAccountId: tenantResponse.stripeAccountId || null,
             platformFee: 3.5,
             payoutSchedule: 'weekly',
-            lastPayoutDate: null,
+            lastPayoutDate: null
           }
-
         } catch (error) {
           console.warn('Failed to fetch tenant data, using defaults:', error)
           // Fall back to mock data if tenant fetch fails
@@ -352,24 +382,37 @@ export const useSettings = () => {
       // Fetch real team members from Users collection
       if (tenantId) {
         try {
-          const usersResponse = await $fetch<{ docs: any[] }>('/api/users', {
+          interface UserResponse {
+            id: string | number
+            name?: string
+            firstName?: string
+            lastName?: string
+            email?: string
+            role?: 'admin' | 'manager' | 'staff'
+            isActive?: boolean
+            emailVerified?: boolean
+            avatar?: { url?: string }
+            createdAt?: string
+          }
+
+          const usersResponse = await $fetch<{ docs: UserResponse[] }>('/api/users', {
             query: {
               where: {
-                tenantId: { equals: tenantId },
+                tenantId: { equals: tenantId }
               },
-              limit: 100,
+              limit: 100
             },
-            credentials: 'include',
+            credentials: 'include'
           })
 
-          state.team.value = usersResponse.docs.map((user: any) => ({
+          state.team.value = usersResponse.docs.map(user => ({
             id: String(user.id),
             name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email?.split('@')[0] || 'Unknown',
-            email: user.email,
+            email: user.email || '',
             role: user.role || 'staff',
             status: user.isActive === false ? 'inactive' : (user.emailVerified ? 'active' : 'pending'),
             avatar: user.avatar?.url || null,
-            joinedAt: user.createdAt?.split('T')[0] || '',
+            joinedAt: user.createdAt?.split('T')[0] || ''
           }))
         } catch (error) {
           console.warn('Failed to fetch team members, using mock data:', error)
@@ -384,20 +427,33 @@ export const useSettings = () => {
 
       // Fetch real API keys from Payload
       try {
-        const apiKeysResponse = await $fetch<{ docs: any[] }>('/api/api-keys', {
-          credentials: 'include',
+        interface ApiKeyResponse {
+          id: string | number
+          name?: string
+          key?: string
+          scopeType?: 'full_access' | 'read_only' | 'booking_management' | 'custom'
+          scopes?: string[]
+          expiresAt?: string | null
+          isActive?: boolean
+          createdAt?: string
+          lastUsed?: string | null
+          lastRotatedAt?: string | null
+        }
+
+        const apiKeysResponse = await $fetch<{ docs: ApiKeyResponse[] }>('/api/api-keys', {
+          credentials: 'include'
         })
-        state.apiKeys.value = apiKeysResponse.docs.map((key: any) => ({
+        state.apiKeys.value = apiKeysResponse.docs.map(key => ({
           id: String(key.id),
-          name: key.name,
-          key: key.key,
+          name: key.name || '',
+          key: key.key || '',
           scopeType: key.scopeType || 'full_access',
           scopes: key.scopes || [],
           expiresAt: key.expiresAt || null,
           isActive: key.isActive !== false,
           createdAt: key.createdAt?.split('T')[0] || '',
           lastUsed: key.lastUsed?.split('T')[0] || null,
-          lastRotatedAt: key.lastRotatedAt?.split('T')[0] || null,
+          lastRotatedAt: key.lastRotatedAt?.split('T')[0] || null
         }))
       } catch (error) {
         console.warn('Failed to fetch API keys, using empty array:', error)
@@ -406,16 +462,25 @@ export const useSettings = () => {
 
       // Fetch real webhooks from Payload
       try {
-        const webhooksResponse = await $fetch<{ docs: any[] }>('/api/webhook-endpoints', {
-          credentials: 'include',
+        interface WebhookResponse {
+          id: string | number
+          url?: string
+          events?: Array<{ event: string }>
+          secret?: string
+          active?: boolean
+          createdAt?: string
+        }
+
+        const webhooksResponse = await $fetch<{ docs: WebhookResponse[] }>('/api/webhook-endpoints', {
+          credentials: 'include'
         })
-        state.webhooks.value = webhooksResponse.docs.map((webhook: any) => ({
+        state.webhooks.value = webhooksResponse.docs.map(webhook => ({
           id: String(webhook.id),
-          url: webhook.url,
-          events: webhook.events?.map((e: any) => e.event) || [],
-          secret: webhook.secret,
+          url: webhook.url || '',
+          events: webhook.events?.map(e => e.event) || [],
+          secret: webhook.secret || '',
           status: webhook.active ? 'active' : 'inactive',
-          createdAt: webhook.createdAt?.split('T')[0] || '',
+          createdAt: webhook.createdAt?.split('T')[0] || ''
         }))
       } catch (error) {
         console.warn('Failed to fetch webhooks, using empty array:', error)
@@ -427,7 +492,7 @@ export const useSettings = () => {
       toast.add({
         title: 'Error loading settings',
         description: 'Failed to load settings. Please try again.',
-        color: 'error',
+        color: 'error'
       })
       throw error
     } finally {
@@ -435,7 +500,7 @@ export const useSettings = () => {
     }
   }
 
-  const updateSettings = async (section: string, data: any) => {
+  const updateSettings = async (section: string, data: Record<string, unknown>) => {
     state.saving.value = true
     try {
       // Get tenant ID from auth
@@ -446,13 +511,19 @@ export const useSettings = () => {
       }
 
       // Prepare payload based on section
-      let payload: Record<string, any> = {}
+      let payload: Record<string, unknown> = {}
 
       switch (section) {
-        case 'business':
+        case 'business': {
           // Map business settings to Tenant collection fields
+          interface ServiceArea {
+            radius?: number
+            unit?: 'miles' | 'km'
+            zipCodes?: string[]
+          }
+          const serviceArea = data.serviceArea as ServiceArea
           // Convert zipCodes from string[] to {code: string}[]
-          const zipCodesFormatted = data.serviceArea?.zipCodes?.map((code: string) => ({ code })) || []
+          const zipCodesFormatted = serviceArea?.zipCodes?.map((code: string) => ({ code })) || []
 
           payload = {
             name: data.name,
@@ -461,16 +532,17 @@ export const useSettings = () => {
             email: data.email,
             address: data.address,
             settings: {
-              timezone: data.timezone,
+              timezone: data.timezone
             },
             businessHours: data.businessHours,
             serviceArea: {
-              radius: data.serviceArea?.radius || 25,
-              unit: data.serviceArea?.unit || 'miles',
-              zipCodes: zipCodesFormatted,
-            },
+              radius: serviceArea?.radius || 25,
+              unit: serviceArea?.unit || 'miles',
+              zipCodes: zipCodesFormatted
+            }
           }
           break
+        }
         case 'booking':
           // Booking settings go under settings.bookingSettings
           payload = {
@@ -481,7 +553,7 @@ export const useSettings = () => {
                 depositPercentage: data.depositPercentage,
                 cancellationPolicy: data.cancellationPolicy,
                 requireApproval: !data.autoConfirm,
-                bufferTime: data.bufferTime,
+                bufferTime: data.bufferTime
               }
             }
           }
@@ -507,7 +579,7 @@ export const useSettings = () => {
       await $fetch(`/v1/tenants/${tenantId}`, {
         method: 'PATCH',
         body: payload,
-        credentials: 'include',
+        credentials: 'include'
       })
 
       // Update local state on success
@@ -531,16 +603,24 @@ export const useSettings = () => {
       toast.add({
         title: 'Settings saved',
         description: 'Your changes have been saved successfully.',
-        color: 'success',
+        color: 'success'
       })
 
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
+      interface FetchError {
+        data?: {
+          message?: string
+        }
+      }
+      const fetchError = error as FetchError
+      const errorMessage = fetchError.data?.message || 'Failed to save settings. Please try again.'
+
       console.error('Failed to save settings:', error)
       toast.add({
         title: 'Error saving settings',
-        description: error?.data?.message || 'Failed to save settings. Please try again.',
-        color: 'error',
+        description: errorMessage,
+        color: 'error'
       })
       throw error
     } finally {
@@ -567,37 +647,45 @@ export const useSettings = () => {
       }))
 
       // Upload to Payload media collection
-      const uploadResponse = await $fetch<{ doc: any }>('/api/media', {
+      const uploadResponse = await $fetch<{ doc: Record<string, unknown> }>('/api/media', {
         method: 'POST',
         body: formData,
-        credentials: 'include',
+        credentials: 'include'
       })
 
       // Update tenant with new logo reference
       await $fetch(`/v1/tenants/${tenantId}`, {
         method: 'PATCH',
         body: { logo: uploadResponse.doc.id },
-        credentials: 'include',
+        credentials: 'include'
       })
 
       // Update local state
-      if (state.business.value) {
+      if (state.business.value && typeof uploadResponse.doc.url === 'string') {
         state.business.value.logo = uploadResponse.doc.url
       }
 
       toast.add({
         title: 'Logo uploaded',
         description: 'Your business logo has been updated successfully.',
-        color: 'success',
+        color: 'success'
       })
 
       return uploadResponse.doc
-    } catch (error: any) {
+    } catch (error: unknown) {
+      interface FetchError {
+        data?: {
+          message?: string
+        }
+      }
+      const fetchError = error as FetchError
+      const errorMessage = fetchError.data?.message || 'Failed to upload logo. Please try again.'
+
       console.error('Failed to upload logo:', error)
       toast.add({
         title: 'Error uploading logo',
-        description: error?.data?.message || 'Failed to upload logo. Please try again.',
-        color: 'error',
+        description: errorMessage,
+        color: 'error'
       })
       throw error
     }
@@ -616,7 +704,7 @@ export const useSettings = () => {
       await $fetch(`/v1/tenants/${tenantId}`, {
         method: 'PATCH',
         body: { logo: null },
-        credentials: 'include',
+        credentials: 'include'
       })
 
       // Update local state
@@ -627,16 +715,24 @@ export const useSettings = () => {
       toast.add({
         title: 'Logo removed',
         description: 'Your business logo has been removed.',
-        color: 'success',
+        color: 'success'
       })
 
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
+      interface FetchError {
+        data?: {
+          message?: string
+        }
+      }
+      const fetchError = error as FetchError
+      const errorMessage = fetchError.data?.message || 'Failed to remove logo. Please try again.'
+
       console.error('Failed to remove logo:', error)
       toast.add({
         title: 'Error removing logo',
-        description: error?.data?.message || 'Failed to remove logo. Please try again.',
-        color: 'error',
+        description: errorMessage,
+        color: 'error'
       })
       throw error
     }
@@ -645,18 +741,18 @@ export const useSettings = () => {
   const connectStripe = async () => {
     try {
       // Simulate Stripe Connect flow
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
       // In production, this would redirect to Stripe
       const response = await $fetch('/api/stripe/connect', {
-        method: 'POST',
+        method: 'POST'
       })
 
       // For now, just update state
       toast.add({
         title: 'Redirecting to Stripe',
         description: 'You will be redirected to complete the connection.',
-        color: 'blue',
+        color: 'primary'
       })
 
       return response
@@ -664,7 +760,7 @@ export const useSettings = () => {
       toast.add({
         title: 'Error connecting Stripe',
         description: 'Failed to initiate Stripe connection. Please try again.',
-        color: 'error',
+        color: 'error'
       })
       throw error
     }
@@ -681,7 +777,7 @@ export const useSettings = () => {
       }
 
       // Create user with pending status via API
-      const response = await $fetch<{ doc: any }>('/api/users', {
+      const response = await $fetch<{ doc: Record<string, unknown> }>('/api/users', {
         method: 'POST',
         body: {
           email,
@@ -690,19 +786,19 @@ export const useSettings = () => {
           isActive: true,
           emailVerified: false,
           // Generate a temporary password - user will reset on first login
-          password: Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12),
+          password: Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12)
         },
-        credentials: 'include',
+        credentials: 'include'
       })
 
       const newMember: TeamMember = {
         id: String(response.doc.id),
-        name: email.split('@')[0],
-        email,
-        role,
+        name: email.split('@')[0] || 'New Member',
+        email: email,
+        role: role,
         status: 'pending',
         avatar: null,
-        joinedAt: new Date().toISOString().split('T')[0],
+        joinedAt: new Date().toISOString().split('T')[0] || ''
       }
 
       state.team.value.push(newMember)
@@ -714,9 +810,9 @@ export const useSettings = () => {
           body: {
             email,
             role,
-            userId: response.doc.id,
+            userId: response.doc.id
           },
-          credentials: 'include',
+          credentials: 'include'
         })
       } catch (emailError) {
         console.warn('Failed to send invitation email, user created successfully:', emailError)
@@ -725,16 +821,24 @@ export const useSettings = () => {
       toast.add({
         title: 'Invitation sent',
         description: `An invitation has been sent to ${email}.`,
-        color: 'success',
+        color: 'success'
       })
 
       return newMember
-    } catch (error: any) {
+    } catch (error: unknown) {
+      interface FetchError {
+        data?: {
+          message?: string
+        }
+      }
+      const fetchError = error as FetchError
+      const errorMessage = fetchError.data?.message || 'Failed to send team member invitation. Please try again.'
+
       console.error('Failed to invite team member:', error)
       toast.add({
         title: 'Error sending invitation',
-        description: error?.data?.message || 'Failed to send team member invitation. Please try again.',
-        color: 'error',
+        description: errorMessage,
+        color: 'error'
       })
       throw error
     } finally {
@@ -748,24 +852,32 @@ export const useSettings = () => {
       // Delete user from Payload
       await $fetch(`/api/users/${memberId}`, {
         method: 'DELETE',
-        credentials: 'include',
+        credentials: 'include'
       })
 
-      state.team.value = state.team.value.filter((m) => m.id !== memberId)
+      state.team.value = state.team.value.filter(m => m.id !== memberId)
 
       toast.add({
         title: 'Team member removed',
         description: 'The team member has been removed successfully.',
-        color: 'success',
+        color: 'success'
       })
 
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
+      interface FetchError {
+        data?: {
+          message?: string
+        }
+      }
+      const fetchError = error as FetchError
+      const errorMessage = fetchError.data?.message || 'Failed to remove team member. Please try again.'
+
       console.error('Failed to remove team member:', error)
       toast.add({
         title: 'Error removing team member',
-        description: error?.data?.message || 'Failed to remove team member. Please try again.',
-        color: 'error',
+        description: errorMessage,
+        color: 'error'
       })
       throw error
     } finally {
@@ -780,28 +892,36 @@ export const useSettings = () => {
       await $fetch(`/api/users/${memberId}`, {
         method: 'PATCH',
         body: { isActive: false },
-        credentials: 'include',
+        credentials: 'include'
       })
 
       // Update local state
-      const memberIndex = state.team.value.findIndex((m) => m.id === memberId)
-      if (memberIndex !== -1) {
+      const memberIndex = state.team.value.findIndex(m => m.id === memberId)
+      if (memberIndex !== -1 && state.team.value[memberIndex]) {
         state.team.value[memberIndex].status = 'inactive'
       }
 
       toast.add({
         title: 'Member deactivated',
         description: 'The team member has been deactivated and can no longer access the dashboard.',
-        color: 'success',
+        color: 'success'
       })
 
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
+      interface FetchError {
+        data?: {
+          message?: string
+        }
+      }
+      const fetchError = error as FetchError
+      const errorMessage = fetchError.data?.message || 'Failed to deactivate team member. Please try again.'
+
       console.error('Failed to deactivate team member:', error)
       toast.add({
         title: 'Error deactivating member',
-        description: error?.data?.message || 'Failed to deactivate team member. Please try again.',
-        color: 'error',
+        description: errorMessage,
+        color: 'error'
       })
       throw error
     } finally {
@@ -816,28 +936,36 @@ export const useSettings = () => {
       await $fetch(`/api/users/${memberId}`, {
         method: 'PATCH',
         body: { isActive: true },
-        credentials: 'include',
+        credentials: 'include'
       })
 
       // Update local state
-      const memberIndex = state.team.value.findIndex((m) => m.id === memberId)
-      if (memberIndex !== -1) {
-        state.team.value[memberIndex].status = 'active'
+      const memberIndex = state.team.value.findIndex(m => m.id === memberId)
+      if (memberIndex !== -1 && state.team.value[memberIndex]) {
+        state.team.value[memberIndex]!.status = 'active'
       }
 
       toast.add({
         title: 'Member reactivated',
         description: 'The team member has been reactivated and can now access the dashboard.',
-        color: 'success',
+        color: 'success'
       })
 
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
+      interface FetchError {
+        data?: {
+          message?: string
+        }
+      }
+      const fetchError = error as FetchError
+      const errorMessage = fetchError.data?.message || 'Failed to reactivate team member. Please try again.'
+
       console.error('Failed to reactivate team member:', error)
       toast.add({
         title: 'Error reactivating member',
-        description: error?.data?.message || 'Failed to reactivate team member. Please try again.',
-        color: 'error',
+        description: errorMessage,
+        color: 'error'
       })
       throw error
     } finally {
@@ -849,7 +977,7 @@ export const useSettings = () => {
     state.saving.value = true
     try {
       // Get member details
-      const member = state.team.value.find((m) => m.id === memberId)
+      const member = state.team.value.find(m => m.id === memberId)
       if (!member) {
         throw new Error('Member not found')
       }
@@ -860,24 +988,32 @@ export const useSettings = () => {
         body: {
           email: member.email,
           role: member.role,
-          userId: memberId,
+          userId: memberId
         },
-        credentials: 'include',
+        credentials: 'include'
       })
 
       toast.add({
         title: 'Invitation resent',
         description: `Invitation has been resent to ${member.email}.`,
-        color: 'success',
+        color: 'success'
       })
 
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
+      interface FetchError {
+        data?: {
+          message?: string
+        }
+      }
+      const fetchError = error as FetchError
+      const errorMessage = fetchError.data?.message || 'Failed to resend invitation. Please try again.'
+
       console.error('Failed to resend invitation:', error)
       toast.add({
         title: 'Error resending invitation',
-        description: error?.data?.message || 'Failed to resend invitation. Please try again.',
-        color: 'error',
+        description: errorMessage,
+        color: 'error'
       })
       throw error
     } finally {
@@ -892,34 +1028,42 @@ export const useSettings = () => {
       await $fetch(`/v1/users/${memberId}`, {
         method: 'PATCH',
         body: { role: newRole },
-        credentials: 'include',
+        credentials: 'include'
       })
 
       // Update local state
-      const memberIndex = state.team.value.findIndex((m) => m.id === memberId)
-      if (memberIndex !== -1) {
-        state.team.value[memberIndex].role = newRole
+      const memberIndex = state.team.value.findIndex(m => m.id === memberId)
+      if (memberIndex !== -1 && state.team.value[memberIndex]) {
+        state.team.value[memberIndex]!.role = newRole
       }
 
       const roleLabels: Record<string, string> = {
         admin: 'Admin',
         manager: 'Manager',
-        staff: 'Staff',
+        staff: 'Staff'
       }
 
       toast.add({
         title: 'Role updated',
         description: `Team member's role has been updated to ${roleLabels[newRole] || newRole}.`,
-        color: 'success',
+        color: 'success'
       })
 
       return true
-    } catch (error: any) {
+    } catch (error: unknown) {
+      interface FetchError {
+        data?: {
+          message?: string
+        }
+      }
+      const fetchError = error as FetchError
+      const errorMessage = fetchError.data?.message || 'Failed to update team member role. Please try again.'
+
       console.error('Failed to update role:', error)
       toast.add({
         title: 'Error updating role',
-        description: error?.data?.message || 'Failed to update team member role. Please try again.',
-        color: 'error',
+        description: errorMessage,
+        color: 'error'
       })
       throw error
     } finally {
@@ -935,27 +1079,29 @@ export const useSettings = () => {
     state.saving.value = true
     try {
       // Create API key in Payload
-      const response = await $fetch<{ doc: any }>('/api/api-keys', {
+      const response = await $fetch<{ doc: Record<string, unknown> }>('/api/api-keys', {
         method: 'POST',
         body: {
           name,
           scopeType,
-          expiresAt: expiresAt || undefined,
+          expiresAt: expiresAt || undefined
         },
-        credentials: 'include',
+        credentials: 'include'
       })
 
       const newKey: ApiKey = {
         id: String(response.doc.id),
-        name: response.doc.name,
-        key: response.doc.key,
-        scopeType: response.doc.scopeType || 'full_access',
-        scopes: response.doc.scopes || [],
-        expiresAt: response.doc.expiresAt || null,
+        name: String(response.doc.name || ''),
+        key: String(response.doc.key || ''),
+        scopeType: (response.doc.scopeType as ApiKey['scopeType']) || 'full_access',
+        scopes: Array.isArray(response.doc.scopes) ? response.doc.scopes.map(String) : [],
+        expiresAt: response.doc.expiresAt ? String(response.doc.expiresAt) : null,
         isActive: response.doc.isActive !== false,
-        createdAt: response.doc.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+        createdAt: typeof response.doc.createdAt === 'string'
+          ? (response.doc.createdAt.split('T')[0] || '')
+          : (new Date().toISOString().split('T')[0] || ''),
         lastUsed: null,
-        lastRotatedAt: null,
+        lastRotatedAt: null
       }
 
       state.apiKeys.value.push(newKey)
@@ -963,7 +1109,7 @@ export const useSettings = () => {
       toast.add({
         title: 'API key created',
         description: 'Your new API key has been generated. Make sure to copy it now.',
-        color: 'success',
+        color: 'success'
       })
 
       return newKey
@@ -971,7 +1117,7 @@ export const useSettings = () => {
       toast.add({
         title: 'Error creating API key',
         description: 'Failed to create API key. Please try again.',
-        color: 'error',
+        color: 'error'
       })
       throw error
     } finally {
@@ -985,19 +1131,19 @@ export const useSettings = () => {
       await $fetch(`/api/api-keys/${keyId}`, {
         method: 'PATCH',
         body: { isActive },
-        credentials: 'include',
+        credentials: 'include'
       })
 
       // Update local state
-      const keyIndex = state.apiKeys.value.findIndex((k) => k.id === keyId)
-      if (keyIndex !== -1) {
-        state.apiKeys.value[keyIndex].isActive = isActive
+      const keyIndex = state.apiKeys.value.findIndex(k => k.id === keyId)
+      if (keyIndex !== -1 && state.apiKeys.value[keyIndex]) {
+        state.apiKeys.value[keyIndex]!.isActive = isActive
       }
 
       toast.add({
         title: isActive ? 'API key enabled' : 'API key disabled',
         description: `The API key has been ${isActive ? 'enabled' : 'disabled'} successfully.`,
-        color: 'success',
+        color: 'success'
       })
 
       return true
@@ -1005,7 +1151,7 @@ export const useSettings = () => {
       toast.add({
         title: 'Error updating API key',
         description: 'Failed to update API key status. Please try again.',
-        color: 'error',
+        color: 'error'
       })
       throw error
     }
@@ -1015,50 +1161,54 @@ export const useSettings = () => {
     state.saving.value = true
     try {
       // Rotate API key (generates new key value, invalidates old one)
-      const response = await $fetch<{ id: string; key: string; name: string; scopeType: string; scopes: string[]; expiresAt: string | null; isActive: boolean; createdAt: string }>(`/api/api-keys/${keyId}/rotate`, {
+      const response = await $fetch<{ id: string, key: string, name: string, scopeType: string, scopes: string[], expiresAt: string | null, isActive: boolean, createdAt: string }>(`/api/api-keys/${keyId}/rotate`, {
         method: 'POST',
-        credentials: 'include',
+        credentials: 'include'
       })
 
       // Update local state with new key data
-      const keyIndex = state.apiKeys.value.findIndex((k) => k.id === keyId)
+      const keyIndex = state.apiKeys.value.findIndex(k => k.id === keyId)
       if (keyIndex !== -1) {
         state.apiKeys.value[keyIndex] = {
           id: String(response.id),
-          name: response.name,
-          key: response.key,
+          name: String(response.name),
+          key: String(response.key),
           scopeType: response.scopeType as ApiKey['scopeType'],
-          scopes: response.scopes,
-          expiresAt: response.expiresAt,
+          scopes: Array.isArray(response.scopes) ? response.scopes.map(String) : [],
+          expiresAt: response.expiresAt ? String(response.expiresAt) : null,
           isActive: response.isActive,
-          createdAt: response.createdAt.split('T')[0],
-          lastUsed: null, // Reset since it's a new key
+          createdAt: typeof response.createdAt === 'string'
+            ? (response.createdAt.split('T')[0] || '')
+            : (new Date().toISOString().split('T')[0] || ''),
+          lastUsed: null // Reset since it's a new key
         }
       }
 
       toast.add({
         title: 'API key rotated',
         description: 'A new key has been generated. The old key is now invalid.',
-        color: 'success',
+        color: 'success'
       })
 
       // Return the new key so the UI can display it
       return {
         id: String(response.id),
-        name: response.name,
-        key: response.key,
+        name: String(response.name),
+        key: String(response.key),
         scopeType: response.scopeType as ApiKey['scopeType'],
-        scopes: response.scopes,
-        expiresAt: response.expiresAt,
+        scopes: Array.isArray(response.scopes) ? response.scopes.map(String) : [],
+        expiresAt: response.expiresAt ? String(response.expiresAt) : null,
         isActive: response.isActive,
-        createdAt: response.createdAt.split('T')[0],
-        lastUsed: null,
+        createdAt: typeof response.createdAt === 'string'
+          ? (response.createdAt.split('T')[0] || '')
+          : (new Date().toISOString().split('T')[0] || ''),
+        lastUsed: null
       }
     } catch (error) {
       toast.add({
         title: 'Error rotating API key',
         description: 'Failed to rotate API key. Please try again.',
-        color: 'error',
+        color: 'error'
       })
       throw error
     } finally {
@@ -1072,15 +1222,15 @@ export const useSettings = () => {
       // Delete API key from Payload
       await $fetch(`/api/api-keys/${keyId}`, {
         method: 'DELETE',
-        credentials: 'include',
+        credentials: 'include'
       })
 
-      state.apiKeys.value = state.apiKeys.value.filter((k) => k.id !== keyId)
+      state.apiKeys.value = state.apiKeys.value.filter(k => k.id !== keyId)
 
       toast.add({
         title: 'API key deleted',
         description: 'The API key has been deleted successfully.',
-        color: 'success',
+        color: 'success'
       })
 
       return true
@@ -1088,7 +1238,7 @@ export const useSettings = () => {
       toast.add({
         title: 'Error deleting API key',
         description: 'Failed to delete API key. Please try again.',
-        color: 'error',
+        color: 'error'
       })
       throw error
     } finally {
@@ -1100,23 +1250,27 @@ export const useSettings = () => {
     state.saving.value = true
     try {
       // Create webhook in Payload
-      const response = await $fetch<{ doc: any }>('/api/webhook-endpoints', {
+      const response = await $fetch<{ doc: Record<string, unknown> }>('/api/webhook-endpoints', {
         method: 'POST',
         body: {
           url,
-          events: events.map((event) => ({ event })),
-          active: true,
+          events: events.map(event => ({ event })),
+          active: true
         },
-        credentials: 'include',
+        credentials: 'include'
       })
 
       const newWebhook: WebhookEndpoint = {
         id: String(response.doc.id),
-        url: response.doc.url,
-        events: response.doc.events?.map((e: any) => e.event) || events,
-        secret: response.doc.secret,
+        url: String(response.doc.url || ''),
+        events: Array.isArray(response.doc.events)
+          ? response.doc.events.map((e: unknown) => String((e as Record<string, unknown>).event || ''))
+          : events,
+        secret: String(response.doc.secret || ''),
         status: 'active',
-        createdAt: response.doc.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+        createdAt: typeof response.doc.createdAt === 'string'
+          ? (response.doc.createdAt.split('T')[0] || '')
+          : (new Date().toISOString().split('T')[0] || '')
       }
 
       state.webhooks.value.push(newWebhook)
@@ -1124,7 +1278,7 @@ export const useSettings = () => {
       toast.add({
         title: 'Webhook endpoint added',
         description: 'Your webhook endpoint has been configured successfully.',
-        color: 'success',
+        color: 'success'
       })
 
       return newWebhook
@@ -1132,7 +1286,7 @@ export const useSettings = () => {
       toast.add({
         title: 'Error adding webhook',
         description: 'Failed to add webhook endpoint. Please try again.',
-        color: 'error',
+        color: 'error'
       })
       throw error
     } finally {
@@ -1146,15 +1300,15 @@ export const useSettings = () => {
       // Delete webhook from Payload
       await $fetch(`/api/webhook-endpoints/${webhookId}`, {
         method: 'DELETE',
-        credentials: 'include',
+        credentials: 'include'
       })
 
-      state.webhooks.value = state.webhooks.value.filter((w) => w.id !== webhookId)
+      state.webhooks.value = state.webhooks.value.filter(w => w.id !== webhookId)
 
       toast.add({
         title: 'Webhook endpoint deleted',
         description: 'The webhook endpoint has been deleted successfully.',
-        color: 'success',
+        color: 'success'
       })
 
       return true
@@ -1162,7 +1316,7 @@ export const useSettings = () => {
       toast.add({
         title: 'Error deleting webhook',
         description: 'Failed to delete webhook endpoint. Please try again.',
-        color: 'error',
+        color: 'error'
       })
       throw error
     } finally {
@@ -1170,15 +1324,15 @@ export const useSettings = () => {
     }
   }
 
-  const testWebhook = async (webhookId: string) => {
+  const testWebhook = async (_webhookId: string) => {
     try {
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
       toast.add({
         title: 'Test webhook sent',
         description: 'A test event has been sent to your webhook endpoint.',
-        color: 'success',
+        color: 'success'
       })
 
       return true
@@ -1186,7 +1340,7 @@ export const useSettings = () => {
       toast.add({
         title: 'Error testing webhook',
         description: 'Failed to send test webhook. Please try again.',
-        color: 'error',
+        color: 'error'
       })
       throw error
     }
@@ -1210,37 +1364,38 @@ export const useSettings = () => {
           // Payload requires current password for password changes
           currentPassword
         },
-        credentials: 'include',
+        credentials: 'include'
       })
 
       toast.add({
         title: 'Password updated',
         description: 'Your password has been changed successfully.',
-        color: 'success',
+        color: 'success'
       })
 
       return { success: true }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to change password:', error)
 
       // Handle specific error cases
       let errorMessage = 'Failed to change password. Please try again.'
 
-      if (error?.data?.errors) {
-        const errorDetails = error.data.errors[0]
-        if (errorDetails?.message?.includes('password')) {
+      const fetchError = error as FetchError
+      if (fetchError.data?.errors && fetchError.data.errors.length > 0) {
+        const errorDetails = fetchError.data.errors[0]
+        if (errorDetails && errorDetails.message?.includes('password')) {
           errorMessage = errorDetails.message
-        } else if (errorDetails?.message?.includes('current')) {
+        } else if (errorDetails && errorDetails.message?.includes('current')) {
           errorMessage = 'Current password is incorrect.'
         }
-      } else if (error?.message) {
-        errorMessage = error.message
+      } else if (fetchError.message) {
+        errorMessage = fetchError.message
       }
 
       toast.add({
         title: 'Error changing password',
         description: errorMessage,
-        color: 'error',
+        color: 'error'
       })
 
       return { success: false, error: errorMessage }
@@ -1251,6 +1406,15 @@ export const useSettings = () => {
 
   const markHasChanges = () => {
     state.hasUnsavedChanges.value = true
+  }
+
+  // Define FetchError interface at composable level to avoid redefinition
+  interface FetchError {
+    data?: {
+      message?: string
+      errors?: Array<{ message?: string }>
+    }
+    message?: string
   }
 
   return {
@@ -1286,6 +1450,6 @@ export const useSettings = () => {
     deleteWebhookEndpoint,
     testWebhook,
     changePassword,
-    markHasChanges,
+    markHasChanges
   }
 }

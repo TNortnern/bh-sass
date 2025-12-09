@@ -43,7 +43,10 @@
               </div>
             </div>
             <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
-              <UIcon name="i-lucide-clipboard-list" class="w-6 h-6 text-blue-500" />
+              <UIcon
+                name="i-lucide-clipboard-list"
+                class="w-6 h-6 text-blue-500"
+              />
             </div>
           </div>
         </UCard>
@@ -66,7 +69,10 @@
               </div>
             </div>
             <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-              <UIcon name="i-lucide-check-circle" class="w-6 h-6 text-green-500" />
+              <UIcon
+                name="i-lucide-check-circle"
+                class="w-6 h-6 text-green-500"
+              />
             </div>
           </div>
         </UCard>
@@ -89,7 +95,10 @@
               </div>
             </div>
             <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-              <UIcon name="i-lucide-dollar-sign" class="w-6 h-6 text-amber-500" />
+              <UIcon
+                name="i-lucide-dollar-sign"
+                class="w-6 h-6 text-amber-500"
+              />
             </div>
           </div>
         </UCard>
@@ -112,7 +121,10 @@
               </div>
             </div>
             <div class="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
-              <UIcon name="i-lucide-alert-circle" class="w-6 h-6 text-red-500" />
+              <UIcon
+                name="i-lucide-alert-circle"
+                class="w-6 h-6 text-red-500"
+              />
             </div>
           </div>
         </UCard>
@@ -132,9 +144,15 @@
             }"
           >
             <template #leading>
-              <UIcon name="i-lucide-search" class="w-5 h-5 text-gray-500 dark:text-slate-500" />
+              <UIcon
+                name="i-lucide-search"
+                class="w-5 h-5 text-gray-500 dark:text-slate-500"
+              />
             </template>
-            <template v-if="searchQuery" #trailing>
+            <template
+              v-if="searchQuery"
+              #trailing
+            >
               <UButton
                 color="neutral"
                 variant="link"
@@ -330,16 +348,26 @@
       class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center justify-between"
     >
       <div class="flex items-center gap-3">
-        <UIcon name="i-lucide-check-circle" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        <UIcon
+          name="i-lucide-check-circle"
+          class="w-5 h-5 text-blue-600 dark:text-blue-400"
+        />
         <span class="text-sm font-medium text-blue-900 dark:text-blue-200">
           {{ selectedBookings.length }} booking(s) selected
         </span>
       </div>
       <div class="flex items-center gap-2">
         <UDropdownMenu :items="bulkActions">
-          <UButton color="primary" variant="outline" size="md">
+          <UButton
+            color="primary"
+            variant="outline"
+            size="md"
+          >
             Bulk Actions
-            <UIcon name="i-lucide-chevron-down" class="w-4 h-4 ml-1" />
+            <UIcon
+              name="i-lucide-chevron-down"
+              class="w-4 h-4 ml-1"
+            />
           </UButton>
         </UDropdownMenu>
         <UButton
@@ -372,14 +400,30 @@
                   @update:model-value="toggleSelectAll"
                 />
               </th>
-              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Booking #</th>
-              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Customer</th>
-              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Item</th>
-              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Dates</th>
-              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Status</th>
-              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Payment</th>
-              <th class="text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Total</th>
-              <th class="text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4 w-12">Actions</th>
+              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">
+                Booking #
+              </th>
+              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">
+                Customer
+              </th>
+              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">
+                Item
+              </th>
+              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">
+                Dates
+              </th>
+              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">
+                Status
+              </th>
+              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">
+                Payment
+              </th>
+              <th class="text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">
+                Total
+              </th>
+              <th class="text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4 w-12">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 dark:divide-slate-700/30">
@@ -389,7 +433,10 @@
               class="hover:bg-gray-50 dark:hover:bg-slate-700/20 transition-colors cursor-pointer"
               @click="handleRowClick(booking)"
             >
-              <td class="px-6 py-5" @click.stop>
+              <td
+                class="px-6 py-5"
+                @click.stop
+              >
                 <UCheckbox
                   :model-value="isSelected(booking.id)"
                   @update:model-value="toggleSelect(booking.id)"
@@ -450,11 +497,17 @@
                 <div class="font-semibold text-amber-400">
                   {{ formatCurrency(booking.payment.total) }}
                 </div>
-                <div v-if="booking.payment.balance > 0" class="text-xs text-red-400">
+                <div
+                  v-if="booking.payment.balance > 0"
+                  class="text-xs text-red-400"
+                >
                   {{ formatCurrency(booking.payment.balance) }} due
                 </div>
               </td>
-              <td class="text-sm text-gray-700 dark:text-slate-300 px-6 py-5" @click.stop>
+              <td
+                class="text-sm text-gray-700 dark:text-slate-300 px-6 py-5"
+                @click.stop
+              >
                 <div class="flex justify-end">
                   <UDropdownMenu :items="getBookingActions(booking)">
                     <UButton
@@ -471,14 +524,26 @@
         </table>
 
         <!-- Loading State -->
-        <div v-if="isLoading" class="flex justify-center py-12">
-          <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-gray-500 dark:text-slate-500" />
+        <div
+          v-if="isLoading"
+          class="flex justify-center py-12"
+        >
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-8 h-8 animate-spin text-gray-500 dark:text-slate-500"
+          />
         </div>
 
         <!-- Empty State -->
-        <div v-if="!isLoading && paginatedBookings.length === 0" class="text-center py-16">
+        <div
+          v-if="!isLoading && paginatedBookings.length === 0"
+          class="text-center py-16"
+        >
           <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 dark:bg-slate-800/60 flex items-center justify-center">
-            <UIcon name="i-lucide-calendar-x" class="w-10 h-10 text-gray-400 dark:text-slate-600" />
+            <UIcon
+              name="i-lucide-calendar-x"
+              class="w-10 h-10 text-gray-400 dark:text-slate-600"
+            />
           </div>
           <h3 class="text-xl font-semibold text-gray-900 dark:text-slate-300 mb-2">
             No bookings found
@@ -493,7 +558,10 @@
             :ui="{ rounded: 'rounded-xl' }"
             @click="navigateTo('/app/bookings/new')"
           >
-            <UIcon name="i-lucide-plus" class="w-5 h-5 mr-2" />
+            <UIcon
+              name="i-lucide-plus"
+              class="w-5 h-5 mr-2"
+            />
             New Booking
           </UButton>
         </div>
@@ -527,16 +595,26 @@
     </div>
 
     <!-- Cancel Booking Modal -->
-    <UModal v-model:open="showCancelModal" title="Cancel Booking">
+    <UModal
+      v-model:open="showCancelModal"
+      title="Cancel Booking"
+    >
       <template #content>
         <div class="p-6">
           <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-              <UIcon name="i-lucide-x-circle" class="text-red-600 dark:text-red-400 text-xl" />
+              <UIcon
+                name="i-lucide-x-circle"
+                class="text-red-600 dark:text-red-400 text-xl"
+              />
             </div>
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Cancel Booking</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone</p>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Cancel Booking
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                This action cannot be undone
+              </p>
             </div>
           </div>
 
@@ -578,6 +656,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { format, parseISO } from 'date-fns'
 import type { Booking } from '~/composables/useBookings'
 
@@ -585,7 +664,7 @@ definePageMeta({
   layout: 'dashboard'
 })
 
-const { bookings, filteredBookings, filters, stats, fetchBookings, updateStatus, bulkUpdateStatus, cancelBooking, isLoading } = useBookings()
+const { bookings, filteredBookings, filters, stats, fetchBookings, updateStatus, bulkUpdateStatus, cancelBooking } = useBookings()
 const toast = useToast()
 
 const searchQuery = ref('')
@@ -640,9 +719,9 @@ const displayedBookings = computed(() => {
   if (searchQuery.value) {
     const search = searchQuery.value.toLowerCase()
     result = result.filter(b =>
-      b.bookingNumber.toLowerCase().includes(search) ||
-      b.customer.name.toLowerCase().includes(search) ||
-      b.customer.email.toLowerCase().includes(search)
+      b.bookingNumber.toLowerCase().includes(search)
+      || b.customer.name.toLowerCase().includes(search)
+      || b.customer.email.toLowerCase().includes(search)
     )
   }
 
@@ -658,7 +737,7 @@ const displayedBookings = computed(() => {
 
   // Date range filter
   if (dateFilters.start && dateFilters.end) {
-    result = result.filter(b => {
+    result = result.filter((b) => {
       const bookingStart = parseISO(b.dates.start)
       const rangeStart = parseISO(dateFilters.start)
       const rangeEnd = parseISO(dateFilters.end)

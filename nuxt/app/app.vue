@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-
 // Provide ripple directive globally
 const createRipple = (event: MouseEvent) => {
   const button = event.currentTarget as HTMLElement
@@ -24,7 +22,8 @@ const createRipple = (event: MouseEvent) => {
 
 // Make ripple function available globally
 if (import.meta.client) {
-  window.createRipple = createRipple
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(window as any).createRipple = createRipple
 }
 </script>
 

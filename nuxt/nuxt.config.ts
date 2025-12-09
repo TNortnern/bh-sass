@@ -7,8 +7,77 @@ export default defineNuxtConfig({
     '@nuxt/image'
   ],
 
+  devtools: {
+    enabled: true
+  },
+
+  css: ['~/assets/css/main.css'],
+
+  runtimeConfig: {
+    // Private config (server-side only)
+    payloadApiUrl: process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3000',
+    payloadApiKey: process.env.PAYLOAD_API_KEY || '',
+    payloadTenantId: process.env.PAYLOAD_TENANT_ID || '',
+    rbPayloadUrl: process.env.RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app',
+    rbPayloadApiKey: process.env.RB_PAYLOAD_API_KEY || '',
+
+    // Stripe Configuration (server-side only)
+    stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
+    stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+
+    // Bunny CDN Configuration (server-side only)
+    bunnyStorageApiKey: process.env.BUNNY_STORAGE_API_KEY || '',
+    bunnyStorageZone: process.env.BUNNY_STORAGE_ZONE || '',
+    bunnyCdnHostname: process.env.BUNNY_CDN_HOSTNAME || '',
+    bunnyStorageHostname: process.env.BUNNY_STORAGE_HOSTNAME || 'storage.bunnycdn.com',
+
+    // Public config (exposed to client)
+    public: {
+      payloadUrl: process.env.NUXT_PUBLIC_PAYLOAD_URL || 'http://localhost:3004',
+      rbPayloadUrl: process.env.NUXT_PUBLIC_RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app',
+      rbPayloadApiKey: process.env.NUXT_PUBLIC_RB_PAYLOAD_API_KEY || 'tk_58v2xsw911d0dy5q8mrlum3r9hah05n0',
+      stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
+      googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || ''
+    }
+  },
+
+  routeRules: {
+    // Proxy Next.js static assets (required for Payload admin)
+    '/_next/**': {
+      proxy: {
+        to: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3004'}/_next/**`
+      }
+    },
+
+    // Proxy Payload admin interface
+    '/admin/**': {
+      proxy: {
+        to: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3004'}/admin/**`
+      }
+    },
+
+    // NOTE: /api/** is NOT proxied via routeRules - handled by server/api/[...].ts catch-all
+    // This allows specific server routes (rental-items, upload, widget) to take priority
+
+    // Alternative REST API namespace (for external/widget use)
+    '/v1/**': {
+      proxy: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3004'}/api/**`
+    }
+  },
+
   future: {
     compatibilityVersion: 4
+  },
+
+  compatibilityDate: '2024-11-30',
+
+  eslint: {
+    config: {
+      stylistic: {
+        commaDangle: 'never',
+        braceStyle: '1tbs'
+      }
+    }
   },
 
   icon: {
@@ -130,74 +199,6 @@ export default defineNuxtConfig({
         'simple-icons:google'
       ],
       scan: true
-    }
-  },
-
-  devtools: {
-    enabled: true
-  },
-
-  css: ['~/assets/css/main.css'],
-
-  runtimeConfig: {
-    // Private config (server-side only)
-    payloadApiUrl: process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3000',
-    payloadApiKey: process.env.PAYLOAD_API_KEY || '',
-    payloadTenantId: process.env.PAYLOAD_TENANT_ID || '',
-    rbPayloadUrl: process.env.RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app',
-    rbPayloadApiKey: process.env.RB_PAYLOAD_API_KEY || '',
-
-    // Stripe Configuration (server-side only)
-    stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
-    stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
-
-    // Bunny CDN Configuration (server-side only)
-    bunnyStorageApiKey: process.env.BUNNY_STORAGE_API_KEY || '',
-    bunnyStorageZone: process.env.BUNNY_STORAGE_ZONE || '',
-    bunnyCdnHostname: process.env.BUNNY_CDN_HOSTNAME || '',
-    bunnyStorageHostname: process.env.BUNNY_STORAGE_HOSTNAME || 'storage.bunnycdn.com',
-
-    // Public config (exposed to client)
-    public: {
-      payloadUrl: process.env.NUXT_PUBLIC_PAYLOAD_URL || 'http://localhost:3004',
-      rbPayloadUrl: process.env.NUXT_PUBLIC_RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app',
-      rbPayloadApiKey: process.env.NUXT_PUBLIC_RB_PAYLOAD_API_KEY || 'tk_58v2xsw911d0dy5q8mrlum3r9hah05n0',
-      stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || ''
-    }
-  },
-
-  routeRules: {
-    // Proxy Next.js static assets (required for Payload admin)
-    '/_next/**': {
-      proxy: {
-        to: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3004'}/_next/**`
-      }
-    },
-
-    // Proxy Payload admin interface
-    '/admin/**': {
-      proxy: {
-        to: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3004'}/admin/**`
-      }
-    },
-
-    // NOTE: /api/** is NOT proxied via routeRules - handled by server/api/[...].ts catch-all
-    // This allows specific server routes (rental-items, upload, widget) to take priority
-
-    // Alternative REST API namespace (for external/widget use)
-    '/v1/**': {
-      proxy: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3004'}/api/**`
-    }
-  },
-
-  compatibilityDate: '2024-11-30',
-
-  eslint: {
-    config: {
-      stylistic: {
-        commaDangle: 'never',
-        braceStyle: '1tbs'
-      }
     }
   }
 })

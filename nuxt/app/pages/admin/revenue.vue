@@ -9,14 +9,23 @@ definePageMeta({
   <div class="admin-page">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Revenue Analytics</h1>
-        <p class="page-description">Platform revenue and financial metrics</p>
+        <h1 class="page-title">
+          Revenue Analytics
+        </h1>
+        <p class="page-description">
+          Platform revenue and financial metrics
+        </p>
       </div>
     </div>
 
     <div class="placeholder">
-      <UIcon name="i-lucide-trending-up" class="placeholder-icon" />
-      <p class="placeholder-text">Revenue analytics coming soon</p>
+      <UIcon
+        name="i-lucide-trending-up"
+        class="placeholder-icon"
+      />
+      <p class="placeholder-text">
+        Revenue analytics coming soon
+      </p>
     </div>
   </div>
 </template>

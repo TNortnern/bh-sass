@@ -6,13 +6,27 @@
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center gap-2">
             <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
-              <UIcon name="i-lucide-tent" class="w-5 h-5 text-white" />
+              <UIcon
+                name="i-lucide-tent"
+                class="w-5 h-5 text-white"
+              />
             </div>
             <span class="text-xl font-bold text-gray-900 dark:text-white">BouncePro</span>
           </div>
           <div class="flex items-center gap-3">
-            <UButton color="neutral" variant="ghost" to="/">Back to Home</UButton>
-            <UButton color="primary" to="/auth/register">Get Started</UButton>
+            <UButton
+              color="neutral"
+              variant="ghost"
+              to="/"
+            >
+              Back to Home
+            </UButton>
+            <UButton
+              color="primary"
+              to="/auth/register"
+            >
+              Get Started
+            </UButton>
           </div>
         </div>
       </div>

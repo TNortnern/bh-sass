@@ -24,8 +24,8 @@ export default defineEventHandler(async (event) => {
 
   // Transform the frontend data format to Payload format
   // Only include tenantId if using API key auth (for session auth, Payload gets it from user)
-  const isSessionAuth = cookieHeader.includes('payload-token')
-  const payloadData: Record<string, any> = {
+  const _isSessionAuth = cookieHeader.includes('payload-token')
+  const payloadData: Record<string, unknown> = {
     name: body.name,
     description: body.description,
     category: body.category,
@@ -86,16 +86,16 @@ export default defineEventHandler(async (event) => {
       success: true,
       item: data.doc
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating rental item:', error)
 
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 
     throw createError({
       statusCode: 500,
-      message: error.message || 'Failed to create rental item'
+      message: (error as Error).message || 'Failed to create rental item'
     })
   }
 })

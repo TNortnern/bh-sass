@@ -1,9 +1,10 @@
 <script setup lang="ts">
+/* eslint-disable vue/no-multiple-template-root */
 import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 
 definePageMeta({
-  layout: 'dashboard',
+  layout: 'dashboard'
 })
 
 const toast = useToast()
@@ -32,9 +33,9 @@ const { data: contracts, pending, refresh } = await useLazyFetch<{ docs: Contrac
   query: {
     limit: 100,
     sort: '-createdAt',
-    depth: 1,
+    depth: 1
   },
-  server: false, // Client-side only to ensure cookies are sent
+  server: false // Client-side only to ensure cookies are sent
 })
 
 // Modal states
@@ -45,30 +46,30 @@ const selectedContract = ref<Contract | null>(null)
 // Generate contract form
 const generateForm = ref({
   bookingId: '',
-  templateId: '',
+  templateId: ''
 })
 
 // Fetch templates
-const { data: templates } = await useLazyFetch<{ docs: any[] }>('/api/contract-templates', {
+const { data: templates } = await useLazyFetch<{ docs: Record<string, unknown>[] }>('/api/contract-templates', {
   query: {
-    isActive: true,
-  },
+    isActive: true
+  }
 })
 
 // Fetch bookings for dropdown (depth: 1 to populate customerId relationship)
-const { data: bookings } = await useLazyFetch<{ docs: any[] }>('/api/bookings', {
+const { data: bookings } = await useLazyFetch<{ docs: Record<string, unknown>[] }>('/api/bookings', {
   query: {
     limit: 100,
     sort: '-createdAt',
-    depth: 1,
-  },
+    depth: 1
+  }
 })
 
 // Table columns
 const columns: TableColumn<Contract>[] = [
   {
     accessorKey: 'contractNumber',
-    header: 'Contract #',
+    header: 'Contract #'
   },
   {
     accessorKey: 'customerId',
@@ -80,7 +81,7 @@ const columns: TableColumn<Contract>[] = [
         return customer.name
       }
       return 'N/A'
-    },
+    }
   },
   {
     accessorKey: 'type',
@@ -92,10 +93,11 @@ const columns: TableColumn<Contract>[] = [
         'damage-policy': 'Damage Policy',
         'safety-rules': 'Safety Rules',
         'weather-policy': 'Weather Policy',
-        custom: 'Custom',
+        'custom': 'Custom'
       }
-      return typeMap[row.getValue('type')] || row.getValue('type')
-    },
+      const type = row.getValue('type') as string
+      return typeMap[type as keyof typeof typeMap] || type
+    }
   },
   {
     accessorKey: 'status',
@@ -105,18 +107,18 @@ const columns: TableColumn<Contract>[] = [
         draft: 'neutral',
         sent: 'primary',
         signed: 'success',
-        void: 'error',
+        void: 'error'
       }
       const status = row.getValue('status') as keyof typeof statusColors
       return h(
         UBadge,
         {
           color: statusColors[status],
-          variant: 'subtle',
+          variant: 'subtle'
         },
-        () => status.charAt(0).toUpperCase() + status.slice(1),
+        () => status.charAt(0).toUpperCase() + status.slice(1)
       )
-    },
+    }
   },
   {
     accessorKey: 'signedAt',
@@ -125,14 +127,14 @@ const columns: TableColumn<Contract>[] = [
       const signedAt = row.getValue('signedAt')
       if (!signedAt) return 'Not signed'
       return new Date(signedAt as string).toLocaleDateString()
-    },
+    }
   },
   {
     accessorKey: 'createdAt',
     header: 'Created',
     cell: ({ row }) => {
       return new Date(row.getValue('createdAt')).toLocaleDateString()
-    },
+    }
   },
   {
     id: 'actions',
@@ -147,26 +149,26 @@ const columns: TableColumn<Contract>[] = [
             color: 'neutral',
             variant: 'ghost',
             size: 'sm',
-            onClick: () => viewContract(row.original),
+            onClick: () => viewContract(row.original)
           }),
           h(UButton, {
             icon: 'i-lucide-download',
             color: 'neutral',
             variant: 'ghost',
             size: 'sm',
-            onClick: () => downloadContract(row.original),
+            onClick: () => downloadContract(row.original)
           }),
-          row.original.status === 'draft' &&
-            h(UButton, {
-              icon: 'i-lucide-send',
-              color: 'primary',
-              variant: 'ghost',
-              size: 'sm',
-              onClick: () => sendContract(row.original),
-            }),
-        ].filter(Boolean),
-      ),
-  },
+          row.original.status === 'draft'
+          && h(UButton, {
+            icon: 'i-lucide-send',
+            color: 'primary',
+            variant: 'ghost',
+            size: 'sm',
+            onClick: () => sendContract(row.original)
+          })
+        ].filter(Boolean)
+      )
+  }
 ]
 
 // Actions
@@ -175,7 +177,7 @@ async function generateContract() {
     toast.add({
       title: 'Missing Selection',
       description: 'Please select both booking and template',
-      color: 'warning',
+      color: 'warning'
     })
     return
   }
@@ -185,14 +187,14 @@ async function generateContract() {
       method: 'POST',
       body: {
         bookingId: generateForm.value.bookingId,
-        templateId: generateForm.value.templateId,
-      },
+        templateId: generateForm.value.templateId
+      }
     })
 
     toast.add({
       title: 'Contract Generated',
       description: 'Contract has been created successfully',
-      color: 'success',
+      color: 'success'
     })
     isGenerateModalOpen.value = false
     generateForm.value = { bookingId: '', templateId: '' }
@@ -202,7 +204,7 @@ async function generateContract() {
     toast.add({
       title: 'Error',
       description: 'Failed to generate contract',
-      color: 'error',
+      color: 'error'
     })
   }
 }
@@ -229,7 +231,7 @@ async function downloadContract(contract: Contract) {
     toast.add({
       title: 'Download Failed',
       description: 'Failed to download contract',
-      color: 'error',
+      color: 'error'
     })
   }
 }
@@ -237,12 +239,12 @@ async function downloadContract(contract: Contract) {
 async function sendContract(contract: Contract) {
   try {
     await $fetch(`/api/contract-actions/${contract.id}/send`, {
-      method: 'POST',
+      method: 'POST'
     })
     toast.add({
       title: 'Contract Sent',
       description: 'Contract sent to customer',
-      color: 'success',
+      color: 'success'
     })
     await refresh()
   } catch (error) {
@@ -250,7 +252,7 @@ async function sendContract(contract: Contract) {
     toast.add({
       title: 'Send Failed',
       description: 'Failed to send contract',
-      color: 'error',
+      color: 'error'
     })
   }
 }
@@ -258,9 +260,9 @@ async function sendContract(contract: Contract) {
 // Template options for dropdown
 const templateOptions = computed(() => {
   return (
-    templates.value?.docs.map((t) => ({
+    templates.value?.docs.map(t => ({
       label: t.name,
-      value: t.id,
+      value: t.id
     })) || []
   )
 })
@@ -268,15 +270,16 @@ const templateOptions = computed(() => {
 // Booking options for dropdown
 const bookingOptions = computed(() => {
   return (
-    bookings.value?.docs.map((b) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    bookings.value?.docs.map((b: any) => {
       // Customers collection uses 'name' field, not firstName/lastName
-      const customer =
-        typeof b.customerId === 'object' && b.customerId?.name
+      const customer
+        = typeof b.customerId === 'object' && b.customerId?.name
           ? b.customerId.name
           : 'Unknown Customer'
       return {
         label: `Booking for ${customer} - ${new Date(b.startDate).toLocaleDateString()}`,
-        value: b.id,
+        value: b.id
       }
     }) || []
   )
@@ -288,8 +291,12 @@ const bookingOptions = computed(() => {
     <!-- Page Header -->
     <div class="flex items-start justify-between gap-4 mb-8">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Contracts</h1>
-        <p class="text-gray-600 dark:text-gray-400">Generate and manage customer contracts from templates</p>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+          Contracts
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400">
+          Generate and manage customer contracts from templates
+        </p>
       </div>
       <UButton
         icon="i-lucide-plus"
@@ -299,40 +306,63 @@ const bookingOptions = computed(() => {
     </div>
 
     <div>
-        <!-- Contracts Table -->
-        <div v-if="!pending && contracts?.docs.length" class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-          <UTable :data="contracts.docs" :columns="columns" />
-        </div>
+      <!-- Contracts Table -->
+      <div
+        v-if="!pending && contracts?.docs.length"
+        class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800"
+      >
+        <UTable
+          :data="contracts.docs"
+          :columns="columns"
+        />
+      </div>
 
-        <!-- Empty State -->
-        <div
-          v-else-if="!pending && !contracts?.docs.length"
-          class="flex flex-col items-center justify-center py-16 text-gray-500"
-        >
-          <UIcon name="i-lucide-file-text" class="text-6xl mb-4 text-gray-300" />
-          <p class="text-lg font-medium">No Contracts Yet</p>
-          <p class="text-sm mb-6 text-center max-w-sm">
-            Generate contracts from templates for your bookings
-          </p>
-          <UButton
-            icon="i-lucide-plus"
-            label="Generate First Contract"
-            @click="isGenerateModalOpen = true"
-          />
-        </div>
+      <!-- Empty State -->
+      <div
+        v-else-if="!pending && !contracts?.docs.length"
+        class="flex flex-col items-center justify-center py-16 text-gray-500"
+      >
+        <UIcon
+          name="i-lucide-file-text"
+          class="text-6xl mb-4 text-gray-300"
+        />
+        <p class="text-lg font-medium">
+          No Contracts Yet
+        </p>
+        <p class="text-sm mb-6 text-center max-w-sm">
+          Generate contracts from templates for your bookings
+        </p>
+        <UButton
+          icon="i-lucide-plus"
+          label="Generate First Contract"
+          @click="isGenerateModalOpen = true"
+        />
+      </div>
 
-        <!-- Loading State -->
-        <div v-else class="flex items-center justify-center py-12">
-          <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
-        </div>
+      <!-- Loading State -->
+      <div
+        v-else
+        class="flex items-center justify-center py-12"
+      >
+        <UIcon
+          name="i-lucide-loader-circle"
+          class="animate-spin text-4xl text-gray-400"
+        />
+      </div>
     </div>
   </div>
 
   <!-- Generate Contract Modal -->
-  <UModal v-model:open="isGenerateModalOpen" title="Generate Contract">
+  <UModal
+    v-model:open="isGenerateModalOpen"
+    title="Generate Contract"
+  >
     <template #body>
       <div class="space-y-4 p-6">
-        <UFormField label="Select Booking" required>
+        <UFormField
+          label="Select Booking"
+          required
+        >
           <USelect
             v-model="generateForm.bookingId"
             :items="bookingOptions"
@@ -341,7 +371,10 @@ const bookingOptions = computed(() => {
           />
         </UFormField>
 
-        <UFormField label="Select Template" required>
+        <UFormField
+          label="Select Template"
+          required
+        >
           <USelect
             v-model="generateForm.templateId"
             :items="templateOptions"
@@ -354,19 +387,35 @@ const bookingOptions = computed(() => {
 
     <template #footer="{ close }">
       <div class="flex justify-end gap-2">
-        <UButton label="Cancel" color="neutral" variant="ghost" @click="close" />
-        <UButton label="Generate" @click="generateContract" />
+        <UButton
+          label="Cancel"
+          color="neutral"
+          variant="ghost"
+          @click="close"
+        />
+        <UButton
+          label="Generate"
+          @click="generateContract"
+        />
       </div>
     </template>
   </UModal>
 
   <!-- View Contract Modal -->
-  <UModal v-model:open="isViewModalOpen" title="Contract Details">
+  <UModal
+    v-model:open="isViewModalOpen"
+    title="Contract Details"
+  >
     <template #body>
-      <div v-if="selectedContract" class="p-6 space-y-4">
+      <div
+        v-if="selectedContract"
+        class="p-6 space-y-4"
+      >
         <div>
           <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Contract Number</label>
-          <p class="text-lg font-semibold">{{ selectedContract.contractNumber }}</p>
+          <p class="text-lg font-semibold">
+            {{ selectedContract.contractNumber }}
+          </p>
         </div>
 
         <div>
@@ -399,7 +448,12 @@ const bookingOptions = computed(() => {
 
     <template #footer="{ close }">
       <div class="flex justify-end gap-2">
-        <UButton label="Close" color="neutral" variant="ghost" @click="close" />
+        <UButton
+          label="Close"
+          color="neutral"
+          variant="ghost"
+          @click="close"
+        />
         <UButton
           v-if="selectedContract"
           label="Download PDF"

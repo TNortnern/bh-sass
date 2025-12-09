@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const url = `${rbPayloadUrl}/api/services/${id}`
-    const response = await $fetch<any>(url, {
+    const response = await $fetch<Record<string, unknown>>(url, {
       method: 'PATCH',
       headers,
       body
@@ -43,12 +43,13 @@ export default defineEventHandler(async (event) => {
       success: true,
       service: response.doc || response
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to update service in rb-payload:', error)
 
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to update service'
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      message: message || 'Failed to update service'
     })
   }
 })

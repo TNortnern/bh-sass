@@ -41,12 +41,13 @@ export default defineEventHandler(async (event) => {
       success: true,
       message: 'Customer deleted successfully'
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to delete customer from rb-payload:', error)
 
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to delete customer'
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      message: message || 'Failed to delete customer'
     })
   }
 })

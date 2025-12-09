@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   format,
   startOfMonth,
@@ -71,14 +72,17 @@ onMounted(() => {
 
 // Transform API bookings to calendar format
 const calendarBookings = computed<CalendarBooking[]>(() => {
-  return apiBookings.value.map((booking: BookingType) => ({
+  if (!apiBookings.value || !Array.isArray(apiBookings.value)) {
+    return []
+  }
+  return apiBookings.value.map(booking => ({
     id: booking.id,
     bookingNumber: booking.bookingNumber,
     customer: booking.customer.name,
     item: booking.item.name,
     startDate: booking.dates.start,
     endDate: booking.dates.end,
-    status: booking.status,
+    status: booking.status as CalendarBooking['status'],
     amount: `$${booking.payment.total.toFixed(2)}`,
     phone: booking.customer.phone,
     address: `${booking.deliveryAddress.street}, ${booking.deliveryAddress.city}`,
@@ -88,7 +92,7 @@ const calendarBookings = computed<CalendarBooking[]>(() => {
 
 // Computed
 const filteredBookings = computed(() => {
-  return calendarBookings.value.filter(booking => {
+  return calendarBookings.value.filter((booking) => {
     if (selectedStatus.value && booking.status !== selectedStatus.value) return false
     if (selectedItem.value && booking.item !== selectedItem.value) return false
     if (selectedCustomer.value && booking.customer !== selectedCustomer.value) return false
@@ -119,7 +123,7 @@ const calendarDays = computed<CalendarDay[]>(() => {
 
     let day = startDate
     while (day <= endDate) {
-      const dayBookings = filteredBookings.value.filter(booking => {
+      const dayBookings = filteredBookings.value.filter((booking) => {
         // Parse date string (format: yyyy-MM-dd or ISO)
         const bookingDate = booking.startDate.includes('T')
           ? parseISO(booking.startDate)
@@ -142,7 +146,7 @@ const calendarDays = computed<CalendarDay[]>(() => {
 
     let day = weekStart
     while (day <= weekEnd) {
-      const dayBookings = filteredBookings.value.filter(booking => {
+      const dayBookings = filteredBookings.value.filter((booking) => {
         const bookingDate = booking.startDate.includes('T')
           ? parseISO(booking.startDate)
           : parseISO(booking.startDate + 'T00:00:00')
@@ -159,7 +163,7 @@ const calendarDays = computed<CalendarDay[]>(() => {
       day = addDays(day, 1)
     }
   } else {
-    const dayBookings = filteredBookings.value.filter(booking => {
+    const dayBookings = filteredBookings.value.filter((booking) => {
       const bookingDate = booking.startDate.includes('T')
         ? parseISO(booking.startDate)
         : parseISO(booking.startDate + 'T00:00:00')
@@ -186,7 +190,7 @@ const miniCalendarDays = computed<CalendarDay[]>(() => {
 
   let day = startDate
   while (day <= endDate) {
-    const dayBookings = filteredBookings.value.filter(booking => {
+    const dayBookings = filteredBookings.value.filter((booking) => {
       const bookingDate = booking.startDate.includes('T')
         ? parseISO(booking.startDate)
         : parseISO(booking.startDate + 'T00:00:00')
@@ -303,7 +307,7 @@ const { createBooking } = useBookings()
 const { getServices } = useRbPayload()
 const isSubmittingBooking = ref(false)
 const isLoadingServices = ref(false)
-const availableItems = ref<Array<{ id: string; name: string; dailyRate: number }>>([])
+const availableItems = ref<Array<{ id: string, name: string, dailyRate: number }>>([])
 
 const newBookingForm = ref({
   customer: {
@@ -322,7 +326,7 @@ const newBookingForm = ref({
     zip: '',
     instructions: ''
   },
-  addons: [] as Array<{ id: string; quantity: number }>,
+  addons: [] as Array<{ id: string, quantity: number }>,
   paymentType: 'deposit' as 'deposit' | 'full',
   customerNotes: '',
   internalNotes: ''
@@ -364,16 +368,16 @@ watch(isNewBookingModalOpen, async (isOpen) => {
 
 // Form validation
 const canSubmitBooking = computed(() => {
-  return newBookingForm.value.customer.firstName &&
-         newBookingForm.value.customer.lastName &&
-         newBookingForm.value.customer.email &&
-         newBookingForm.value.itemId &&
-         newBookingForm.value.startDate &&
-         newBookingForm.value.endDate &&
-         newBookingForm.value.deliveryAddress.street &&
-         newBookingForm.value.deliveryAddress.city &&
-         newBookingForm.value.deliveryAddress.state &&
-         newBookingForm.value.deliveryAddress.zip
+  return newBookingForm.value.customer.firstName
+    && newBookingForm.value.customer.lastName
+    && newBookingForm.value.customer.email
+    && newBookingForm.value.itemId
+    && newBookingForm.value.startDate
+    && newBookingForm.value.endDate
+    && newBookingForm.value.deliveryAddress.street
+    && newBookingForm.value.deliveryAddress.city
+    && newBookingForm.value.deliveryAddress.state
+    && newBookingForm.value.deliveryAddress.zip
 })
 
 // Submit new booking
@@ -419,7 +423,7 @@ const handleCreateBooking = async () => {
   }
 }
 
-const getStatusColor = (status: Booking['status']) => {
+const getStatusColor = (status: CalendarBooking['status']) => {
   switch (status) {
     case 'pending':
       return 'yellow'
@@ -436,7 +440,7 @@ const getStatusColor = (status: Booking['status']) => {
   }
 }
 
-const getStatusBgClass = (status: Booking['status']) => {
+const getStatusBgClass = (status: CalendarBooking['status']) => {
   switch (status) {
     case 'pending':
       return 'bg-yellow-500 dark:bg-yellow-600'
@@ -479,8 +483,12 @@ const statusOptions = [
     <!-- Page Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Calendar</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">Manage your bookings and schedule</p>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+          Calendar
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">
+          Manage your bookings and schedule
+        </p>
       </div>
 
       <div class="flex items-center gap-2">
@@ -488,10 +496,13 @@ const statusOptions = [
           color="neutral"
           variant="outline"
           size="lg"
-          @click="isMobileMenuOpen = !isMobileMenuOpen"
           class="lg:hidden"
+          @click="isMobileMenuOpen = !isMobileMenuOpen"
         >
-          <UIcon name="i-lucide-sliders-horizontal" class="w-4 h-4" />
+          <UIcon
+            name="i-lucide-sliders-horizontal"
+            class="w-4 h-4"
+          />
           Filters
         </UButton>
 
@@ -500,7 +511,10 @@ const statusOptions = [
           size="lg"
           @click="openNewBookingModal(new Date())"
         >
-          <UIcon name="i-lucide-plus" class="w-4 h-4" />
+          <UIcon
+            name="i-lucide-plus"
+            class="w-4 h-4"
+          />
           New Booking
         </UButton>
       </div>
@@ -516,29 +530,29 @@ const statusOptions = [
             <!-- View Mode Tabs -->
             <div class="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
               <button
-                @click="viewMode = 'month'"
                 class="px-4 py-2 rounded-md text-sm font-medium transition-all duration-200"
                 :class="viewMode === 'month'
                   ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
+                @click="viewMode = 'month'"
               >
                 Month
               </button>
               <button
-                @click="viewMode = 'week'"
                 class="px-4 py-2 rounded-md text-sm font-medium transition-all duration-200"
                 :class="viewMode === 'week'
                   ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
+                @click="viewMode = 'week'"
               >
                 Week
               </button>
               <button
-                @click="viewMode = 'day'"
                 class="px-4 py-2 rounded-md text-sm font-medium transition-all duration-200"
                 :class="viewMode === 'day'
                   ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
+                @click="viewMode = 'day'"
               >
                 Day
               </button>
@@ -583,17 +597,28 @@ const statusOptions = [
         </UCard>
 
         <!-- Loading State -->
-        <UCard v-if="isLoading" class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+        <UCard
+          v-if="isLoading"
+          class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+        >
           <div class="flex items-center justify-center py-12">
             <div class="text-center">
-              <UIcon name="i-lucide-loader-circle" class="w-8 h-8 text-gray-400 animate-spin mx-auto mb-4" />
-              <p class="text-gray-600 dark:text-gray-400">Loading bookings...</p>
+              <UIcon
+                name="i-lucide-loader-circle"
+                class="w-8 h-8 text-gray-400 animate-spin mx-auto mb-4"
+              />
+              <p class="text-gray-600 dark:text-gray-400">
+                Loading bookings...
+              </p>
             </div>
           </div>
         </UCard>
 
         <!-- Month View -->
-        <UCard v-else-if="viewMode === 'month'" class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 overflow-hidden">
+        <UCard
+          v-else-if="viewMode === 'month'"
+          class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 overflow-hidden"
+        >
           <!-- Weekday Headers -->
           <div class="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
             <div
@@ -626,8 +651,8 @@ const statusOptions = [
                     day.isToday
                       ? 'w-7 h-7 flex items-center justify-center rounded-full bg-orange-500 text-white'
                       : day.isCurrentMonth
-                      ? 'text-gray-900 dark:text-white'
-                      : 'text-gray-400 dark:text-gray-600'
+                        ? 'text-gray-900 dark:text-white'
+                        : 'text-gray-400 dark:text-gray-600'
                   ]"
                 >
                   {{ format(day.date, 'd') }}
@@ -645,31 +670,41 @@ const statusOptions = [
               <!-- Bookings -->
               <div class="space-y-1">
                 <button
-                  v-for="(booking, bIndex) in day.bookings.slice(0, 3)"
+                  v-for="booking in day.bookings.slice(0, 3)"
                   :key="booking.id"
-                  @click.stop="openBookingModal(booking)"
                   class="w-full text-left px-2 py-1 rounded text-xs font-medium transition-all duration-200 hover:shadow-md"
                   :class="getStatusBgClass(booking.status) + ' text-white'"
+                  @click.stop="openBookingModal(booking)"
                 >
-                  <div class="font-semibold truncate">{{ booking.item }}</div>
-                  <div class="text-[10px] opacity-90 truncate">{{ booking.customer }}</div>
+                  <div class="font-semibold truncate">
+                    {{ booking.item }}
+                  </div>
+                  <div class="text-[10px] opacity-90 truncate">
+                    {{ booking.customer }}
+                  </div>
                 </button>
               </div>
 
               <!-- Add Booking Button (Shows on hover for empty days) -->
               <button
                 v-if="day.bookings.length === 0 && day.isCurrentMonth"
-                @click.stop="openNewBookingModal(day.date)"
                 class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900/5 dark:bg-gray-100/5"
+                @click.stop="openNewBookingModal(day.date)"
               >
-                <UIcon name="i-lucide-plus" class="w-6 h-6 text-gray-400" />
+                <UIcon
+                  name="i-lucide-plus"
+                  class="w-6 h-6 text-gray-400"
+                />
               </button>
             </div>
           </div>
         </UCard>
 
         <!-- Week View -->
-        <UCard v-else-if="viewMode === 'week'" class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 overflow-hidden">
+        <UCard
+          v-else-if="viewMode === 'week'"
+          class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 overflow-hidden"
+        >
           <div class="grid grid-cols-7 gap-4">
             <div
               v-for="(day, index) in calendarDays"
@@ -698,12 +733,16 @@ const statusOptions = [
                 <button
                   v-for="booking in day.bookings"
                   :key="booking.id"
-                  @click="openBookingModal(booking)"
                   class="w-full text-left p-3 rounded-lg text-xs font-medium transition-all duration-200 hover:shadow-lg"
                   :class="getStatusBgClass(booking.status) + ' text-white'"
+                  @click="openBookingModal(booking)"
                 >
-                  <div class="font-semibold truncate">{{ booking.item }}</div>
-                  <div class="mt-1 opacity-90 text-[11px]">{{ booking.customer }}</div>
+                  <div class="font-semibold truncate">
+                    {{ booking.item }}
+                  </div>
+                  <div class="mt-1 opacity-90 text-[11px]">
+                    {{ booking.customer }}
+                  </div>
                   <div class="mt-1 text-[10px] opacity-75">
                     {{ format(booking.startDate.includes('T') ? parseISO(booking.startDate) : parseISO(booking.startDate + 'T00:00:00'), 'MMM d') }}
                   </div>
@@ -711,10 +750,13 @@ const statusOptions = [
 
                 <!-- Add Booking Button -->
                 <button
-                  @click="openNewBookingModal(day.date)"
                   class="w-full p-3 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-600 hover:border-orange-400 dark:hover:border-orange-600 hover:text-orange-600 dark:hover:text-orange-400 transition-all duration-200"
+                  @click="openNewBookingModal(day.date)"
                 >
-                  <UIcon name="i-lucide-plus" class="w-4 h-4 mx-auto" />
+                  <UIcon
+                    name="i-lucide-plus"
+                    class="w-4 h-4 mx-auto"
+                  />
                 </button>
               </div>
             </div>
@@ -722,15 +764,18 @@ const statusOptions = [
         </UCard>
 
         <!-- Day View -->
-        <UCard v-else-if="viewMode === 'day'" class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+        <UCard
+          v-else-if="viewMode === 'day'"
+          class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+        >
           <div class="space-y-3">
             <!-- Time slots with bookings -->
             <div
               v-for="booking in calendarDays[0]?.bookings || []"
               :key="booking.id"
-              @click="openBookingModal(booking)"
               class="p-4 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-lg"
               :class="getStatusBgClass(booking.status) + ' text-white'"
+              @click="openBookingModal(booking)"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -739,19 +784,32 @@ const statusOptions = [
                       {{ format(booking.startDate.includes('T') ? parseISO(booking.startDate) : parseISO(booking.startDate + 'T00:00:00'), 'MMM d, yyyy') }}
                       <span v-if="booking.startDate !== booking.endDate"> - {{ format(booking.endDate.includes('T') ? parseISO(booking.endDate) : parseISO(booking.endDate + 'T00:00:00'), 'MMM d, yyyy') }}</span>
                     </div>
-                    <UBadge :color="getStatusColor(booking.status)" variant="solid" size="sm">
+                    <UBadge
+                      :color="getStatusColor(booking.status)"
+                      variant="solid"
+                      size="sm"
+                    >
                       {{ getStatusLabel(booking.status) }}
                     </UBadge>
                   </div>
-                  <div class="text-xl font-semibold mb-1">{{ booking.item }}</div>
-                  <div class="opacity-90">{{ booking.customer }}</div>
+                  <div class="text-xl font-semibold mb-1">
+                    {{ booking.item }}
+                  </div>
+                  <div class="opacity-90">
+                    {{ booking.customer }}
+                  </div>
                   <div class="flex items-center gap-2 mt-2 text-sm opacity-75">
-                    <UIcon name="i-lucide-map-pin" class="w-4 h-4" />
+                    <UIcon
+                      name="i-lucide-map-pin"
+                      class="w-4 h-4"
+                    />
                     {{ booking.address }}
                   </div>
                 </div>
                 <div class="text-right">
-                  <div class="text-2xl font-bold">{{ booking.amount }}</div>
+                  <div class="text-2xl font-bold">
+                    {{ booking.amount }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -762,16 +820,26 @@ const statusOptions = [
               class="text-center py-12"
             >
               <div class="w-16 h-16 mx-auto rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
-                <UIcon name="i-lucide-calendar-x" class="w-8 h-8 text-gray-400" />
+                <UIcon
+                  name="i-lucide-calendar-x"
+                  class="w-8 h-8 text-gray-400"
+                />
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">No bookings today</h3>
-              <p class="text-gray-600 dark:text-gray-400 mb-4">Create a new booking to get started</p>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                No bookings today
+              </h3>
+              <p class="text-gray-600 dark:text-gray-400 mb-4">
+                Create a new booking to get started
+              </p>
               <UButton
                 color="primary"
                 size="lg"
                 @click="openNewBookingModal(currentDate)"
               >
-                <UIcon name="i-lucide-plus" class="w-4 h-4" />
+                <UIcon
+                  name="i-lucide-plus"
+                  class="w-4 h-4"
+                />
                 Add Booking
               </UButton>
             </div>
@@ -782,8 +850,15 @@ const statusOptions = [
         <UCard class="lg:hidden bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
           <template #header>
             <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Upcoming Bookings</h2>
-              <UBadge color="neutral" variant="subtle">{{ filteredBookings.length }}</UBadge>
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Upcoming Bookings
+              </h2>
+              <UBadge
+                color="neutral"
+                variant="subtle"
+              >
+                {{ filteredBookings.length }}
+              </UBadge>
             </div>
           </template>
 
@@ -791,25 +866,40 @@ const statusOptions = [
             <button
               v-for="booking in filteredBookings.slice(0, 10)"
               :key="booking.id"
-              @click="openBookingModal(booking)"
               class="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-700 transition-all duration-200"
+              @click="openBookingModal(booking)"
             >
               <div class="flex items-start justify-between gap-3 mb-2">
                 <div>
-                  <div class="text-sm font-mono text-gray-500 dark:text-gray-400">{{ booking.id }}</div>
-                  <div class="text-base font-semibold text-gray-900 dark:text-white mt-1">{{ booking.customer }}</div>
+                  <div class="text-sm font-mono text-gray-500 dark:text-gray-400">
+                    {{ booking.id }}
+                  </div>
+                  <div class="text-base font-semibold text-gray-900 dark:text-white mt-1">
+                    {{ booking.customer }}
+                  </div>
                 </div>
-                <UBadge :color="getStatusColor(booking.status)" variant="subtle" size="sm">
+                <UBadge
+                  :color="getStatusColor(booking.status)"
+                  variant="subtle"
+                  size="sm"
+                >
                   {{ getStatusLabel(booking.status) }}
                 </UBadge>
               </div>
-              <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">{{ booking.item }}</div>
+              <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                {{ booking.item }}
+              </div>
               <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                 <div class="flex items-center gap-1">
-                  <UIcon name="i-lucide-calendar" class="w-3.5 h-3.5" />
+                  <UIcon
+                    name="i-lucide-calendar"
+                    class="w-3.5 h-3.5"
+                  />
                   {{ format(booking.startDate.includes('T') ? parseISO(booking.startDate) : parseISO(booking.startDate + 'T00:00:00'), 'MMM d, yyyy') }}
                 </div>
-                <div class="font-semibold text-gray-900 dark:text-white">{{ booking.amount }}</div>
+                <div class="font-semibold text-gray-900 dark:text-white">
+                  {{ booking.amount }}
+                </div>
               </div>
             </button>
           </div>
@@ -822,7 +912,9 @@ const statusOptions = [
         <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
           <template #header>
             <div class="flex items-center justify-between">
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white">Filters</h3>
+              <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                Filters
+              </h3>
               <UButton
                 v-if="hasActiveFilters"
                 color="neutral"
@@ -843,12 +935,24 @@ const statusOptions = [
                 v-model="selectedStatus"
                 class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
-                <option :value="null">All Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="delivered">Delivered</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                <option :value="null">
+                  All Statuses
+                </option>
+                <option value="pending">
+                  Pending
+                </option>
+                <option value="confirmed">
+                  Confirmed
+                </option>
+                <option value="delivered">
+                  Delivered
+                </option>
+                <option value="completed">
+                  Completed
+                </option>
+                <option value="cancelled">
+                  Cancelled
+                </option>
               </select>
             </div>
 
@@ -859,8 +963,16 @@ const statusOptions = [
                 v-model="selectedItem"
                 class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
-                <option :value="null">All Items</option>
-                <option v-for="item in uniqueItems" :key="item" :value="item">{{ item }}</option>
+                <option :value="null">
+                  All Items
+                </option>
+                <option
+                  v-for="item in uniqueItems"
+                  :key="item"
+                  :value="item"
+                >
+                  {{ item }}
+                </option>
               </select>
             </div>
 
@@ -871,8 +983,16 @@ const statusOptions = [
                 v-model="selectedCustomer"
                 class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
-                <option :value="null">All Customers</option>
-                <option v-for="customer in uniqueCustomers" :key="customer" :value="customer">{{ customer }}</option>
+                <option :value="null">
+                  All Customers
+                </option>
+                <option
+                  v-for="customer in uniqueCustomers"
+                  :key="customer"
+                  :value="customer"
+                >
+                  {{ customer }}
+                </option>
               </select>
             </div>
           </div>
@@ -881,7 +1001,9 @@ const statusOptions = [
         <!-- Mini Calendar -->
         <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
           <template #header>
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white">Quick Navigation</h3>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+              Quick Navigation
+            </h3>
           </template>
 
           <!-- Mini Calendar Header -->
@@ -923,18 +1045,18 @@ const statusOptions = [
             <button
               v-for="(day, index) in miniCalendarDays"
               :key="index"
-              @click="selectDate(day.date)"
               class="aspect-square flex items-center justify-center text-xs rounded-md transition-all duration-200 relative"
               :class="[
                 day.isToday
                   ? 'bg-orange-500 text-white font-bold'
                   : day.isCurrentMonth
-                  ? 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
-                  : 'text-gray-400 dark:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                    ? 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+                    : 'text-gray-400 dark:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800/50',
                 isSameDay(day.date, currentDate) && !day.isToday
                   ? 'ring-2 ring-inset ring-orange-500'
                   : ''
               ]"
+              @click="selectDate(day.date)"
             >
               {{ format(day.date, 'd') }}
               <span
@@ -949,28 +1071,30 @@ const statusOptions = [
         <!-- Legend -->
         <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
           <template #header>
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white">Status Legend</h3>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+              Status Legend
+            </h3>
           </template>
 
           <div class="space-y-2">
             <div class="flex items-center gap-3">
-              <div class="w-4 h-4 rounded bg-yellow-500"></div>
+              <div class="w-4 h-4 rounded bg-yellow-500" />
               <span class="text-sm text-gray-700 dark:text-gray-300">Pending</span>
             </div>
             <div class="flex items-center gap-3">
-              <div class="w-4 h-4 rounded bg-green-500"></div>
+              <div class="w-4 h-4 rounded bg-green-500" />
               <span class="text-sm text-gray-700 dark:text-gray-300">Confirmed</span>
             </div>
             <div class="flex items-center gap-3">
-              <div class="w-4 h-4 rounded bg-blue-500"></div>
+              <div class="w-4 h-4 rounded bg-blue-500" />
               <span class="text-sm text-gray-700 dark:text-gray-300">Delivered</span>
             </div>
             <div class="flex items-center gap-3">
-              <div class="w-4 h-4 rounded bg-gray-400"></div>
+              <div class="w-4 h-4 rounded bg-gray-400" />
               <span class="text-sm text-gray-700 dark:text-gray-300">Completed</span>
             </div>
             <div class="flex items-center gap-3">
-              <div class="w-4 h-4 rounded bg-red-500"></div>
+              <div class="w-4 h-4 rounded bg-red-500" />
               <span class="text-sm text-gray-700 dark:text-gray-300">Cancelled</span>
             </div>
           </div>
@@ -979,16 +1103,30 @@ const statusOptions = [
     </div>
 
     <!-- Booking Details Modal -->
-    <UModal v-model:open="isBookingModalOpen" :ui="{ width: 'sm:max-w-lg' }">
+    <UModal
+      v-model:open="isBookingModalOpen"
+      :ui="{ width: 'sm:max-w-lg' }"
+    >
       <template #content>
-        <UCard v-if="selectedBooking" class="bg-white dark:bg-gray-900">
+        <UCard
+          v-if="selectedBooking"
+          class="bg-white dark:bg-gray-900"
+        >
           <template #header>
             <div class="flex items-start justify-between">
               <div>
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Booking Details</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ selectedBooking.bookingNumber }}</p>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                  Booking Details
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  {{ selectedBooking.bookingNumber }}
+                </p>
               </div>
-              <UBadge :color="getStatusColor(selectedBooking.status)" variant="subtle" size="lg">
+              <UBadge
+                :color="getStatusColor(selectedBooking.status)"
+                variant="subtle"
+                size="lg"
+              >
                 {{ getStatusLabel(selectedBooking.status) }}
               </UBadge>
             </div>
@@ -998,32 +1136,50 @@ const statusOptions = [
             <!-- Customer Info -->
             <div>
               <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                <UIcon name="i-lucide-user" class="w-4 h-4" />
+                <UIcon
+                  name="i-lucide-user"
+                  class="w-4 h-4"
+                />
                 Customer
               </div>
-              <p class="text-base font-semibold text-gray-900 dark:text-white">{{ selectedBooking.customer }}</p>
-              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ selectedBooking.phone }}</p>
+              <p class="text-base font-semibold text-gray-900 dark:text-white">
+                {{ selectedBooking.customer }}
+              </p>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                {{ selectedBooking.phone }}
+              </p>
             </div>
 
             <!-- Item Info -->
             <div>
               <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                <UIcon name="i-lucide-box" class="w-4 h-4" />
+                <UIcon
+                  name="i-lucide-box"
+                  class="w-4 h-4"
+                />
                 Rental Item
               </div>
-              <p class="text-base font-semibold text-gray-900 dark:text-white">{{ selectedBooking.item }}</p>
+              <p class="text-base font-semibold text-gray-900 dark:text-white">
+                {{ selectedBooking.item }}
+              </p>
             </div>
 
             <!-- Date & Time -->
             <div>
               <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                <UIcon name="i-lucide-calendar" class="w-4 h-4" />
+                <UIcon
+                  name="i-lucide-calendar"
+                  class="w-4 h-4"
+                />
                 Schedule
               </div>
               <p class="text-base text-gray-900 dark:text-white">
                 {{ format(selectedBooking.startDate.includes('T') ? parseISO(selectedBooking.startDate) : parseISO(selectedBooking.startDate + 'T00:00:00'), 'EEEE, MMMM d, yyyy') }}
               </p>
-              <p v-if="selectedBooking.startDate !== selectedBooking.endDate" class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <p
+                v-if="selectedBooking.startDate !== selectedBooking.endDate"
+                class="text-sm text-gray-600 dark:text-gray-400 mt-1"
+              >
                 Through {{ format(selectedBooking.endDate.includes('T') ? parseISO(selectedBooking.endDate) : parseISO(selectedBooking.endDate + 'T00:00:00'), 'EEEE, MMMM d, yyyy') }}
               </p>
             </div>
@@ -1031,25 +1187,38 @@ const statusOptions = [
             <!-- Address -->
             <div>
               <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                <UIcon name="i-lucide-map-pin" class="w-4 h-4" />
+                <UIcon
+                  name="i-lucide-map-pin"
+                  class="w-4 h-4"
+                />
                 Delivery Address
               </div>
-              <p class="text-base text-gray-900 dark:text-white">{{ selectedBooking.address }}</p>
+              <p class="text-base text-gray-900 dark:text-white">
+                {{ selectedBooking.address }}
+              </p>
             </div>
 
             <!-- Amount -->
             <div>
               <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                <UIcon name="i-lucide-dollar-sign" class="w-4 h-4" />
+                <UIcon
+                  name="i-lucide-dollar-sign"
+                  class="w-4 h-4"
+                />
                 Amount
               </div>
-              <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ selectedBooking.amount }}</p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                {{ selectedBooking.amount }}
+              </p>
             </div>
 
             <!-- Notes -->
             <div v-if="selectedBooking.notes">
               <div class="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
-                <UIcon name="i-lucide-file-text" class="w-4 h-4" />
+                <UIcon
+                  name="i-lucide-file-text"
+                  class="w-4 h-4"
+                />
                 Notes
               </div>
               <p class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
@@ -1060,10 +1229,17 @@ const statusOptions = [
 
           <template #footer>
             <div class="flex items-center justify-end gap-3">
-              <UButton color="neutral" variant="outline" @click="closeBookingModal">
+              <UButton
+                color="neutral"
+                variant="outline"
+                @click="closeBookingModal"
+              >
                 Close
               </UButton>
-              <UButton color="primary" @click="selectedBooking && editBooking(selectedBooking.id)">
+              <UButton
+                color="primary"
+                @click="selectedBooking && editBooking(selectedBooking.id)"
+              >
                 Edit Booking
               </UButton>
             </div>
@@ -1073,13 +1249,18 @@ const statusOptions = [
     </UModal>
 
     <!-- New Booking Modal -->
-    <UModal v-model:open="isNewBookingModalOpen" :ui="{ width: 'sm:max-w-3xl' }">
+    <UModal
+      v-model:open="isNewBookingModalOpen"
+      :ui="{ width: 'sm:max-w-3xl' }"
+    >
       <template #content>
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
             <div class="flex items-start justify-between">
               <div>
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Create New Booking</h3>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                  Create New Booking
+                </h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   {{ selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : '' }}
                 </p>
@@ -1088,26 +1269,43 @@ const statusOptions = [
           </template>
 
           <!-- Loading state -->
-          <div v-if="isLoadingServices" class="flex items-center justify-center py-8">
-            <UIcon name="i-lucide-loader-2" class="w-8 h-8 text-orange-500 animate-spin" />
+          <div
+            v-if="isLoadingServices"
+            class="flex items-center justify-center py-8"
+          >
+            <UIcon
+              name="i-lucide-loader-2"
+              class="w-8 h-8 text-orange-500 animate-spin"
+            />
             <span class="ml-2 text-gray-600 dark:text-gray-400">Loading services...</span>
           </div>
 
           <!-- Booking Form -->
-          <div v-else class="space-y-6">
+          <div
+            v-else
+            class="space-y-6"
+          >
             <!-- Customer Information -->
             <div>
-              <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Customer Information</h4>
+              <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                Customer Information
+              </h4>
               <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
-                  <UFormField label="First Name" required>
+                  <UFormField
+                    label="First Name"
+                    required
+                  >
                     <UInput
                       v-model="newBookingForm.customer.firstName"
                       placeholder="John"
                       class="w-full"
                     />
                   </UFormField>
-                  <UFormField label="Last Name" required>
+                  <UFormField
+                    label="Last Name"
+                    required
+                  >
                     <UInput
                       v-model="newBookingForm.customer.lastName"
                       placeholder="Smith"
@@ -1116,7 +1314,10 @@ const statusOptions = [
                   </UFormField>
                 </div>
 
-                <UFormField label="Email" required>
+                <UFormField
+                  label="Email"
+                  required
+                >
                   <UInput
                     v-model="newBookingForm.customer.email"
                     type="email"
@@ -1140,7 +1341,9 @@ const statusOptions = [
 
             <!-- Rental Item Selection -->
             <div>
-              <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Select Rental Item</h4>
+              <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                Select Rental Item
+              </h4>
               <div class="grid grid-cols-2 gap-3 max-h-60 overflow-y-auto">
                 <button
                   v-for="item in availableItems"
@@ -1152,7 +1355,10 @@ const statusOptions = [
                   @click="newBookingForm.itemId = item.id"
                 >
                   <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 flex items-center justify-center flex-shrink-0">
-                    <UIcon name="i-lucide-tent" class="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                    <UIcon
+                      name="i-lucide-tent"
+                      class="w-6 h-6 text-orange-600 dark:text-orange-400"
+                    />
                   </div>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-start justify-between gap-2">
@@ -1165,7 +1371,9 @@ const statusOptions = [
                         class="w-5 h-5 text-orange-500 flex-shrink-0"
                       />
                     </div>
-                    <p class="text-xs text-orange-600 dark:text-orange-400">${{ item.dailyRate }}/day</p>
+                    <p class="text-xs text-orange-600 dark:text-orange-400">
+                      ${{ item.dailyRate }}/day
+                    </p>
                   </div>
                 </button>
               </div>
@@ -1173,14 +1381,20 @@ const statusOptions = [
 
             <!-- Dates -->
             <div class="grid grid-cols-2 gap-4">
-              <UFormField label="Start Date" required>
+              <UFormField
+                label="Start Date"
+                required
+              >
                 <UInput
                   v-model="newBookingForm.startDate"
                   type="date"
                   class="w-full"
                 />
               </UFormField>
-              <UFormField label="End Date" required>
+              <UFormField
+                label="End Date"
+                required
+              >
                 <UInput
                   v-model="newBookingForm.endDate"
                   type="date"
@@ -1191,9 +1405,14 @@ const statusOptions = [
 
             <!-- Delivery Address -->
             <div>
-              <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Delivery Address</h4>
+              <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                Delivery Address
+              </h4>
               <div class="space-y-4">
-                <UFormField label="Street Address" required>
+                <UFormField
+                  label="Street Address"
+                  required
+                >
                   <UInput
                     v-model="newBookingForm.deliveryAddress.street"
                     placeholder="1234 Main St"
@@ -1202,14 +1421,20 @@ const statusOptions = [
                 </UFormField>
 
                 <div class="grid grid-cols-3 gap-4">
-                  <UFormField label="City" required>
+                  <UFormField
+                    label="City"
+                    required
+                  >
                     <UInput
                       v-model="newBookingForm.deliveryAddress.city"
                       placeholder="San Francisco"
                       class="w-full"
                     />
                   </UFormField>
-                  <UFormField label="State" required>
+                  <UFormField
+                    label="State"
+                    required
+                  >
                     <USelect
                       v-model="newBookingForm.deliveryAddress.state"
                       :items="states"
@@ -1217,7 +1442,10 @@ const statusOptions = [
                       class="w-full"
                     />
                   </UFormField>
-                  <UFormField label="ZIP Code" required>
+                  <UFormField
+                    label="ZIP Code"
+                    required
+                  >
                     <UInput
                       v-model="newBookingForm.deliveryAddress.zip"
                       placeholder="94102"
@@ -1261,7 +1489,11 @@ const statusOptions = [
 
           <template #footer>
             <div class="flex items-center justify-end gap-3">
-              <UButton color="neutral" variant="outline" @click="closeNewBookingModal">
+              <UButton
+                color="neutral"
+                variant="outline"
+                @click="closeNewBookingModal"
+              >
                 Cancel
               </UButton>
               <UButton
@@ -1270,7 +1502,10 @@ const statusOptions = [
                 :disabled="!canSubmitBooking"
                 @click="handleCreateBooking"
               >
-                <UIcon name="i-lucide-check" class="w-4 h-4 mr-2" />
+                <UIcon
+                  name="i-lucide-check"
+                  class="w-4 h-4 mr-2"
+                />
                 Create Booking
               </UButton>
             </div>
@@ -1280,12 +1515,17 @@ const statusOptions = [
     </UModal>
 
     <!-- Mobile Filters Sidebar -->
-    <UModal v-model:open="isMobileMenuOpen" :ui="{ width: 'max-w-sm' }">
+    <UModal
+      v-model:open="isMobileMenuOpen"
+      :ui="{ width: 'max-w-sm' }"
+    >
       <template #content>
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
             <div class="flex items-center justify-between">
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white">Filters</h3>
+              <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                Filters
+              </h3>
               <UButton
                 v-if="hasActiveFilters"
                 color="neutral"
@@ -1306,12 +1546,24 @@ const statusOptions = [
                 v-model="selectedStatus"
                 class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
-                <option :value="null">All Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="delivered">Delivered</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                <option :value="null">
+                  All Statuses
+                </option>
+                <option value="pending">
+                  Pending
+                </option>
+                <option value="confirmed">
+                  Confirmed
+                </option>
+                <option value="delivered">
+                  Delivered
+                </option>
+                <option value="completed">
+                  Completed
+                </option>
+                <option value="cancelled">
+                  Cancelled
+                </option>
               </select>
             </div>
 
@@ -1322,8 +1574,16 @@ const statusOptions = [
                 v-model="selectedItem"
                 class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
-                <option :value="null">All Items</option>
-                <option v-for="item in uniqueItems" :key="item" :value="item">{{ item }}</option>
+                <option :value="null">
+                  All Items
+                </option>
+                <option
+                  v-for="item in uniqueItems"
+                  :key="item"
+                  :value="item"
+                >
+                  {{ item }}
+                </option>
               </select>
             </div>
 
@@ -1334,14 +1594,26 @@ const statusOptions = [
                 v-model="selectedCustomer"
                 class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
-                <option :value="null">All Customers</option>
-                <option v-for="customer in uniqueCustomers" :key="customer" :value="customer">{{ customer }}</option>
+                <option :value="null">
+                  All Customers
+                </option>
+                <option
+                  v-for="customer in uniqueCustomers"
+                  :key="customer"
+                  :value="customer"
+                >
+                  {{ customer }}
+                </option>
               </select>
             </div>
           </div>
 
           <template #footer>
-            <UButton color="primary" block @click="isMobileMenuOpen = false">
+            <UButton
+              color="primary"
+              block
+              @click="isMobileMenuOpen = false"
+            >
               Apply Filters
             </UButton>
           </template>

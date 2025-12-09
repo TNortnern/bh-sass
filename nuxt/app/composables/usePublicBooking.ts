@@ -67,6 +67,9 @@ export interface AddOnItem {
   type: 'per_booking' | 'per_day' | 'per_hour'
 }
 
+export type PublicAddOn = AddOnItem
+// Type alias for public addons - same as AddOnItem for now
+
 export interface BookingAvailability {
   available: boolean
   conflicts?: string[]
@@ -125,8 +128,9 @@ export function usePublicBooking() {
       const data = await $fetch(`/public/tenant/${slug}`)
       tenant.value = data as PublicTenant
       return tenant.value
-    } catch (err: any) {
-      error.value = err.message || 'Failed to load tenant'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load tenant'
+      error.value = errorMessage
       return null
     } finally {
       loading.value = false
@@ -139,11 +143,12 @@ export function usePublicBooking() {
 
     try {
       // Use $fetch for imperative calls (works inside onMounted)
-      const data = await $fetch(`/public/items/${tenantId}`)
-      items.value = (data as any)?.items || []
+      const data = await $fetch<{ items?: PublicRentalItem[] }>(`/public/items/${tenantId}`)
+      items.value = data.items || []
       return items.value
-    } catch (err: any) {
-      error.value = err.message || 'Failed to load items'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load items'
+      error.value = errorMessage
       return []
     } finally {
       loading.value = false
@@ -156,11 +161,12 @@ export function usePublicBooking() {
 
     try {
       // Use $fetch for imperative calls (works inside onMounted)
-      const data = await $fetch(`/public/addons/${tenantId}`)
-      addOns.value = (data as any)?.addOns || []
+      const data = await $fetch<{ addOns?: PublicAddOn[] }>(`/public/addons/${tenantId}`)
+      addOns.value = data.addOns || []
       return addOns.value
-    } catch (err: any) {
-      error.value = err.message || 'Failed to load add-ons'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load add-ons'
+      error.value = errorMessage
       return []
     } finally {
       loading.value = false
@@ -170,25 +176,28 @@ export function usePublicBooking() {
   async function checkAvailability(
     itemId: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    quantity: number = 1
   ): Promise<BookingAvailability> {
     loading.value = true
     error.value = null
 
     try {
       // Use $fetch for imperative calls
-      const data = await $fetch('/api/booking/availability', {
+      const data = await $fetch<BookingAvailability>('/public/booking/availability', {
         method: 'POST',
         body: {
           itemId,
           startDate,
-          endDate
+          endDate,
+          quantity
         }
       })
 
-      return (data as any) || { available: false }
-    } catch (err: any) {
-      error.value = err.message || 'Failed to check availability'
+      return data || { available: false }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to check availability'
+      error.value = errorMessage
       return { available: false }
     } finally {
       loading.value = false
@@ -199,11 +208,19 @@ export function usePublicBooking() {
     loading.value = true
     error.value = null
 
+    // Get tenantId from loaded tenant
+    const tenantId = tenant.value?.id
+    if (!tenantId) {
+      error.value = 'Tenant not loaded. Please reload the page.'
+      throw new Error(error.value)
+    }
+
     try {
       // First, create or find customer using $fetch
-      const customerData = await $fetch('/api/booking/customers', {
+      const customerData = await $fetch<{ customer?: { id: string } }>('/public/booking/customers', {
         method: 'POST',
         body: {
+          tenantId,
           firstName: bookingData.customer.firstName,
           lastName: bookingData.customer.lastName,
           email: bookingData.customer.email,
@@ -212,7 +229,7 @@ export function usePublicBooking() {
         }
       })
 
-      const customerId = (customerData as any)?.customer?.id
+      const customerId = customerData.customer?.id
 
       if (!customerId) {
         error.value = 'Failed to get customer ID'
@@ -220,35 +237,34 @@ export function usePublicBooking() {
       }
 
       // Create booking using $fetch
-      const bookingResponse = await $fetch('/api/booking/bookings', {
+      const bookingResponse = await $fetch<{ booking?: unknown }>('/public/booking/bookings', {
         method: 'POST',
         body: {
+          tenantId,
           customerId,
           items: bookingData.items.map(item => ({
-            serviceId: item.serviceId,
-            label: item.itemId,
-            price: 0, // Will be calculated
-            duration: 240, // 4 hours default
-            metadata: {
-              quantity: item.quantity,
-              addOns: item.addOns,
-              eventType: bookingData.eventDetails.type,
-              deliveryAddress: bookingData.customer.address,
-              specialInstructions: bookingData.eventDetails.specialInstructions
-            }
+            itemId: item.itemId,
+            quantity: item.quantity,
+            price: 0, // Will be calculated server-side
+            addOns: item.addOns,
+            startDate: item.startDate,
+            endDate: item.endDate
           })),
-          startTime: new Date(bookingData.items[0].startDate).toISOString(),
-          endTime: new Date(bookingData.items[0].endDate).toISOString(),
           totalPrice: bookingData.totalPrice,
-          status: 'pending',
-          paymentStatus: 'unpaid',
-          notes: bookingData.eventDetails.specialInstructions || ''
+          depositAmount: bookingData.depositAmount,
+          eventDetails: {
+            type: bookingData.eventDetails.type,
+            attendees: bookingData.eventDetails.attendees,
+            specialInstructions: bookingData.eventDetails.specialInstructions,
+            address: bookingData.customer.address
+          }
         }
       })
 
-      return (bookingResponse as any)?.booking
-    } catch (err: any) {
-      error.value = err.message || 'Failed to create booking'
+      return bookingResponse.booking
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create booking'
+      error.value = errorMessage
       throw err
     } finally {
       loading.value = false
@@ -261,7 +277,7 @@ export function usePublicBooking() {
 
     try {
       // Use $fetch for imperative calls
-      const data = await $fetch('/api/stripe/checkout/create-session', {
+      const data = await $fetch<{ session?: unknown }>('/stripe/checkout/create-session', {
         method: 'POST',
         body: {
           bookingId,
@@ -272,9 +288,10 @@ export function usePublicBooking() {
         }
       })
 
-      return (data as any)?.session
-    } catch (err: any) {
-      error.value = err.message || 'Failed to create checkout session'
+      return data.session
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create checkout session'
+      error.value = errorMessage
       throw err
     } finally {
       loading.value = false
@@ -287,10 +304,11 @@ export function usePublicBooking() {
 
     try {
       // Use $fetch for imperative calls
-      const data = await $fetch(`/api/booking/bookings/${bookingId}`)
-      return (data as any)?.booking
-    } catch (err: any) {
-      error.value = err.message || 'Failed to load booking'
+      const data = await $fetch<{ booking?: unknown }>(`/public/booking/bookings/${bookingId}`)
+      return data.booking
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load booking'
+      error.value = errorMessage
       return null
     } finally {
       loading.value = false

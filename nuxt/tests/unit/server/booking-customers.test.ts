@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
  */
 
 describe('Server Route: POST /booking/customers', () => {
-  let mockFetch: any
+  let mockFetch: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -15,12 +15,6 @@ describe('Server Route: POST /booking/customers', () => {
 
   it('should return existing customer if found by email', async () => {
     // Arrange
-    const customerData = {
-      email: 'john@example.com',
-      name: 'John Doe',
-      phone: '555-1234'
-    }
-
     const mockExistingCustomer = {
       docs: [{
         id: 'customer_123',
@@ -41,13 +35,6 @@ describe('Server Route: POST /booking/customers', () => {
   })
 
   it('should create new customer if not found', async () => {
-    // Arrange
-    const customerData = {
-      email: 'jane@example.com',
-      name: 'Jane Smith',
-      phone: '555-5678'
-    }
-
     const mockEmptySearch = { docs: [] }
     const mockCreatedCustomer = {
       doc: {

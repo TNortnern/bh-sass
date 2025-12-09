@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { format, parseISO } from 'date-fns'
 import { getCategoryLabel, getStatusLabel, getPaymentStatusLabel } from '~/utils/formatters'
 
@@ -7,7 +8,7 @@ definePageMeta({
 })
 
 const route = useRoute()
-const router = useRouter()
+// const router = useRouter()
 const { currentBooking, fetchBooking, updateStatus, updatePaymentStatus, cancelBooking } = useBookings()
 const toast = useToast()
 
@@ -33,7 +34,7 @@ const formatDate = (date: string, formatStr = 'MMM dd, yyyy') => {
 }
 
 // Format date time
-const formatDateTime = (date: string) => {
+const _formatDateTime = (date: string) => {
   return format(parseISO(date), 'MMM dd, yyyy h:mm a')
 }
 
@@ -97,21 +98,22 @@ const statusActions = computed(() => {
 })
 
 // Handle status update
-const handleStatusUpdate = async (status: any) => {
+const handleStatusUpdate = async (status: string) => {
   try {
-    await updateStatus(bookingId, status)
+    await updateStatus(bookingId, status as 'pending' | 'confirmed' | 'preparing' | 'in_route' | 'delivered' | 'picked_up' | 'completed' | 'cancelled')
     await fetchBooking(bookingId)
     toast.add({
       title: 'Status Updated',
       description: `Booking status changed to ${getStatusLabel(status)}`,
-      color: 'success',
+      color: 'success'
     })
-  } catch (error: any) {
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error('Failed to update booking status')
     console.error('Failed to update status:', error)
     toast.add({
       title: 'Update Failed',
-      description: error.message || 'Failed to update booking status',
-      color: 'error',
+      description: error.message,
+      color: 'error'
     })
   }
 }
@@ -126,14 +128,15 @@ const handleCancel = async () => {
     toast.add({
       title: 'Booking Cancelled',
       description: 'The booking has been cancelled',
-      color: 'success',
+      color: 'success'
     })
-  } catch (error: any) {
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error('Failed to cancel booking')
     console.error('Failed to cancel booking:', error)
     toast.add({
       title: 'Cancellation Failed',
-      description: error.message || 'Failed to cancel booking',
-      color: 'error',
+      description: error.message,
+      color: 'error'
     })
   }
 }
@@ -204,7 +207,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="currentBooking" class="space-y-6">
+  <div
+    v-if="currentBooking"
+    class="space-y-6"
+  >
     <!-- Header -->
     <div class="flex items-start justify-between gap-4 no-print">
       <div class="flex items-center gap-4">
@@ -258,12 +264,19 @@ onMounted(async () => {
 
     <!-- Print Header (visible only when printing) -->
     <div class="print-only print-header">
-      <h1 class="text-2xl font-bold">{{ currentBooking.bookingNumber }}</h1>
-      <p class="text-sm text-gray-600">Created {{ formatDateTime(currentBooking.createdAt) }}</p>
+      <h1 class="text-2xl font-bold">
+        {{ currentBooking.bookingNumber }}
+      </h1>
+      <p class="text-sm text-gray-600">
+        Created {{ formatDateTime(currentBooking.createdAt) }}
+      </p>
     </div>
 
     <!-- Status Actions -->
-    <div v-if="statusActions.length > 0" class="flex gap-3 no-print">
+    <div
+      v-if="statusActions.length > 0"
+      class="flex gap-3 no-print"
+    >
       <UButton
         v-for="action in statusActions"
         :key="action.label"
@@ -283,12 +296,20 @@ onMounted(async () => {
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
             <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Booking Details</h2>
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Booking Details
+              </h2>
               <div class="flex items-center gap-2">
-                <UBadge :color="getStatusColor(currentBooking.status)" variant="subtle">
+                <UBadge
+                  :color="getStatusColor(currentBooking.status)"
+                  variant="subtle"
+                >
                   {{ getStatusLabel(currentBooking.status) }}
                 </UBadge>
-                <UBadge :color="getPaymentColor(currentBooking.paymentStatus)" variant="subtle">
+                <UBadge
+                  :color="getPaymentColor(currentBooking.paymentStatus)"
+                  variant="subtle"
+                >
                   {{ getPaymentStatusLabel(currentBooking.paymentStatus) }}
                 </UBadge>
               </div>
@@ -299,14 +320,21 @@ onMounted(async () => {
           <div class="space-y-4">
             <div class="flex gap-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
               <div class="w-20 h-20 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 flex items-center justify-center flex-shrink-0">
-                <UIcon name="i-lucide-tent" class="w-10 h-10 text-orange-600 dark:text-orange-400" />
+                <UIcon
+                  name="i-lucide-tent"
+                  class="w-10 h-10 text-orange-600 dark:text-orange-400"
+                />
               </div>
               <div class="flex-1">
-                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Rental Item</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">
+                  Rental Item
+                </p>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mt-1">
                   {{ currentBooking.item.name }}
                 </h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400">{{ getCategoryLabel(currentBooking.item.category) }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  {{ getCategoryLabel(currentBooking.item.category) }}
+                </p>
                 <p class="text-sm font-medium text-gray-900 dark:text-white mt-2">
                   {{ formatCurrency(currentBooking.item.dailyRate) }} / day
                 </p>
@@ -317,8 +345,13 @@ onMounted(async () => {
             <div class="grid sm:grid-cols-2 gap-4">
               <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="flex items-center gap-2 mb-2">
-                  <UIcon name="i-lucide-calendar-days" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  <p class="text-sm font-medium text-gray-900 dark:text-white">Event Dates</p>
+                  <UIcon
+                    name="i-lucide-calendar-days"
+                    class="w-5 h-5 text-blue-600 dark:text-blue-400"
+                  />
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">
+                    Event Dates
+                  </p>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400">
                   {{ formatDate(currentBooking.dates.start) }} - {{ formatDate(currentBooking.dates.end) }}
@@ -327,8 +360,13 @@ onMounted(async () => {
 
               <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                 <div class="flex items-center gap-2 mb-2">
-                  <UIcon name="i-lucide-truck" class="w-5 h-5 text-green-600 dark:text-green-400" />
-                  <p class="text-sm font-medium text-gray-900 dark:text-white">Delivery & Pickup</p>
+                  <UIcon
+                    name="i-lucide-truck"
+                    class="w-5 h-5 text-green-600 dark:text-green-400"
+                  />
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">
+                    Delivery & Pickup
+                  </p>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400">
                   Delivery: {{ formatDate(currentBooking.dates.delivery!) }}
@@ -342,14 +380,24 @@ onMounted(async () => {
             <!-- Delivery Address -->
             <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-700">
               <div class="flex items-start gap-2 mb-2">
-                <UIcon name="i-lucide-map-pin" class="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5" />
+                <UIcon
+                  name="i-lucide-map-pin"
+                  class="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5"
+                />
                 <div class="flex-1">
-                  <p class="text-sm font-medium text-gray-900 dark:text-white mb-1">Delivery Address</p>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">{{ currentBooking.deliveryAddress.street }}</p>
+                  <p class="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                    Delivery Address
+                  </p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ currentBooking.deliveryAddress.street }}
+                  </p>
                   <p class="text-sm text-gray-600 dark:text-gray-400">
                     {{ currentBooking.deliveryAddress.city }}, {{ currentBooking.deliveryAddress.state }} {{ currentBooking.deliveryAddress.zip }}
                   </p>
-                  <p v-if="currentBooking.deliveryAddress.instructions" class="text-sm text-gray-500 dark:text-gray-400 mt-2 italic">
+                  <p
+                    v-if="currentBooking.deliveryAddress.instructions"
+                    class="text-sm text-gray-500 dark:text-gray-400 mt-2 italic"
+                  >
                     {{ currentBooking.deliveryAddress.instructions }}
                   </p>
                 </div>
@@ -361,7 +409,9 @@ onMounted(async () => {
         <!-- Payment Information -->
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Payment Information</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Payment Information
+            </h2>
           </template>
 
           <div class="space-y-3">
@@ -404,26 +454,34 @@ onMounted(async () => {
         <!-- Notes -->
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Notes</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Notes
+            </h2>
           </template>
 
           <div class="space-y-4">
             <div v-if="currentBooking.notes.customer">
-              <p class="text-sm font-medium text-gray-900 dark:text-white mb-1">Customer Notes</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                Customer Notes
+              </p>
               <p class="text-sm text-gray-600 dark:text-gray-400 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/10">
                 {{ currentBooking.notes.customer }}
               </p>
             </div>
 
             <div v-if="currentBooking.notes.internal">
-              <p class="text-sm font-medium text-gray-900 dark:text-white mb-1">Internal Notes</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                Internal Notes
+              </p>
               <p class="text-sm text-gray-600 dark:text-gray-400 p-3 rounded-lg bg-orange-50 dark:bg-orange-900/10">
                 {{ currentBooking.notes.internal }}
               </p>
             </div>
 
             <div v-if="!currentBooking.notes.customer && !currentBooking.notes.internal">
-              <p class="text-sm text-gray-500 dark:text-gray-400 italic">No notes added</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 italic">
+                No notes added
+              </p>
             </div>
           </div>
         </UCard>
@@ -434,13 +492,15 @@ onMounted(async () => {
         <!-- Customer Information -->
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Customer</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Customer
+            </h2>
           </template>
 
           <div class="space-y-4">
             <div class="flex items-center gap-3">
               <div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold">
-                {{ currentBooking.customer.name.split(' ').map(n => n[0]).join('') }}
+                {{ currentBooking.customer.name.split(' ').map((n: string) => n[0]).join('') }}
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">
@@ -460,10 +520,15 @@ onMounted(async () => {
                 @click="emailCustomer"
               >
                 <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
-                  <UIcon name="i-lucide-mail" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <UIcon
+                    name="i-lucide-mail"
+                    class="w-5 h-5 text-blue-600 dark:text-blue-400"
+                  />
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Email
+                  </p>
                   <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
                     {{ currentBooking.customer.email }}
                   </p>
@@ -475,10 +540,15 @@ onMounted(async () => {
                 @click="callCustomer"
               >
                 <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
-                  <UIcon name="i-lucide-phone" class="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <UIcon
+                    name="i-lucide-phone"
+                    class="w-5 h-5 text-green-600 dark:text-green-400"
+                  />
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Phone</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Phone
+                  </p>
                   <p class="text-sm font-medium text-gray-900 dark:text-white">
                     {{ currentBooking.customer.phone }}
                   </p>
@@ -501,7 +571,9 @@ onMounted(async () => {
         <!-- Timeline -->
         <UCard class="bg-white dark:bg-gray-900 no-print">
           <template #header>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Timeline</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Timeline
+            </h2>
           </template>
 
           <div class="space-y-4">
@@ -530,7 +602,10 @@ onMounted(async () => {
                 <p class="text-sm font-medium text-gray-900 dark:text-white capitalize">
                   {{ event.event }}
                 </p>
-                <p v-if="event.description" class="text-sm text-gray-600 dark:text-gray-400">
+                <p
+                  v-if="event.description"
+                  class="text-sm text-gray-600 dark:text-gray-400"
+                >
                   {{ event.description }}
                 </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -544,7 +619,9 @@ onMounted(async () => {
         <!-- Actions -->
         <UCard class="bg-white dark:bg-gray-900 no-print">
           <template #header>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Actions</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Actions
+            </h2>
           </template>
 
           <div class="space-y-2">
@@ -590,7 +667,9 @@ onMounted(async () => {
     <UModal v-model:open="showCancelModal">
       <UCard>
         <template #header>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Cancel Booking</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Cancel Booking
+          </h3>
         </template>
 
         <div class="space-y-4">
@@ -607,10 +686,17 @@ onMounted(async () => {
 
         <template #footer>
           <div class="flex justify-end gap-2">
-            <UButton color="neutral" variant="outline" @click="showCancelModal = false">
+            <UButton
+              color="neutral"
+              variant="outline"
+              @click="showCancelModal = false"
+            >
               Cancel
             </UButton>
-            <UButton color="red" @click="handleCancel">
+            <UButton
+              color="red"
+              @click="handleCancel"
+            >
               Confirm Cancellation
             </UButton>
           </div>
@@ -620,11 +706,19 @@ onMounted(async () => {
   </div>
 
   <!-- Error State -->
-  <div v-else-if="fetchError" class="flex flex-col items-center justify-center py-12">
+  <div
+    v-else-if="fetchError"
+    class="flex flex-col items-center justify-center py-12"
+  >
     <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mb-4">
-      <UIcon name="i-lucide-alert-circle" class="w-8 h-8 text-red-600 dark:text-red-400" />
+      <UIcon
+        name="i-lucide-alert-circle"
+        class="w-8 h-8 text-red-600 dark:text-red-400"
+      />
     </div>
-    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Failed to Load Booking</h2>
+    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+      Failed to Load Booking
+    </h2>
     <p class="text-gray-600 dark:text-gray-400 mb-6 text-center max-w-md">
       {{ fetchError }}
     </p>
@@ -655,10 +749,18 @@ onMounted(async () => {
   </div>
 
   <!-- Loading State -->
-  <div v-else-if="isLoadingBooking" class="flex items-center justify-center py-12">
+  <div
+    v-else-if="isLoadingBooking"
+    class="flex items-center justify-center py-12"
+  >
     <div class="text-center">
-      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-gray-400 mx-auto mb-3" />
-      <p class="text-sm text-gray-600 dark:text-gray-400">Loading booking details...</p>
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-8 h-8 animate-spin text-gray-400 mx-auto mb-3"
+      />
+      <p class="text-sm text-gray-600 dark:text-gray-400">
+        Loading booking details...
+      </p>
     </div>
   </div>
 </template>

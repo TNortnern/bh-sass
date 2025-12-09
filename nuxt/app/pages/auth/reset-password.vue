@@ -4,8 +4,7 @@ definePageMeta({
 })
 
 const route = useRoute()
-const toast = useToast()
-const { resetPassword, isLoading } = useAuth()
+const { resetPassword } = useAuth()
 
 const token = computed(() => route.query.token as string)
 
@@ -36,6 +35,7 @@ onMounted(async () => {
       body: { token: token.value }
     })
     tokenValid.value = true
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     tokenValid.value = false
     error.value = err?.data?.errors?.[0]?.message || 'Invalid or expired reset link.'
@@ -83,41 +83,73 @@ useHead({
       <!-- Header -->
       <template #header>
         <div class="text-center">
-          <h1 class="text-2xl font-bold text-white mb-2">Reset your password</h1>
-          <p class="text-gray-400 text-sm">Enter your new password below</p>
+          <h1 class="text-2xl font-bold text-white mb-2">
+            Reset your password
+          </h1>
+          <p class="text-gray-400 text-sm">
+            Enter your new password below
+          </p>
         </div>
       </template>
 
       <!-- Success State -->
-      <div v-if="success" class="py-8">
+      <div
+        v-if="success"
+        class="py-8"
+      >
         <div class="flex flex-col items-center gap-4">
           <div class="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-            <UIcon name="i-lucide-check-circle" class="w-8 h-8 text-green-400" />
+            <UIcon
+              name="i-lucide-check-circle"
+              class="w-8 h-8 text-green-400"
+            />
           </div>
           <div class="text-center">
-            <h3 class="text-lg font-semibold text-white mb-1">Password reset successful!</h3>
-            <p class="text-sm text-gray-400">Redirecting you to login...</p>
+            <h3 class="text-lg font-semibold text-white mb-1">
+              Password reset successful!
+            </h3>
+            <p class="text-sm text-gray-400">
+              Redirecting you to login...
+            </p>
           </div>
         </div>
       </div>
 
       <!-- Loading State -->
-      <div v-else-if="tokenValid === null" class="py-8">
+      <div
+        v-else-if="tokenValid === null"
+        class="py-8"
+      >
         <div class="flex flex-col items-center gap-4">
-          <UIcon name="i-lucide-loader-circle" class="w-8 h-8 text-gray-400 animate-spin" />
-          <p class="text-sm text-gray-400">Validating reset link...</p>
+          <UIcon
+            name="i-lucide-loader-circle"
+            class="w-8 h-8 text-gray-400 animate-spin"
+          />
+          <p class="text-sm text-gray-400">
+            Validating reset link...
+          </p>
         </div>
       </div>
 
       <!-- Invalid Token -->
-      <div v-else-if="tokenValid === false" class="py-8">
+      <div
+        v-else-if="tokenValid === false"
+        class="py-8"
+      >
         <div class="flex flex-col items-center gap-4">
           <div class="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
-            <UIcon name="i-lucide-x-circle" class="w-8 h-8 text-red-400" />
+            <UIcon
+              name="i-lucide-x-circle"
+              class="w-8 h-8 text-red-400"
+            />
           </div>
           <div class="text-center">
-            <h3 class="text-lg font-semibold text-white mb-1">Invalid reset link</h3>
-            <p class="text-sm text-gray-400 mb-6">{{ error }}</p>
+            <h3 class="text-lg font-semibold text-white mb-1">
+              Invalid reset link
+            </h3>
+            <p class="text-sm text-gray-400 mb-6">
+              {{ error }}
+            </p>
             <UButton
               to="/auth/forgot-password"
               color="primary"
@@ -130,7 +162,11 @@ useHead({
       </div>
 
       <!-- Reset Form -->
-      <form v-else @submit.prevent="handleResetPassword" class="space-y-4">
+      <form
+        v-else
+        class="space-y-4"
+        @submit.prevent="handleResetPassword"
+      >
         <!-- New Password -->
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-2">New Password</label>
@@ -145,7 +181,10 @@ useHead({
             autocomplete="new-password"
           >
             <template #leading>
-              <UIcon name="i-lucide-lock" class="w-5 h-5 text-gray-400" />
+              <UIcon
+                name="i-lucide-lock"
+                class="w-5 h-5 text-gray-400"
+              />
             </template>
             <template #trailing>
               <UButton
@@ -157,7 +196,9 @@ useHead({
               />
             </template>
           </UInput>
-          <p class="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+          <p class="mt-1 text-xs text-gray-500">
+            Must be at least 8 characters
+          </p>
         </div>
 
         <!-- Confirm Password -->
@@ -174,7 +215,10 @@ useHead({
             autocomplete="new-password"
           >
             <template #leading>
-              <UIcon name="i-lucide-lock" class="w-5 h-5 text-gray-400" />
+              <UIcon
+                name="i-lucide-lock"
+                class="w-5 h-5 text-gray-400"
+              />
             </template>
             <template #trailing>
               <UButton
@@ -207,7 +251,10 @@ useHead({
           :loading="isLoading"
         >
           <template #leading>
-            <UIcon name="i-lucide-key" class="w-5 h-5" />
+            <UIcon
+              name="i-lucide-key"
+              class="w-5 h-5"
+            />
           </template>
           Reset Password
         </UButton>

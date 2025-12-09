@@ -3,7 +3,10 @@
     <!-- Step Header -->
     <div class="text-center mb-8">
       <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-medium mb-4">
-        <Icon name="lucide:calendar-clock" class="w-4 h-4" />
+        <Icon
+          name="lucide:calendar-clock"
+          class="w-4 h-4"
+        />
         Step 3: Set Your Availability
       </div>
       <h1 class="text-3xl sm:text-4xl font-bold text-white mb-3 tracking-tight">
@@ -16,7 +19,7 @@
 
     <!-- Form Card -->
     <div class="relative">
-      <div class="absolute -inset-2 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 rounded-2xl blur-xl"></div>
+      <div class="absolute -inset-2 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 rounded-2xl blur-xl" />
 
       <UCard class="relative bg-gray-900/90 backdrop-blur-xl border-gray-700/50">
         <div class="space-y-6">
@@ -29,7 +32,10 @@
               @click="copyToWeekdays"
             >
               <template #leading>
-                <Icon name="lucide:copy" class="w-4 h-4" />
+                <Icon
+                  name="lucide:copy"
+                  class="w-4 h-4"
+                />
               </template>
               Copy Monday to all weekdays
             </UButton>
@@ -40,7 +46,10 @@
               @click="enableAll"
             >
               <template #leading>
-                <Icon name="lucide:check" class="w-4 h-4" />
+                <Icon
+                  name="lucide:check"
+                  class="w-4 h-4"
+                />
               </template>
               Enable all days
             </UButton>
@@ -74,7 +83,10 @@
               </div>
 
               <!-- Time Inputs -->
-              <div v-if="availability[day].enabled" class="flex items-center gap-3 flex-1">
+              <div
+                v-if="availability[day].enabled"
+                class="flex items-center gap-3 flex-1"
+              >
                 <div class="flex-1">
                   <UInput
                     v-model="availability[day].open"
@@ -100,7 +112,10 @@
                 </div>
               </div>
 
-              <div v-else class="flex-1 text-sm text-gray-500">
+              <div
+                v-else
+                class="flex-1 text-sm text-gray-500"
+              >
                 Closed
               </div>
             </div>
@@ -126,12 +141,24 @@
           </div>
 
           <!-- Auto-save indicator -->
-          <div v-if="isSaving" class="flex items-center gap-2 text-sm text-amber-400 pt-2">
-            <Icon name="lucide:loader-circle" class="w-4 h-4 animate-spin" />
+          <div
+            v-if="isSaving"
+            class="flex items-center gap-2 text-sm text-amber-400 pt-2"
+          >
+            <Icon
+              name="lucide:loader-circle"
+              class="w-4 h-4 animate-spin"
+            />
             Saving progress...
           </div>
-          <div v-else-if="savedRecently" class="flex items-center gap-2 text-sm text-green-400 pt-2">
-            <Icon name="lucide:check-circle" class="w-4 h-4" />
+          <div
+            v-else-if="savedRecently"
+            class="flex items-center gap-2 text-sm text-green-400 pt-2"
+          >
+            <Icon
+              name="lucide:check-circle"
+              class="w-4 h-4"
+            />
             Progress saved
           </div>
         </div>
@@ -141,7 +168,10 @@
     <!-- Info Card -->
     <div class="mt-6 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
       <div class="flex gap-3">
-        <Icon name="lucide:info" class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+        <Icon
+          name="lucide:info"
+          class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5"
+        />
         <div>
           <p class="text-sm text-blue-300">
             <strong>Tip:</strong> You can always change your availability later and set custom hours for holidays or special events.
@@ -156,23 +186,29 @@
         color="gray"
         variant="ghost"
         size="lg"
-        @click="handleBack"
         class="text-gray-400 hover:text-white"
+        @click="handleBack"
       >
         <template #leading>
-          <Icon name="lucide:arrow-left" class="w-5 h-5" />
+          <Icon
+            name="lucide:arrow-left"
+            class="w-5 h-5"
+          />
         </template>
         Back
       </UButton>
 
       <UButton
         size="lg"
-        @click="handleNext"
         class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all"
+        @click="handleNext"
       >
         Continue
         <template #trailing>
-          <Icon name="lucide:arrow-right" class="w-5 h-5" />
+          <Icon
+            name="lucide:arrow-right"
+            class="w-5 h-5"
+          />
         </template>
       </UButton>
     </div>
@@ -203,10 +239,10 @@ const isSaving = ref(false)
 const savedRecently = ref(false)
 
 const copyToWeekdays = () => {
-  const mondaySchedule = availability.monday
-  const weekdays = ['tuesday', 'wednesday', 'thursday', 'friday']
+  const mondaySchedule = availability.monday as { open: string, close: string, enabled: boolean }
+  const weekdays = ['tuesday', 'wednesday', 'thursday', 'friday'] as const
 
-  weekdays.forEach(day => {
+  weekdays.forEach((day) => {
     availability[day] = { ...mondaySchedule }
   })
 
@@ -214,8 +250,11 @@ const copyToWeekdays = () => {
 }
 
 const enableAll = () => {
-  daysOfWeek.forEach(day => {
-    availability[day].enabled = true
+  daysOfWeek.forEach((day) => {
+    const dayAvailability = availability[day]
+    if (dayAvailability) {
+      availability[day] = { ...dayAvailability, enabled: true }
+    }
   })
   debouncedSave()
 }
@@ -224,7 +263,9 @@ const debouncedSave = useDebounceFn(() => {
   isSaving.value = true
 
   // Update state
-  state.value.availability = { ...availability }
+  if (state.value.availability) {
+    Object.assign(state.value.availability, availability)
+  }
 
   saveProgress()
 
@@ -239,7 +280,9 @@ const debouncedSave = useDebounceFn(() => {
 
 const handleNext = () => {
   // Save final state
-  state.value.availability = { ...availability }
+  if (state.value.availability) {
+    Object.assign(state.value.availability, availability)
+  }
   saveProgress()
   nextStep()
   navigateTo('/app/onboarding/payments')

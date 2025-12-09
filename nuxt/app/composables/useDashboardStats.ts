@@ -32,6 +32,17 @@ export interface DashboardStats {
   }
 }
 
+interface BookingDoc {
+  status?: string
+  createdAt?: string
+  totalPrice?: number
+  paidAmount?: number
+}
+
+interface InventoryDoc {
+  units?: Array<{ status?: string }>
+}
+
 export const useDashboardStats = () => {
   const stats = useState<DashboardStats | null>('dashboard:stats', () => null)
   const isLoading = useState<boolean>('dashboard:stats:loading', () => false)
@@ -49,9 +60,9 @@ export const useDashboardStats = () => {
     try {
       // Fetch data in parallel
       const [bookingsResponse, customersResponse, inventoryResponse] = await Promise.all([
-        fetchCollection('bookings', { limit: 1000 }),
-        fetchCollection('customers', { limit: 1 }),
-        fetchCollection('rental-items', { limit: 1000 })
+        fetchCollection<BookingDoc>('bookings', { limit: 1000 }),
+        fetchCollection<Record<string, unknown>>('customers', { limit: 1 }),
+        fetchCollection<InventoryDoc>('rental-items', { limit: 1000 })
       ])
 
       const bookings = bookingsResponse.docs
@@ -65,35 +76,36 @@ export const useDashboardStats = () => {
 
       const bookingStats = {
         total: bookingsResponse.totalDocs,
-        pending: bookings.filter((b: any) => b.status === 'pending').length,
-        confirmed: bookings.filter((b: any) => b.status === 'confirmed').length,
-        completed: bookings.filter((b: any) => b.status === 'completed').length,
-        thisMonth: bookings.filter((b: any) =>
-          new Date(b.createdAt) >= firstOfMonth
+        pending: bookings.filter(b => b.status === 'pending').length,
+        confirmed: bookings.filter(b => b.status === 'confirmed').length,
+        completed: bookings.filter(b => b.status === 'completed').length,
+        thisMonth: bookings.filter(b =>
+          b.createdAt && new Date(b.createdAt) >= firstOfMonth
         ).length
       }
 
       // Calculate revenue stats
       const revenueStats = {
-        total: bookings.reduce((sum: number, b: any) => sum + (b.totalPrice || 0), 0),
+        total: bookings.reduce((sum, b) => sum + (Number(b.totalPrice) || 0), 0),
         thisMonth: bookings
-          .filter((b: any) => new Date(b.createdAt) >= firstOfMonth)
-          .reduce((sum: number, b: any) => sum + (b.totalPrice || 0), 0),
+          .filter(b => b.createdAt && new Date(b.createdAt) >= firstOfMonth)
+          .reduce((sum, b) => sum + (Number(b.totalPrice) || 0), 0),
         thisWeek: bookings
-          .filter((b: any) => new Date(b.createdAt) >= firstOfWeek)
-          .reduce((sum: number, b: any) => sum + (b.totalPrice || 0), 0),
+          .filter(b => b.createdAt && new Date(b.createdAt) >= firstOfWeek)
+          .reduce((sum, b) => sum + (Number(b.totalPrice) || 0), 0),
         outstanding: bookings
-          .filter((b: any) => b.status !== 'cancelled')
-          .reduce((sum: number, b: any) => sum + ((b.totalPrice || 0) - (b.paidAmount || 0)), 0)
+          .filter(b => b.status !== 'cancelled')
+          .reduce((sum, b) => sum + ((Number(b.totalPrice) || 0) - (Number(b.paidAmount) || 0)), 0)
       }
 
       // Calculate inventory stats
-      const totalUnits = inventory.reduce((sum: number, item: any) =>
-        sum + (item.units?.length || 0), 0
+      const totalUnits = inventory.reduce((sum, item) =>
+        sum + (Array.isArray(item.units) ? item.units.length : 0), 0
       )
-      const rentedUnits = inventory.reduce((sum: number, item: any) =>
-        sum + (item.units?.filter((u: any) => u.status === 'rented').length || 0), 0
-      )
+      const rentedUnits = inventory.reduce((sum, item) => {
+        const units = Array.isArray(item.units) ? item.units : []
+        return sum + units.filter(u => u.status === 'rented').length
+      }, 0)
 
       const inventoryStats = {
         totalItems: inventoryResponse.totalDocs,
@@ -119,9 +131,10 @@ export const useDashboardStats = () => {
       }
 
       return { success: true, data: stats.value }
-    } catch (err: any) {
-      console.error('Failed to fetch dashboard stats from API:', err.message)
-      error.value = err.message || 'Failed to fetch dashboard statistics'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch dashboard statistics'
+      console.error('Failed to fetch dashboard stats from API:', errorMessage)
+      error.value = errorMessage
 
       // Set empty stats on error
       stats.value = {

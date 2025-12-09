@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner, generateTestData, waitForToast } from './helpers'
+import { loginAsOwner, generateTestData } from './helpers'
 
 test.describe('Inventory Management', () => {
   test.beforeEach(async ({ page }) => {

@@ -19,8 +19,8 @@ export interface MaintenanceDocument {
 export interface MaintenanceRecord {
   id: string
   tenantId: string
-  rentalItem: string | { id: string; name: string }
-  inventoryUnit?: string | { id: string; label: string }
+  rentalItem: string | { id: string, name: string }
+  inventoryUnit?: string | { id: string, label: string }
   type: 'inspection' | 'cleaning' | 'repair' | 'replacement' | 'certification'
   description: string
   scheduledDate: string
@@ -40,12 +40,12 @@ export interface MaintenanceRecord {
 export interface MaintenanceSchedule {
   id: string
   tenantId: string
-  rentalItem: string | { id: string; name: string }
+  rentalItem: string | { id: string, name: string }
   name: string
   frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annually' | 'after_x_rentals'
   frequencyValue: number
   maintenanceType: 'inspection' | 'cleaning' | 'repair' | 'certification'
-  checklist?: Array<{ task: string; required: boolean }>
+  checklist?: Array<{ task: string, required: boolean }>
   instructions?: string
   estimatedDuration?: number
   reminderDaysBefore: number
@@ -80,14 +80,14 @@ export const useMaintenance = () => {
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
     const completedThisMonth = records.value.filter(
-      (r) => r.status === 'completed' && r.completedDate && new Date(r.completedDate) >= firstOfMonth
+      r => r.status === 'completed' && r.completedDate && new Date(r.completedDate) >= firstOfMonth
     ).length
 
     const totalCost = records.value
-      .filter((r) => r.status === 'completed')
+      .filter(r => r.status === 'completed')
       .reduce((sum, r) => sum + (r.cost || 0), 0)
 
-    const completedCount = records.value.filter((r) => r.status === 'completed').length
+    const completedCount = records.value.filter(r => r.status === 'completed').length
     const avgCost = completedCount > 0 ? totalCost / completedCount : 0
 
     return {
@@ -96,7 +96,7 @@ export const useMaintenance = () => {
       dueSoon: dueSoon.value.length,
       completedThisMonth,
       totalCost,
-      avgCost,
+      avgCost
     }
   })
 
@@ -110,7 +110,7 @@ export const useMaintenance = () => {
     try {
       const params = new URLSearchParams({
         days: days.toString(),
-        ...(itemId && { itemId }),
+        ...(itemId && { itemId })
       })
 
       const response = await $fetch<{
@@ -121,7 +121,7 @@ export const useMaintenance = () => {
           all: MaintenanceRecord[]
         }
       }>(`/api/maintenance/due?${params}`, {
-        credentials: 'include',
+        credentials: 'include'
       })
 
       if (response.success) {
@@ -131,9 +131,10 @@ export const useMaintenance = () => {
       }
 
       return response
-    } catch (err: any) {
-      console.error('Failed to fetch due maintenance:', err.message)
-      error.value = err.message || 'Failed to fetch due maintenance'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch due maintenance'
+      console.error('Failed to fetch due maintenance:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -149,14 +150,15 @@ export const useMaintenance = () => {
 
     try {
       const response = await $fetch<{ docs: MaintenanceRecord[] }>('/api/maintenance-records', {
-        credentials: 'include',
+        credentials: 'include'
       })
 
       records.value = response.docs || []
       return { success: true, records: records.value }
-    } catch (err: any) {
-      console.error('Failed to fetch maintenance records:', err.message)
-      error.value = err.message || 'Failed to fetch maintenance records'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch maintenance records'
+      console.error('Failed to fetch maintenance records:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -172,13 +174,14 @@ export const useMaintenance = () => {
 
     try {
       const record = await $fetch<MaintenanceRecord>(`/api/maintenance-records/${id}`, {
-        credentials: 'include',
+        credentials: 'include'
       })
 
       return { success: true, record }
-    } catch (err: any) {
-      console.error('Failed to fetch maintenance record:', err.message)
-      error.value = err.message || 'Failed to fetch maintenance record'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch maintenance record'
+      console.error('Failed to fetch maintenance record:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -197,7 +200,7 @@ export const useMaintenance = () => {
       const newRecord = await $fetch<MaintenanceRecord>('/api/maintenance-records', {
         method: 'POST',
         credentials: 'include',
-        body: data,
+        body: data
       })
 
       // Add to local state
@@ -216,9 +219,10 @@ export const useMaintenance = () => {
       }
 
       return { success: true, record: newRecord }
-    } catch (err: any) {
-      console.error('Failed to create maintenance record:', err.message)
-      error.value = err.message || 'Failed to create maintenance record'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create maintenance record'
+      console.error('Failed to create maintenance record:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -236,18 +240,19 @@ export const useMaintenance = () => {
       const updatedRecord = await $fetch<MaintenanceRecord>(`/api/maintenance-records/${id}`, {
         method: 'PATCH',
         credentials: 'include',
-        body: data,
+        body: data
       })
 
-      const index = records.value.findIndex((r) => r.id === id)
+      const index = records.value.findIndex(r => r.id === id)
       if (index !== -1) {
         records.value[index] = updatedRecord
       }
 
       return { success: true, record: updatedRecord }
-    } catch (err: any) {
-      console.error('Failed to update maintenance record:', err.message)
-      error.value = err.message || 'Failed to update maintenance record'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update maintenance record'
+      console.error('Failed to update maintenance record:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -272,31 +277,32 @@ export const useMaintenance = () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ success: boolean; record: MaintenanceRecord }>(
+      const response = await $fetch<{ success: boolean, record: MaintenanceRecord }>(
         '/api/maintenance/complete',
         {
           method: 'POST',
           credentials: 'include',
-          body: { recordId, ...data },
+          body: { recordId, ...data }
         }
       )
 
       if (response.success) {
         // Update local state
-        const index = records.value.findIndex((r) => r.id === recordId)
+        const index = records.value.findIndex(r => r.id === recordId)
         if (index !== -1) {
           records.value[index] = response.record
         }
 
         // Remove from due lists
-        overdue.value = overdue.value.filter((r) => r.id !== recordId)
-        dueSoon.value = dueSoon.value.filter((r) => r.id !== recordId)
+        overdue.value = overdue.value.filter(r => r.id !== recordId)
+        dueSoon.value = dueSoon.value.filter(r => r.id !== recordId)
       }
 
       return response
-    } catch (err: any) {
-      console.error('Failed to complete maintenance:', err.message)
-      error.value = err.message || 'Failed to complete maintenance'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to complete maintenance'
+      console.error('Failed to complete maintenance:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -313,17 +319,18 @@ export const useMaintenance = () => {
     try {
       await $fetch(`/api/maintenance-records/${id}`, {
         method: 'DELETE',
-        credentials: 'include',
+        credentials: 'include'
       })
 
-      records.value = records.value.filter((r) => r.id !== id)
-      overdue.value = overdue.value.filter((r) => r.id !== id)
-      dueSoon.value = dueSoon.value.filter((r) => r.id !== id)
+      records.value = records.value.filter(r => r.id !== id)
+      overdue.value = overdue.value.filter(r => r.id !== id)
+      dueSoon.value = dueSoon.value.filter(r => r.id !== id)
 
       return { success: true }
-    } catch (err: any) {
-      console.error('Failed to delete maintenance record:', err.message)
-      error.value = err.message || 'Failed to delete maintenance record'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete maintenance record'
+      console.error('Failed to delete maintenance record:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -339,14 +346,15 @@ export const useMaintenance = () => {
 
     try {
       const response = await $fetch<{ docs: MaintenanceSchedule[] }>('/api/maintenance-schedules', {
-        credentials: 'include',
+        credentials: 'include'
       })
 
       schedules.value = response.docs || []
       return { success: true, schedules: schedules.value }
-    } catch (err: any) {
-      console.error('Failed to fetch maintenance schedules:', err.message)
-      error.value = err.message || 'Failed to fetch maintenance schedules'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch maintenance schedules'
+      console.error('Failed to fetch maintenance schedules:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -364,14 +372,15 @@ export const useMaintenance = () => {
       const newSchedule = await $fetch<MaintenanceSchedule>('/api/maintenance-schedules', {
         method: 'POST',
         credentials: 'include',
-        body: data,
+        body: data
       })
 
       schedules.value.push(newSchedule)
       return { success: true, schedule: newSchedule }
-    } catch (err: any) {
-      console.error('Failed to create maintenance schedule:', err.message)
-      error.value = err.message || 'Failed to create maintenance schedule'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create maintenance schedule'
+      console.error('Failed to create maintenance schedule:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -389,18 +398,19 @@ export const useMaintenance = () => {
       const updatedSchedule = await $fetch<MaintenanceSchedule>(`/api/maintenance-schedules/${id}`, {
         method: 'PATCH',
         credentials: 'include',
-        body: data,
+        body: data
       })
 
-      const index = schedules.value.findIndex((s) => s.id === id)
+      const index = schedules.value.findIndex(s => s.id === id)
       if (index !== -1) {
         schedules.value[index] = updatedSchedule
       }
 
       return { success: true, schedule: updatedSchedule }
-    } catch (err: any) {
-      console.error('Failed to update maintenance schedule:', err.message)
-      error.value = err.message || 'Failed to update maintenance schedule'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update maintenance schedule'
+      console.error('Failed to update maintenance schedule:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -417,14 +427,15 @@ export const useMaintenance = () => {
     try {
       await $fetch(`/api/maintenance-schedules/${id}`, {
         method: 'DELETE',
-        credentials: 'include',
+        credentials: 'include'
       })
 
-      schedules.value = schedules.value.filter((s) => s.id !== id)
+      schedules.value = schedules.value.filter(s => s.id !== id)
       return { success: true }
-    } catch (err: any) {
-      console.error('Failed to delete maintenance schedule:', err.message)
-      error.value = err.message || 'Failed to delete maintenance schedule'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete maintenance schedule'
+      console.error('Failed to delete maintenance schedule:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -450,13 +461,14 @@ export const useMaintenance = () => {
         }
         records: MaintenanceRecord[]
       }>(`/api/rental-items/${itemId}/maintenance-history`, {
-        credentials: 'include',
+        credentials: 'include'
       })
 
       return response
-    } catch (err: any) {
-      console.error('Failed to fetch maintenance history:', err.message)
-      error.value = err.message || 'Failed to fetch maintenance history'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch maintenance history'
+      console.error('Failed to fetch maintenance history:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -489,6 +501,6 @@ export const useMaintenance = () => {
     fetchSchedules,
     createSchedule,
     updateSchedule,
-    deleteSchedule,
+    deleteSchedule
   }
 }

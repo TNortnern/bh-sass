@@ -22,8 +22,8 @@ export default defineEventHandler(async (event) => {
       headers: {
         'Content-Type': 'application/json',
         // Forward client IP to Payload
-        'X-Forwarded-For': clientIP || 'unknown',
-      },
+        'X-Forwarded-For': clientIP || 'unknown'
+      }
     })
 
     return settings
@@ -33,8 +33,8 @@ export default defineEventHandler(async (event) => {
     console.error('Failed to fetch platform settings:', error)
     return {
       maintenanceMode: {
-        enabled: false,
-      },
+        enabled: false
+      }
     }
   }
 })

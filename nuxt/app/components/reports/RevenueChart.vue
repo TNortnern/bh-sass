@@ -25,8 +25,8 @@ ChartJS.register(
 )
 
 const props = defineProps<{
-  data: Array<{ date: string; amount: number }>
-  previousData?: Array<{ date: string; amount: number }>
+  data: Array<{ date: string, amount: number }>
+  previousData?: Array<{ date: string, amount: number }>
   loading?: boolean
 }>()
 
@@ -55,7 +55,8 @@ const chartData = computed(() => {
       borderColor: '#6b7280',
       backgroundColor: 'rgba(107, 116, 128, 0.05)',
       borderWidth: 2,
-      borderDash: [5, 5],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      borderDash: [5, 5] as any,
       pointRadius: 0,
       pointHoverRadius: 5,
       pointHoverBackgroundColor: '#6b7280',
@@ -63,7 +64,8 @@ const chartData = computed(() => {
       pointHoverBorderWidth: 2,
       tension: 0.4,
       fill: false
-    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any)
   }
 
   return {
@@ -112,7 +114,8 @@ const chartOptions: ChartOptions<'line'> = {
       },
       callbacks: {
         label: (context) => {
-          return `$${context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          const y = context.parsed.y ?? 0
+          return `$${y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         }
       }
     }
@@ -180,14 +183,20 @@ const chartOptions: ChartOptions<'line'> = {
       class="absolute inset-0 bg-black/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg"
     >
       <div class="flex items-center gap-3 text-cyan-400">
-        <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
+        <UIcon
+          name="i-lucide-loader-circle"
+          class="w-6 h-6 animate-spin"
+        />
         <span class="font-mono text-sm">Loading chart data...</span>
       </div>
     </div>
 
     <!-- Chart container -->
     <div class="h-80">
-      <Line :data="chartData" :options="chartOptions" />
+      <Line
+        :data="chartData"
+        :options="chartOptions"
+      />
     </div>
   </div>
 </template>

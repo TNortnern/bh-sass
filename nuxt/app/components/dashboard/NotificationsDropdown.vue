@@ -1,17 +1,19 @@
 <script setup lang="ts">
+import type { Notification } from '~/composables/useNotifications'
+
 const {
   notifications,
   unreadCount,
   isLoading,
   fetchRecent,
-  markAsRead,
+  markAsRead: _markAsRead,
   markAllAsRead,
   navigateToNotification,
   getNotificationIcon,
   getNotificationColor,
   formatNotificationTime,
   connectRealtime,
-  isConnected
+  isConnected: _isConnected
 } = useNotifications()
 
 // Fetch recent notifications on mount
@@ -25,8 +27,8 @@ onMounted(async () => {
 const isOpen = ref(false)
 
 // Mark notification as read and navigate
-const handleNotificationClick = async (notification: any) => {
-  await navigateToNotification(notification)
+const handleNotificationClick = async (notification: Record<string, unknown>) => {
+  await navigateToNotification(notification as unknown as Notification)
   isOpen.value = false
 }
 
@@ -92,7 +94,10 @@ const recentNotifications = computed(() => notifications.value.slice(0, 5))
       @click="isOpen = !isOpen"
     >
       <!-- Unread Count Badge (only show if > 0) -->
-      <template v-if="unreadCount > 0" #trailing>
+      <template
+        v-if="unreadCount > 0"
+        #trailing
+      >
         <span
           class="absolute -top-1 -right-1 flex items-center justify-center min-w-5 h-5 px-1 text-xs font-bold text-white bg-red-500 rounded-full border-2 border-white dark:border-gray-900"
         >
@@ -160,8 +165,14 @@ const recentNotifications = computed(() => notifications.value.slice(0, 5))
             <!-- Notifications List -->
             <div class="max-h-[60vh] overflow-y-auto -mx-6">
               <!-- Loading State -->
-              <div v-if="isLoading" class="flex items-center justify-center py-8">
-                <UIcon name="i-lucide-loader-circle" class="w-8 h-8 text-gray-400 animate-spin" />
+              <div
+                v-if="isLoading"
+                class="flex items-center justify-center py-8"
+              >
+                <UIcon
+                  name="i-lucide-loader-circle"
+                  class="w-8 h-8 text-gray-400 animate-spin"
+                />
               </div>
 
               <!-- Empty State -->
@@ -170,9 +181,14 @@ const recentNotifications = computed(() => notifications.value.slice(0, 5))
                 class="flex flex-col items-center justify-center py-12 px-4 text-center"
               >
                 <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
-                  <UIcon name="i-lucide-bell-off" class="w-8 h-8 text-gray-400" />
+                  <UIcon
+                    name="i-lucide-bell-off"
+                    class="w-8 h-8 text-gray-400"
+                  />
                 </div>
-                <p class="text-sm font-medium text-gray-900 dark:text-white">No notifications</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                  No notifications
+                </p>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   You're all caught up!
                 </p>

@@ -3,6 +3,51 @@
  * Fetch tenant public website data by slug
  * Returns tenant with website configuration, branding, and public info
  */
+
+interface TenantLogo {
+  id: string
+  url: string
+  alt?: string
+}
+
+interface TenantBranding {
+  businessName?: string
+  tagline?: string
+  primaryColor?: string
+  secondaryColor?: string
+  accentColor?: string
+  termsAndConditions?: string
+  safetyGuidelines?: string
+}
+
+interface TenantSettings {
+  timezone?: string
+  currency?: string
+  locale?: string
+  bookingSettings?: Record<string, unknown>
+  deliverySettings?: Record<string, unknown>
+}
+
+interface Tenant {
+  id: string
+  name: string
+  slug: string
+  status?: string
+  description?: string
+  logo?: TenantLogo | string
+  phone?: string
+  email?: string
+  address?: Record<string, unknown>
+  businessHours?: Record<string, unknown>
+  serviceArea?: Record<string, unknown>
+  branding?: TenantBranding
+  settings?: TenantSettings
+}
+
+interface TenantResponse {
+  docs: Tenant[]
+}
+
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
 
@@ -20,7 +65,7 @@ export default defineEventHandler(async (event) => {
     // Fetch tenant from Payload by slug
     const url = `${payloadUrl}/api/tenants?where[slug][equals]=${slug}&where[status][equals]=active&limit=1`
 
-    const response = await $fetch<{ docs: any[] }>(url, {
+    const response = await $fetch<TenantResponse>(url, {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -34,6 +79,13 @@ export default defineEventHandler(async (event) => {
     }
 
     const tenant = response.docs[0]
+
+    if (!tenant) {
+      throw createError({
+        statusCode: 404,
+        message: 'Tenant not found'
+      })
+    }
 
     // Check if tenant exists and is active
     if (tenant.status !== 'active') {
@@ -49,10 +101,12 @@ export default defineEventHandler(async (event) => {
       name: tenant.name,
       slug: tenant.slug,
       description: tenant.description,
-      logo: tenant.logo ? {
-        url: typeof tenant.logo === 'object' ? tenant.logo.url : tenant.logo,
-        alt: tenant.name
-      } : undefined,
+      logo: tenant.logo
+        ? {
+            url: typeof tenant.logo === 'object' ? tenant.logo.url : tenant.logo,
+            alt: tenant.name
+          }
+        : undefined,
       phone: tenant.phone,
       email: tenant.email,
       address: tenant.address,
@@ -88,10 +142,10 @@ export default defineEventHandler(async (event) => {
         }
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch tenant:', error)
 
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 

@@ -7,14 +7,14 @@ export interface RevenueData {
   total: number
   previousTotal: number
   percentageChange: number
-  byDay: Array<{ date: string; amount: number }>
-  byItem: Array<{ name: string; revenue: number; bookings: number }>
-  byCustomer: Array<{ name: string; email: string; revenue: number; bookings: number }>
-  byPaymentMethod: Array<{ method: string; amount: number; count: number }>
+  byDay: Array<{ date: string, amount: number }>
+  byItem: Array<{ name: string, revenue: number, bookings: number }>
+  byCustomer: Array<{ name: string, email: string, revenue: number, bookings: number }>
+  byPaymentMethod: Array<{ method: string, amount: number, count: number }>
   refunds: {
     total: number
     count: number
-    reasons: Array<{ reason: string; count: number }>
+    reasons: Array<{ reason: string, count: number }>
   }
   platformFees: number
   netRevenue: number
@@ -24,23 +24,23 @@ export interface BookingsData {
   total: number
   previousTotal: number
   percentageChange: number
-  byStatus: Array<{ status: string; count: number; value: number }>
-  byItem: Array<{ name: string; bookings: number; revenue: number }>
-  byDay: Array<{ date: string; bookings: number }>
+  byStatus: Array<{ status: string, count: number, value: number }>
+  byItem: Array<{ name: string, bookings: number, revenue: number }>
+  byDay: Array<{ date: string, bookings: number }>
   averageDuration: number
   conversionRate: number
   cancellationRate: number
-  cancellationReasons: Array<{ reason: string; count: number }>
-  busiestDays: Array<{ day: string; bookings: number }>
-  busiestHours: Array<{ hour: number; bookings: number }>
+  cancellationReasons: Array<{ reason: string, count: number }>
+  busiestDays: Array<{ day: string, bookings: number }>
+  busiestHours: Array<{ hour: number, bookings: number }>
 }
 
 export interface InventoryData {
-  utilizationByItem: Array<{ name: string; utilizationRate: number; revenue: number; bookings: number }>
-  topItems: Array<{ name: string; bookings: number; revenue: number; utilizationRate: number }>
-  bottomItems: Array<{ name: string; bookings: number; revenue: number; utilizationRate: number }>
-  maintenanceSchedule: Array<{ item: string; date: string; type: string }>
-  availabilityOverview: Array<{ item: string; availableDays: number; totalDays: number }>
+  utilizationByItem: Array<{ name: string, utilizationRate: number, revenue: number, bookings: number }>
+  topItems: Array<{ name: string, bookings: number, revenue: number, utilizationRate: number }>
+  bottomItems: Array<{ name: string, bookings: number, revenue: number, utilizationRate: number }>
+  maintenanceSchedule: Array<{ item: string, date: string, type: string }>
+  availabilityOverview: Array<{ item: string, availableDays: number, totalDays: number }>
 }
 
 export interface CustomersData {
@@ -51,10 +51,10 @@ export interface CustomersData {
   returningCustomers: number
   averageLifetimeValue: number
   repeatRate: number
-  topCustomers: Array<{ name: string; email: string; bookings: number; lifetimeValue: number }>
-  acquisitionSources: Array<{ source: string; count: number }>
-  bookingFrequency: Array<{ frequency: string; count: number }>
-  geographicDistribution: Array<{ city: string; state: string; count: number }>
+  topCustomers: Array<{ name: string, email: string, bookings: number, lifetimeValue: number }>
+  acquisitionSources: Array<{ source: string, count: number }>
+  bookingFrequency: Array<{ frequency: string, count: number }>
+  geographicDistribution: Array<{ city: string, state: string, count: number }>
 }
 
 export function useReports() {
@@ -72,7 +72,7 @@ export function useReports() {
       const startDate = range.start.toISOString().split('T')[0]
       const endDate = range.end.toISOString().split('T')[0]
 
-      const response = await $fetch<{ success: boolean; data: RevenueData }>(
+      const response = await $fetch<{ success: boolean, data: RevenueData }>(
         `/reports/revenue?startDate=${startDate}&endDate=${endDate}`
       )
 
@@ -96,7 +96,7 @@ export function useReports() {
       const startDate = range.start.toISOString().split('T')[0]
       const endDate = range.end.toISOString().split('T')[0]
 
-      const response = await $fetch<{ success: boolean; data: BookingsData }>(
+      const response = await $fetch<{ success: boolean, data: BookingsData }>(
         `/reports/bookings?startDate=${startDate}&endDate=${endDate}`
       )
 
@@ -120,7 +120,7 @@ export function useReports() {
       const startDate = range.start.toISOString().split('T')[0]
       const endDate = range.end.toISOString().split('T')[0]
 
-      const response = await $fetch<{ success: boolean; data: InventoryData }>(
+      const response = await $fetch<{ success: boolean, data: InventoryData }>(
         `/reports/inventory?startDate=${startDate}&endDate=${endDate}`
       )
 
@@ -144,7 +144,7 @@ export function useReports() {
       const startDate = range.start.toISOString().split('T')[0]
       const endDate = range.end.toISOString().split('T')[0]
 
-      const response = await $fetch<{ success: boolean; data: CustomersData }>(
+      const response = await $fetch<{ success: boolean, data: CustomersData }>(
         `/reports/customers?startDate=${startDate}&endDate=${endDate}`
       )
 
@@ -163,41 +163,42 @@ export function useReports() {
     let filename = ''
 
     switch (reportType) {
-      case 'revenue':
+      case 'revenue': {
         const revenueData = await fetchRevenueReport(range)
         csvContent = 'Date,Revenue\n'
-        revenueData.byDay.forEach(item => {
+        revenueData.byDay.forEach((item) => {
           csvContent += `${item.date},${item.amount}\n`
         })
         filename = `revenue-report-${new Date().toISOString().split('T')[0]}.csv`
         break
-
-      case 'bookings':
+      }
+      case 'bookings': {
         const bookingsData = await fetchBookingsReport(range)
         csvContent = 'Date,Bookings\n'
-        bookingsData.byDay.forEach(item => {
+        bookingsData.byDay.forEach((item) => {
           csvContent += `${item.date},${item.bookings}\n`
         })
         filename = `bookings-report-${new Date().toISOString().split('T')[0]}.csv`
         break
-
-      case 'inventory':
+      }
+      case 'inventory': {
         const inventoryData = await fetchInventoryReport(range)
         csvContent = 'Item,Utilization Rate,Revenue,Bookings\n'
-        inventoryData.utilizationByItem.forEach(item => {
+        inventoryData.utilizationByItem.forEach((item) => {
           csvContent += `${item.name},${item.utilizationRate}%,${item.revenue},${item.bookings}\n`
         })
         filename = `inventory-report-${new Date().toISOString().split('T')[0]}.csv`
         break
-
-      case 'customers':
+      }
+      case 'customers': {
         const customersData = await fetchCustomersReport(range)
         csvContent = 'Customer,Email,Bookings,Lifetime Value\n'
-        customersData.topCustomers.forEach(customer => {
+        customersData.topCustomers.forEach((customer) => {
           csvContent += `${customer.name},${customer.email},${customer.bookings},${customer.lifetimeValue}\n`
         })
         filename = `customers-report-${new Date().toISOString().split('T')[0]}.csv`
         break
+      }
     }
 
     // Create download

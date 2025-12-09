@@ -2,6 +2,37 @@
  * GET /public/booking/bookings/:id
  * Get booking details by ID (public endpoint)
  */
+
+interface BookingCustomer {
+  id: string | number
+  firstName?: string
+  lastName?: string
+  email?: string
+}
+
+interface BookingItem {
+  rentalItemId?: string | number | { id: string | number; name?: string }
+  quantity?: number
+  price?: number
+}
+
+interface BookingResponse {
+  id?: string | number
+  bookingNumber?: string
+  status?: string
+  paymentStatus?: string
+  startDate?: string
+  endDate?: string
+  totalPrice?: number
+  depositAmount?: number
+  customerId?: string | number | BookingCustomer
+  items?: BookingItem[]
+  eventType?: string
+  eventAddress?: unknown
+  specialInstructions?: string
+  createdAt?: string
+}
+
 export default defineEventHandler(async (event) => {
   const bookingId = getRouterParam(event, 'id')
 
@@ -28,18 +59,21 @@ export default defineEventHandler(async (event) => {
     // Fetch booking from Payload with populated relations
     const url = `${payloadUrl}/api/bookings/${bookingId}?depth=2`
 
-    const response: Record<string, any> = await $fetch(url, {
+    const booking = await $fetch<BookingResponse>(url, {
       headers
     })
 
-    if (!response) {
+    if (!booking) {
       throw createError({
         statusCode: 404,
         message: 'Booking not found'
       })
     }
 
-    const booking: Record<string, any> = response
+    // Type guard for customer
+    const customer = booking.customerId && typeof booking.customerId === 'object'
+      ? booking.customerId as BookingCustomer
+      : null
 
     // Return sanitized booking data
     return {
@@ -52,28 +86,34 @@ export default defineEventHandler(async (event) => {
         endDate: booking.endDate,
         totalPrice: booking.totalPrice,
         depositAmount: booking.depositAmount,
-        customer: booking.customerId ? {
-          id: typeof booking.customerId === 'object' ? booking.customerId.id : booking.customerId,
-          firstName: booking.customerId?.firstName,
-          lastName: booking.customerId?.lastName,
-          email: booking.customerId?.email
+        customer: customer ? {
+          id: customer.id,
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          email: customer.email
         } : null,
-        items: booking.items?.map((item: any) => ({
-          id: typeof item.rentalItemId === 'object' ? item.rentalItemId.id : item.rentalItemId,
-          name: item.rentalItemId?.name,
-          quantity: item.quantity,
-          price: item.price
-        })) || [],
+        items: booking.items?.map((item: BookingItem) => {
+          const rentalItem = item.rentalItemId && typeof item.rentalItemId === 'object'
+            ? item.rentalItemId as { id: string | number; name?: string }
+            : null
+          return {
+            id: rentalItem?.id || item.rentalItemId,
+            name: rentalItem?.name,
+            quantity: item.quantity,
+            price: item.price
+          }
+        }) || [],
         eventType: booking.eventType,
         eventAddress: booking.eventAddress,
         specialInstructions: booking.specialInstructions,
         createdAt: booking.createdAt
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch booking:', error)
 
-    if (error.statusCode === 404) {
+    // Type guard for error with statusCode
+    if (error && typeof error === 'object' && 'statusCode' in error && error.statusCode === 404) {
       throw error
     }
 

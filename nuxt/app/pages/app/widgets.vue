@@ -41,6 +41,7 @@ const directWidgetLink = computed(() => {
 })
 
 // Listen for config updates from embedded iframe
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const latestConfig = ref<any>(null)
 const latestEmbedCode = ref<string>('')
 
@@ -60,13 +61,13 @@ const copyToClipboard = async (text: string, label: string) => {
     toast.add({
       title: 'Copied!',
       description: `${label} copied to clipboard`,
-      color: 'green',
+      color: 'success'
     })
-  } catch (error) {
+  } catch {
     toast.add({
       title: 'Failed to copy',
       description: 'Please manually select and copy the code',
-      color: 'red',
+      color: 'error'
     })
   }
 }
@@ -80,7 +81,9 @@ const viewMode = ref<'embedded' | 'simple'>('embedded')
     <!-- Page Header -->
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Booking Widgets</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          Booking Widgets
+        </h1>
         <p class="mt-1 text-gray-500 dark:text-gray-400">
           Customize and embed your booking widget on your website
         </p>
@@ -108,11 +111,17 @@ const viewMode = ref<'embedded' | 'simple'>('embedded')
     </div>
 
     <!-- Embedded Config Editor (Full Editor Mode) -->
-    <div v-if="viewMode === 'embedded'" class="space-y-4">
+    <div
+      v-if="viewMode === 'embedded'"
+      class="space-y-4"
+    >
       <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
         <div class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <UIcon name="i-lucide-external-link" class="w-4 h-4" />
+            <UIcon
+              name="i-lucide-external-link"
+              class="w-4 h-4"
+            />
             <span>Powered by ReusableBook Widget Editor</span>
           </div>
           <UButton
@@ -139,17 +148,27 @@ const viewMode = ref<'embedded' | 'simple'>('embedded')
     </div>
 
     <!-- Simple Links Mode -->
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div
+      v-else
+      class="grid grid-cols-1 md:grid-cols-2 gap-6"
+    >
       <!-- Direct Booking Link -->
       <UCard>
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-              <UIcon name="i-lucide-link" class="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              <UIcon
+                name="i-lucide-link"
+                class="w-5 h-5 text-orange-600 dark:text-orange-400"
+              />
             </div>
             <div>
-              <h3 class="font-semibold text-gray-900 dark:text-white">Booking Page Link</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Share with customers</p>
+              <h3 class="font-semibold text-gray-900 dark:text-white">
+                Booking Page Link
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Share with customers
+              </p>
             </div>
           </div>
         </template>
@@ -190,11 +209,18 @@ const viewMode = ref<'embedded' | 'simple'>('embedded')
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-              <UIcon name="i-lucide-sliders" class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <UIcon
+                name="i-lucide-sliders"
+                class="w-5 h-5 text-purple-600 dark:text-purple-400"
+              />
             </div>
             <div>
-              <h3 class="font-semibold text-gray-900 dark:text-white">Widget Editor</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Customize & get embed code</p>
+              <h3 class="font-semibold text-gray-900 dark:text-white">
+                Widget Editor
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Customize & get embed code
+              </p>
             </div>
           </div>
         </template>
@@ -235,30 +261,43 @@ const viewMode = ref<'embedded' | 'simple'>('embedded')
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-              <UIcon name="i-lucide-lightbulb" class="w-5 h-5 text-green-600 dark:text-green-400" />
+              <UIcon
+                name="i-lucide-lightbulb"
+                class="w-5 h-5 text-green-600 dark:text-green-400"
+              />
             </div>
             <div>
-              <h3 class="font-semibold text-gray-900 dark:text-white">Quick Tips</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Getting started with widgets</p>
+              <h3 class="font-semibold text-gray-900 dark:text-white">
+                Quick Tips
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Getting started with widgets
+              </p>
             </div>
           </div>
         </template>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <h4 class="font-medium text-gray-900 dark:text-white mb-1">Direct Link</h4>
+            <h4 class="font-medium text-gray-900 dark:text-white mb-1">
+              Direct Link
+            </h4>
             <p class="text-sm text-gray-500 dark:text-gray-400">
               Perfect for email campaigns, social media, and direct customer communication.
             </p>
           </div>
           <div class="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <h4 class="font-medium text-gray-900 dark:text-white mb-1">iFrame Embed</h4>
+            <h4 class="font-medium text-gray-900 dark:text-white mb-1">
+              iFrame Embed
+            </h4>
             <p class="text-sm text-gray-500 dark:text-gray-400">
               Works on WordPress, Wix, Squarespace, and any website. No coding required.
             </p>
           </div>
           <div class="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <h4 class="font-medium text-gray-900 dark:text-white mb-1">Customization</h4>
+            <h4 class="font-medium text-gray-900 dark:text-white mb-1">
+              Customization
+            </h4>
             <p class="text-sm text-gray-500 dark:text-gray-400">
               Match your brand colors and choose what information to display.
             </p>

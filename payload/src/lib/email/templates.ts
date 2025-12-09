@@ -67,11 +67,13 @@ const modernDarkWrapper = (content: string, preheader?: string): string => `
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                 <tr>
                   <td style="text-align: center;">
-                    <!-- Logo circle with glow -->
-                    <div style="width: 72px; height: 72px; margin: 0 auto 24px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 18px; display: inline-block; box-shadow: 0 0 40px rgba(249, 115, 22, 0.4), 0 0 80px rgba(249, 115, 22, 0.2);">
-                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="72" height="72">
+                    <!-- Logo container - shows business logo if available -->
+                    <div style="width: 80px; height: 80px; margin: 0 auto 24px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 18px; display: inline-block; box-shadow: 0 0 40px rgba(249, 115, 22, 0.4), 0 0 80px rgba(249, 115, 22, 0.2); overflow: hidden;">
+                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="80" height="80">
                         <tr>
-                          <td align="center" valign="middle" style="font-size: 32px; color: #ffffff;">🏰</td>
+                          <td align="center" valign="middle" style="font-size: 36px; color: #ffffff; background: url('{{businessLogo}}') center center / contain no-repeat;">
+                            <span style="{{businessLogoHide}}">🏰</span>
+                          </td>
                         </tr>
                       </table>
                     </div>
@@ -160,6 +162,16 @@ const classicLightWrapper = (content: string, preheader?: string): string => `
           <!-- Header -->
           <tr>
             <td style="background-color: #3b82f6; padding: 32px 40px; text-align: center;">
+              <!-- Logo container -->
+              <div style="width: 64px; height: 64px; margin: 0 auto 16px; background-color: #ffffff; border-radius: 12px; overflow: hidden; display: inline-block;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="64" height="64">
+                  <tr>
+                    <td align="center" valign="middle" style="font-size: 28px; color: #3b82f6; background: url('{{businessLogo}}') center center / contain no-repeat #ffffff;">
+                      <span style="{{businessLogoHide}}">🏰</span>
+                    </td>
+                  </tr>
+                </table>
+              </div>
               <h1 style="margin: 0; font-size: 32px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px;">
                 {{businessName}}
               </h1>
@@ -243,13 +255,15 @@ const boldGradientWrapper = (content: string, preheader?: string): string => `
                 <tr>
                   <td style="background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #dc2626 100%); padding: 44px 40px 40px; text-align: center; border-radius: 24px 24px 0 0;">
                     <!-- Logo badge -->
-                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto 20px;">
-                      <tr>
-                        <td style="background-color: rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 12px 20px;">
-                          <span style="font-size: 28px;">🏰</span>
-                        </td>
-                      </tr>
-                    </table>
+                    <div style="width: 72px; height: 72px; margin: 0 auto 20px; background-color: rgba(255, 255, 255, 0.25); border-radius: 16px; overflow: hidden; display: inline-block;">
+                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="72" height="72">
+                        <tr>
+                          <td align="center" valign="middle" style="font-size: 32px; background: url('{{businessLogo}}') center center / contain no-repeat;">
+                            <span style="{{businessLogoHide}}">🏰</span>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
                     <h1 style="margin: 0; font-size: 38px; font-weight: 800; color: #ffffff; letter-spacing: -1px; text-shadow: 0 2px 8px rgba(0,0,0,0.15);">
                       {{businessName}}
                     </h1>

@@ -3,7 +3,7 @@
  * Fetch staff members from rb-payload API
  * Staff endpoint is PUBLIC - no auth required
  */
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (_event) => {
   const config = useRuntimeConfig()
   const rbPayloadUrl = config.rbPayloadUrl || 'https://reusablebook-payload-production.up.railway.app'
 
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     // Staff endpoint is public - no auth required
     const url = `${rbPayloadUrl}/api/staff?where%5BtenantId%5D%5Bequals%5D=${TENANT_ID}&where%5BisActive%5D%5Bequals%5D=true&limit=100`
 
-    const response = await $fetch<{ docs: any[] }>(url, {
+    const response = await $fetch<{ docs: Record<string, unknown>[] }>(url, {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
       success: true,
       staff: response.docs || []
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch staff from rb-payload:', error)
 
     throw createError({

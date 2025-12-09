@@ -43,7 +43,10 @@
               </div>
             </div>
             <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
-              <UIcon name="i-lucide-users" class="w-6 h-6 text-blue-500" />
+              <UIcon
+                name="i-lucide-users"
+                class="w-6 h-6 text-blue-500"
+              />
             </div>
           </div>
         </UCard>
@@ -66,7 +69,10 @@
               </div>
             </div>
             <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-              <UIcon name="i-lucide-star" class="w-6 h-6 text-amber-500" />
+              <UIcon
+                name="i-lucide-star"
+                class="w-6 h-6 text-amber-500"
+              />
             </div>
           </div>
         </UCard>
@@ -89,7 +95,10 @@
               </div>
             </div>
             <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-              <UIcon name="i-lucide-user-plus" class="w-6 h-6 text-green-500" />
+              <UIcon
+                name="i-lucide-user-plus"
+                class="w-6 h-6 text-green-500"
+              />
             </div>
           </div>
         </UCard>
@@ -112,7 +121,10 @@
               </div>
             </div>
             <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
-              <UIcon name="i-lucide-dollar-sign" class="w-6 h-6 text-purple-500" />
+              <UIcon
+                name="i-lucide-dollar-sign"
+                class="w-6 h-6 text-purple-500"
+              />
             </div>
           </div>
         </UCard>
@@ -133,9 +145,15 @@
             @input="handleSearch"
           >
             <template #leading>
-              <UIcon name="i-lucide-search" class="w-5 h-5 text-gray-500 dark:text-slate-500" />
+              <UIcon
+                name="i-lucide-search"
+                class="w-5 h-5 text-gray-500 dark:text-slate-500"
+              />
             </template>
-            <template v-if="searchQuery" #trailing>
+            <template
+              v-if="searchQuery"
+              #trailing
+            >
               <UButton
                 color="neutral"
                 variant="link"
@@ -316,14 +334,30 @@
         <table class="min-w-full">
           <thead class="bg-gray-50 dark:bg-slate-800/60 border-b border-gray-200 dark:border-slate-700/50">
             <tr>
-              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Name</th>
-              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Email</th>
-              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Phone</th>
-              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Bookings</th>
-              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Total Spent</th>
-              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Last Booking</th>
-              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">Tags</th>
-              <th class="text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4 w-12">Actions</th>
+              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">
+                Name
+              </th>
+              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">
+                Email
+              </th>
+              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">
+                Phone
+              </th>
+              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">
+                Bookings
+              </th>
+              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">
+                Total Spent
+              </th>
+              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">
+                Last Booking
+              </th>
+              <th class="text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4">
+                Tags
+              </th>
+              <th class="text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider px-6 py-4 w-12">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 dark:divide-slate-700/30">
@@ -346,8 +380,14 @@
                     <div class="font-semibold text-gray-900 dark:text-slate-200">
                       {{ customer.firstName }} {{ customer.lastName }}
                     </div>
-                    <div v-if="customer.tags.includes('VIP')" class="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                      <UIcon name="i-lucide-star" class="w-3 h-3" />
+                    <div
+                      v-if="customer.tags.includes('VIP')"
+                      class="flex items-center gap-1 text-xs text-amber-400 mt-1"
+                    >
+                      <UIcon
+                        name="i-lucide-star"
+                        class="w-3 h-3"
+                      />
                       <span>VIP</span>
                     </div>
                   </div>
@@ -414,7 +454,10 @@
                 </div>
               </td>
               <td class="text-sm text-gray-700 dark:text-slate-300 px-6 py-5">
-                <div class="flex justify-end" @click.stop>
+                <div
+                  class="flex justify-end"
+                  @click.stop
+                >
                   <UDropdownMenu :items="getCustomerActions(customer)">
                     <UButton
                       icon="i-lucide-more-vertical"
@@ -428,14 +471,23 @@
             </tr>
           </tbody>
         </table>
-        <div v-if="loading" class="flex justify-center py-12">
-          <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-gray-500 dark:text-slate-500" />
+        <div
+          v-if="loading"
+          class="flex justify-center py-12"
+        >
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-8 h-8 animate-spin text-gray-500 dark:text-slate-500"
+          />
         </div>
       </div>
     </UCard>
 
     <!-- Grid View -->
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div
+      v-else
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
       <CustomersCustomerCard
         v-for="customer in customers"
         :key="customer.id"
@@ -450,7 +502,10 @@
       class="text-center py-16"
     >
       <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 dark:bg-slate-800/60 flex items-center justify-center">
-        <UIcon name="i-lucide-users" class="w-10 h-10 text-gray-400 dark:text-slate-600" />
+        <UIcon
+          name="i-lucide-users"
+          class="w-10 h-10 text-gray-400 dark:text-slate-600"
+        />
       </div>
       <h3 class="text-xl font-semibold text-gray-900 dark:text-slate-300 mb-2">
         No customers found
@@ -465,7 +520,10 @@
         :ui="{ rounded: 'rounded-xl' }"
         @click="navigateTo('/app/customers/new')"
       >
-        <UIcon name="i-lucide-plus" class="w-5 h-5 mr-2" />
+        <UIcon
+          name="i-lucide-plus"
+          class="w-5 h-5 mr-2"
+        />
         Add Customer
       </UButton>
     </div>
@@ -510,11 +568,18 @@
         <div class="p-6">
           <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-              <UIcon name="i-lucide-trash-2" class="text-red-600 dark:text-red-400 text-xl" />
+              <UIcon
+                name="i-lucide-trash-2"
+                class="text-red-600 dark:text-red-400 text-xl"
+              />
             </div>
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Delete Customer</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone</p>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Delete Customer
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                This action cannot be undone
+              </p>
             </div>
           </div>
           <p class="text-gray-700 dark:text-gray-300 mb-6">
@@ -539,11 +604,11 @@
         </div>
       </template>
     </UModal>
-
   </div>
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Customer } from '~/composables/useCustomers'
 
 definePageMeta({
@@ -800,8 +865,8 @@ async function confirmDelete() {
     showDeleteDialog.value = false
     customerToDelete.value = null
     await loadCustomers()
-  } catch (error) {
-    console.error('Failed to delete customer:', error)
+  } catch (err) {
+    console.error('Failed to delete customer:', err)
   }
 }
 </script>

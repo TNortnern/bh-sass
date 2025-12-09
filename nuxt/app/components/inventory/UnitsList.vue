@@ -2,13 +2,12 @@
 import type { InventoryUnit } from '~/composables/useInventory'
 import { getStatusLabel } from '~/utils/formatters'
 
-const props = defineProps<{
+defineProps<{
   units: InventoryUnit[]
 }>()
 
 const emit = defineEmits<{
-  (e: 'edit', unit: InventoryUnit): void
-  (e: 'delete', unit: InventoryUnit): void
+  (e: 'edit' | 'delete', unit: InventoryUnit): void
 }>()
 
 const getStatusColor = (status: string) => {
@@ -144,14 +143,26 @@ const getActionItems = (unit: InventoryUnit) => [
                 </UBadge>
               </div>
               <div class="flex items-center gap-4 text-sm">
-                <div v-if="unit.barcode" class="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
-                  <UIcon name="i-lucide-barcode" class="w-3.5 h-3.5" />
+                <div
+                  v-if="unit.barcode"
+                  class="flex items-center gap-1.5 text-gray-500 dark:text-gray-400"
+                >
+                  <UIcon
+                    name="i-lucide-barcode"
+                    class="w-3.5 h-3.5"
+                  />
                   <span>{{ unit.barcode }}</span>
                 </div>
                 <div class="flex items-center gap-1.5">
-                  <UIcon name="i-lucide-star" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+                  <UIcon
+                    name="i-lucide-star"
+                    class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400"
+                  />
                   <span class="text-gray-500 dark:text-gray-400">Condition:</span>
-                  <span :class="getConditionColor(unit.condition)" class="font-medium capitalize">
+                  <span
+                    :class="getConditionColor(unit.condition)"
+                    class="font-medium capitalize"
+                  >
                     {{ unit.condition }}
                   </span>
                 </div>
@@ -162,17 +173,29 @@ const getActionItems = (unit: InventoryUnit) => [
           <!-- Details Grid -->
           <div class="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Purchase Date</p>
-              <p class="text-gray-900 dark:text-white font-medium">{{ formatDate(unit.purchaseDate) }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                Purchase Date
+              </p>
+              <p class="text-gray-900 dark:text-white font-medium">
+                {{ formatDate(unit.purchaseDate) }}
+              </p>
             </div>
             <div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Purchase Price</p>
-              <p class="text-gray-900 dark:text-white font-medium">{{ formatCurrency(unit.purchasePrice) }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                Purchase Price
+              </p>
+              <p class="text-gray-900 dark:text-white font-medium">
+                {{ formatCurrency(unit.purchasePrice) }}
+              </p>
             </div>
             <div>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Last Rental</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                Last Rental
+              </p>
               <div class="flex items-center gap-1.5">
-                <p class="text-gray-900 dark:text-white font-medium">{{ formatDate(unit.lastRentalDate) }}</p>
+                <p class="text-gray-900 dark:text-white font-medium">
+                  {{ formatDate(unit.lastRentalDate) }}
+                </p>
                 <span
                   v-if="daysSinceRental(unit.lastRentalDate) !== null"
                   class="text-xs text-gray-500 dark:text-gray-400"
@@ -182,8 +205,12 @@ const getActionItems = (unit: InventoryUnit) => [
               </div>
             </div>
             <div v-if="unit.status === 'maintenance' && unit.maintenanceNotes">
-              <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Maintenance Notes</p>
-              <p class="text-orange-600 dark:text-orange-400 font-medium">{{ unit.maintenanceNotes }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+                Maintenance Notes
+              </p>
+              <p class="text-orange-600 dark:text-orange-400 font-medium">
+                {{ unit.maintenanceNotes }}
+              </p>
             </div>
           </div>
         </div>
@@ -217,12 +244,24 @@ const getActionItems = (unit: InventoryUnit) => [
       class="text-center py-12"
     >
       <div class="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
-        <UIcon name="i-lucide-box" class="w-8 h-8 text-gray-400 dark:text-gray-600" />
+        <UIcon
+          name="i-lucide-box"
+          class="w-8 h-8 text-gray-400 dark:text-gray-600"
+        />
       </div>
-      <p class="text-gray-500 dark:text-gray-400 mb-4">No units found</p>
-      <UButton color="primary" variant="outline" size="sm">
+      <p class="text-gray-500 dark:text-gray-400 mb-4">
+        No units found
+      </p>
+      <UButton
+        color="primary"
+        variant="outline"
+        size="sm"
+      >
         Add First Unit
-        <UIcon name="i-lucide-plus" class="w-4 h-4 ml-2" />
+        <UIcon
+          name="i-lucide-plus"
+          class="w-4 h-4 ml-2"
+        />
       </UButton>
     </div>
   </div>

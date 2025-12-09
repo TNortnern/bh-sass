@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable no-case-declarations */
 import type { InventoryItem } from '~/composables/useInventory'
 
 definePageMeta({
@@ -8,7 +9,7 @@ definePageMeta({
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
-const { fetchItem, updateItem, isLoading } = useInventory()
+const { fetchItem, updateItem } = useInventory()
 
 const itemId = computed(() => route.params.id as string)
 const isFetching = ref(true)
@@ -77,6 +78,7 @@ onMounted(async () => {
       router.push('/app/inventory')
     }
   } catch (err) {
+    console.error('Fetch error:', err)
     toast.add({
       title: 'Error',
       description: 'Failed to load item',
@@ -89,9 +91,9 @@ onMounted(async () => {
 
 const populateFormData = (item: InventoryItem) => {
   formData.value.name = item.name || ''
-  formData.value.category = item.category || 'bounce-house'
+  formData.value.category = (item.category as 'bounce_house' | 'water_slide' | 'combo' | 'obstacle_course' | 'game' | 'other') || 'bounce_house'
   formData.value.description = item.description || ''
-  formData.value.status = item.status || 'active'
+  formData.value.status = (item.status as 'active' | 'inactive' | 'discontinued') || 'active'
 
   if (item.specifications) {
     formData.value.dimensions = item.specifications.dimensions || { length: 0, width: 0, height: 0 }
@@ -157,14 +159,14 @@ const canProceed = computed(() => {
     case 2:
       // Check for valid numbers (not NaN, not 0, not empty)
       const dims = formData.value.dimensions
-      return Number(dims.length) > 0 &&
-             Number(dims.width) > 0 &&
-             Number(dims.height) > 0
+      return Number(dims.length) > 0
+        && Number(dims.width) > 0
+        && Number(dims.height) > 0
     case 3:
       const pricing = formData.value.pricing
-      return Number(pricing.hourly) > 0 &&
-             Number(pricing.daily) > 0 &&
-             Number(pricing.weekend) > 0
+      return Number(pricing.hourly) > 0
+        && Number(pricing.daily) > 0
+        && Number(pricing.weekend) > 0
     case 4:
       return true
     default:
@@ -188,7 +190,7 @@ const handleSubmit = async () => {
   try {
     await updateItem(itemId.value, {
       name: formData.value.name,
-      category: formData.value.category as any,
+      category: formData.value.category as 'bounce_house' | 'water_slide' | 'combo' | 'obstacle_course' | 'game' | 'other' | undefined,
       description: formData.value.description,
       images: formData.value.images,
       specifications: {
@@ -201,7 +203,7 @@ const handleSubmit = async () => {
       },
       pricing: formData.value.pricing,
       setupRequirements: formData.value.setupRequirements,
-      status: formData.value.status as any
+      status: formData.value.status as 'active' | 'inactive' | 'discontinued' | undefined
     })
 
     toast.add({
@@ -212,6 +214,7 @@ const handleSubmit = async () => {
 
     router.push(`/app/inventory/${itemId.value}`)
   } catch (err) {
+    console.error('Update error:', err)
     toast.add({
       title: 'Error',
       description: 'Failed to update item',
@@ -219,13 +222,15 @@ const handleSubmit = async () => {
     })
   }
 }
-
 </script>
 
 <template>
   <div class="space-y-6">
     <!-- Loading State -->
-    <div v-if="isFetching" class="space-y-6">
+    <div
+      v-if="isFetching"
+      class="space-y-6"
+    >
       <USkeleton class="h-12 w-96" />
       <USkeleton class="h-20" />
       <USkeleton class="h-96" />
@@ -242,8 +247,12 @@ const handleSubmit = async () => {
           :to="`/app/inventory/${itemId}`"
         />
         <div class="flex-1">
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Edit Inventory Item</h1>
-          <p class="text-gray-600 dark:text-gray-400 mt-1">Update {{ formData.name }}</p>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+            Edit Inventory Item
+          </h1>
+          <p class="text-gray-600 dark:text-gray-400 mt-1">
+            Update {{ formData.name }}
+          </p>
         </div>
       </div>
 
@@ -262,7 +271,11 @@ const handleSubmit = async () => {
                   ? 'bg-orange-500 text-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'"
               >
-                <UIcon v-if="currentStep > step.number" name="i-lucide-check" class="w-5 h-5" />
+                <UIcon
+                  v-if="currentStep > step.number"
+                  name="i-lucide-check"
+                  class="w-5 h-5"
+                />
                 <span v-else>{{ step.number }}</span>
               </div>
               <div class="hidden md:block">
@@ -291,8 +304,14 @@ const handleSubmit = async () => {
       <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
         <form @submit.prevent="currentStep === totalSteps ? handleSubmit() : nextStep()">
           <!-- Step 1: Basic Info -->
-          <div v-if="currentStep === 1" class="space-y-6">
-            <UFormField label="Item Name" required>
+          <div
+            v-if="currentStep === 1"
+            class="space-y-6"
+          >
+            <UFormField
+              label="Item Name"
+              required
+            >
               <UInput
                 v-model="formData.name"
                 size="lg"
@@ -301,7 +320,10 @@ const handleSubmit = async () => {
               />
             </UFormField>
 
-            <UFormField label="Category" required>
+            <UFormField
+              label="Category"
+              required
+            >
               <USelect
                 v-model="formData.category"
                 :items="categoryItems"
@@ -310,7 +332,10 @@ const handleSubmit = async () => {
               />
             </UFormField>
 
-            <UFormField label="Description" required>
+            <UFormField
+              label="Description"
+              required
+            >
               <UTextarea
                 v-model="formData.description"
                 size="lg"
@@ -331,8 +356,14 @@ const handleSubmit = async () => {
           </div>
 
           <!-- Step 2: Specifications -->
-          <div v-if="currentStep === 2" class="space-y-6">
-            <UFormField label="Dimensions (feet)" required>
+          <div
+            v-if="currentStep === 2"
+            class="space-y-6"
+          >
+            <UFormField
+              label="Dimensions (feet)"
+              required
+            >
               <div class="grid grid-cols-3 gap-4">
                 <div>
                   <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Length</label>
@@ -475,8 +506,14 @@ const handleSubmit = async () => {
           </div>
 
           <!-- Step 3: Pricing -->
-          <div v-if="currentStep === 3" class="space-y-6">
-            <UFormField label="Hourly Rate" required>
+          <div
+            v-if="currentStep === 3"
+            class="space-y-6"
+          >
+            <UFormField
+              label="Hourly Rate"
+              required
+            >
               <UInput
                 v-model.number="formData.pricing.hourly"
                 type="number"
@@ -492,7 +529,10 @@ const handleSubmit = async () => {
               </UInput>
             </UFormField>
 
-            <UFormField label="Daily Rate" required>
+            <UFormField
+              label="Daily Rate"
+              required
+            >
               <UInput
                 v-model.number="formData.pricing.daily"
                 type="number"
@@ -508,7 +548,10 @@ const handleSubmit = async () => {
               </UInput>
             </UFormField>
 
-            <UFormField label="Weekend Rate" required>
+            <UFormField
+              label="Weekend Rate"
+              required
+            >
               <UInput
                 v-model.number="formData.pricing.weekend"
                 type="number"
@@ -524,7 +567,10 @@ const handleSubmit = async () => {
               </UInput>
             </UFormField>
 
-            <UFormField label="Weekly Rate" help="Optional">
+            <UFormField
+              label="Weekly Rate"
+              help="Optional"
+            >
               <UInput
                 v-model.number="formData.pricing.weekly"
                 type="number"
@@ -542,7 +588,9 @@ const handleSubmit = async () => {
 
             <!-- Pricing Preview -->
             <div class="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-              <p class="text-sm font-medium text-orange-900 dark:text-orange-100 mb-3">Pricing Preview</p>
+              <p class="text-sm font-medium text-orange-900 dark:text-orange-100 mb-3">
+                Pricing Preview
+              </p>
               <div class="grid grid-cols-2 gap-3 text-sm">
                 <div class="flex justify-between">
                   <span class="text-orange-700 dark:text-orange-300">Hourly:</span>
@@ -562,7 +610,10 @@ const handleSubmit = async () => {
                     ${{ formData.pricing.weekend || 0 }}
                   </span>
                 </div>
-                <div v-if="formData.pricing.weekly" class="flex justify-between">
+                <div
+                  v-if="formData.pricing.weekly"
+                  class="flex justify-between"
+                >
                   <span class="text-orange-700 dark:text-orange-300">Weekly:</span>
                   <span class="font-semibold text-orange-900 dark:text-orange-100">
                     ${{ formData.pricing.weekly }}
@@ -573,7 +624,10 @@ const handleSubmit = async () => {
           </div>
 
           <!-- Step 4: Setup & Images -->
-          <div v-if="currentStep === 4" class="space-y-6">
+          <div
+            v-if="currentStep === 4"
+            class="space-y-6"
+          >
             <UFormField label="Setup Requirements">
               <div class="space-y-3">
                 <label class="flex items-center gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:border-orange-300 dark:hover:border-orange-700 transition-colors">
@@ -615,7 +669,10 @@ const handleSubmit = async () => {
             </UFormField>
 
             <UFormField label="Images">
-              <UiImageUploader v-model="formData.images" :max-images="10" />
+              <UiImageUploader
+                v-model="formData.images"
+                :max-images="10"
+              />
             </UFormField>
           </div>
 
@@ -629,7 +686,10 @@ const handleSubmit = async () => {
               size="lg"
               @click="previousStep"
             >
-              <UIcon name="i-lucide-arrow-left" class="w-5 h-5 mr-2" />
+              <UIcon
+                name="i-lucide-arrow-left"
+                class="w-5 h-5 mr-2"
+              />
               Previous
             </UButton>
             <UButton
@@ -651,7 +711,10 @@ const handleSubmit = async () => {
               :disabled="!canProceed"
             >
               Next
-              <UIcon name="i-lucide-arrow-right" class="w-5 h-5 ml-2" />
+              <UIcon
+                name="i-lucide-arrow-right"
+                class="w-5 h-5 ml-2"
+              />
             </UButton>
             <UButton
               v-else
@@ -660,7 +723,10 @@ const handleSubmit = async () => {
               size="lg"
               :loading="isLoading"
             >
-              <UIcon name="i-lucide-check" class="w-5 h-5 mr-2" />
+              <UIcon
+                name="i-lucide-check"
+                class="w-5 h-5 mr-2"
+              />
               Save Changes
             </UButton>
           </div>

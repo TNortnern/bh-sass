@@ -3,7 +3,7 @@ interface Variation {
   id: string
   name: string
   sku: string
-  attributes: Array<{ name: string; value: string }>
+  attributes: Array<{ name: string, value: string }>
   pricingType: 'same_as_parent' | 'adjustment' | 'override'
   priceAdjustment?: number
   overridePrice?: {
@@ -13,7 +13,7 @@ interface Variation {
     weeklyRate?: number
   }
   quantity: number
-  images?: Array<{ url: string; alt?: string }>
+  images?: Array<{ url: string, alt?: string }>
   status: 'active' | 'inactive'
 }
 
@@ -49,7 +49,7 @@ const uniqueAttributes = computed(() => {
 
   return Array.from(attributeMap.entries()).map(([name, values]) => ({
     name,
-    values: Array.from(values),
+    values: Array.from(values)
   }))
 })
 
@@ -95,21 +95,21 @@ const calculatedPrice = computed(() => {
 
 // Get available values for an attribute based on selected values
 function getAvailableValues(attributeName: string): string[] {
-  const attribute = uniqueAttributes.value.find((a) => a.name === attributeName)
+  const attribute = uniqueAttributes.value.find(a => a.name === attributeName)
   if (!attribute) return []
 
   // Filter variations that match currently selected attributes (excluding current attribute)
   const matchingVariations = props.variations.filter((variation) => {
     return Object.entries(selectedAttributes.value).every(([name, value]) => {
       if (name === attributeName) return true // Skip current attribute
-      return variation.attributes.some((attr) => attr.name === name && attr.value === value)
+      return variation.attributes.some(attr => attr.name === name && attr.value === value)
     })
   })
 
   // Get unique values for current attribute from matching variations
   const availableValues = new Set<string>()
   for (const variation of matchingVariations) {
-    const attr = variation.attributes.find((a) => a.name === attributeName)
+    const attr = variation.attributes.find(a => a.name === attributeName)
     if (attr) {
       availableValues.add(attr.value)
     }
@@ -122,7 +122,8 @@ function getAvailableValues(attributeName: string): string[] {
 function selectAttribute(attributeName: string, value: string) {
   if (selectedAttributes.value[attributeName] === value) {
     // Deselect
-    delete selectedAttributes.value[attributeName]
+    const { [attributeName]: _, ...rest } = selectedAttributes.value
+    selectedAttributes.value = rest
   } else {
     // Select
     selectedAttributes.value[attributeName] = value
@@ -144,15 +145,22 @@ function isAvailable(attributeName: string, value: string): boolean {
 function formatPrice(price: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'USD'
   }).format(price)
 }
 </script>
 
 <template>
-  <div v-if="variations.length > 0" class="space-y-6">
+  <div
+    v-if="variations.length > 0"
+    class="space-y-6"
+  >
     <!-- Attribute selectors -->
-    <div v-for="attr in uniqueAttributes" :key="attr.name" class="space-y-3">
+    <div
+      v-for="attr in uniqueAttributes"
+      :key="attr.name"
+      class="space-y-3"
+    >
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
         {{ attr.name }}
       </label>
@@ -172,15 +180,26 @@ function formatPrice(price: number): string {
     </div>
 
     <!-- Selected variation details -->
-    <div v-if="selectedVariation" class="p-4 bg-slate-800 dark:bg-slate-700 rounded-lg space-y-3">
+    <div
+      v-if="selectedVariation"
+      class="p-4 bg-slate-800 dark:bg-slate-700 rounded-lg space-y-3"
+    >
       <div class="flex items-start justify-between">
         <div class="flex-1">
-          <h4 class="font-semibold text-white">{{ selectedVariation.name }}</h4>
-          <p class="text-sm text-gray-400 mt-1">SKU: {{ selectedVariation.sku }}</p>
+          <h4 class="font-semibold text-white">
+            {{ selectedVariation.name }}
+          </h4>
+          <p class="text-sm text-gray-400 mt-1">
+            SKU: {{ selectedVariation.sku }}
+          </p>
         </div>
         <div class="text-right">
-          <div class="text-2xl font-bold text-amber-400">{{ formatPrice(calculatedPrice) }}</div>
-          <div class="text-xs text-gray-400">per day</div>
+          <div class="text-2xl font-bold text-amber-400">
+            {{ formatPrice(calculatedPrice) }}
+          </div>
+          <div class="text-xs text-gray-400">
+            per day
+          </div>
         </div>
       </div>
 
@@ -200,7 +219,7 @@ function formatPrice(price: number): string {
           <span
             :class="{
               'text-green-400': selectedVariation.priceAdjustment && selectedVariation.priceAdjustment < 0,
-              'text-amber-400': selectedVariation.priceAdjustment && selectedVariation.priceAdjustment > 0,
+              'text-amber-400': selectedVariation.priceAdjustment && selectedVariation.priceAdjustment > 0
             }"
           >
             {{
@@ -218,13 +237,13 @@ function formatPrice(price: number): string {
           :name="selectedVariation.quantity > 0 ? 'i-lucide-check-circle' : 'i-lucide-x-circle'"
           :class="{
             'text-green-400': selectedVariation.quantity > 0,
-            'text-red-400': selectedVariation.quantity === 0,
+            'text-red-400': selectedVariation.quantity === 0
           }"
         />
         <span
           :class="{
             'text-green-400': selectedVariation.quantity > 0,
-            'text-red-400': selectedVariation.quantity === 0,
+            'text-red-400': selectedVariation.quantity === 0
           }"
         >
           {{ selectedVariation.quantity }} unit(s) available
@@ -232,7 +251,10 @@ function formatPrice(price: number): string {
       </div>
 
       <!-- Variation images (if available) -->
-      <div v-if="selectedVariation.images && selectedVariation.images.length > 0" class="pt-3">
+      <div
+        v-if="selectedVariation.images && selectedVariation.images.length > 0"
+        class="pt-3"
+      >
         <div class="grid grid-cols-3 gap-2">
           <img
             v-for="(img, index) in selectedVariation.images.slice(0, 3)"
@@ -240,7 +262,7 @@ function formatPrice(price: number): string {
             :src="img.url"
             :alt="img.alt || selectedVariation.name"
             class="w-full h-20 object-cover rounded"
-          />
+          >
         </div>
       </div>
     </div>

@@ -105,7 +105,7 @@ const sendEmail = async () => {
   isSending.value = true
 
   try {
-    const response = await $fetch('/api/email/send-booking-email', {
+    await $fetch('/api/email/send-booking-email', {
       method: 'POST',
       body: {
         bookingId: props.booking.id,
@@ -126,12 +126,14 @@ const sendEmail = async () => {
 
     emit('sent')
     isOpen.value = false
-
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to send email:', error)
 
     // Check if this is a Brevo configuration error
-    if (error.data?.fallback === 'mailto' || error.statusCode === 503) {
+    const errorData = error && typeof error === 'object' && 'data' in error ? (error as Record<string, unknown>).data as Record<string, unknown> : undefined
+    const statusCode = error && typeof error === 'object' && 'statusCode' in error ? (error as Record<string, unknown>).statusCode : undefined
+
+    if (errorData?.fallback === 'mailto' || statusCode === 503) {
       isBrevoConfigured.value = false
       toast.add({
         title: 'Email Service Not Configured',
@@ -147,7 +149,7 @@ const sendEmail = async () => {
     } else {
       toast.add({
         title: 'Failed to Send Email',
-        description: error.data?.message || 'Please try again or use the email link below to contact the customer',
+        description: (errorData?.message as string) || 'Please try again or use the email link below to contact the customer',
         color: 'error',
         icon: 'i-lucide-alert-circle'
       })
@@ -165,15 +167,27 @@ const openEmailClient = () => {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen" :ui="{ width: 'sm:max-w-2xl' }" title="Send Email" :description="`Booking ${booking.bookingNumber}`">
+  <UModal
+    v-model:open="isOpen"
+    :ui="{ width: 'sm:max-w-2xl' }"
+    title="Send Email"
+    :description="`Booking ${booking.bookingNumber}`"
+  >
     <template #header>
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-          <UIcon name="i-lucide-mail" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          <UIcon
+            name="i-lucide-mail"
+            class="w-5 h-5 text-blue-600 dark:text-blue-400"
+          />
         </div>
         <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Send Email</h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Booking {{ booking.bookingNumber }}</p>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Send Email
+          </h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Booking {{ booking.bookingNumber }}
+          </p>
         </div>
       </div>
     </template>
@@ -181,7 +195,10 @@ const openEmailClient = () => {
     <template #body>
       <div class="space-y-6">
         <!-- Email Type Selection -->
-        <UFormField label="Email Type" required>
+        <UFormField
+          label="Email Type"
+          required
+        >
           <div class="space-y-2">
             <label
               v-for="option in emailTypeOptions"
@@ -196,10 +213,13 @@ const openEmailClient = () => {
                 type="radio"
                 :value="option.value"
                 class="mt-1"
-              />
+              >
               <div class="flex-1">
                 <div class="flex items-center gap-2">
-                  <UIcon :name="option.icon" class="w-4 h-4" />
+                  <UIcon
+                    :name="option.icon"
+                    class="w-4 h-4"
+                  />
                   <span class="font-medium text-gray-900 dark:text-white">{{ option.label }}</span>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ option.description }}</p>
@@ -210,17 +230,39 @@ const openEmailClient = () => {
 
         <!-- Recipient -->
         <div class="grid grid-cols-2 gap-4">
-          <UFormField label="Recipient Name" required>
-            <UInput v-model="recipientName" icon="i-lucide-user" class="w-full" />
+          <UFormField
+            label="Recipient Name"
+            required
+          >
+            <UInput
+              v-model="recipientName"
+              icon="i-lucide-user"
+              class="w-full"
+            />
           </UFormField>
-          <UFormField label="Recipient Email" required>
-            <UInput v-model="recipientEmail" type="email" icon="i-lucide-mail" class="w-full" />
+          <UFormField
+            label="Recipient Email"
+            required
+          >
+            <UInput
+              v-model="recipientEmail"
+              type="email"
+              icon="i-lucide-mail"
+              class="w-full"
+            />
           </UFormField>
         </div>
 
         <!-- Subject -->
-        <UFormField label="Subject" required>
-          <UInput v-model="subject" icon="i-lucide-text" class="w-full" />
+        <UFormField
+          label="Subject"
+          required
+        >
+          <UInput
+            v-model="subject"
+            icon="i-lucide-text"
+            class="w-full"
+          />
         </UFormField>
 
         <!-- Custom Message (optional) -->
@@ -237,11 +279,19 @@ const openEmailClient = () => {
         </UFormField>
 
         <!-- Warning if Brevo not configured -->
-        <div v-if="!isBrevoConfigured" class="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800">
+        <div
+          v-if="!isBrevoConfigured"
+          class="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800"
+        >
           <div class="flex gap-3">
-            <UIcon name="i-lucide-alert-triangle" class="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+            <UIcon
+              name="i-lucide-alert-triangle"
+              class="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5"
+            />
             <div class="flex-1">
-              <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Email Service Not Configured</p>
+              <p class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                Email Service Not Configured
+              </p>
               <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
                 The Brevo email service is not configured. Clicking "Send Email" will open your default email client instead.
               </p>

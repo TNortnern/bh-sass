@@ -39,7 +39,7 @@ export interface Customer {
     type: 'booking' | 'payment' | 'note' | 'tag'
     description: string
     timestamp: string
-    metadata?: any
+    metadata?: Record<string, unknown>
   }>
 }
 
@@ -81,34 +81,63 @@ export function useCustomers() {
   /**
    * Transform rb-payload customer to local Customer format
    */
-  function transformRbPayloadCustomer(rbCustomer: any): Customer {
+  function transformRbPayloadCustomer(rbCustomer: Record<string, unknown>): Customer {
     // rb-payload uses 'name' field, we split it into firstName/lastName
-    const nameParts = (rbCustomer.name || '').split(' ')
+    const nameValue = typeof rbCustomer.name === 'string' ? rbCustomer.name : ''
+    const nameParts = nameValue.split(' ')
     const firstName = nameParts[0] || ''
     const lastName = nameParts.slice(1).join(' ') || ''
 
     // Transform tags from Payload format [{id, tag}] to string[]
     const tags: string[] = Array.isArray(rbCustomer.tags)
-      ? rbCustomer.tags.map((t: any) => typeof t === 'string' ? t : t?.tag || '').filter(Boolean)
+      ? rbCustomer.tags.map((t: unknown) => {
+          if (typeof t === 'string') return t
+          if (typeof t === 'object' && t !== null && 'tag' in t) {
+            return String((t as Record<string, unknown>).tag || '')
+          }
+          return ''
+        }).filter(Boolean)
       : []
 
     // Transform notes from Payload format to expected format
     const notes = Array.isArray(rbCustomer.notes)
-      ? rbCustomer.notes.map((n: any) => ({
-          id: n.id || String(Math.random()),
-          content: typeof n === 'string' ? n : n?.content || n?.note || '',
-          createdAt: n?.createdAt || new Date().toISOString(),
-          createdBy: n?.createdBy || 'System'
-        })).filter((n: any) => n.content)
+      ? rbCustomer.notes.map((n: unknown) => {
+          if (typeof n === 'string') {
+            return {
+              id: String(Math.random()),
+              content: n,
+              createdAt: new Date().toISOString(),
+              createdBy: 'System'
+            }
+          }
+          const noteObj = n as Record<string, unknown>
+          return {
+            id: String(noteObj.id || Math.random()),
+            content: String(noteObj.content || noteObj.note || ''),
+            createdAt: String(noteObj.createdAt || new Date().toISOString()),
+            createdBy: String(noteObj.createdBy || 'System')
+          }
+        }).filter(n => n.content)
       : []
 
+    // Transform address if present
+    const addressValue = rbCustomer.address as Record<string, unknown> | undefined
+    const address = addressValue
+      ? {
+          street: String(addressValue.street || ''),
+          city: String(addressValue.city || ''),
+          state: String(addressValue.state || ''),
+          zip: String(addressValue.zip || '')
+        }
+      : undefined
+
     return {
-      id: rbCustomer.id?.toString() || '',
-      firstName: rbCustomer.firstName || firstName,
-      lastName: rbCustomer.lastName || lastName,
-      email: rbCustomer.email || '',
-      phone: rbCustomer.phone || '',
-      address: rbCustomer.address || undefined,
+      id: String(rbCustomer.id || ''),
+      firstName: String(rbCustomer.firstName || firstName),
+      lastName: String(rbCustomer.lastName || lastName),
+      email: String(rbCustomer.email || ''),
+      phone: String(rbCustomer.phone || ''),
+      address,
       tags,
       notes,
       bookings: {
@@ -120,7 +149,7 @@ export function useCustomers() {
       totalSpent: 0,
       averageOrder: 0,
       lastBooking: undefined,
-      createdAt: rbCustomer.createdAt || new Date().toISOString(),
+      createdAt: String(rbCustomer.createdAt || new Date().toISOString()),
       avatar: undefined,
       activities: []
     }
@@ -135,7 +164,7 @@ export function useCustomers() {
 
     try {
       // Fetch from local Payload API
-      const response = await $fetch<{ docs: any[]; totalDocs: number; totalPages: number }>('/api/customers', {
+      const response = await $fetch<{ docs: Record<string, unknown>[], totalDocs: number, totalPages: number }>('/api/customers', {
         credentials: 'include',
         params: {
           page: params.page || 1,
@@ -150,10 +179,10 @@ export function useCustomers() {
       if (params.search) {
         const searchLower = params.search.toLowerCase()
         transformed = transformed.filter(c =>
-          c.firstName.toLowerCase().includes(searchLower) ||
-          c.lastName.toLowerCase().includes(searchLower) ||
-          c.email.toLowerCase().includes(searchLower) ||
-          c.phone.includes(searchLower)
+          c.firstName.toLowerCase().includes(searchLower)
+          || c.lastName.toLowerCase().includes(searchLower)
+          || c.email.toLowerCase().includes(searchLower)
+          || c.phone.includes(searchLower)
         )
       }
 
@@ -168,9 +197,10 @@ export function useCustomers() {
       total.value = response.totalDocs || transformed.length
 
       return { customers: customers.value, total: total.value }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to fetch customers from rb-payload:', err)
-      error.value = err.message || 'Failed to fetch customers'
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch customers'
+      error.value = errorMessage
 
       // Return empty array on error
       customers.value = []
@@ -190,13 +220,14 @@ export function useCustomers() {
     error.value = null
 
     try {
-      const response = await $fetch<any>(`/api/customers/${id}`, {
+      const response = await $fetch<Record<string, unknown>>(`/api/customers/${id}`, {
         credentials: 'include'
       })
       return transformRbPayloadCustomer(response)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to fetch customer:', err)
-      error.value = err.message || 'Failed to fetch customer'
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch customer'
+      error.value = errorMessage
       throw err
     } finally {
       loading.value = false
@@ -212,19 +243,21 @@ export function useCustomers() {
 
     try {
       // Call local Payload API directly - tenantId will be auto-assigned from session
-      const response = await $fetch<{ doc: any }>('/api/customers', {
+      const response = await $fetch<{ doc: Record<string, unknown> }>('/api/customers', {
         method: 'POST',
         credentials: 'include', // Include session cookie for authentication
         body: {
           name: `${data.firstName} ${data.lastName}`,
           email: data.email,
           phone: data.phone,
-          address: data.address ? {
-            street: data.address.street,
-            city: data.address.city,
-            state: data.address.state,
-            zipCode: data.address.zip
-          } : undefined,
+          address: data.address
+            ? {
+                street: data.address.street,
+                city: data.address.city,
+                state: data.address.state,
+                zipCode: data.address.zip
+              }
+            : undefined,
           notes: data.notes,
           tags: data.tags?.map(tag => ({ tag })) // Transform to Payload array format
         }
@@ -237,18 +270,23 @@ export function useCustomers() {
       })
 
       return transformRbPayloadCustomer(response.doc)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to create customer:', err)
-      error.value = err.message || 'Failed to create customer'
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create customer'
+      error.value = errorMessage
 
       // Better error message for 403
-      const errorMessage = err.statusCode === 403
+      interface FetchError {
+        statusCode?: number
+      }
+      const fetchErr = err as FetchError
+      const displayMessage = fetchErr.statusCode === 403
         ? 'Permission denied. Please ensure you are logged in.'
         : 'Failed to create customer'
 
       toast.add({
         title: 'Error',
-        description: errorMessage,
+        description: displayMessage,
         color: 'error'
       })
       throw err
@@ -266,7 +304,7 @@ export function useCustomers() {
 
     try {
       // Build update payload - include name if firstName/lastName changed
-      const updatePayload: any = {}
+      const updatePayload: Record<string, unknown> = {}
       if (data.firstName || data.lastName) {
         const currentFirstName = data.firstName || ''
         const currentLastName = data.lastName || ''
@@ -285,7 +323,7 @@ export function useCustomers() {
       if (data.notes) updatePayload.notes = data.notes
       if (data.tags) updatePayload.tags = data.tags.map(tag => ({ tag }))
 
-      const response = await $fetch<{ doc: any }>(`/api/customers/${id}`, {
+      const response = await $fetch<{ doc: Record<string, unknown> }>(`/api/customers/${id}`, {
         method: 'PATCH',
         credentials: 'include',
         body: updatePayload
@@ -298,9 +336,10 @@ export function useCustomers() {
       })
 
       return transformRbPayloadCustomer(response.doc)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to update customer:', err)
-      error.value = err.message || 'Failed to update customer'
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update customer'
+      error.value = errorMessage
       toast.add({
         title: 'Error',
         description: 'Failed to update customer',
@@ -330,9 +369,10 @@ export function useCustomers() {
         description: 'Customer has been removed',
         color: 'success'
       })
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to delete customer:', err)
-      error.value = err.message || 'Failed to delete customer'
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete customer'
+      error.value = errorMessage
       toast.add({
         title: 'Error',
         description: 'Failed to delete customer',
@@ -424,7 +464,7 @@ export function useCustomers() {
    */
   function getAllTags(): string[] {
     const tagsSet = new Set<string>()
-    customers.value.forEach(customer => {
+    customers.value.forEach((customer) => {
       customer.tags.forEach(tag => tagsSet.add(tag))
     })
     return Array.from(tagsSet).sort()

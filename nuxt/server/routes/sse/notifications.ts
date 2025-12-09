@@ -14,12 +14,12 @@ import type { EventHandlerRequest, H3Event } from 'h3'
 
 // In-memory store for active SSE connections
 // Key: tenantId, Value: Set of event stream writers
-const connections = new Map<number, Set<(data: any) => void>>()
+const connections = new Map<number, Set<(data: Record<string, unknown>) => void>>()
 
 /**
  * Broadcast a notification to all connected clients for a specific tenant
  */
-export function broadcastNotification(tenantId: number, notification: any) {
+export function broadcastNotification(tenantId: number, notification: Record<string, unknown>) {
   const tenantConnections = connections.get(tenantId)
   if (!tenantConnections || tenantConnections.size === 0) {
     console.log(`No active connections for tenant ${tenantId}`)
@@ -56,7 +56,7 @@ export default defineEventHandler(async (event: H3Event<EventHandlerRequest>) =>
   const eventStream = createEventStream(event)
 
   // Function to send data to this specific client
-  const sendEvent = (notification: any) => {
+  const sendEvent = (notification: Record<string, unknown>) => {
     eventStream.push(JSON.stringify({
       id: notification.id,
       type: notification.type,

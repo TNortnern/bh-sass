@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Transform the frontend data format to Payload format if needed
-  const payloadData: Record<string, any> = {}
+  const payloadData: Record<string, unknown> = {}
 
   if (body.name) payloadData.name = body.name
   if (body.description) payloadData.description = body.description
@@ -95,16 +95,16 @@ export default defineEventHandler(async (event) => {
       success: true,
       item: data.doc
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating rental item:', error)
 
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 
     throw createError({
       statusCode: 500,
-      message: error.message || 'Failed to update rental item'
+      message: (error as Error).message || 'Failed to update rental item'
     })
   }
 })

@@ -57,35 +57,60 @@ useHead({
       <!-- Header -->
       <template #header>
         <div class="text-center">
-          <h1 class="text-2xl font-bold text-white mb-2">Email Verification</h1>
+          <h1 class="text-2xl font-bold text-white mb-2">
+            Email Verification
+          </h1>
         </div>
       </template>
 
       <!-- Loading State -->
-      <div v-if="status === 'loading'" class="py-12">
+      <div
+        v-if="status === 'loading'"
+        class="py-12"
+      >
         <div class="flex flex-col items-center gap-4">
-          <UIcon name="i-lucide-loader-circle" class="w-12 h-12 text-orange-400 animate-spin" />
+          <UIcon
+            name="i-lucide-loader-circle"
+            class="w-12 h-12 text-orange-400 animate-spin"
+          />
           <div class="text-center">
-            <h3 class="text-lg font-semibold text-white mb-1">Verifying your email...</h3>
-            <p class="text-sm text-gray-400">Please wait while we verify your email address</p>
+            <h3 class="text-lg font-semibold text-white mb-1">
+              Verifying your email...
+            </h3>
+            <p class="text-sm text-gray-400">
+              Please wait while we verify your email address
+            </p>
           </div>
         </div>
       </div>
 
       <!-- Success State -->
-      <div v-else-if="status === 'success'" class="py-12">
+      <div
+        v-else-if="status === 'success'"
+        class="py-12"
+      >
         <div class="flex flex-col items-center gap-4">
           <div class="relative">
-            <div class="absolute inset-0 bg-green-500/20 rounded-full blur-xl"></div>
+            <div class="absolute inset-0 bg-green-500/20 rounded-full blur-xl" />
             <div class="relative w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center ring-4 ring-green-500/20">
-              <UIcon name="i-lucide-check-circle" class="w-8 h-8 text-green-400" />
+              <UIcon
+                name="i-lucide-check-circle"
+                class="w-8 h-8 text-green-400"
+              />
             </div>
           </div>
           <div class="text-center">
-            <h3 class="text-lg font-semibold text-white mb-2">Email verified successfully!</h3>
-            <p class="text-sm text-gray-400 mb-4">Your email has been verified. Redirecting you...</p>
+            <h3 class="text-lg font-semibold text-white mb-2">
+              Email verified successfully!
+            </h3>
+            <p class="text-sm text-gray-400 mb-4">
+              Your email has been verified. Redirecting you...
+            </p>
             <div class="flex items-center justify-center gap-2 text-xs text-gray-500">
-              <UIcon name="i-lucide-loader-circle" class="w-3 h-3 animate-spin" />
+              <UIcon
+                name="i-lucide-loader-circle"
+                class="w-3 h-3 animate-spin"
+              />
               <span>Taking you to your dashboard</span>
             </div>
           </div>
@@ -93,17 +118,27 @@ useHead({
       </div>
 
       <!-- Error State -->
-      <div v-else class="py-12">
+      <div
+        v-else
+        class="py-12"
+      >
         <div class="flex flex-col items-center gap-4">
           <div class="relative">
-            <div class="absolute inset-0 bg-red-500/20 rounded-full blur-xl"></div>
+            <div class="absolute inset-0 bg-red-500/20 rounded-full blur-xl" />
             <div class="relative w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center ring-4 ring-red-500/20">
-              <UIcon name="i-lucide-x-circle" class="w-8 h-8 text-red-400" />
+              <UIcon
+                name="i-lucide-x-circle"
+                class="w-8 h-8 text-red-400"
+              />
             </div>
           </div>
           <div class="text-center">
-            <h3 class="text-lg font-semibold text-white mb-2">Verification failed</h3>
-            <p class="text-sm text-gray-400 mb-6">{{ error }}</p>
+            <h3 class="text-lg font-semibold text-white mb-2">
+              Verification failed
+            </h3>
+            <p class="text-sm text-gray-400 mb-6">
+              {{ error }}
+            </p>
             <div class="flex flex-col sm:flex-row gap-3 justify-center">
               <UButton
                 to="/auth/login"
@@ -111,17 +146,23 @@ useHead({
                 variant="outline"
               >
                 <template #leading>
-                  <UIcon name="i-lucide-log-in" class="w-4 h-4" />
+                  <UIcon
+                    name="i-lucide-log-in"
+                    class="w-4 h-4"
+                  />
                 </template>
                 Back to login
               </UButton>
               <UButton
-                @click="navigateTo('/auth/resend-verification')"
                 color="primary"
                 class="bg-gradient-to-r from-orange-500 to-orange-600"
+                @click="navigateTo('/auth/resend-verification')"
               >
                 <template #leading>
-                  <UIcon name="i-lucide-mail" class="w-4 h-4" />
+                  <UIcon
+                    name="i-lucide-mail"
+                    class="w-4 h-4"
+                  />
                 </template>
                 Resend verification email
               </UButton>

@@ -1,19 +1,42 @@
+interface UserResponse {
+  user?: {
+    tenantId?: string | { id: string }
+  }
+}
+
+interface MediaUploadResponse {
+  doc: {
+    id: string
+    url: string
+    filename: string
+    mimeType: string
+    filesize: number
+  }
+}
+
+interface UploadError {
+  statusCode?: number
+  data?: {
+    errors?: Array<{ message?: string }>
+  }
+}
+
 export default defineEventHandler(async (event) => {
   try {
     const config = useRuntimeConfig()
     const payloadUrl = config.payloadApiUrl || 'http://payload:3000'
 
     // Get current user
-    const userResponse = await $fetch<any>(`${payloadUrl}/api/users/me`, {
+    const userResponse = await $fetch<UserResponse>(`${payloadUrl}/api/users/me`, {
       headers: {
-        Cookie: event.headers.get('cookie') || '',
-      },
+        Cookie: event.headers.get('cookie') || ''
+      }
     })
 
     if (!userResponse || !userResponse.user) {
       throw createError({
         statusCode: 401,
-        message: 'Unauthorized',
+        message: 'Unauthorized'
       })
     }
 
@@ -27,7 +50,7 @@ export default defineEventHandler(async (event) => {
     if (!form || form.length === 0) {
       throw createError({
         statusCode: 400,
-        message: 'No file uploaded',
+        message: 'No file uploaded'
       })
     }
 
@@ -35,7 +58,7 @@ export default defineEventHandler(async (event) => {
     if (!fileItem || !fileItem.data) {
       throw createError({
         statusCode: 400,
-        message: 'No file found in upload',
+        message: 'No file found in upload'
       })
     }
 
@@ -44,26 +67,26 @@ export default defineEventHandler(async (event) => {
     if (fileItem.data.length > maxSize) {
       throw createError({
         statusCode: 413,
-        message: 'File size exceeds 5MB limit',
+        message: 'File size exceeds 5MB limit'
       })
     }
 
     // Create FormData for Payload API
     const formData = new FormData()
-    const blob = new Blob([fileItem.data], { type: fileItem.type || 'application/octet-stream' })
+    const blob = new Blob([fileItem.data.buffer as ArrayBuffer], { type: fileItem.type || 'application/octet-stream' })
     formData.append('file', blob, fileItem.filename || 'upload')
     formData.append('alt', fileItem.filename || 'Uploaded image')
     if (tenantId) {
-      formData.append('tenantId', tenantId)
+      formData.append('tenantId', tenantId as string)
     }
 
     // Upload to Payload
-    const uploadResponse = await $fetch<any>(`${payloadUrl}/api/media`, {
+    const uploadResponse = await $fetch<MediaUploadResponse>(`${payloadUrl}/api/media`, {
       method: 'POST',
       headers: {
-        Cookie: event.headers.get('cookie') || '',
+        Cookie: event.headers.get('cookie') || ''
       },
-      body: formData,
+      body: formData
     })
 
     // Return the uploaded media document
@@ -72,18 +95,19 @@ export default defineEventHandler(async (event) => {
       url: uploadResponse.doc.url,
       filename: uploadResponse.doc.filename,
       mimeType: uploadResponse.doc.mimeType,
-      filesize: uploadResponse.doc.filesize,
+      filesize: uploadResponse.doc.filesize
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to upload media:', error)
 
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 
+    const uploadError = error as UploadError
     throw createError({
       statusCode: 500,
-      message: error?.data?.errors?.[0]?.message || 'Failed to upload file',
+      message: uploadError.data?.errors?.[0]?.message || 'Failed to upload file'
     })
   }
 })

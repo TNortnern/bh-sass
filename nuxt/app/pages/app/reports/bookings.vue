@@ -26,6 +26,7 @@ definePageMeta({
 
 const { loading, dateRange, fetchBookingsReport, exportToCsv } = useReports()
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const bookingsData = ref<any>(null)
 
 async function loadData() {
@@ -50,10 +51,12 @@ onMounted(() => {
 
 // Busiest hours chart data
 const busiestHoursChartData = computed(() => ({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   labels: (bookingsData.value?.busiestHours || []).map((h: any) => `${h.hour}:00`),
   datasets: [
     {
       label: 'Bookings',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data: (bookingsData.value?.busiestHours || []).map((h: any) => h.bookings),
       backgroundColor: 'rgba(234, 179, 8, 0.8)',
       borderColor: '#eab308',
@@ -116,10 +119,16 @@ const busiestHoursChartOptions: ChartOptions<'bar'> = {
             to="/app/reports"
             class="w-10 h-10 rounded-lg bg-gray-900 border-2 border-gray-800 hover:border-pink-500 flex items-center justify-center transition-all"
           >
-            <UIcon name="i-lucide-chevron-left" class="w-5 h-5 text-gray-400" />
+            <UIcon
+              name="i-lucide-chevron-left"
+              class="w-5 h-5 text-gray-400"
+            />
           </NuxtLink>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center">
-            <UIcon name="i-lucide-calendar-check" class="w-6 h-6 text-black" />
+            <UIcon
+              name="i-lucide-calendar-check"
+              class="w-6 h-6 text-black"
+            />
           </div>
           <div>
             <h1 class="text-3xl font-bold text-white font-mono tracking-tight">
@@ -212,13 +221,18 @@ const busiestHoursChartOptions: ChartOptions<'bar'> = {
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-pink-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-calendar" class="w-4 h-4 text-pink-400" />
+              <UIcon
+                name="i-lucide-calendar"
+                class="w-4 h-4 text-pink-400"
+              />
             </div>
             <div>
               <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
                 Bookings by Status
               </h3>
-              <p class="text-xs font-mono text-gray-500">Distribution breakdown</p>
+              <p class="text-xs font-mono text-gray-500">
+                Distribution breakdown
+              </p>
             </div>
           </div>
         </template>
@@ -237,13 +251,18 @@ const busiestHoursChartOptions: ChartOptions<'bar'> = {
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-yellow-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-clock" class="w-4 h-4 text-yellow-400" />
+              <UIcon
+                name="i-lucide-clock"
+                class="w-4 h-4 text-yellow-400"
+              />
             </div>
             <div>
               <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
                 Busiest Hours
               </h3>
-              <p class="text-xs font-mono text-gray-500">Peak booking times</p>
+              <p class="text-xs font-mono text-gray-500">
+                Peak booking times
+              </p>
             </div>
           </div>
         </template>
@@ -254,12 +273,18 @@ const busiestHoursChartOptions: ChartOptions<'bar'> = {
             class="absolute inset-0 bg-black/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg"
           >
             <div class="flex items-center gap-3 text-yellow-400">
-              <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
+              <UIcon
+                name="i-lucide-loader-circle"
+                class="w-6 h-6 animate-spin"
+              />
               <span class="font-mono text-sm">Loading chart data...</span>
             </div>
           </div>
           <div class="h-80">
-            <Bar :data="busiestHoursChartData" :options="busiestHoursChartOptions" />
+            <Bar
+              :data="busiestHoursChartData"
+              :options="busiestHoursChartOptions"
+            />
           </div>
         </div>
       </UCard>
@@ -273,13 +298,18 @@ const busiestHoursChartOptions: ChartOptions<'bar'> = {
       <template #header>
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded bg-cyan-500/20 flex items-center justify-center">
-            <UIcon name="i-lucide-box" class="w-4 h-4 text-cyan-400" />
+            <UIcon
+              name="i-lucide-box"
+              class="w-4 h-4 text-cyan-400"
+            />
           </div>
           <div>
             <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
               Bookings by Item
             </h3>
-            <p class="text-xs font-mono text-gray-500">Most booked inventory</p>
+            <p class="text-xs font-mono text-gray-500">
+              Most booked inventory
+            </p>
           </div>
         </div>
       </template>
@@ -309,8 +339,12 @@ const busiestHoursChartOptions: ChartOptions<'bar'> = {
               class="border-b border-gray-800 hover:bg-gray-900/50 transition-colors"
               :style="{ animationDelay: `${index * 50}ms` }"
             >
-              <td class="py-3 px-4 text-white">{{ item.name }}</td>
-              <td class="py-3 px-4 text-right text-pink-400 font-bold">{{ item.bookings }}</td>
+              <td class="py-3 px-4 text-white">
+                {{ item.name }}
+              </td>
+              <td class="py-3 px-4 text-right text-pink-400 font-bold">
+                {{ item.bookings }}
+              </td>
               <td class="py-3 px-4 text-right text-cyan-400 font-bold">
                 ${{ item.revenue.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
               </td>
@@ -333,13 +367,18 @@ const busiestHoursChartOptions: ChartOptions<'bar'> = {
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-yellow-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-calendar-clock" class="w-4 h-4 text-yellow-400" />
+              <UIcon
+                name="i-lucide-calendar-clock"
+                class="w-4 h-4 text-yellow-400"
+              />
             </div>
             <div>
               <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
                 Busiest Days
               </h3>
-              <p class="text-xs font-mono text-gray-500">Weekly distribution</p>
+              <p class="text-xs font-mono text-gray-500">
+                Weekly distribution
+              </p>
             </div>
           </div>
         </template>
@@ -373,20 +412,27 @@ const busiestHoursChartOptions: ChartOptions<'bar'> = {
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-red-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-x" class="w-4 h-4 text-red-400" />
+              <UIcon
+                name="i-lucide-x"
+                class="w-4 h-4 text-red-400"
+              />
             </div>
             <div>
               <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
                 Cancellation Reasons
               </h3>
-              <p class="text-xs font-mono text-gray-500">Why bookings are cancelled</p>
+              <p class="text-xs font-mono text-gray-500">
+                Why bookings are cancelled
+              </p>
             </div>
           </div>
         </template>
 
         <div class="space-y-4">
           <div class="p-4 bg-gray-900 border-2 border-gray-800 rounded-lg">
-            <div class="text-xs font-mono text-gray-400 mb-2">Cancellation Rate</div>
+            <div class="text-xs font-mono text-gray-400 mb-2">
+              Cancellation Rate
+            </div>
             <div class="text-3xl font-mono font-bold text-red-400">
               {{ bookingsData?.cancellationRate || 0 }}%
             </div>

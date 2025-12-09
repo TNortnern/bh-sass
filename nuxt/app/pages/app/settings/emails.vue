@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 definePageMeta({
   layout: 'dashboard'
 })
@@ -43,20 +44,20 @@ const emailVariants = [
     id: 'modern' as EmailVariant,
     name: 'Modern Dark',
     description: 'Clean dark design with gradient accents',
-    icon: 'i-lucide-palette',
+    icon: 'i-lucide-palette'
   },
   {
     id: 'classic' as EmailVariant,
     name: 'Classic Light',
     description: 'Professional light theme with traditional layout',
-    icon: 'i-lucide-file-text',
+    icon: 'i-lucide-file-text'
   },
   {
     id: 'bold' as EmailVariant,
     name: 'Bold Gradient',
     description: 'Eye-catching design with vibrant gradients',
-    icon: 'i-lucide-sparkles',
-  },
+    icon: 'i-lucide-sparkles'
+  }
 ]
 
 const testEmailAddress = ref('')
@@ -80,13 +81,26 @@ const templateForm = ref({
   isActive: true
 })
 
-// Fetch custom template for the selected template type
-const { data: customTemplatesData, refresh: refreshCustomTemplates } = useFetch<{ docs: CustomTemplate[] }>(
-  () => selectedTemplate.value ? `/v1/email-templates?where[templateKey][equals]=${selectedTemplate.value}` : null,
-  { watch: [selectedTemplate] }
-)
+// Fetch custom template for the selected template type - fetched on demand
+const customTemplatesData = ref<{ docs: CustomTemplate[] } | null>(null)
 
 const customTemplate = computed(() => customTemplatesData.value?.docs?.[0] || null)
+
+const refreshCustomTemplates = async () => {
+  if (!selectedTemplate.value) {
+    customTemplatesData.value = null
+    return
+  }
+  try {
+    customTemplatesData.value = await $fetch<{ docs: CustomTemplate[] }>(
+      `/v1/email-templates?where[templateKey][equals]=${selectedTemplate.value}`,
+      { credentials: 'include' }
+    )
+  } catch (err) {
+    console.error('Failed to load custom templates:', err)
+    customTemplatesData.value = null
+  }
+}
 
 // Load preview when template selected - calls Payload API directly
 async function loadPreview(templateId: string, variant?: EmailVariant) {
@@ -101,11 +115,15 @@ async function loadPreview(templateId: string, variant?: EmailVariant) {
       subject: string
       html: string
       text: string
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sampleData: Record<string, any>
     }>(`/v1/email/preview/${templateId}?variant=${variantToUse}`)
     previewHtml.value = data.html
     previewSubject.value = data.subject
-  } catch (error) {
+
+    // Load custom template data for this template
+    await refreshCustomTemplates()
+  } catch {
     toast.add({ title: 'Error', description: 'Failed to load preview', color: 'error' })
   } finally {
     isLoadingPreview.value = false
@@ -123,8 +141,8 @@ async function changeVariant(variant: EmailVariant) {
   try {
     const { updateSettings } = useSettings()
     await updateSettings('email', { variant })
-  } catch (error) {
-    console.error('Failed to save variant preference:', error)
+  } catch (err) {
+    console.error('Failed to save variant preference:', err)
   }
 }
 
@@ -150,7 +168,8 @@ async function sendTestEmail() {
     })
     showTestModal.value = false
     testEmailAddress.value = ''
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as { data?: { message?: string, error?: string } }
     toast.add({
       title: 'Error',
       description: error.data?.error || error.data?.message || 'Failed to send test email',
@@ -189,7 +208,7 @@ function getAvailableVariables(templateKey: string): string[] {
     BOOKING_CANCELLED: ['customerName', 'bookingId', 'itemName', 'eventDate', 'refundAmount'],
     PAYMENT_RECEIVED: ['customerName', 'paymentId', 'paymentDate', 'paymentMethod', 'bookingId', 'amount', 'remainingBalance', 'receiptUrl'],
     PASSWORD_RESET: ['userName', 'resetLink'],
-    WELCOME: ['userName', 'userEmail', 'tenantName', 'planName', 'dashboardUrl'],
+    WELCOME: ['userName', 'userEmail', 'tenantName', 'planName', 'dashboardUrl']
   }
   return variablesByType[templateKey] || []
 }
@@ -314,10 +333,11 @@ async function saveTemplate() {
 
     await refreshCustomTemplates()
     manageMode.value = 'view'
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as { data?: { message?: string, errors?: Array<{ message: string }> } }
     toast.add({
       title: 'Error',
-      description: error.data?.errors?.[0]?.message || 'Failed to save template',
+      description: error.data?.errors?.[0]?.message || error.data?.message || 'Failed to save template',
       color: 'error'
     })
   } finally {
@@ -346,10 +366,11 @@ async function deleteTemplate() {
     showDeleteConfirm.value = false
     showManageModal.value = false
     await refreshCustomTemplates()
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as { data?: { message?: string, errors?: Array<{ message: string }> } }
     toast.add({
       title: 'Error',
-      description: error.data?.errors?.[0]?.message || 'Failed to delete template',
+      description: error.data?.errors?.[0]?.message || error.data?.message || 'Failed to delete template',
       color: 'error'
     })
   } finally {
@@ -368,8 +389,12 @@ function confirmDelete() {
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-slate-100">Email Templates</h1>
-        <p class="text-gray-600 dark:text-slate-400 mt-1">Preview and customize your email templates</p>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-slate-100">
+          Email Templates
+        </h1>
+        <p class="text-gray-600 dark:text-slate-400 mt-1">
+          Preview and customize your email templates
+        </p>
       </div>
       <div class="flex items-center gap-2">
         <UButton
@@ -393,11 +418,18 @@ function confirmDelete() {
       <template #header>
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-500/20 flex items-center justify-center">
-            <UIcon name="i-lucide-palette" class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            <UIcon
+              name="i-lucide-palette"
+              class="w-5 h-5 text-purple-600 dark:text-purple-400"
+            />
           </div>
           <div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">Email Design Variant</h3>
-            <p class="text-sm text-gray-600 dark:text-slate-400">Choose your preferred email template style</p>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">
+              Email Design Variant
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-slate-400">
+              Choose your preferred email template style
+            </p>
           </div>
         </div>
       </template>
@@ -417,7 +449,10 @@ function confirmDelete() {
             v-if="selectedVariant === variant.id"
             class="absolute top-3 right-3 w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center"
           >
-            <UIcon name="i-lucide-check" class="w-4 h-4 text-white" />
+            <UIcon
+              name="i-lucide-check"
+              class="w-4 h-4 text-white"
+            />
           </div>
 
           <div class="flex items-start gap-3 mb-3">
@@ -427,27 +462,40 @@ function confirmDelete() {
                 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400'
                 : 'bg-gray-200 dark:bg-slate-600/30 text-gray-500 dark:text-slate-400 group-hover:bg-gray-300 dark:group-hover:bg-slate-600/50'"
             >
-              <UIcon :name="variant.icon" class="w-5 h-5" />
+              <UIcon
+                :name="variant.icon"
+                class="w-5 h-5"
+              />
             </div>
             <div class="flex-1 min-w-0">
-              <h4 class="font-semibold text-gray-900 dark:text-slate-100 mb-1">{{ variant.name }}</h4>
-              <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">{{ variant.description }}</p>
+              <h4 class="font-semibold text-gray-900 dark:text-slate-100 mb-1">
+                {{ variant.name }}
+              </h4>
+              <p class="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">
+                {{ variant.description }}
+              </p>
             </div>
           </div>
 
           <!-- Visual preview thumbnail -->
-          <div class="w-full h-24 rounded border overflow-hidden"
+          <div
+            class="w-full h-24 rounded border overflow-hidden"
             :class="selectedVariant === variant.id
               ? 'border-amber-500/30'
-              : 'border-gray-200 dark:border-slate-700/50 group-hover:border-gray-300 dark:group-hover:border-slate-600/50'">
-            <div class="w-full h-full bg-gradient-to-br"
+              : 'border-gray-200 dark:border-slate-700/50 group-hover:border-gray-300 dark:group-hover:border-slate-600/50'"
+          >
+            <div
+              class="w-full h-full bg-gradient-to-br"
               :class="{
                 'from-slate-900 via-slate-800 to-amber-900/20': variant.id === 'modern',
                 'from-white via-slate-50 to-slate-100': variant.id === 'classic',
                 'from-purple-600 via-amber-500 to-pink-600': variant.id === 'bold'
-              }">
-              <div class="p-2 text-xs opacity-50"
-                :class="variant.id === 'classic' ? 'text-slate-900' : 'text-white'">
+              }"
+            >
+              <div
+                class="p-2 text-xs opacity-50"
+                :class="variant.id === 'classic' ? 'text-slate-900' : 'text-white'"
+              >
                 Preview
               </div>
             </div>
@@ -459,12 +507,17 @@ function confirmDelete() {
     <!-- Tip -->
     <UCard class="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl">
       <div class="flex items-start gap-3">
-        <UIcon name="i-lucide-lightbulb" class="w-5 h-5 text-amber-600 dark:text-amber-500 mt-0.5 shrink-0" />
+        <UIcon
+          name="i-lucide-lightbulb"
+          class="w-5 h-5 text-amber-600 dark:text-amber-500 mt-0.5 shrink-0"
+        />
         <div class="text-sm">
-          <p class="text-amber-800 dark:text-amber-200 font-medium">Customize Your Templates</p>
+          <p class="text-amber-800 dark:text-amber-200 font-medium">
+            Customize Your Templates
+          </p>
           <p class="text-amber-700 dark:text-amber-300/70 mt-1">
             Select a template to preview it, then click "Manage Template" to customize the content.
-            Use variables like <code class="bg-amber-200 dark:bg-amber-500/20 px-1 rounded text-amber-800 dark:text-amber-300">{{customerName}}</code> to personalize emails.
+            Use variables like <code class="bg-amber-200 dark:bg-amber-500/20 px-1 rounded text-amber-800 dark:text-amber-300">{{ customerName }}</code> to personalize emails.
           </p>
         </div>
       </div>
@@ -476,16 +529,33 @@ function confirmDelete() {
         <UCard class="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-xl">
           <template #header>
             <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">Templates</h3>
-              <UBadge color="neutral" variant="subtle">{{ templates.length }}</UBadge>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">
+                Templates
+              </h3>
+              <UBadge
+                color="neutral"
+                variant="subtle"
+              >
+                {{ templates.length }}
+              </UBadge>
             </div>
           </template>
 
-          <div v-if="pending" class="space-y-3">
-            <USkeleton v-for="i in 6" :key="i" class="h-16" />
+          <div
+            v-if="pending"
+            class="space-y-3"
+          >
+            <USkeleton
+              v-for="i in 6"
+              :key="i"
+              class="h-16"
+            />
           </div>
 
-          <div v-else class="space-y-2">
+          <div
+            v-else
+            class="space-y-2"
+          >
             <button
               v-for="template in templates"
               :key="template.id"
@@ -497,13 +567,16 @@ function confirmDelete() {
             >
               <div class="flex items-start gap-3">
                 <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-slate-700/50 flex items-center justify-center shrink-0">
-                  <UIcon :name="getTemplateIcon(template.id)" class="w-4 h-4 text-amber-600 dark:text-amber-500" />
+                  <UIcon
+                    :name="getTemplateIcon(template.id)"
+                    class="w-4 h-4 text-amber-600 dark:text-amber-500"
+                  />
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
                     <span class="font-medium text-gray-900 dark:text-slate-100">{{ template.name }}</span>
                     <UBadge
-                      v-if="customTemplatesData?.docs?.find(c => c.templateKey === template.id)"
+                      v-if="customTemplatesData?.docs?.find((c: CustomTemplate) => c.templateKey === template.id)"
                       color="primary"
                       variant="subtle"
                       size="xs"
@@ -511,9 +584,14 @@ function confirmDelete() {
                       Custom
                     </UBadge>
                   </div>
-                  <div class="text-sm text-gray-500 dark:text-slate-400 mt-0.5 truncate">{{ template.description }}</div>
+                  <div class="text-sm text-gray-500 dark:text-slate-400 mt-0.5 truncate">
+                    {{ template.description }}
+                  </div>
                   <div class="flex items-center gap-1 mt-2 text-xs text-gray-400 dark:text-slate-500">
-                    <UIcon name="i-lucide-zap" class="w-3 h-3" />
+                    <UIcon
+                      name="i-lucide-zap"
+                      class="w-3 h-3"
+                    />
                     {{ template.trigger }}
                   </div>
                 </div>
@@ -528,28 +606,57 @@ function confirmDelete() {
         <UCard class="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 rounded-xl">
           <template #header>
             <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">Preview</h3>
-              <UBadge v-if="previewSubject" color="neutral" variant="subtle" class="max-w-xs truncate">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">
+                Preview
+              </h3>
+              <UBadge
+                v-if="previewSubject"
+                color="neutral"
+                variant="subtle"
+                class="max-w-xs truncate"
+              >
                 {{ previewSubject }}
               </UBadge>
             </div>
           </template>
 
-          <div v-if="!selectedTemplate" class="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-slate-500">
+          <div
+            v-if="!selectedTemplate"
+            class="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-slate-500"
+          >
             <div class="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-slate-700/30 flex items-center justify-center mb-4">
-              <UIcon name="i-lucide-mail" class="w-8 h-8" />
+              <UIcon
+                name="i-lucide-mail"
+                class="w-8 h-8"
+              />
             </div>
-            <p class="text-lg font-medium text-gray-600 dark:text-slate-400">Select a template to preview</p>
-            <p class="text-sm text-gray-400 dark:text-slate-600 mt-1">Choose from the list on the left</p>
+            <p class="text-lg font-medium text-gray-600 dark:text-slate-400">
+              Select a template to preview
+            </p>
+            <p class="text-sm text-gray-400 dark:text-slate-600 mt-1">
+              Choose from the list on the left
+            </p>
           </div>
 
-          <div v-else-if="isLoadingPreview" class="flex items-center justify-center py-20">
-            <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-amber-500" />
+          <div
+            v-else-if="isLoadingPreview"
+            class="flex items-center justify-center py-20"
+          >
+            <UIcon
+              name="i-lucide-loader-2"
+              class="w-8 h-8 animate-spin text-amber-500"
+            />
           </div>
 
-          <div v-else class="relative">
+          <div
+            v-else
+            class="relative"
+          >
             <!-- Email Preview in iframe -->
-            <div class="bg-white rounded-lg overflow-hidden shadow-inner" style="min-height: 500px;">
+            <div
+              class="bg-white rounded-lg overflow-hidden shadow-inner"
+              style="min-height: 500px;"
+            >
               <iframe
                 :srcdoc="previewHtml"
                 class="w-full border-0"
@@ -593,15 +700,25 @@ function confirmDelete() {
         <div class="p-6 bg-white dark:bg-gray-900">
           <div class="flex items-center gap-3 mb-6">
             <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-send" class="w-5 h-5 text-amber-600 dark:text-amber-500" />
+              <UIcon
+                name="i-lucide-send"
+                class="w-5 h-5 text-amber-600 dark:text-amber-500"
+              />
             </div>
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">Send Test Email</h3>
-              <p class="text-sm text-gray-600 dark:text-slate-400">Send a preview with sample data</p>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">
+                Send Test Email
+              </h3>
+              <p class="text-sm text-gray-600 dark:text-slate-400">
+                Send a preview with sample data
+              </p>
             </div>
           </div>
 
-          <UFormField label="Email Address" required>
+          <UFormField
+            label="Email Address"
+            required
+          >
             <UInput
               v-model="testEmailAddress"
               type="email"
@@ -612,7 +729,11 @@ function confirmDelete() {
           </UFormField>
 
           <p class="text-xs text-gray-500 dark:text-slate-500 mt-2">
-            Tip: Visit <a href="https://temp-mail.org" target="_blank" class="text-amber-600 dark:text-amber-400 hover:underline">temp-mail.org</a>
+            Tip: Visit <a
+              href="https://temp-mail.org"
+              target="_blank"
+              class="text-amber-600 dark:text-amber-400 hover:underline"
+            >temp-mail.org</a>
             and copy your temporary email address to test.
           </p>
 
@@ -637,27 +758,45 @@ function confirmDelete() {
     </UModal>
 
     <!-- Manage Template Modal -->
-    <UModal v-model:open="showManageModal" :ui="{ width: 'max-w-4xl' }">
+    <UModal
+      v-model:open="showManageModal"
+      :ui="{ width: 'max-w-4xl' }"
+    >
       <template #content>
         <div class="p-6 bg-white dark:bg-gray-900">
           <!-- Header -->
           <div class="flex items-center justify-between mb-6">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-slate-700/50 flex items-center justify-center">
-                <UIcon :name="getTemplateIcon(selectedTemplate || '')" class="w-5 h-5 text-amber-600 dark:text-amber-500" />
+                <UIcon
+                  :name="getTemplateIcon(selectedTemplate || '')"
+                  class="w-5 h-5 text-amber-600 dark:text-amber-500"
+                />
               </div>
               <div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">
                   {{ manageMode === 'create' ? 'Create Custom Template' : 'Manage Template' }}
                 </h3>
                 <p class="text-sm text-gray-600 dark:text-slate-400">
-                  {{ templates.find(t => t.id === selectedTemplate)?.name }}
+                  {{ templates.find((t: EmailTemplate) => t.id === selectedTemplate)?.name }}
                 </p>
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <UBadge v-if="customTemplate" color="primary" variant="subtle">Custom</UBadge>
-              <UBadge v-else color="neutral" variant="subtle">Default</UBadge>
+              <UBadge
+                v-if="customTemplate"
+                color="primary"
+                variant="subtle"
+              >
+                Custom
+              </UBadge>
+              <UBadge
+                v-else
+                color="neutral"
+                variant="subtle"
+              >
+                Default
+              </UBadge>
             </div>
           </div>
 
@@ -665,21 +804,36 @@ function confirmDelete() {
           <div v-if="manageMode === 'view' && customTemplate">
             <div class="space-y-4">
               <div class="bg-gray-50 dark:bg-slate-700/30 rounded-lg p-4">
-                <div class="text-xs text-gray-500 dark:text-slate-500 uppercase tracking-wide mb-1">Template Name</div>
-                <div class="text-gray-900 dark:text-slate-100">{{ customTemplate.name }}</div>
+                <div class="text-xs text-gray-500 dark:text-slate-500 uppercase tracking-wide mb-1">
+                  Template Name
+                </div>
+                <div class="text-gray-900 dark:text-slate-100">
+                  {{ customTemplate.name }}
+                </div>
               </div>
               <div class="bg-gray-50 dark:bg-slate-700/30 rounded-lg p-4">
-                <div class="text-xs text-gray-500 dark:text-slate-500 uppercase tracking-wide mb-1">Subject Line</div>
-                <div class="text-gray-900 dark:text-slate-100">{{ customTemplate.subject }}</div>
+                <div class="text-xs text-gray-500 dark:text-slate-500 uppercase tracking-wide mb-1">
+                  Subject Line
+                </div>
+                <div class="text-gray-900 dark:text-slate-100">
+                  {{ customTemplate.subject }}
+                </div>
               </div>
               <div class="bg-gray-50 dark:bg-slate-700/30 rounded-lg p-4">
-                <div class="text-xs text-gray-500 dark:text-slate-500 uppercase tracking-wide mb-1">Status</div>
-                <UBadge :color="customTemplate.isActive ? 'success' : 'neutral'" variant="subtle">
+                <div class="text-xs text-gray-500 dark:text-slate-500 uppercase tracking-wide mb-1">
+                  Status
+                </div>
+                <UBadge
+                  :color="customTemplate.isActive ? 'success' : 'neutral'"
+                  variant="subtle"
+                >
                   {{ customTemplate.isActive ? 'Active' : 'Inactive' }}
                 </UBadge>
               </div>
               <div class="bg-gray-50 dark:bg-slate-700/30 rounded-lg p-4">
-                <div class="text-xs text-gray-500 dark:text-slate-500 uppercase tracking-wide mb-1">HTML Body Preview</div>
+                <div class="text-xs text-gray-500 dark:text-slate-500 uppercase tracking-wide mb-1">
+                  HTML Body Preview
+                </div>
                 <div class="bg-white rounded-lg mt-2 p-2 max-h-48 overflow-auto border border-gray-200 dark:border-transparent">
                   <iframe
                     :srcdoc="customTemplate.htmlBody"
@@ -720,7 +874,10 @@ function confirmDelete() {
           <!-- Edit/Create Mode -->
           <div v-else>
             <div class="space-y-4 max-h-[80vh] overflow-y-auto pr-2">
-              <UFormField label="Template Name" required>
+              <UFormField
+                label="Template Name"
+                required
+              >
                 <UInput
                   v-model="templateForm.name"
                   placeholder="e.g., Booking Confirmation"
@@ -728,7 +885,11 @@ function confirmDelete() {
                 />
               </UFormField>
 
-              <UFormField label="Subject Line" required help="Supports variables like {{customerName}}">
+              <UFormField
+                label="Subject Line"
+                required
+                help="Supports variables like {{customerName}}"
+              >
                 <UInput
                   v-model="templateForm.subject"
                   placeholder="e.g., Your booking #{{bookingId}} is confirmed!"
@@ -736,7 +897,10 @@ function confirmDelete() {
                 />
               </UFormField>
 
-              <UFormField label="HTML Body" required>
+              <UFormField
+                label="HTML Body"
+                required
+              >
                 <UTextarea
                   v-model="templateForm.htmlBody"
                   :rows="12"
@@ -745,7 +909,10 @@ function confirmDelete() {
                 />
               </UFormField>
 
-              <UFormField label="Plain Text Body (Optional)" help="Auto-generated from HTML if empty">
+              <UFormField
+                label="Plain Text Body (Optional)"
+                help="Auto-generated from HTML if empty"
+              >
                 <UTextarea
                   v-model="templateForm.textBody"
                   :rows="4"
@@ -755,23 +922,30 @@ function confirmDelete() {
               </UFormField>
 
               <UFormField>
-                <UCheckbox v-model="templateForm.isActive" label="Use this custom template" />
+                <UCheckbox
+                  v-model="templateForm.isActive"
+                  label="Use this custom template"
+                />
               </UFormField>
 
               <!-- Available Variables -->
               <div class="bg-gray-50 dark:bg-slate-700/30 rounded-lg p-4">
-                <div class="text-xs text-gray-500 dark:text-slate-500 uppercase tracking-wide mb-2">Available Variables</div>
+                <div class="text-xs text-gray-500 dark:text-slate-500 uppercase tracking-wide mb-2">
+                  Available Variables
+                </div>
                 <div class="flex flex-wrap gap-2">
                   <code
-                    v-for="variable in getAvailableVariables(selectedTemplate || '')"
-                    :key="variable"
+                    v-for="(variable, idx) in getAvailableVariables(selectedTemplate || '')"
+                    :key="`${variable}-${idx}`"
                     class="text-xs bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 px-2 py-1 rounded cursor-pointer hover:bg-amber-200 dark:hover:bg-amber-500/30"
                     @click="templateForm.htmlBody += `{{${variable}}}`"
                   >
-                    {{variable}}
+                    {{ variable }}
                   </code>
                 </div>
-                <p class="text-xs text-gray-500 dark:text-slate-500 mt-2">Click a variable to insert it at the end of your HTML</p>
+                <p class="text-xs text-gray-500 dark:text-slate-500 mt-2">
+                  Click a variable to insert it at the end of your HTML
+                </p>
               </div>
             </div>
 
@@ -801,11 +975,18 @@ function confirmDelete() {
         <div class="p-6 bg-white dark:bg-gray-900">
           <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-alert-triangle" class="w-5 h-5 text-red-600 dark:text-red-500" />
+              <UIcon
+                name="i-lucide-alert-triangle"
+                class="w-5 h-5 text-red-600 dark:text-red-500"
+              />
             </div>
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">Reset to Default?</h3>
-              <p class="text-sm text-gray-600 dark:text-slate-400">This will delete your custom template</p>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100">
+                Reset to Default?
+              </h3>
+              <p class="text-sm text-gray-600 dark:text-slate-400">
+                This will delete your custom template
+              </p>
             </div>
           </div>
 

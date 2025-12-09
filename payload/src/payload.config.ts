@@ -33,6 +33,8 @@ import { ContractTemplates } from './collections/ContractTemplates'
 import { MaintenanceRecords } from './collections/MaintenanceRecords'
 import { MaintenanceSchedules } from './collections/MaintenanceSchedules'
 import { EmailTemplates } from './collections/EmailTemplates'
+import { Documents } from './collections/Documents'
+import { SignedDocuments } from './collections/SignedDocuments'
 import { PlatformSettings } from './globals/PlatformSettings'
 import { availabilityCheckEndpoint } from './endpoints/availability-check'
 import {
@@ -84,6 +86,9 @@ const dirname = path.dirname(filename)
 let webhookRetryInterval: NodeJS.Timeout | null = null
 
 export default buildConfig({
+  // Server URL for Payload (used for cookie domain and redirects)
+  serverURL: process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3004',
+
   admin: {
     user: Users.slug,
     importMap: {
@@ -96,6 +101,20 @@ export default buildConfig({
       return user.role === 'super_admin'
     },
   },
+  // CORS configuration for cookie persistence across Nuxt proxy
+  cors: [
+    'http://localhost:3005', // Nuxt dev server
+    'http://localhost:3004', // Payload dev server
+    'http://localhost:3001', // Nuxt internal port
+    'http://localhost:3000', // Payload internal port
+  ],
+  // CSRF protection configuration
+  csrf: [
+    'http://localhost:3005',
+    'http://localhost:3004',
+    'http://localhost:3001',
+    'http://localhost:3000',
+  ],
   collections: [
     Users,
     Media,
@@ -123,6 +142,8 @@ export default buildConfig({
     MaintenanceRecords,
     MaintenanceSchedules,
     EmailTemplates,
+    Documents,
+    SignedDocuments,
   ],
   globals: [PlatformSettings],
   endpoints: [
@@ -166,7 +187,7 @@ export default buildConfig({
     stripeWebhookEndpoint,
     // Booking email endpoint
     {
-      path: '/bookings/:id/send-email',
+      path: '/email/booking/:id/send',
       method: 'post',
       handler: sendBookingEmail,
     },

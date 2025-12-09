@@ -146,8 +146,6 @@ test.describe('Customers Management', () => {
       const emailInput = page.locator('input[name="email"]')
 
       if (await emailInput.isVisible({ timeout: 2000 })) {
-        const currentValue = await emailInput.inputValue()
-
         // Just verify we can edit - don't actually change email
         await page.locator('input[name="firstName"]').fill('Updated Name')
 

@@ -46,10 +46,11 @@ export default defineEventHandler(async (event) => {
 
     if (!staffId) {
       const staffUrl = `${rbPayloadUrl}/api/staff?where[tenantId][equals]=${TENANT_ID}&where[isActive][equals]=true&limit=1`
-      const staffResponse = await $fetch<{ docs: any[] }>(staffUrl, { headers })
+      const staffResponse = await $fetch<{ docs: Record<string, unknown>[] }>(staffUrl, { headers })
 
       if (staffResponse.docs && staffResponse.docs.length > 0) {
-        staffId = staffResponse.docs[0].id
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        staffId = (staffResponse.docs[0] as any).id
       } else {
         throw createError({
           statusCode: 400,
@@ -63,7 +64,7 @@ export default defineEventHandler(async (event) => {
 
     const bookingData = {
       tenantId: TENANT_ID,
-      items: body.items.map((item: any) => ({
+      items: body.items.map((item: Record<string, unknown>) => ({
         serviceId: item.serviceId,
         label: item.label,
         price: item.price,
@@ -83,7 +84,7 @@ export default defineEventHandler(async (event) => {
       paymentStatus: body.paymentStatus || 'unpaid'
     }
 
-    const createResponse = await $fetch<any>(createUrl, {
+    const createResponse = await $fetch<Record<string, unknown>>(createUrl, {
       method: 'POST',
       headers,
       body: bookingData
@@ -93,12 +94,13 @@ export default defineEventHandler(async (event) => {
       success: true,
       booking: createResponse.doc || createResponse
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to create booking in rb-payload:', error)
 
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to create booking'
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      message: message || 'Failed to create booking'
     })
   }
 })

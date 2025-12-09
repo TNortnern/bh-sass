@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable vue/no-multiple-template-root */
 import { h, resolveComponent } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 
@@ -15,7 +16,7 @@ const { data: item, pending: itemPending } = await useLazyFetch(
 const {
   data: variations,
   pending: variationsPending,
-  refresh: refreshVariations,
+  refresh: refreshVariations
 } = await useLazyFetch(() => `/api/rental-items/${itemId.value}/variations`)
 
 const pending = computed(() => itemPending.value || variationsPending.value)
@@ -29,7 +30,7 @@ type VariationRow = {
   id: string
   sku: string
   name: string
-  attributes: Array<{ name: string; value: string }>
+  attributes: Array<{ name: string, value: string }>
   pricingType: 'same_as_parent' | 'adjustment' | 'override'
   priceAdjustment?: number
   quantity: number
@@ -39,19 +40,19 @@ type VariationRow = {
 const columns: TableColumn<VariationRow>[] = [
   {
     accessorKey: 'sku',
-    header: 'SKU',
+    header: 'SKU'
   },
   {
     accessorKey: 'name',
-    header: 'Name',
+    header: 'Name'
   },
   {
     accessorKey: 'attributes',
     header: 'Attributes',
     cell: ({ row }) => {
-      const attrs = row.original.attributes as Array<{ name: string; value: string }>
-      return attrs.map((a) => `${a.name}: ${a.value}`).join(', ')
-    },
+      const attrs = row.original.attributes as Array<{ name: string, value: string }>
+      return attrs.map(a => `${a.name}: ${a.value}`).join(', ')
+    }
   },
   {
     accessorKey: 'pricingType',
@@ -66,12 +67,12 @@ const columns: TableColumn<VariationRow>[] = [
         return `${sign}$${adjustment?.toFixed(2) || '0.00'}`
       }
       return 'Custom'
-    },
+    }
   },
   {
     accessorKey: 'quantity',
     header: 'Quantity',
-    cell: ({ row }) => row.original.quantity.toString(),
+    cell: ({ row }) => row.original.quantity.toString()
   },
   {
     accessorKey: 'status',
@@ -79,18 +80,18 @@ const columns: TableColumn<VariationRow>[] = [
     cell: ({ row }) => {
       const statusColors = {
         active: 'success',
-        inactive: 'neutral',
+        inactive: 'neutral'
       }
       const status = row.original.status
       return h(
         UBadge,
         {
           color: statusColors[status],
-          variant: 'subtle',
+          variant: 'subtle'
         },
         () => status.charAt(0).toUpperCase() + status.slice(1)
       )
-    },
+    }
   },
   {
     id: 'actions',
@@ -102,17 +103,17 @@ const columns: TableColumn<VariationRow>[] = [
           color: 'neutral',
           variant: 'ghost',
           size: 'xs',
-          onClick: () => router.push(`/app/inventory/${itemId.value}/variations/${row.original.id}`),
+          onClick: () => router.push(`/app/inventory/${itemId.value}/variations/${row.original.id}`)
         }),
         h(UButton, {
           icon: 'i-lucide-trash-2',
           color: 'error',
           variant: 'ghost',
           size: 'xs',
-          onClick: () => handleDelete(row.original.id),
-        }),
-      ]),
-  },
+          onClick: () => handleDelete(row.original.id)
+        })
+      ])
+  }
 ]
 
 // Delete variation
@@ -129,7 +130,7 @@ async function confirmDelete() {
 
   try {
     await $fetch(`/api/variations/${variationToDelete.value}`, {
-      method: 'DELETE',
+      method: 'DELETE'
     })
 
     refreshVariations()
@@ -150,10 +151,10 @@ async function updateBulkStatus() {
 
   try {
     await Promise.all(
-      selectedVariations.value.map((id) =>
+      selectedVariations.value.map(id =>
         $fetch(`/api/variations/${id}`, {
           method: 'PATCH',
-          body: { status: newBulkStatus.value },
+          body: { status: newBulkStatus.value }
         })
       )
     )
@@ -192,8 +193,14 @@ async function updateBulkStatus() {
     <template #body>
       <div class="p-6">
         <!-- Loading state -->
-        <div v-if="pending" class="flex items-center justify-center py-12">
-          <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
+        <div
+          v-if="pending"
+          class="flex items-center justify-center py-12"
+        >
+          <UIcon
+            name="i-lucide-loader-circle"
+            class="animate-spin text-4xl text-gray-400"
+          />
         </div>
 
         <!-- Empty state -->
@@ -201,8 +208,13 @@ async function updateBulkStatus() {
           v-else-if="!variations?.docs?.length"
           class="flex flex-col items-center justify-center py-16 text-gray-500"
         >
-          <UIcon name="i-lucide-boxes" class="text-6xl mb-4 text-gray-300" />
-          <p class="text-lg font-medium">No Variations Yet</p>
+          <UIcon
+            name="i-lucide-boxes"
+            class="text-6xl mb-4 text-gray-300"
+          />
+          <p class="text-lg font-medium">
+            No Variations Yet
+          </p>
           <p class="text-sm mb-6 text-center max-w-sm">
             Create variations for this item to offer different sizes, colors, or themes.
           </p>
@@ -216,7 +228,10 @@ async function updateBulkStatus() {
         <!-- Variations table -->
         <div v-else>
           <!-- Bulk actions -->
-          <div v-if="selectedVariations.length > 0" class="mb-4 flex items-center gap-4">
+          <div
+            v-if="selectedVariations.length > 0"
+            class="mb-4 flex items-center gap-4"
+          >
             <p class="text-sm text-gray-500">
               {{ selectedVariations.length }} variation(s) selected
             </p>
@@ -229,24 +244,36 @@ async function updateBulkStatus() {
             />
           </div>
 
-          <UTable :data="variations.docs" :columns="columns" :loading="pending" />
+          <UTable
+            :data="variations.docs"
+            :columns="columns"
+            :loading="pending"
+          />
         </div>
       </div>
     </template>
   </UDashboardPanel>
 
   <!-- Delete confirmation modal -->
-  <UModal v-model:open="deleteModalOpen" title="Delete Variation">
+  <UModal
+    v-model:open="deleteModalOpen"
+    title="Delete Variation"
+  >
     <template #content>
       <div class="p-6">
         <div class="flex items-start gap-3 mb-4">
           <div
             class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0"
           >
-            <UIcon name="i-lucide-trash-2" class="text-red-600 dark:text-red-400" />
+            <UIcon
+              name="i-lucide-trash-2"
+              class="text-red-600 dark:text-red-400"
+            />
           </div>
           <div>
-            <h3 class="text-lg font-semibold mb-1">Delete Variation?</h3>
+            <h3 class="text-lg font-semibold mb-1">
+              Delete Variation?
+            </h3>
             <p class="text-sm text-gray-500">
               This action cannot be undone. Any bookings using this variation will need to be
               updated.
@@ -254,30 +281,51 @@ async function updateBulkStatus() {
           </div>
         </div>
         <div class="flex justify-end gap-2">
-          <UButton label="Cancel" variant="ghost" @click="deleteModalOpen = false" />
-          <UButton label="Delete" color="error" @click="confirmDelete" />
+          <UButton
+            label="Cancel"
+            variant="ghost"
+            @click="deleteModalOpen = false"
+          />
+          <UButton
+            label="Delete"
+            color="error"
+            @click="confirmDelete"
+          />
         </div>
       </div>
     </template>
   </UModal>
 
   <!-- Bulk status update modal -->
-  <UModal v-model:open="bulkStatusModalOpen" title="Update Status">
+  <UModal
+    v-model:open="bulkStatusModalOpen"
+    title="Update Status"
+  >
     <template #body>
-      <UFormField label="New Status" required>
+      <UFormField
+        label="New Status"
+        required
+      >
         <USelect
           v-model="newBulkStatus"
           :items="[
             { label: 'Active', value: 'active' },
-            { label: 'Inactive', value: 'inactive' },
+            { label: 'Inactive', value: 'inactive' }
           ]"
         />
       </UFormField>
     </template>
     <template #footer="{ close }">
       <div class="flex justify-end gap-2">
-        <UButton label="Cancel" variant="ghost" @click="close" />
-        <UButton label="Update" @click="updateBulkStatus" />
+        <UButton
+          label="Cancel"
+          variant="ghost"
+          @click="close"
+        />
+        <UButton
+          label="Update"
+          @click="updateBulkStatus"
+        />
       </div>
     </template>
   </UModal>

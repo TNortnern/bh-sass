@@ -2,26 +2,38 @@
   <div class="animate-fade-in-scale">
     <!-- Confetti Animation Container -->
     <div class="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-      <div v-for="i in 50" :key="i" class="confetti" :style="getConfettiStyle(i)"></div>
+      <div
+        v-for="i in 50"
+        :key="i"
+        class="confetti"
+        :style="getConfettiStyle(i)"
+      />
     </div>
 
     <!-- Success Card -->
     <div class="relative">
-      <div class="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 rounded-3xl blur-2xl opacity-50 animate-pulse"></div>
+      <div class="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 rounded-3xl blur-2xl opacity-50 animate-pulse" />
 
       <div class="relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl overflow-hidden">
         <!-- Decorative pattern -->
         <div class="absolute inset-0 opacity-5">
-          <div class="absolute inset-0" style="background-image: radial-gradient(circle at 1px 1px, rgb(251 191 36) 1px, transparent 0); background-size: 40px 40px;"></div>
+          <div
+            class="absolute inset-0"
+            style="background-image: radial-gradient(circle at 1px 1px, rgb(251 191 36) 1px, transparent 0); background-size: 40px 40px;"
+          />
         </div>
 
         <div class="relative p-8 sm:p-12">
           <!-- Success Icon -->
           <div class="flex justify-center mb-6">
             <div class="relative">
-              <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full blur-2xl opacity-50 animate-pulse"></div>
+              <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full blur-2xl opacity-50 animate-pulse" />
               <div class="relative bg-gradient-to-br from-green-500 to-emerald-600 rounded-full p-8">
-                <Icon name="lucide:party-popper" class="w-16 h-16 text-white animate-bounce" style="animation-duration: 2s;" />
+                <Icon
+                  name="lucide:party-popper"
+                  class="w-16 h-16 text-white animate-bounce"
+                  style="animation-duration: 2s;"
+                />
               </div>
             </div>
           </div>
@@ -39,7 +51,10 @@
           <!-- Setup Summary -->
           <div class="bg-gray-800/40 rounded-xl p-6 mb-8 border border-gray-700/30">
             <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
-              <Icon name="lucide:check-circle" class="w-5 h-5 text-green-400" />
+              <Icon
+                name="lucide:check-circle"
+                class="w-5 h-5 text-green-400"
+              />
               What you've set up:
             </h3>
             <div class="grid sm:grid-cols-2 gap-4">
@@ -49,11 +64,18 @@
                 class="flex items-start gap-3"
               >
                 <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
-                  <Icon name="lucide:check" class="w-4 h-4 text-green-400" />
+                  <Icon
+                    name="lucide:check"
+                    class="w-4 h-4 text-green-400"
+                  />
                 </div>
                 <div>
-                  <div class="text-sm font-medium text-white">{{ item.label }}</div>
-                  <div class="text-xs text-gray-400">{{ item.value }}</div>
+                  <div class="text-sm font-medium text-white">
+                    {{ item.label }}
+                  </div>
+                  <div class="text-xs text-gray-400">
+                    {{ item.value }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -69,7 +91,10 @@
               class="justify-center"
             >
               <template #leading>
-                <Icon name="lucide:layout-dashboard" class="w-5 h-5" />
+                <Icon
+                  name="lucide:layout-dashboard"
+                  class="w-5 h-5"
+                />
               </template>
               Go to Dashboard
             </UButton>
@@ -82,7 +107,10 @@
               class="justify-center"
             >
               <template #leading>
-                <Icon name="lucide:package-plus" class="w-5 h-5" />
+                <Icon
+                  name="lucide:package-plus"
+                  class="w-5 h-5"
+                />
               </template>
               Add More Items
             </UButton>
@@ -91,11 +119,14 @@
               size="lg"
               color="gray"
               variant="soft"
-              @click="viewBookingPage"
               class="justify-center"
+              @click="viewBookingPage"
             >
               <template #leading>
-                <Icon name="lucide:external-link" class="w-5 h-5" />
+                <Icon
+                  name="lucide:external-link"
+                  class="w-5 h-5"
+                />
               </template>
               View Booking Page
             </UButton>
@@ -103,12 +134,15 @@
 
           <!-- Upgrade Promotion -->
           <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-600/20 via-pink-600/20 to-orange-600/20 border border-purple-500/30 p-6">
-            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-2xl"></div>
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-2xl" />
 
             <div class="relative">
               <div class="flex items-start gap-4">
                 <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
-                  <Icon name="lucide:sparkles" class="w-6 h-6 text-white" />
+                  <Icon
+                    name="lucide:sparkles"
+                    class="w-6 h-6 text-white"
+                  />
                 </div>
                 <div class="flex-1">
                   <h3 class="text-white font-semibold text-lg mb-2">
@@ -125,11 +159,17 @@
                     >
                       View Plans & Pricing
                       <template #trailing>
-                        <Icon name="lucide:arrow-right" class="w-4 h-4" />
+                        <Icon
+                          name="lucide:arrow-right"
+                          class="w-4 h-4"
+                        />
                       </template>
                     </UButton>
                     <div class="flex items-center gap-2 text-xs text-gray-400">
-                      <Icon name="lucide:zap" class="w-4 h-4 text-amber-400" />
+                      <Icon
+                        name="lucide:zap"
+                        class="w-4 h-4 text-amber-400"
+                      />
                       Plans start at $29/month
                     </div>
                   </div>
@@ -143,14 +183,19 @@
 
     <!-- Next Steps -->
     <div class="mt-8 text-center">
-      <h3 class="text-gray-400 text-sm font-medium mb-4">Recommended next steps:</h3>
+      <h3 class="text-gray-400 text-sm font-medium mb-4">
+        Recommended next steps:
+      </h3>
       <div class="flex flex-wrap justify-center gap-3">
         <div
           v-for="step in nextSteps"
           :key="step.label"
           class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800/30 border border-gray-700/30 text-sm text-gray-400"
         >
-          <Icon :name="step.icon" class="w-4 h-4 text-amber-400" />
+          <Icon
+            :name="step.icon"
+            class="w-4 h-4 text-amber-400"
+          />
           {{ step.label }}
         </div>
       </div>
@@ -159,6 +204,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 definePageMeta({
   layout: 'onboarding'
 })

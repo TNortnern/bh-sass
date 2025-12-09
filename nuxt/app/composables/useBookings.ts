@@ -21,9 +21,11 @@ export interface Booking {
     start: string
     end: string
     delivery?: string
+    deliveryTime?: string
     pickup?: string
+    pickupTime?: string
   }
-  status: 'pending' | 'confirmed' | 'delivered' | 'completed' | 'cancelled'
+  status: 'pending' | 'confirmed' | 'preparing' | 'in_route' | 'delivered' | 'picked_up' | 'completed' | 'cancelled'
   paymentStatus: 'unpaid' | 'deposit' | 'paid' | 'refunded'
   payment: {
     subtotal: number
@@ -121,20 +123,27 @@ export const useBookings = () => {
   const filters = useState<BookingFilters>('bookings:filters', () => ({}))
   const toast = useToast()
 
-  // Fetch all bookings from rb-payload
+  // Fetch all bookings from local Payload
   const fetchBookings = async () => {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await $fetch<{ success: boolean; bookings: any[]; totalDocs: number }>('/booking/bookings')
+      const response = await $fetch<{ docs: Record<string, unknown>[], totalDocs: number }>('/api/bookings', {
+        credentials: 'include',
+        params: {
+          limit: 100,
+          depth: 2 // Populate relationships
+        }
+      })
 
-      // Transform rb-payload bookings to local format
-      bookings.value = (response.bookings || []).map(transformRbPayloadBooking)
+      // Transform local Payload bookings to local format
+      bookings.value = (response.docs || []).map(transformLocalPayloadBooking)
       return { success: true, data: bookings.value }
-    } catch (err: any) {
-      console.error('Failed to fetch bookings from rb-payload:', err.message)
-      error.value = err.message || 'Failed to fetch bookings'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+      console.error('Failed to fetch bookings from local Payload:', errorMessage)
+      error.value = errorMessage
       bookings.value = []
       return { success: false, error: error.value }
     } finally {
@@ -142,81 +151,229 @@ export const useBookings = () => {
     }
   }
 
-  // Transform rb-payload booking to local Booking format
-  const transformRbPayloadBooking = (rbBooking: any): Booking => {
-    if (!rbBooking) {
+  // Interface for Payload API responses
+  interface PayloadCustomer {
+    id: string | number
+    firstName?: string
+    lastName?: string
+    name?: string
+    email?: string
+    phone?: string
+  }
+
+  interface PayloadRentalItem {
+    id: string | number
+    name?: string
+    category?: string
+    pricing?: {
+      dailyRate?: number
+    }
+  }
+
+  interface PayloadAddress {
+    street?: string
+    city?: string
+    state?: string
+    zipCode?: string
+    zip?: string
+    specialInstructions?: string
+    instructions?: string
+  }
+
+  interface _PayloadBooking {
+    id: string | number
+    customerId: string | number | PayloadCustomer
+    rentalItemId: string | number | PayloadRentalItem
+    startDate: string
+    endDate: string
+    deliveryTime?: string
+    pickupTime?: string
+    status: string
+    paymentStatus: string
+    totalPrice: number
+    depositPaid: number
+    deliveryAddress?: PayloadAddress
+    notes?: string
+    internalNotes?: string
+    createdAt: string
+    updatedAt: string
+  }
+
+  // Transform local Payload booking to local Booking format
+  const transformLocalPayloadBooking = (booking: Record<string, unknown>): Booking => {
+    if (!booking) {
       throw new Error('Invalid booking data: booking is null or undefined')
     }
 
-    // Handle both direct customer object and relationship ID
-    const customer = typeof rbBooking.customerId === 'object' ? rbBooking.customerId : {}
-    const items = Array.isArray(rbBooking.items) ? rbBooking.items : []
-    const firstItem = items[0] || {}
+    // Handle populated relationships with proper type guards
+    const customer: PayloadCustomer | null
+      = booking.customerId && typeof booking.customerId === 'object'
+        ? booking.customerId as PayloadCustomer
+        : null
 
-    // Extract metadata if available (BH-SaaS specific data)
-    const metadata = firstItem.metadata || {}
-    const deliveryAddress = metadata.deliveryAddress || rbBooking.metadata?.deliveryAddress || {}
+    const rentalItem: PayloadRentalItem | null
+      = booking.rentalItemId && typeof booking.rentalItemId === 'object'
+        ? booking.rentalItemId as PayloadRentalItem
+        : null
+
+    // Map local payment status to Booking format
+    const mapLocalPaymentStatus = (status: string): Booking['paymentStatus'] => {
+      const statusMap: Record<string, Booking['paymentStatus']> = {
+        unpaid: 'unpaid',
+        deposit_paid: 'deposit',
+        paid_full: 'paid',
+        refunded: 'refunded'
+      }
+      return statusMap[status] || 'unpaid'
+    }
+
+    const totalPrice = typeof booking.totalPrice === 'number' ? booking.totalPrice : 0
+    const depositPaid = typeof booking.depositPaid === 'number' ? booking.depositPaid : 0
+    const deliveryAddress = booking.deliveryAddress && typeof booking.deliveryAddress === 'object'
+      ? booking.deliveryAddress as PayloadAddress
+      : {}
 
     return {
-      id: rbBooking.id?.toString() || '',
-      bookingNumber: `BK-${rbBooking.id || ''}`,
+      id: booking.id?.toString() || '',
+      bookingNumber: `BK-${booking.id || ''}`,
       customer: {
-        id: customer.id?.toString() || rbBooking.customerId?.toString() || '',
-        name: customer.name || 'Unknown Customer',
-        email: customer.email || '',
-        phone: customer.phone || ''
+        id: customer?.id?.toString() || (typeof booking.customerId === 'string' || typeof booking.customerId === 'number' ? booking.customerId.toString() : ''),
+        name: customer?.firstName && customer?.lastName
+          ? `${customer.firstName} ${customer.lastName}`
+          : customer?.name || 'Unknown Customer',
+        email: customer?.email || '',
+        phone: customer?.phone || ''
       },
       item: {
-        id: firstItem.serviceId?.toString() || '',
-        name: firstItem.label || 'Service',
-        category: metadata.category || 'Bounce Houses',
-        dailyRate: firstItem.price || 0
+        id: rentalItem?.id?.toString() || (typeof booking.rentalItemId === 'string' || typeof booking.rentalItemId === 'number' ? booking.rentalItemId.toString() : ''),
+        name: rentalItem?.name || 'Rental Item',
+        category: rentalItem?.category || 'Bounce Houses',
+        dailyRate: rentalItem?.pricing?.dailyRate || totalPrice
       },
       dates: {
-        start: rbBooking.startTime ? format(new Date(rbBooking.startTime), 'yyyy-MM-dd') : '',
-        end: rbBooking.endTime ? format(new Date(rbBooking.endTime), 'yyyy-MM-dd') : '',
-        delivery: rbBooking.startTime ? format(addDays(new Date(rbBooking.startTime), -1), 'yyyy-MM-dd') : undefined,
-        pickup: rbBooking.endTime ? format(addDays(new Date(rbBooking.endTime), 1), 'yyyy-MM-dd') : undefined
+        start: typeof booking.startDate === 'string' ? format(new Date(booking.startDate), 'yyyy-MM-dd') : '',
+        end: typeof booking.endDate === 'string' ? format(new Date(booking.endDate), 'yyyy-MM-dd') : '',
+        delivery: typeof booking.startDate === 'string' ? format(addDays(new Date(booking.startDate), -1), 'yyyy-MM-dd') : undefined,
+        deliveryTime: typeof booking.deliveryTime === 'string' ? booking.deliveryTime : undefined,
+        pickup: typeof booking.endDate === 'string' ? format(addDays(new Date(booking.endDate), 1), 'yyyy-MM-dd') : undefined,
+        pickupTime: typeof booking.pickupTime === 'string' ? booking.pickupTime : undefined
       },
-      status: mapRbPayloadStatus(rbBooking.status),
-      paymentStatus: mapRbPayloadPaymentStatus(rbBooking.paymentStatus),
+      status: (booking.status || 'pending') as Booking['status'],
+      paymentStatus: mapLocalPaymentStatus(typeof booking.paymentStatus === 'string' ? booking.paymentStatus : 'unpaid'),
       payment: {
-        subtotal: rbBooking.totalPrice || 0,
-        deposit: (rbBooking.totalPrice || 0) * 0.5,
-        total: rbBooking.totalPrice || 0,
-        paid: rbBooking.paymentStatus === 'paid' ? rbBooking.totalPrice : 0,
-        balance: rbBooking.paymentStatus === 'paid' ? 0 : rbBooking.totalPrice || 0
+        subtotal: totalPrice,
+        deposit: totalPrice * 0.5,
+        total: totalPrice,
+        paid: depositPaid,
+        balance: totalPrice - depositPaid
       },
       deliveryAddress: {
         street: deliveryAddress.street || 'Not specified',
         city: deliveryAddress.city || 'Not specified',
         state: deliveryAddress.state || 'N/A',
-        zip: deliveryAddress.zip || 'N/A',
-        instructions: deliveryAddress.instructions
+        zip: deliveryAddress.zipCode || 'N/A',
+        instructions: deliveryAddress.specialInstructions
       },
       addons: [],
       notes: {
-        customer: rbBooking.notes || metadata.customerNotes || undefined,
-        internal: metadata.internalNotes || undefined
+        customer: typeof booking.notes === 'string' ? booking.notes : undefined,
+        internal: typeof booking.internalNotes === 'string' ? booking.internalNotes : undefined
       },
       timeline: [{
         id: '1',
         event: 'created',
-        timestamp: rbBooking.createdAt || new Date().toISOString(),
+        timestamp: typeof booking.createdAt === 'string' ? booking.createdAt : new Date().toISOString(),
         description: 'Booking created'
       }],
-      createdAt: rbBooking.createdAt || new Date().toISOString(),
-      updatedAt: rbBooking.updatedAt || new Date().toISOString()
+      createdAt: typeof booking.createdAt === 'string' ? booking.createdAt : new Date().toISOString(),
+      updatedAt: typeof booking.updatedAt === 'string' ? booking.updatedAt : new Date().toISOString()
+    }
+  }
+
+  // Transform rb-payload booking to local Booking format (legacy - keeping for reference)
+  const _transformRbPayloadBooking = (rbBooking: Record<string, unknown>): Booking => {
+    if (!rbBooking) {
+      throw new Error('Invalid booking data: booking is null or undefined')
+    }
+
+    // Handle both direct customer object and relationship ID
+    const customer: PayloadCustomer | null
+      = rbBooking.customerId && typeof rbBooking.customerId === 'object'
+        ? rbBooking.customerId as PayloadCustomer
+        : null
+
+    const items = Array.isArray(rbBooking.items) ? rbBooking.items : []
+    const firstItem = items[0] as Record<string, unknown> | undefined
+
+    // Extract metadata if available (BH-SaaS specific data)
+    const metadata = firstItem && typeof firstItem.metadata === 'object' ? firstItem.metadata as Record<string, unknown> : {}
+    const rbMetadata = rbBooking.metadata && typeof rbBooking.metadata === 'object' ? rbBooking.metadata as Record<string, unknown> : {}
+    const metadataAddress = metadata.deliveryAddress && typeof metadata.deliveryAddress === 'object' ? metadata.deliveryAddress as PayloadAddress : {}
+    const rbMetadataAddress = rbMetadata.deliveryAddress && typeof rbMetadata.deliveryAddress === 'object' ? rbMetadata.deliveryAddress as PayloadAddress : {}
+    const deliveryAddress = Object.keys(metadataAddress).length > 0 ? metadataAddress : rbMetadataAddress
+
+    const totalPrice = typeof rbBooking.totalPrice === 'number' ? rbBooking.totalPrice : 0
+
+    return {
+      id: rbBooking.id?.toString() || '',
+      bookingNumber: `BK-${rbBooking.id || ''}`,
+      customer: {
+        id: customer?.id?.toString() || (typeof rbBooking.customerId === 'string' || typeof rbBooking.customerId === 'number' ? rbBooking.customerId.toString() : ''),
+        name: customer?.name || 'Unknown Customer',
+        email: customer?.email || '',
+        phone: customer?.phone || ''
+      },
+      item: {
+        id: firstItem?.serviceId?.toString() || '',
+        name: (typeof firstItem?.label === 'string' ? firstItem.label : undefined) || 'Service',
+        category: (typeof metadata.category === 'string' ? metadata.category : undefined) || 'Bounce Houses',
+        dailyRate: typeof firstItem?.price === 'number' ? firstItem.price : 0
+      },
+      dates: {
+        start: typeof rbBooking.startTime === 'string' ? format(new Date(rbBooking.startTime), 'yyyy-MM-dd') : '',
+        end: typeof rbBooking.endTime === 'string' ? format(new Date(rbBooking.endTime), 'yyyy-MM-dd') : '',
+        delivery: typeof rbBooking.startTime === 'string' ? format(addDays(new Date(rbBooking.startTime), -1), 'yyyy-MM-dd') : undefined,
+        pickup: typeof rbBooking.endTime === 'string' ? format(addDays(new Date(rbBooking.endTime), 1), 'yyyy-MM-dd') : undefined
+      },
+      status: mapRbPayloadStatus(typeof rbBooking.status === 'string' ? rbBooking.status : 'pending'),
+      paymentStatus: mapRbPayloadPaymentStatus(typeof rbBooking.paymentStatus === 'string' ? rbBooking.paymentStatus : 'unpaid'),
+      payment: {
+        subtotal: totalPrice,
+        deposit: totalPrice * 0.5,
+        total: totalPrice,
+        paid: rbBooking.paymentStatus === 'paid' ? totalPrice : 0,
+        balance: rbBooking.paymentStatus === 'paid' ? 0 : totalPrice
+      },
+      deliveryAddress: {
+        street: deliveryAddress.street || 'Not specified',
+        city: deliveryAddress.city || 'Not specified',
+        state: deliveryAddress.state || 'N/A',
+        zip: deliveryAddress.zipCode || deliveryAddress.zip || 'N/A',
+        instructions: deliveryAddress.instructions || deliveryAddress.specialInstructions
+      },
+      addons: [],
+      notes: {
+        customer: (typeof rbBooking.notes === 'string' ? rbBooking.notes : undefined) || (typeof metadata.customerNotes === 'string' ? metadata.customerNotes : undefined),
+        internal: typeof metadata.internalNotes === 'string' ? metadata.internalNotes : undefined
+      },
+      timeline: [{
+        id: '1',
+        event: 'created',
+        timestamp: typeof rbBooking.createdAt === 'string' ? rbBooking.createdAt : new Date().toISOString(),
+        description: 'Booking created'
+      }],
+      createdAt: typeof rbBooking.createdAt === 'string' ? rbBooking.createdAt : new Date().toISOString(),
+      updatedAt: typeof rbBooking.updatedAt === 'string' ? rbBooking.updatedAt : new Date().toISOString()
     }
   }
 
   // Map rb-payload status to local status
   const mapRbPayloadStatus = (status: string): Booking['status'] => {
     const statusMap: Record<string, Booking['status']> = {
-      pending: 'pending',
-      confirmed: 'confirmed',
-      completed: 'completed',
-      cancelled: 'cancelled',
+      'pending': 'pending',
+      'confirmed': 'confirmed',
+      'completed': 'completed',
+      'cancelled': 'cancelled',
       'no-show': 'cancelled'
     }
     return statusMap[status] || 'pending'
@@ -232,7 +389,7 @@ export const useBookings = () => {
     return statusMap[status] || 'unpaid'
   }
 
-  // Fetch single booking from rb-payload
+  // Fetch single booking from local Payload
   const fetchBooking = async (id: string) => {
     isLoading.value = true
     error.value = null
@@ -240,29 +397,41 @@ export const useBookings = () => {
     const numericId = extractNumericId(id)
 
     try {
-      const response = await $fetch<{ success: boolean; booking: any }>(`/booking/bookings/${numericId}`)
+      const response = await $fetch<Booking>(`/api/bookings/${numericId}`, {
+        credentials: 'include',
+        params: {
+          depth: 2 // Populate relationships
+        }
+      })
 
-      if (!response.success) {
-        throw new Error('API returned unsuccessful response')
-      }
-
-      if (!response.booking) {
+      if (!response) {
         throw new Error('No booking data returned from API')
       }
 
-      const booking = transformRbPayloadBooking(response.booking)
+      const booking = transformLocalPayloadBooking(response as unknown as Record<string, unknown>)
       currentBooking.value = booking
       return { success: true, data: booking }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      // Type guard for error with properties
+      interface FetchError {
+        message?: string
+        statusCode?: number
+        data?: {
+          message?: string
+        }
+      }
+
+      const fetchError = err as FetchError
+
       console.error('Error fetching booking:', {
         id,
-        error: err.message,
-        statusCode: err.statusCode,
-        data: err.data
+        error: fetchError.message,
+        statusCode: fetchError.statusCode,
+        data: fetchError.data
       })
 
       // Check if booking exists in already loaded bookings
-      const booking = bookings.value.find(b => b.id === id)
+      const booking = bookings.value.find(b => b.id === id || b.id === numericId)
       if (booking) {
         currentBooking.value = booking
         return { success: true, data: booking }
@@ -270,12 +439,12 @@ export const useBookings = () => {
 
       // Extract meaningful error message
       let errorMessage = 'Failed to fetch booking'
-      if (err.statusCode === 404) {
+      if (fetchError.statusCode === 404) {
         errorMessage = `Booking with ID ${id} not found`
-      } else if (err.data?.message) {
-        errorMessage = err.data.message
-      } else if (err.message) {
-        errorMessage = err.message
+      } else if (fetchError.data?.message) {
+        errorMessage = fetchError.data.message
+      } else if (fetchError.message) {
+        errorMessage = fetchError.message
       }
 
       error.value = errorMessage
@@ -285,133 +454,154 @@ export const useBookings = () => {
     }
   }
 
-  // Create new booking
+  // Create new booking using local Payload API
   const createBooking = async (data: CreateBookingData) => {
     isLoading.value = true
     error.value = null
 
     try {
-      // Try to create booking in rb-payload first
-      try {
-        const rbPayloadApi = useRbPayload()
+      // Calculate dates and pricing
+      const days = differenceInDays(parseISO(data.endDate), parseISO(data.startDate)) + 1
+      const dailyRate = data.itemPrice || 250 // Use item price from form or default
+      const subtotal = dailyRate * days
+      const total = subtotal
+      const deposit = total * 0.5
+      const paid = data.paymentType === 'full' ? total : deposit
 
-        // Calculate dates and pricing
-        const days = differenceInDays(parseISO(data.endDate), parseISO(data.startDate)) + 1
-        const dailyRate = data.itemPrice || 250 // Use item price from form or default
-        const subtotal = dailyRate * days
-        const total = subtotal
-        const deposit = total * 0.5
-        const paid = data.paymentType === 'full' ? total : deposit
+      // Get customer data from form
+      if (!data.customer) {
+        throw new Error('Customer information is required')
+      }
 
-        // Get customer data from form
-        if (!data.customer) {
-          throw new Error('Customer information is required')
+      // Get or create customer in local Payload
+      let customerId: string
+
+      // First try to find existing customer by email
+      const existingCustomers = await $fetch<{ docs: Record<string, unknown>[] }>('/api/customers', {
+        credentials: 'include',
+        params: {
+          where: {
+            email: { equals: data.customer.email }
+          },
+          limit: 1
         }
+      })
 
-        // Get or create customer in rb-payload
-        // rb-payload uses 'name' not 'firstName/lastName'
-        const customerData = {
-          tenantId: rbPayloadApi.TENANT_ID,
-          firstName: data.customer.firstName,
-          lastName: data.customer.lastName,
+      if (existingCustomers.docs && existingCustomers.docs.length > 0) {
+        const doc = existingCustomers.docs[0]
+        customerId = doc?.id?.toString() || ''
+      } else {
+        // Create new customer in local Payload
+        const customerResponse = await $fetch<{ doc: Record<string, unknown> }>('/api/customers', {
+          method: 'POST',
+          credentials: 'include',
+          body: {
+            firstName: data.customer.firstName,
+            lastName: data.customer.lastName,
+            email: data.customer.email,
+            phone: data.customer.phone || ''
+          }
+        })
+        customerId = customerResponse.doc?.id?.toString() || ''
+      }
+
+      // Prepare booking data for local Payload
+      const bookingPayload = {
+        rentalItemId: parseInt(data.itemId),
+        customerId: parseInt(customerId),
+        startDate: new Date(data.startDate).toISOString(),
+        endDate: new Date(data.endDate).toISOString(),
+        deliveryAddress: {
+          street: data.deliveryAddress.street,
+          city: data.deliveryAddress.city,
+          state: data.deliveryAddress.state,
+          zipCode: data.deliveryAddress.zip,
+          specialInstructions: data.deliveryAddress.instructions || ''
+        },
+        status: 'pending',
+        totalPrice: total,
+        depositPaid: data.paymentType === 'full' ? total : deposit,
+        paymentStatus: data.paymentType === 'full' ? 'paid_full' : 'deposit_paid',
+        notes: data.customerNotes || '',
+        internalNotes: data.internalNotes || ''
+      }
+
+      // Create booking in local Payload
+      const bookingResponse = await $fetch<{ doc: Record<string, unknown> }>('/api/bookings', {
+        method: 'POST',
+        credentials: 'include',
+        body: bookingPayload
+      })
+
+      const createdBooking = bookingResponse.doc
+
+      // Transform to local Booking format
+      const newBooking: Booking = {
+        id: createdBooking.id?.toString() || `booking-${Date.now()}`,
+        bookingNumber: `BK-${createdBooking.id || Date.now()}`,
+        customer: {
+          id: customerId,
           name: `${data.customer.firstName} ${data.customer.lastName}`,
           email: data.customer.email,
-          phone: data.customer.phone || ''
-        }
-
-        const customer = await rbPayloadApi.getOrCreateCustomer(customerData)
-
-        // Prepare booking data for rb-payload (server handles staffId assignment)
-        const rbBookingData = {
-          customerId: customer.id,
-          items: [
-            {
-              serviceId: parseInt(data.itemId), // Link to service if numeric ID
-              label: data.itemName || 'Rental Item', // Use item name from form
-              price: dailyRate,
-              duration: days * 24 * 60 // Convert days to minutes
-            }
-          ],
-          totalPrice: total,
-          startTime: new Date(data.startDate).toISOString(),
-          endTime: new Date(data.endDate).toISOString(),
-          status: 'pending' as const,
-          notes: [data.customerNotes, data.internalNotes].filter(Boolean).join('\n\n'),
-          paymentStatus: (data.paymentType === 'full' ? 'paid' : 'unpaid') as const
-        }
-
-        // Create booking in rb-payload
-        const rbBooking = await rbPayloadApi.createBooking(rbBookingData)
-
-        // Transform rb-payload booking to local format
-        const newBooking: Booking = {
-          id: rbBooking.id?.toString() || `booking-${Date.now()}`,
-          bookingNumber: `BK-${rbBooking.id || Date.now()}`,
-          customer: {
-            id: customer.id.toString(),
-            name: customer.name || `${data.customer.firstName} ${data.customer.lastName}`,
-            email: customer.email,
-            phone: customer.phone || '',
-            avatar: undefined
-          },
-          item: {
-            id: data.itemId,
-            name: rbBooking.items[0]?.label || 'Service',
-            category: 'Bounce Houses',
-            dailyRate
-          },
-          dates: {
-            start: data.startDate,
-            end: data.endDate,
-            delivery: format(addDays(parseISO(data.startDate), -1), 'yyyy-MM-dd'),
-            pickup: format(addDays(parseISO(data.endDate), 1), 'yyyy-MM-dd')
-          },
-          status: rbBooking.status === 'confirmed' ? 'confirmed' : 'pending',
-          paymentStatus: rbBooking.paymentStatus === 'paid' ? 'paid' : data.paymentType === 'full' ? 'paid' : 'deposit',
-          payment: {
-            subtotal,
-            deposit,
-            total,
-            paid,
-            balance: total - paid
-          },
-          deliveryAddress: data.deliveryAddress,
-          addons: [],
-          notes: {
-            customer: data.customerNotes,
-            internal: data.internalNotes
-          },
-          timeline: [
-            {
-              id: '1',
-              event: 'created',
-              timestamp: rbBooking.createdAt || new Date().toISOString(),
-              description: 'Booking created in rb-payload'
-            }
-          ],
-          createdAt: rbBooking.createdAt || new Date().toISOString(),
-          updatedAt: rbBooking.updatedAt || new Date().toISOString()
-        }
-
-        bookings.value.unshift(newBooking)
-
-        toast.add({
-          title: 'Booking Created',
-          description: `${newBooking.bookingNumber} has been created successfully`,
-          color: 'green'
-        })
-
-        return { success: true, data: newBooking }
-      } catch (rbError: any) {
-        console.error('rb-payload booking creation failed:', rbError)
-        throw rbError
+          phone: data.customer.phone || '',
+          avatar: undefined
+        },
+        item: {
+          id: data.itemId,
+          name: data.itemName || 'Rental Item',
+          category: 'Bounce Houses',
+          dailyRate
+        },
+        dates: {
+          start: data.startDate,
+          end: data.endDate,
+          delivery: format(addDays(parseISO(data.startDate), -1), 'yyyy-MM-dd'),
+          pickup: format(addDays(parseISO(data.endDate), 1), 'yyyy-MM-dd')
+        },
+        status: 'pending',
+        paymentStatus: data.paymentType === 'full' ? 'paid' : 'deposit',
+        payment: {
+          subtotal,
+          deposit,
+          total,
+          paid,
+          balance: total - paid
+        },
+        deliveryAddress: data.deliveryAddress,
+        addons: [],
+        notes: {
+          customer: data.customerNotes,
+          internal: data.internalNotes
+        },
+        timeline: [
+          {
+            id: '1',
+            event: 'created',
+            timestamp: typeof createdBooking.createdAt === 'string' ? createdBooking.createdAt : new Date().toISOString(),
+            description: 'Booking created'
+          }
+        ],
+        createdAt: typeof createdBooking.createdAt === 'string' ? createdBooking.createdAt : new Date().toISOString(),
+        updatedAt: typeof createdBooking.updatedAt === 'string' ? createdBooking.updatedAt : new Date().toISOString()
       }
-    } catch (err: any) {
-      error.value = err.message || 'Failed to create booking'
+
+      bookings.value.unshift(newBooking)
+
+      toast.add({
+        title: 'Booking Created',
+        description: `${newBooking.bookingNumber} has been created successfully`,
+        color: 'success'
+      })
+
+      return { success: true, data: newBooking }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create booking'
+      console.error('Booking creation failed:', err)
+      error.value = errorMessage
       toast.add({
         title: 'Error',
         description: error.value,
-        color: 'red'
+        color: 'error'
       })
       return { success: false, error: error.value }
     } finally {
@@ -419,12 +609,13 @@ export const useBookings = () => {
     }
   }
 
-  // Update booking status via rb-payload
+  // Update booking status via local Payload
   const updateStatus = async (id: string, status: Booking['status']) => {
     const numericId = extractNumericId(id)
     try {
-      await $fetch(`/booking/bookings/${numericId}`, {
+      await $fetch(`/api/bookings/${numericId}`, {
         method: 'PATCH',
+        credentials: 'include',
         body: { status }
       })
 
@@ -447,24 +638,28 @@ export const useBookings = () => {
       })
 
       return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update status'
       console.error('Failed to update booking status:', err)
       toast.add({
         title: 'Error',
         description: 'Failed to update status',
         color: 'error'
       })
-      return { success: false, error: err.message }
+      return { success: false, error: errorMessage }
     }
   }
 
-  // Update payment status via rb-payload
+  // Update payment status via local Payload
   const updatePaymentStatus = async (id: string, paymentStatus: Booking['paymentStatus']) => {
     const numericId = extractNumericId(id)
+    // Map local paymentStatus to Payload format
+    const payloadStatus = paymentStatus === 'paid' ? 'paid_full' : paymentStatus === 'deposit' ? 'deposit_paid' : paymentStatus
     try {
-      await $fetch(`/booking/bookings/${numericId}`, {
+      await $fetch(`/api/bookings/${numericId}`, {
         method: 'PATCH',
-        body: { paymentStatus }
+        credentials: 'include',
+        body: { paymentStatus: payloadStatus }
       })
 
       const booking = bookings.value.find(b => b.id === id)
@@ -486,62 +681,74 @@ export const useBookings = () => {
       })
 
       return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update payment status'
       console.error('Failed to update payment status:', err)
       toast.add({
         title: 'Error',
         description: 'Failed to update payment status',
         color: 'error'
       })
-      return { success: false, error: err.message }
+      return { success: false, error: errorMessage }
     }
   }
 
-  // Update booking via rb-payload
+  // Update booking via local Payload
   const updateBooking = async (id: string, updates: Partial<{
     startDate: string
     endDate: string
+    deliveryTime: string | null
+    pickupTime: string | null
     status: Booking['status']
     paymentStatus: Booking['paymentStatus']
-    notes: { customer?: string; internal?: string }
+    notes: { customer?: string, internal?: string }
     deliveryAddress: Booking['deliveryAddress']
-    customerInfo: { name: string; email: string; phone: string }
+    customerInfo: { name: string, email: string, phone: string }
   }>) => {
     const numericId = extractNumericId(id)
     try {
-      // Prepare update payload for rb-payload
-      const updatePayload: any = {}
+      // Prepare update payload for local Payload
+      const updatePayload: Record<string, unknown> = {}
 
       if (updates.startDate) {
-        updatePayload.startTime = new Date(updates.startDate).toISOString()
+        updatePayload.startDate = new Date(updates.startDate).toISOString()
       }
       if (updates.endDate) {
-        updatePayload.endTime = new Date(updates.endDate).toISOString()
+        updatePayload.endDate = new Date(updates.endDate).toISOString()
+      }
+      // Handle delivery and pickup times
+      if ('deliveryTime' in updates) {
+        updatePayload.deliveryTime = updates.deliveryTime || null
+      }
+      if ('pickupTime' in updates) {
+        updatePayload.pickupTime = updates.pickupTime || null
       }
       if (updates.status) {
         updatePayload.status = updates.status
       }
       if (updates.paymentStatus) {
-        updatePayload.paymentStatus = updates.paymentStatus
+        // Map to local Payload format
+        updatePayload.paymentStatus = updates.paymentStatus === 'paid' ? 'paid_full' : updates.paymentStatus === 'deposit' ? 'deposit_paid' : updates.paymentStatus
       }
       if (updates.notes) {
-        const notesArray = [updates.notes.customer, updates.notes.internal].filter(Boolean)
-        updatePayload.notes = notesArray.join('\n\n')
+        if (updates.notes.customer) updatePayload.notes = updates.notes.customer
+        if (updates.notes.internal) updatePayload.internalNotes = updates.notes.internal
       }
 
-      // Store delivery address and customer updates in metadata
-      if (updates.deliveryAddress || updates.customerInfo) {
-        updatePayload.metadata = {}
-        if (updates.deliveryAddress) {
-          updatePayload.metadata.deliveryAddress = updates.deliveryAddress
-        }
-        if (updates.customerInfo) {
-          updatePayload.metadata.customerUpdate = updates.customerInfo
+      // Update delivery address
+      if (updates.deliveryAddress) {
+        updatePayload.deliveryAddress = {
+          street: updates.deliveryAddress.street,
+          city: updates.deliveryAddress.city,
+          state: updates.deliveryAddress.state,
+          zipCode: updates.deliveryAddress.zip,
+          specialInstructions: updates.deliveryAddress.instructions
         }
       }
 
-      await $fetch(`/booking/bookings/${numericId}`, {
+      await $fetch(`/api/bookings/${numericId}`, {
         method: 'PATCH',
+        credentials: 'include',
         body: updatePayload
       })
 
@@ -550,6 +757,8 @@ export const useBookings = () => {
       if (booking) {
         if (updates.startDate) booking.dates.start = updates.startDate
         if (updates.endDate) booking.dates.end = updates.endDate
+        if ('deliveryTime' in updates) booking.dates.deliveryTime = updates.deliveryTime || undefined
+        if ('pickupTime' in updates) booking.dates.pickupTime = updates.pickupTime || undefined
         if (updates.status) booking.status = updates.status
         if (updates.paymentStatus) booking.paymentStatus = updates.paymentStatus
         if (updates.notes) {
@@ -580,26 +789,28 @@ export const useBookings = () => {
       })
 
       return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update booking'
       console.error('Failed to update booking:', err)
       toast.add({
         title: 'Error',
         description: 'Failed to update booking',
         color: 'error'
       })
-      return { success: false, error: err.message }
+      return { success: false, error: errorMessage }
     }
   }
 
-  // Cancel booking via rb-payload
+  // Cancel booking via local Payload
   const cancelBooking = async (id: string, reason?: string) => {
     const numericId = extractNumericId(id)
     try {
-      await $fetch(`/booking/bookings/${numericId}`, {
+      await $fetch(`/api/bookings/${numericId}`, {
         method: 'PATCH',
+        credentials: 'include',
         body: {
           status: 'cancelled',
-          notes: reason ? `Cancelled: ${reason}` : undefined
+          internalNotes: reason ? `Cancelled: ${reason}` : undefined
         }
       })
 
@@ -622,23 +833,25 @@ export const useBookings = () => {
       })
 
       return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to cancel booking'
       console.error('Failed to cancel booking:', err)
       toast.add({
         title: 'Error',
         description: 'Failed to cancel booking',
         color: 'error'
       })
-      return { success: false, error: err.message }
+      return { success: false, error: errorMessage }
     }
   }
 
-  // Delete booking via rb-payload
+  // Delete booking via local Payload
   const deleteBooking = async (id: string) => {
     const numericId = extractNumericId(id)
     try {
-      await $fetch(`/booking/bookings/${numericId}`, {
-        method: 'DELETE'
+      await $fetch(`/api/bookings/${numericId}`, {
+        method: 'DELETE',
+        credentials: 'include'
       })
 
       const index = bookings.value.findIndex(b => b.id === id)
@@ -653,24 +866,26 @@ export const useBookings = () => {
       })
 
       return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete booking'
       console.error('Failed to delete booking:', err)
       toast.add({
         title: 'Error',
         description: 'Failed to delete booking',
         color: 'error'
       })
-      return { success: false, error: err.message }
+      return { success: false, error: errorMessage }
     }
   }
 
-  // Bulk update status via rb-payload
+  // Bulk update status via local Payload
   const bulkUpdateStatus = async (ids: string[], status: Booking['status']) => {
     try {
-      // Update each booking in rb-payload
+      // Update each booking in local Payload
       const updatePromises = ids.map(id =>
-        $fetch(`/booking/bookings/${id}`, {
+        $fetch(`/api/bookings/${extractNumericId(id)}`, {
           method: 'PATCH',
+          credentials: 'include',
           body: { status }
         })
       )
@@ -678,7 +893,7 @@ export const useBookings = () => {
       await Promise.all(updatePromises)
 
       // Update local state
-      ids.forEach(id => {
+      ids.forEach((id) => {
         const booking = bookings.value.find(b => b.id === id)
         if (booking) {
           booking.status = status
@@ -699,14 +914,15 @@ export const useBookings = () => {
       })
 
       return { success: true }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to bulk update bookings'
       console.error('Failed to bulk update bookings:', err)
       toast.add({
         title: 'Error',
         description: 'Failed to update bookings',
         color: 'error'
       })
-      return { success: false, error: err.message }
+      return { success: false, error: errorMessage }
     }
   }
 
@@ -718,9 +934,9 @@ export const useBookings = () => {
     if (filters.value.search) {
       const search = filters.value.search.toLowerCase()
       filtered = filtered.filter(b =>
-        b.bookingNumber.toLowerCase().includes(search) ||
-        b.customer.name.toLowerCase().includes(search) ||
-        b.customer.email.toLowerCase().includes(search)
+        b.bookingNumber.toLowerCase().includes(search)
+        || b.customer.name.toLowerCase().includes(search)
+        || b.customer.email.toLowerCase().includes(search)
       )
     }
 
@@ -737,7 +953,7 @@ export const useBookings = () => {
     // Date range filter
     if (filters.value.dateRange) {
       const { start, end } = filters.value.dateRange
-      filtered = filtered.filter(b => {
+      filtered = filtered.filter((b) => {
         const bookingStart = parseISO(b.dates.start)
         const rangeStart = parseISO(start)
         const rangeEnd = parseISO(end)
@@ -753,23 +969,32 @@ export const useBookings = () => {
     return filtered
   })
 
-  // Fetch bookings for a specific customer
+  // Fetch bookings for a specific customer from local Payload
   const fetchCustomerBookings = async (customerId: string) => {
     isLoading.value = true
     error.value = null
 
     try {
-      // Fetch all bookings first
-      const response = await $fetch<{ success: boolean; bookings: any[]; totalDocs: number }>('/booking/bookings')
+      // Fetch bookings filtered by customer
+      const response = await $fetch<{ docs: Record<string, unknown>[], totalDocs: number }>('/api/bookings', {
+        credentials: 'include',
+        params: {
+          where: {
+            customerId: { equals: customerId }
+          },
+          depth: 2,
+          limit: 100
+        }
+      })
 
-      // Transform and filter by customer
-      const allBookings = (response.bookings || []).map(transformRbPayloadBooking)
-      const customerBookings = allBookings.filter(booking => booking.customer.id === customerId)
+      // Transform to local format
+      const customerBookings = (response.docs || []).map(transformLocalPayloadBooking)
 
       return { success: true, data: customerBookings }
-    } catch (err: any) {
-      console.error('Failed to fetch customer bookings from rb-payload:', err.message)
-      error.value = err.message || 'Failed to fetch bookings'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch bookings'
+      console.error('Failed to fetch customer bookings from local Payload:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value, data: [] }
     } finally {
       isLoading.value = false

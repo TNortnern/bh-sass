@@ -1,9 +1,5 @@
 <script setup lang="ts">
-const colorMode = useColorMode()
-
-const toggleColorMode = () => {
-  colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
-}
+// Layout for default pages
 </script>
 
 <template>

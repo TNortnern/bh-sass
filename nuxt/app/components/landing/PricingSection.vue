@@ -80,7 +80,10 @@ function getCurrentPrice(plan: PricingPlan): string {
 </script>
 
 <template>
-  <section id="pricing" class="relative py-24 bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900">
+  <section
+    id="pricing"
+    class="relative py-24 bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900"
+  >
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
       <!-- Header -->
       <div class="text-center mb-16">
@@ -125,7 +128,7 @@ function getCurrentPrice(plan: PricingPlan): string {
       <!-- Pricing Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
         <div
-          v-for="(plan, index) in plans"
+          v-for="plan in plans"
           :key="plan.name"
           class="relative group"
           :class="plan.highlighted ? 'md:-mt-4 md:mb-4' : ''"
@@ -169,7 +172,10 @@ function getCurrentPrice(plan: PricingPlan): string {
                   {{ plan.price === '$0' ? '' : '/month' }}
                 </span>
               </div>
-              <p v-if="billingCycle === 'annual' && plan.priceAnnual && plan.price !== '$0'" class="text-sm text-gray-500 dark:text-gray-500 mt-1">
+              <p
+                v-if="billingCycle === 'annual' && plan.priceAnnual && plan.price !== '$0'"
+                class="text-sm text-gray-500 dark:text-gray-500 mt-1"
+              >
                 Billed annually ({{ plan.price }}/mo if billed monthly)
               </p>
             </div>
@@ -218,7 +224,10 @@ function getCurrentPrice(plan: PricingPlan): string {
         </p>
         <p class="text-sm text-gray-500 dark:text-gray-500">
           Need a custom plan for your enterprise?
-          <a href="#contact" class="text-orange-600 hover:text-orange-700 dark:text-orange-500 dark:hover:text-orange-400 font-medium underline">
+          <a
+            href="#contact"
+            class="text-orange-600 hover:text-orange-700 dark:text-orange-500 dark:hover:text-orange-400 font-medium underline"
+          >
             Contact our sales team
           </a>
         </p>

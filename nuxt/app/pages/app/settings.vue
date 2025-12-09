@@ -3,11 +3,18 @@
     <!-- Header -->
     <div class="px-6 lg:px-12 pt-8 lg:pt-10 pb-6 lg:pb-8 border-b border-gray-200 dark:border-[#1a1a1a] bg-gradient-to-b from-gray-100 to-gray-50 dark:from-[#0f0f0f] dark:to-[#0a0a0a] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 lg:gap-0">
       <div class="flex-1">
-        <h1 class="text-3xl lg:text-4xl font-bold tracking-tight mb-2 text-gray-900 dark:text-white">Settings</h1>
-        <p class="text-sm lg:text-base text-gray-600 dark:text-[#888] tracking-wide">Manage your account and application preferences</p>
+        <h1 class="text-3xl lg:text-4xl font-bold tracking-tight mb-2 text-gray-900 dark:text-white">
+          Settings
+        </h1>
+        <p class="text-sm lg:text-base text-gray-600 dark:text-[#888] tracking-wide">
+          Manage your account and application preferences
+        </p>
       </div>
-      <div v-if="hasUnsavedChanges" class="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-500/30 rounded-lg text-amber-600 dark:text-amber-400 text-sm font-medium">
-        <div class="w-2 h-2 bg-amber-600 dark:bg-amber-400 rounded-full animate-pulse"></div>
+      <div
+        v-if="hasUnsavedChanges"
+        class="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-500/30 rounded-lg text-amber-600 dark:text-amber-400 text-sm font-medium"
+      >
+        <div class="w-2 h-2 bg-amber-600 dark:bg-amber-400 rounded-full animate-pulse" />
         <span>Unsaved changes</span>
       </div>
     </div>
@@ -24,19 +31,28 @@
           active-class="!bg-amber-100 dark:!bg-amber-500/8 !border-amber-200 dark:!border-amber-500/20 !text-amber-600 dark:!text-amber-400 before:!scale-y-100"
         >
           <div class="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-white/[0.03] rounded-lg border border-gray-200 dark:border-white/[0.05] flex-shrink-0 transition-all duration-200">
-            <UIcon :name="tab.icon" class="w-5 h-5" />
+            <UIcon
+              :name="tab.icon"
+              class="w-5 h-5"
+            />
           </div>
           <div class="flex-1 flex flex-col gap-0.5 min-w-0">
             <span class="text-[15px] font-semibold tracking-tight">{{ tab.label }}</span>
             <span class="text-[13px] text-gray-500 dark:text-[#666] leading-snug transition-colors duration-200">{{ tab.description }}</span>
           </div>
           <div class="flex items-center justify-center opacity-0 -translate-x-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0">
-            <UIcon name="i-heroicons-chevron-right" class="w-4 h-4" />
+            <UIcon
+              name="i-heroicons-chevron-right"
+              class="w-4 h-4"
+            />
           </div>
         </NuxtLink>
 
         <!-- Grid pattern overlay -->
-        <div class="absolute top-0 left-0 right-0 bottom-0 pointer-events-none opacity-50" style="background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.015) 0px, transparent 1px, transparent 40px, rgba(0,0,0,0.015) 41px), repeating-linear-gradient(90deg, rgba(0,0,0,0.015) 0px, transparent 1px, transparent 40px, rgba(0,0,0,0.015) 41px);"></div>
+        <div
+          class="absolute top-0 left-0 right-0 bottom-0 pointer-events-none opacity-50"
+          style="background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.015) 0px, transparent 1px, transparent 40px, rgba(0,0,0,0.015) 41px), repeating-linear-gradient(90deg, rgba(0,0,0,0.015) 0px, transparent 1px, transparent 40px, rgba(0,0,0,0.015) 41px);"
+        />
       </nav>
 
       <!-- Content Area -->
@@ -61,7 +77,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'dashboard',
+  layout: 'dashboard'
   // Remove middleware from parent - let child pages handle their own auth
 })
 
@@ -96,68 +112,68 @@ const tabs = [
     label: 'Profile',
     description: 'Business details and contact info',
     icon: 'i-heroicons-building-storefront',
-    to: '/app/settings/profile',
+    to: '/app/settings/profile'
   },
   {
     label: 'Branding',
     description: 'Logo, colors, and themes',
     icon: 'i-heroicons-paint-brush',
-    to: '/app/settings/branding',
+    to: '/app/settings/branding'
   },
   {
     label: 'Booking',
     description: 'Rental policies and requirements',
     icon: 'i-heroicons-calendar-days',
-    to: '/app/settings/booking',
+    to: '/app/settings/booking'
   },
   {
     label: 'Payments',
     description: 'Stripe and payment settings',
     icon: 'i-heroicons-credit-card',
-    to: '/app/settings/payments',
+    to: '/app/settings/payments'
   },
   {
     label: 'Team',
     description: 'Manage team members and roles',
     icon: 'i-heroicons-user-group',
-    to: '/app/settings/team',
+    to: '/app/settings/team'
   },
   {
     label: 'Notifications',
     description: 'Email and alert preferences',
     icon: 'i-heroicons-bell',
-    to: '/app/settings/notifications',
+    to: '/app/settings/notifications'
   },
   {
     label: 'Email Templates',
     description: 'Preview and test email templates',
     icon: 'i-heroicons-envelope',
-    to: '/app/settings/emails',
+    to: '/app/settings/emails'
   },
   {
     label: 'API Keys',
     description: 'API access and integrations',
     icon: 'i-heroicons-key',
-    to: '/app/settings/api',
+    to: '/app/settings/api'
   },
   {
     label: 'Webhooks',
     description: 'Event webhooks and delivery logs',
     icon: 'i-heroicons-arrow-path',
-    to: '/app/settings/webhooks',
+    to: '/app/settings/webhooks'
   },
   {
     label: 'Security',
     description: 'Password, sessions, and 2FA',
     icon: 'i-heroicons-shield-exclamation',
-    to: '/app/settings/security',
+    to: '/app/settings/security'
   },
   {
     label: 'Billing',
     description: 'Plan, invoices, and subscription',
     icon: 'i-heroicons-banknotes',
-    to: '/app/settings/billing',
-  },
+    to: '/app/settings/billing'
+  }
 ]
 
 // Load settings on mount - ensure user is loaded first

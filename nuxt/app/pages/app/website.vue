@@ -3,10 +3,17 @@
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Your Website</h1>
-        <p class="text-base text-gray-600 dark:text-[#888] mt-1">Create a professional online presence for your rental business</p>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+          Your Website
+        </h1>
+        <p class="text-base text-gray-600 dark:text-[#888] mt-1">
+          Create a professional online presence for your rental business
+        </p>
       </div>
-      <div v-if="websiteConfig.enabled" class="flex items-center gap-3">
+      <div
+        v-if="websiteConfig.enabled"
+        class="flex items-center gap-3"
+      >
         <UButton
           v-if="tenantSlug"
           color="neutral"
@@ -22,8 +29,8 @@
           color="primary"
           icon="i-lucide-save"
           :loading="saving"
-          @click="saveWebsite"
           class="bg-gradient-to-br from-amber-400 to-amber-500 border-none text-black font-semibold"
+          @click="saveWebsite"
         >
           Save Changes
         </UButton>
@@ -31,26 +38,34 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="flex flex-col items-center justify-center py-24 gap-4">
-      <div class="w-8 h-8 border-[3px] border-amber-100 dark:border-amber-500/10 border-t-amber-500 dark:border-t-amber-400 rounded-full animate-spin"></div>
-      <p class="text-gray-600 dark:text-[#888]">Loading...</p>
+    <div
+      v-if="loading"
+      class="flex flex-col items-center justify-center py-24 gap-4"
+    >
+      <div class="w-8 h-8 border-[3px] border-amber-100 dark:border-amber-500/10 border-t-amber-500 dark:border-t-amber-400 rounded-full animate-spin" />
+      <p class="text-gray-600 dark:text-[#888]">
+        Loading...
+      </p>
     </div>
 
     <!-- Website Disabled State - Show Enable CTA -->
-    <div v-else-if="!websiteConfig.enabled" class="relative">
+    <div
+      v-else-if="!websiteConfig.enabled"
+      class="relative"
+    >
       <!-- Hero Card -->
       <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-white/10">
         <!-- Background Pattern -->
         <div class="absolute inset-0 opacity-30">
-          <div class="absolute top-0 right-0 w-96 h-96 bg-amber-500/20 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-          <div class="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/20 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
+          <div class="absolute top-0 right-0 w-96 h-96 bg-amber-500/20 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
+          <div class="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/20 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
         </div>
 
         <div class="relative px-8 py-16 md:px-16 md:py-20">
           <div class="max-w-2xl">
             <!-- Badge -->
             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 mb-6">
-              <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
               <span class="text-sm font-medium text-amber-400">Website Builder</span>
             </div>
 
@@ -68,25 +83,37 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                  <UIcon name="i-lucide-check" class="w-4 h-4 text-emerald-400" />
+                  <UIcon
+                    name="i-lucide-check"
+                    class="w-4 h-4 text-emerald-400"
+                  />
                 </div>
                 <span class="text-gray-300">Showcase your inventory</span>
               </div>
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                  <UIcon name="i-lucide-check" class="w-4 h-4 text-emerald-400" />
+                  <UIcon
+                    name="i-lucide-check"
+                    class="w-4 h-4 text-emerald-400"
+                  />
                 </div>
                 <span class="text-gray-300">Accept online bookings</span>
               </div>
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                  <UIcon name="i-lucide-check" class="w-4 h-4 text-emerald-400" />
+                  <UIcon
+                    name="i-lucide-check"
+                    class="w-4 h-4 text-emerald-400"
+                  />
                 </div>
                 <span class="text-gray-300">Mobile-friendly design</span>
               </div>
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                  <UIcon name="i-lucide-check" class="w-4 h-4 text-emerald-400" />
+                  <UIcon
+                    name="i-lucide-check"
+                    class="w-4 h-4 text-emerald-400"
+                  />
                 </div>
                 <span class="text-gray-300">SEO optimized</span>
               </div>
@@ -94,12 +121,18 @@
 
             <!-- CTA Button -->
             <button
-              @click="enableWebsite"
               class="group relative inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-400 to-orange-500 rounded-xl text-black font-bold text-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_32px_-4px_rgba(251,191,36,0.5)] active:scale-[0.98]"
+              @click="enableWebsite"
             >
-              <UIcon name="i-lucide-rocket" class="w-5 h-5" />
+              <UIcon
+                name="i-lucide-rocket"
+                class="w-5 h-5"
+              />
               Enable Your Website
-              <UIcon name="i-lucide-arrow-right" class="w-5 h-5 transition-transform group-hover:translate-x-1" />
+              <UIcon
+                name="i-lucide-arrow-right"
+                class="w-5 h-5 transition-transform group-hover:translate-x-1"
+              />
             </button>
 
             <p class="mt-4 text-sm text-gray-500">
@@ -115,9 +148,9 @@
             <div class="bg-gray-800 rounded-xl border border-white/10 shadow-2xl overflow-hidden">
               <div class="flex items-center gap-2 px-4 py-3 bg-gray-900/50 border-b border-white/5">
                 <div class="flex gap-1.5">
-                  <div class="w-2.5 h-2.5 rounded-full bg-red-500/60"></div>
-                  <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/60"></div>
-                  <div class="w-2.5 h-2.5 rounded-full bg-green-500/60"></div>
+                  <div class="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                  <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                  <div class="w-2.5 h-2.5 rounded-full bg-green-500/60" />
                 </div>
                 <div class="flex-1 mx-4">
                   <div class="bg-gray-700/50 rounded px-3 py-1 text-xs text-gray-400 text-center truncate">
@@ -127,30 +160,47 @@
               </div>
               <div class="aspect-[4/3] bg-gradient-to-br from-orange-600 to-pink-600 p-4 flex items-center justify-center">
                 <div class="text-center text-white">
-                  <UIcon name="i-lucide-tent" class="w-12 h-12 mx-auto mb-2 opacity-80" />
-                  <p class="font-bold">Your Website</p>
-                  <p class="text-xs opacity-70">Coming Soon</p>
+                  <UIcon
+                    name="i-lucide-tent"
+                    class="w-12 h-12 mx-auto mb-2 opacity-80"
+                  />
+                  <p class="font-bold">
+                    Your Website
+                  </p>
+                  <p class="text-xs opacity-70">
+                    Coming Soon
+                  </p>
                 </div>
               </div>
             </div>
             <!-- Decorative elements -->
-            <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-amber-500/20 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-amber-500/20 rounded-full blur-2xl" />
           </div>
         </div>
       </div>
     </div>
 
     <!-- Website Enabled - Show Configuration -->
-    <div v-else class="space-y-6">
+    <div
+      v-else
+      class="space-y-6"
+    >
       <!-- Status Banner -->
       <div class="flex items-center justify-between p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-            <UIcon name="i-lucide-globe" class="w-5 h-5 text-emerald-400" />
+            <UIcon
+              name="i-lucide-globe"
+              class="w-5 h-5 text-emerald-400"
+            />
           </div>
           <div>
-            <p class="font-semibold text-emerald-400">Your website is live!</p>
-            <p class="text-sm text-gray-400">Customers can view and book from your site</p>
+            <p class="font-semibold text-emerald-400">
+              Your website is live!
+            </p>
+            <p class="text-sm text-gray-400">
+              Customers can view and book from your site
+            </p>
           </div>
         </div>
         <UButton
@@ -171,13 +221,19 @@
           class="group flex items-center gap-4 p-5 rounded-xl bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] hover:border-amber-300 dark:hover:border-amber-500/30 transition-all"
         >
           <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0">
-            <UIcon name="i-lucide-globe" class="w-6 h-6 text-white" />
+            <UIcon
+              name="i-lucide-globe"
+              class="w-6 h-6 text-white"
+            />
           </div>
           <div class="flex-1 min-w-0">
             <p class="font-semibold text-gray-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Public Website</p>
             <p class="text-sm text-gray-500 dark:text-gray-400 truncate">/site/{{ tenantSlug }}</p>
           </div>
-          <UIcon name="i-lucide-external-link" class="w-5 h-5 text-gray-400 group-hover:text-amber-500 transition-colors" />
+          <UIcon
+            name="i-lucide-external-link"
+            class="w-5 h-5 text-gray-400 group-hover:text-amber-500 transition-colors"
+          />
         </a>
 
         <a
@@ -186,13 +242,19 @@
           class="group flex items-center gap-4 p-5 rounded-xl bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] hover:border-amber-300 dark:hover:border-amber-500/30 transition-all"
         >
           <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
-            <UIcon name="i-lucide-calendar" class="w-6 h-6 text-white" />
+            <UIcon
+              name="i-lucide-calendar"
+              class="w-6 h-6 text-white"
+            />
           </div>
           <div class="flex-1 min-w-0">
             <p class="font-semibold text-gray-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Booking Page</p>
             <p class="text-sm text-gray-500 dark:text-gray-400 truncate">/book/{{ tenantSlug }}</p>
           </div>
-          <UIcon name="i-lucide-external-link" class="w-5 h-5 text-gray-400 group-hover:text-amber-500 transition-colors" />
+          <UIcon
+            name="i-lucide-external-link"
+            class="w-5 h-5 text-gray-400 group-hover:text-amber-500 transition-colors"
+          />
         </a>
       </div>
 
@@ -203,11 +265,18 @@
           <!-- Hero Section -->
           <div class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-white/[0.06]">
-              <h3 class="font-semibold text-gray-900 dark:text-white">Hero Section</h3>
-              <p class="text-sm text-gray-500 dark:text-[#666]">The first thing visitors see</p>
+              <h3 class="font-semibold text-gray-900 dark:text-white">
+                Hero Section
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-[#666]">
+                The first thing visitors see
+              </p>
             </div>
             <div class="p-6 space-y-5">
-              <UFormGroup label="Headline" required>
+              <UFormGroup
+                label="Headline"
+                required
+              >
                 <UInput
                   v-model="websiteConfig.heroTitle"
                   size="lg"
@@ -241,8 +310,12 @@
           <!-- About Section -->
           <div class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-white/[0.06]">
-              <h3 class="font-semibold text-gray-900 dark:text-white">About Your Business</h3>
-              <p class="text-sm text-gray-500 dark:text-[#666]">Tell customers what makes you special</p>
+              <h3 class="font-semibold text-gray-900 dark:text-white">
+                About Your Business
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-[#666]">
+                Tell customers what makes you special
+              </p>
             </div>
             <div class="p-6 space-y-5">
               <UFormGroup label="About Content">
@@ -261,18 +334,33 @@
           <div class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-white/[0.06] flex items-center justify-between">
               <div>
-                <h3 class="font-semibold text-gray-900 dark:text-white">Customer Testimonials</h3>
-                <p class="text-sm text-gray-500 dark:text-[#666]">Social proof builds trust</p>
+                <h3 class="font-semibold text-gray-900 dark:text-white">
+                  Customer Testimonials
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-[#666]">
+                  Social proof builds trust
+                </p>
               </div>
               <UToggle
                 v-model="websiteConfig.showTestimonials"
                 @change="markHasChanges"
               />
             </div>
-            <div v-if="websiteConfig.showTestimonials" class="p-6">
-              <div v-if="websiteConfig.testimonials.length === 0" class="text-center py-8">
-                <UIcon name="i-lucide-message-square-quote" class="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
-                <p class="text-gray-500 dark:text-gray-400 mb-4">No testimonials yet</p>
+            <div
+              v-if="websiteConfig.showTestimonials"
+              class="p-6"
+            >
+              <div
+                v-if="websiteConfig.testimonials.length === 0"
+                class="text-center py-8"
+              >
+                <UIcon
+                  name="i-lucide-message-square-quote"
+                  class="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3"
+                />
+                <p class="text-gray-500 dark:text-gray-400 mb-4">
+                  No testimonials yet
+                </p>
                 <UButton
                   variant="outline"
                   icon="i-lucide-plus"
@@ -281,18 +369,30 @@
                   Add Your First Testimonial
                 </UButton>
               </div>
-              <div v-else class="space-y-3">
+              <div
+                v-else
+                class="space-y-3"
+              >
                 <div
                   v-for="(testimonial, index) in websiteConfig.testimonials"
                   :key="index"
                   class="flex items-start gap-4 p-4 bg-gray-50 dark:bg-white/[0.02] rounded-lg"
                 >
                   <div class="flex-1">
-                    <p class="text-sm text-gray-700 dark:text-gray-300 italic mb-2">"{{ testimonial.quote }}"</p>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 italic mb-2">
+                      "{{ testimonial.quote }}"
+                    </p>
                     <div class="flex items-center gap-2">
-                      <p class="text-sm font-medium text-gray-900 dark:text-white">{{ testimonial.author }}</p>
+                      <p class="text-sm font-medium text-gray-900 dark:text-white">
+                        {{ testimonial.author }}
+                      </p>
                       <div class="flex gap-0.5">
-                        <UIcon v-for="i in testimonial.rating" :key="i" name="i-lucide-star" class="w-3 h-3 text-amber-500 fill-amber-500" />
+                        <UIcon
+                          v-for="i in testimonial.rating"
+                          :key="i"
+                          name="i-lucide-star"
+                          class="w-3 h-3 text-amber-500 fill-amber-500"
+                        />
                       </div>
                     </div>
                   </div>
@@ -300,7 +400,10 @@
                     class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                     @click="removeTestimonial(index)"
                   >
-                    <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+                    <UIcon
+                      name="i-lucide-trash-2"
+                      class="w-4 h-4"
+                    />
                   </button>
                 </div>
                 <UButton
@@ -322,16 +425,26 @@
           <!-- Display Options -->
           <div class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-white/[0.06]">
-              <h3 class="font-semibold text-gray-900 dark:text-white">Display Options</h3>
+              <h3 class="font-semibold text-gray-900 dark:text-white">
+                Display Options
+              </h3>
             </div>
             <div class="p-4 space-y-1">
               <label class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.02] cursor-pointer transition-colors">
                 <span class="text-sm text-gray-700 dark:text-gray-300">Show Services Grid</span>
-                <UToggle v-model="websiteConfig.showServices" size="sm" @change="markHasChanges" />
+                <UToggle
+                  v-model="websiteConfig.showServices"
+                  size="sm"
+                  @change="markHasChanges"
+                />
               </label>
               <label class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.02] cursor-pointer transition-colors">
                 <span class="text-sm text-gray-700 dark:text-gray-300">Show Photo Gallery</span>
-                <UToggle v-model="websiteConfig.showGallery" size="sm" @change="markHasChanges" />
+                <UToggle
+                  v-model="websiteConfig.showGallery"
+                  size="sm"
+                  @change="markHasChanges"
+                />
               </label>
             </div>
           </div>
@@ -339,11 +452,18 @@
           <!-- SEO Settings -->
           <div class="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.06] rounded-2xl overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-white/[0.06]">
-              <h3 class="font-semibold text-gray-900 dark:text-white">SEO Settings</h3>
-              <p class="text-sm text-gray-500 dark:text-[#666]">Help customers find you</p>
+              <h3 class="font-semibold text-gray-900 dark:text-white">
+                SEO Settings
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-[#666]">
+                Help customers find you
+              </p>
             </div>
             <div class="p-6 space-y-4">
-              <UFormGroup label="Page Title" help="Shows in browser tab & search results">
+              <UFormGroup
+                label="Page Title"
+                help="Shows in browser tab & search results"
+              >
                 <UInput
                   v-model="websiteConfig.seoTitle"
                   placeholder="Party Rentals | Your City"
@@ -352,7 +472,10 @@
                 />
               </UFormGroup>
 
-              <UFormGroup label="Description" help="Brief description for search engines">
+              <UFormGroup
+                label="Description"
+                help="Brief description for search engines"
+              >
                 <UTextarea
                   v-model="websiteConfig.seoDescription"
                   :rows="2"
@@ -372,11 +495,16 @@
       <template #content>
         <UCard>
           <template #header>
-            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Add Testimonial</h3>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+              Add Testimonial
+            </h3>
           </template>
 
           <div class="p-6 space-y-5">
-            <UFormGroup label="Customer Quote" required>
+            <UFormGroup
+              label="Customer Quote"
+              required
+            >
               <UTextarea
                 v-model="newTestimonial.quote"
                 :rows="3"
@@ -385,7 +513,10 @@
               />
             </UFormGroup>
 
-            <UFormGroup label="Customer Name" required>
+            <UFormGroup
+              label="Customer Name"
+              required
+            >
               <UInput
                 v-model="newTestimonial.author"
                 placeholder="John Smith"
@@ -413,7 +544,12 @@
 
           <template #footer>
             <div class="flex justify-end gap-3">
-              <UButton variant="ghost" @click="showAddTestimonialModal = false">Cancel</UButton>
+              <UButton
+                variant="ghost"
+                @click="showAddTestimonialModal = false"
+              >
+                Cancel
+              </UButton>
               <UButton
                 color="primary"
                 :disabled="!newTestimonial.quote || !newTestimonial.author"
@@ -434,9 +570,14 @@
           <template #header>
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center">
-                <UIcon name="i-lucide-alert-triangle" class="w-5 h-5 text-red-600 dark:text-red-400" />
+                <UIcon
+                  name="i-lucide-alert-triangle"
+                  class="w-5 h-5 text-red-600 dark:text-red-400"
+                />
               </div>
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Disable Website?</h3>
+              <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                Disable Website?
+              </h3>
             </div>
           </template>
 
@@ -451,8 +592,16 @@
 
           <template #footer>
             <div class="flex justify-end gap-3">
-              <UButton variant="ghost" @click="showDisableDialog = false">Cancel</UButton>
-              <UButton color="error" @click="disableWebsite">
+              <UButton
+                variant="ghost"
+                @click="showDisableDialog = false"
+              >
+                Cancel
+              </UButton>
+              <UButton
+                color="error"
+                @click="disableWebsite"
+              >
                 Disable Website
               </UButton>
             </div>
@@ -524,7 +673,7 @@ const websiteConfig = ref<WebsiteConfig>({
   galleryImages: [],
   seoTitle: '',
   seoDescription: '',
-  seoKeywords: '',
+  seoKeywords: ''
 })
 
 const originalConfig = ref<WebsiteConfig>({} as WebsiteConfig)
@@ -532,7 +681,7 @@ const originalConfig = ref<WebsiteConfig>({} as WebsiteConfig)
 const newTestimonial = ref<Testimonial>({
   quote: '',
   author: '',
-  rating: 5,
+  rating: 5
 })
 
 // Watch for changes
@@ -561,8 +710,9 @@ const loadWebsiteSettings = async () => {
       : currentUser.value?.tenantId
 
     if (tenantId) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const response = await $fetch<any>(`/v1/tenants/${tenantId}`, {
-        credentials: 'include',
+        credentials: 'include'
       })
 
       if (response?.website) {
@@ -574,7 +724,7 @@ const loadWebsiteSettings = async () => {
     console.error('Failed to load website settings:', error)
     toast.add({
       title: 'Failed to load website settings',
-      color: 'error',
+      color: 'error'
     })
   } finally {
     loading.value = false
@@ -587,7 +737,7 @@ const enableWebsite = async () => {
   toast.add({
     title: 'Website enabled!',
     description: 'Your website is now live. Customize it below.',
-    color: 'success',
+    color: 'success'
   })
 }
 
@@ -598,7 +748,7 @@ const disableWebsite = async () => {
   toast.add({
     title: 'Website disabled',
     description: 'Your website is no longer accessible.',
-    color: 'warning',
+    color: 'warning'
   })
 }
 
@@ -610,13 +760,13 @@ const saveWebsite = async () => {
     hasChanges.value = false
     toast.add({
       title: 'Changes saved',
-      color: 'success',
+      color: 'success'
     })
   } catch (error) {
     console.error('Failed to save website settings:', error)
     toast.add({
       title: 'Failed to save',
-      color: 'error',
+      color: 'error'
     })
   } finally {
     saving.value = false

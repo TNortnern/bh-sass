@@ -3,7 +3,10 @@
     <!-- Step Header -->
     <div class="text-center mb-8">
       <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-medium mb-4">
-        <Icon name="lucide:building" class="w-4 h-4" />
+        <Icon
+          name="lucide:building"
+          class="w-4 h-4"
+        />
         Step 1: Business Information
       </div>
       <h1 class="text-3xl sm:text-4xl font-bold text-white mb-3 tracking-tight">
@@ -16,10 +19,13 @@
 
     <!-- Form Card -->
     <div class="relative">
-      <div class="absolute -inset-2 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 rounded-2xl blur-xl"></div>
+      <div class="absolute -inset-2 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 rounded-2xl blur-xl" />
 
       <UCard class="relative bg-gray-900/90 backdrop-blur-xl border-gray-700/50">
-        <form @submit.prevent="handleNext" class="space-y-6">
+        <form
+          class="space-y-6"
+          @submit.prevent="handleNext"
+        >
           <!-- Business Name -->
           <UFormGroup
             label="Business Name"
@@ -98,12 +104,24 @@
           </UFormGroup>
 
           <!-- Auto-save indicator -->
-          <div v-if="isSaving" class="flex items-center gap-2 text-sm text-amber-400">
-            <Icon name="lucide:loader-circle" class="w-4 h-4 animate-spin" />
+          <div
+            v-if="isSaving"
+            class="flex items-center gap-2 text-sm text-amber-400"
+          >
+            <Icon
+              name="lucide:loader-circle"
+              class="w-4 h-4 animate-spin"
+            />
             Saving progress...
           </div>
-          <div v-else-if="savedRecently" class="flex items-center gap-2 text-sm text-green-400">
-            <Icon name="lucide:check-circle" class="w-4 h-4" />
+          <div
+            v-else-if="savedRecently"
+            class="flex items-center gap-2 text-sm text-green-400"
+          >
+            <Icon
+              name="lucide:check-circle"
+              class="w-4 h-4"
+            />
             Progress saved
           </div>
         </form>
@@ -116,11 +134,14 @@
         color="gray"
         variant="ghost"
         size="lg"
-        @click="handleBack"
         class="text-gray-400 hover:text-white"
+        @click="handleBack"
       >
         <template #leading>
-          <Icon name="lucide:arrow-left" class="w-5 h-5" />
+          <Icon
+            name="lucide:arrow-left"
+            class="w-5 h-5"
+          />
         </template>
         Back
       </UButton>
@@ -128,12 +149,15 @@
       <UButton
         size="lg"
         :disabled="!isFormValid"
-        @click="handleNext"
         class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all"
+        @click="handleNext"
       >
         Continue
         <template #trailing>
-          <Icon name="lucide:arrow-right" class="w-5 h-5" />
+          <Icon
+            name="lucide:arrow-right"
+            class="w-5 h-5"
+          />
         </template>
       </UButton>
     </div>
@@ -195,11 +219,13 @@ function slugify(text: string): string {
 const debouncedSave = useDebounceFn(() => {
   isSaving.value = true
 
-  // Update state
-  state.value.business.name = form.name
-  state.value.business.type = form.type
-  state.value.business.timezone = form.timezone
-  state.value.business.serviceArea = form.serviceArea
+  // Update state - use Object.assign to avoid readonly errors
+  Object.assign(state.value.business, {
+    name: form.name,
+    type: form.type,
+    timezone: form.timezone,
+    serviceArea: form.serviceArea
+  })
 
   saveProgress()
 
@@ -215,11 +241,13 @@ const debouncedSave = useDebounceFn(() => {
 const handleNext = () => {
   if (!isFormValid.value) return
 
-  // Save final state
-  state.value.business.name = form.name
-  state.value.business.type = form.type
-  state.value.business.timezone = form.timezone
-  state.value.business.serviceArea = form.serviceArea
+  // Save final state - use Object.assign to avoid readonly errors
+  Object.assign(state.value.business, {
+    name: form.name,
+    type: form.type,
+    timezone: form.timezone,
+    serviceArea: form.serviceArea
+  })
 
   saveProgress()
   nextStep()

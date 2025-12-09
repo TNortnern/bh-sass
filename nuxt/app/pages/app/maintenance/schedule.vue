@@ -5,7 +5,7 @@ definePageMeta({
   layout: 'dashboard'
 })
 
-const router = useRouter()
+// const router = useRouter()
 const toast = useToast()
 
 const {
@@ -22,7 +22,7 @@ const { currentUser } = useAuth()
 const getTenantId = (): string | number | null => {
   if (!currentUser.value?.tenantId) return null
   if (typeof currentUser.value.tenantId === 'object') {
-    return (currentUser.value.tenantId as any).id
+    return (currentUser.value.tenantId).id
   }
   return currentUser.value.tenantId
 }
@@ -36,6 +36,7 @@ onMounted(() => {
 // Modal state
 const isCreateModalOpen = ref(false)
 const isDeleteModalOpen = ref(false)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const selectedSchedule = ref<any>(null)
 
 // Form state
@@ -48,7 +49,7 @@ const form = reactive({
   reminderDaysBefore: 7,
   estimatedDuration: undefined as number | undefined,
   instructions: '',
-  isActive: true,
+  isActive: true
 })
 
 // Options
@@ -58,14 +59,14 @@ const frequencyItems = [
   { label: 'Monthly', value: 'monthly' },
   { label: 'Quarterly', value: 'quarterly' },
   { label: 'Annually', value: 'annually' },
-  { label: 'After X Rentals', value: 'after_x_rentals' },
+  { label: 'After X Rentals', value: 'after_x_rentals' }
 ]
 
 const maintenanceTypeItems = [
   { label: 'Inspection', value: 'inspection' },
   { label: 'Cleaning', value: 'cleaning' },
   { label: 'Repair', value: 'repair' },
-  { label: 'Certification', value: 'certification' },
+  { label: 'Certification', value: 'certification' }
 ]
 
 const rentalItemsSelect = computed(() => {
@@ -76,6 +77,7 @@ const rentalItemsSelect = computed(() => {
 })
 
 // Format frequency display
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const formatFrequency = (schedule: any) => {
   if (schedule.frequency === 'after_x_rentals') {
     return `After ${schedule.frequencyValue} rental${schedule.frequencyValue !== 1 ? 's' : ''}`
@@ -141,8 +143,8 @@ const handleCreateSchedule = async () => {
   const { createSchedule } = useMaintenance()
 
   const result = await createSchedule({
-    tenantId: Number(tenantId),
-    rentalItem: Number(form.rentalItem),
+    tenantId: String(tenantId),
+    rentalItem: String(form.rentalItem),
     name: form.name,
     frequency: form.frequency,
     frequencyValue: form.frequencyValue,
@@ -150,7 +152,7 @@ const handleCreateSchedule = async () => {
     reminderDaysBefore: form.reminderDaysBefore,
     estimatedDuration: form.estimatedDuration,
     instructions: form.instructions,
-    isActive: form.isActive,
+    isActive: form.isActive
   })
 
   if (result.success) {
@@ -170,7 +172,7 @@ const handleCreateSchedule = async () => {
       reminderDaysBefore: 7,
       estimatedDuration: undefined,
       instructions: '',
-      isActive: true,
+      isActive: true
     })
     fetchSchedules()
   } else {
@@ -183,6 +185,7 @@ const handleCreateSchedule = async () => {
 }
 
 // Handle delete schedule
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const openDeleteModal = (schedule: any) => {
   selectedSchedule.value = schedule
   isDeleteModalOpen.value = true
@@ -212,6 +215,7 @@ const handleDeleteSchedule = async () => {
 }
 
 // Handle toggle active
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleToggleActive = async (schedule: any) => {
   const { updateSchedule } = useMaintenance()
 
@@ -241,8 +245,12 @@ const handleToggleActive = async (schedule: any) => {
     <!-- Page Header -->
     <div class="flex items-start justify-between gap-4 mb-8">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Maintenance Schedules</h1>
-        <p class="text-gray-600 dark:text-gray-400">Set up recurring maintenance schedules for your rental items</p>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+          Maintenance Schedules
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400">
+          Set up recurring maintenance schedules for your rental items
+        </p>
       </div>
       <div class="flex items-center gap-2">
         <UButton
@@ -263,15 +271,29 @@ const handleToggleActive = async (schedule: any) => {
     <div class="space-y-6">
       <!-- Active Schedules -->
       <div v-if="schedules.filter((s: any) => s.isActive).length > 0">
-        <h2 class="text-lg font-semibold mb-4">Active Schedules</h2>
+        <h2 class="text-lg font-semibold mb-4">
+          Active Schedules
+        </h2>
         <div class="space-y-3">
-          <UCard v-for="schedule in schedules.filter((s: any) => s.isActive)" :key="schedule.id">
+          <UCard
+            v-for="schedule in schedules.filter((s: any) => s.isActive)"
+            :key="schedule.id"
+          >
             <div class="flex items-center justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-3 mb-2">
-                  <UIcon :name="getTypeIcon(schedule.maintenanceType)" class="text-gray-400" />
-                  <h3 class="font-medium">{{ schedule.name }}</h3>
-                  <UBadge :label="schedule.maintenanceType" color="primary" variant="subtle" />
+                  <UIcon
+                    :name="getTypeIcon(schedule.maintenanceType)"
+                    class="text-gray-400"
+                  />
+                  <h3 class="font-medium">
+                    {{ schedule.name }}
+                  </h3>
+                  <UBadge
+                    :label="schedule.maintenanceType"
+                    color="primary"
+                    variant="subtle"
+                  />
                 </div>
                 <div class="flex items-center gap-4 text-sm text-gray-500">
                   <span>
@@ -313,15 +335,29 @@ const handleToggleActive = async (schedule: any) => {
 
       <!-- Inactive Schedules -->
       <div v-if="schedules.filter((s: any) => !s.isActive).length > 0">
-        <h2 class="text-lg font-semibold mb-4 text-gray-500">Inactive Schedules</h2>
+        <h2 class="text-lg font-semibold mb-4 text-gray-500">
+          Inactive Schedules
+        </h2>
         <div class="space-y-3 opacity-60">
-          <UCard v-for="schedule in schedules.filter((s: any) => !s.isActive)" :key="schedule.id">
+          <UCard
+            v-for="schedule in schedules.filter((s: any) => !s.isActive)"
+            :key="schedule.id"
+          >
             <div class="flex items-center justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-3 mb-2">
-                  <UIcon :name="getTypeIcon(schedule.maintenanceType)" class="text-gray-400" />
-                  <h3 class="font-medium">{{ schedule.name }}</h3>
-                  <UBadge label="inactive" color="neutral" variant="subtle" />
+                  <UIcon
+                    :name="getTypeIcon(schedule.maintenanceType)"
+                    class="text-gray-400"
+                  />
+                  <h3 class="font-medium">
+                    {{ schedule.name }}
+                  </h3>
+                  <UBadge
+                    label="inactive"
+                    color="neutral"
+                    variant="subtle"
+                  />
                 </div>
                 <div class="flex items-center gap-4 text-sm text-gray-500">
                   <span>
@@ -353,9 +389,17 @@ const handleToggleActive = async (schedule: any) => {
       </div>
 
       <!-- Empty State -->
-      <div v-if="!isLoading && schedules.length === 0" class="flex flex-col items-center justify-center py-16 text-gray-500">
-        <UIcon name="i-lucide-calendar" class="text-6xl mb-4 text-gray-300" />
-        <p class="text-lg font-medium">No Schedules Yet</p>
+      <div
+        v-if="!isLoading && schedules.length === 0"
+        class="flex flex-col items-center justify-center py-16 text-gray-500"
+      >
+        <UIcon
+          name="i-lucide-calendar"
+          class="text-6xl mb-4 text-gray-300"
+        />
+        <p class="text-lg font-medium">
+          No Schedules Yet
+        </p>
         <p class="text-sm mb-6 text-center max-w-sm">
           Create maintenance schedules to automatically track recurring maintenance tasks for your rental items.
         </p>
@@ -367,16 +411,31 @@ const handleToggleActive = async (schedule: any) => {
       </div>
 
       <!-- Loading State -->
-      <div v-if="isLoading" class="flex items-center justify-center py-12">
-        <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
+      <div
+        v-if="isLoading"
+        class="flex items-center justify-center py-12"
+      >
+        <UIcon
+          name="i-lucide-loader-circle"
+          class="animate-spin text-4xl text-gray-400"
+        />
       </div>
     </div>
 
     <!-- Create Schedule Modal -->
-    <UModal v-model:open="isCreateModalOpen" title="Create Maintenance Schedule">
+    <UModal
+      v-model:open="isCreateModalOpen"
+      title="Create Maintenance Schedule"
+    >
       <template #body>
-        <form @submit.prevent="handleCreateSchedule" class="space-y-4">
-          <UFormField label="Rental Item" required>
+        <form
+          class="space-y-4"
+          @submit.prevent="handleCreateSchedule"
+        >
+          <UFormField
+            label="Rental Item"
+            required
+          >
             <USelect
               v-model="form.rentalItem"
               :items="rentalItemsSelect"
@@ -385,7 +444,10 @@ const handleToggleActive = async (schedule: any) => {
             />
           </UFormField>
 
-          <UFormField label="Schedule Name" required>
+          <UFormField
+            label="Schedule Name"
+            required
+          >
             <UInput
               v-model="form.name"
               placeholder="e.g., Monthly Safety Inspection"
@@ -394,7 +456,10 @@ const handleToggleActive = async (schedule: any) => {
           </UFormField>
 
           <div class="grid grid-cols-2 gap-4">
-            <UFormField label="Maintenance Type" required>
+            <UFormField
+              label="Maintenance Type"
+              required
+            >
               <USelect
                 v-model="form.maintenanceType"
                 :items="maintenanceTypeItems"
@@ -402,7 +467,10 @@ const handleToggleActive = async (schedule: any) => {
               />
             </UFormField>
 
-            <UFormField label="Frequency" required>
+            <UFormField
+              label="Frequency"
+              required
+            >
               <USelect
                 v-model="form.frequency"
                 :items="frequencyItems"
@@ -456,7 +524,7 @@ const handleToggleActive = async (schedule: any) => {
                 v-model="form.isActive"
                 type="checkbox"
                 class="rounded border-gray-300"
-              />
+              >
               <span class="text-sm">Active</span>
             </div>
           </UFormField>
@@ -465,33 +533,60 @@ const handleToggleActive = async (schedule: any) => {
 
       <template #footer="{ close }">
         <div class="flex justify-end gap-2">
-          <UButton label="Cancel" color="neutral" variant="ghost" @click="close" />
-          <UButton label="Create Schedule" @click="handleCreateSchedule" />
+          <UButton
+            label="Cancel"
+            color="neutral"
+            variant="ghost"
+            @click="close"
+          />
+          <UButton
+            label="Create Schedule"
+            @click="handleCreateSchedule"
+          />
         </div>
       </template>
     </UModal>
 
     <!-- Delete Confirmation Modal -->
-    <UModal v-model:open="isDeleteModalOpen" title="Delete Schedule">
+    <UModal
+      v-model:open="isDeleteModalOpen"
+      title="Delete Schedule"
+    >
       <template #body>
         <div class="p-6">
           <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-              <UIcon name="i-lucide-trash-2" class="text-red-600 dark:text-red-400 text-xl" />
+              <UIcon
+                name="i-lucide-trash-2"
+                class="text-red-600 dark:text-red-400 text-xl"
+              />
             </div>
             <div>
-              <h3 class="text-lg font-semibold">Delete Maintenance Schedule</h3>
+              <h3 class="text-lg font-semibold">
+                Delete Maintenance Schedule
+              </h3>
             </div>
           </div>
           <p>Are you sure you want to delete the schedule <strong>{{ selectedSchedule?.name }}</strong>?</p>
-          <p class="text-sm text-gray-500 mt-2">This will not delete existing maintenance records, but future scheduled items will not be created.</p>
+          <p class="text-sm text-gray-500 mt-2">
+            This will not delete existing maintenance records, but future scheduled items will not be created.
+          </p>
         </div>
       </template>
 
       <template #footer="{ close }">
         <div class="flex justify-end gap-2">
-          <UButton label="Cancel" color="neutral" variant="ghost" @click="close" />
-          <UButton label="Delete" color="error" @click="handleDeleteSchedule" />
+          <UButton
+            label="Cancel"
+            color="neutral"
+            variant="ghost"
+            @click="close"
+          />
+          <UButton
+            label="Delete"
+            color="error"
+            @click="handleDeleteSchedule"
+          />
         </div>
       </template>
     </UModal>

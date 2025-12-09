@@ -1,15 +1,25 @@
 /**
  * Endpoint to send booking-related emails
  * Uses the emailService from lib/email
+ *
+ * Field mapping from Bookings collection:
+ * - customerId (relationship to customers)
+ * - rentalItemId (relationship to rental-items)
+ * - tenantId (relationship to tenants)
+ * - startDate, endDate (dates)
+ * - totalPrice (number)
+ * - deliveryAddress.street, .city, .state, .zipCode
  */
 
 import type { PayloadRequest } from 'payload'
 import { emailService } from '../lib/email'
+import { format, parseISO } from 'date-fns'
 
 export const sendBookingEmail = async (req: PayloadRequest) => {
   try {
     const { payload } = req
-    const { emailType, subject, customMessage, recipientEmail, recipientName } = req.data || {}
+    const body = await req.json?.() || {}
+    const { emailType, subject, customMessage, recipientEmail, recipientName } = body
 
     // Get booking ID from URL params
     const bookingId = req.routeParams?.id
@@ -47,8 +57,8 @@ export const sendBookingEmail = async (req: PayloadRequest) => {
       )
     }
 
-    // Get customer data
-    const customer = typeof booking.customer === 'object' ? booking.customer : null
+    // Get customer data - field is customerId in our schema
+    const customer = typeof booking.customerId === 'object' ? booking.customerId : null
     if (!customer) {
       return Response.json(
         { success: false, message: 'Customer not found for this booking' },
@@ -65,27 +75,33 @@ export const sendBookingEmail = async (req: PayloadRequest) => {
       )
     }
 
-    // Get item data
-    const item = typeof booking.rentalItem === 'object' ? booking.rentalItem : null
+    // Get item data - field is rentalItemId in our schema
+    const item = typeof booking.rentalItemId === 'object' ? booking.rentalItemId : null
+
+    // Format dates - field is startDate in our schema
+    const eventDate = booking.startDate ? format(parseISO(booking.startDate), 'MMMM d, yyyy') : 'TBD'
+    const eventTime = booking.startDate ? format(parseISO(booking.startDate), 'h:mm a') : 'TBD'
+
+    // Build location from deliveryAddress - note: zipCode not zip
+    const address = booking.deliveryAddress
+    const location = address
+      ? `${address.street || ''}, ${address.city || ''}, ${address.state || ''} ${address.zipCode || ''}`
+      : 'TBD'
+
+    // Generate a booking reference (use ID if no bookingNumber field)
+    const bookingRef = `BK-${String(booking.id).slice(-6).toUpperCase()}`
 
     // Prepare booking data for email templates
     const bookingData = {
       id: booking.id,
-      eventDate: booking.eventDate,
-      eventTime: booking.eventTime || 'TBD',
-      location: `${booking.deliveryAddress?.street || ''}, ${booking.deliveryAddress?.city || ''}, ${booking.deliveryAddress?.state || ''} ${booking.deliveryAddress?.zip || ''}`,
-      totalAmount: booking.totalAmount || 0,
+      eventDate,
+      eventTime,
+      location,
+      totalAmount: booking.totalPrice || 0,
       status: booking.status,
-      customer: {
-        id: customer.id,
-        name: `${customer.firstName} ${customer.lastName}`,
-        email: recipientEmail || customer.email,
-        phone: customer.phone,
-      },
       item: item ? {
         id: item.id,
         name: item.name,
-        description: item.description,
       } : undefined,
     }
 
@@ -96,11 +112,23 @@ export const sendBookingEmail = async (req: PayloadRequest) => {
       phone: customer.phone,
     }
 
+    // Get logo URL if available
+    let logoUrl: string | undefined
+    if (tenant.logo) {
+      if (typeof tenant.logo === 'object' && tenant.logo.url) {
+        logoUrl = tenant.logo.url
+      }
+    }
+
     const tenantData = {
       id: tenant.id,
       name: tenant.name,
-      email: tenant.businessInfo?.email,
+      email: tenant.email,
+      phone: tenant.phone,
       domain: tenant.slug,
+      logo: logoUrl,
+      address: tenant.address,
+      branding: tenant.branding,
     }
 
     // Send email based on type
@@ -122,20 +150,20 @@ export const sendBookingEmail = async (req: PayloadRequest) => {
           // Send custom email with provided subject and message
           await emailService.sendCustomEmail(
             { email: customerData.email, name: customerData.name },
-            subject || `Update for booking ${booking.bookingNumber}`,
+            subject || `Update for booking ${bookingRef}`,
             `<div style="font-family: sans-serif;">
               <h2>Hi ${customerData.name},</h2>
               <p>${customMessage || 'This is regarding your booking.'}</p>
               <hr style="border: 1px solid #eee; margin: 20px 0;" />
               <p><strong>Booking Details:</strong></p>
               <ul>
-                <li>Booking #: ${booking.bookingNumber}</li>
+                <li>Booking #: ${bookingRef}</li>
                 ${item ? `<li>Item: ${item.name}</li>` : ''}
-                <li>Event Date: ${new Date(booking.eventDate).toLocaleDateString()}</li>
+                <li>Event Date: ${eventDate}</li>
               </ul>
               <p>Best regards,<br>${tenantData.name}</p>
             </div>`,
-            `Hi ${customerData.name},\n\n${customMessage || 'This is regarding your booking.'}\n\nBooking Details:\n- Booking #: ${booking.bookingNumber}\n${item ? `- Item: ${item.name}\n` : ''}- Event Date: ${new Date(booking.eventDate).toLocaleDateString()}\n\nBest regards,\n${tenantData.name}`,
+            `Hi ${customerData.name},\n\n${customMessage || 'This is regarding your booking.'}\n\nBooking Details:\n- Booking #: ${bookingRef}\n${item ? `- Item: ${item.name}\n` : ''}- Event Date: ${eventDate}\n\nBest regards,\n${tenantData.name}`,
             ['custom-email', `tenant:${tenant.id}`]
           )
           break

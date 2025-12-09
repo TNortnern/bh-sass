@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
 
     const url = `${rbPayloadUrl}/api/customers?where[tenantId][equals]=${TENANT_ID}&limit=${limit}&page=${page}`
 
-    const response = await $fetch<{ docs: any[]; totalDocs: number; totalPages: number }>(url, { headers })
+    const response = await $fetch<{ docs: Record<string, unknown>[], totalDocs: number, totalPages: number }>(url, { headers })
 
     return {
       success: true,
@@ -40,12 +40,13 @@ export default defineEventHandler(async (event) => {
       totalDocs: response.totalDocs,
       totalPages: response.totalPages
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch customers from rb-payload:', error)
 
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to fetch customers'
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      message: message || 'Failed to fetch customers'
     })
   }
 })

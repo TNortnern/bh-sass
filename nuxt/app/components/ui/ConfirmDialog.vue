@@ -23,8 +23,7 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  (e: 'confirm'): void
-  (e: 'cancel'): void
+  (e: 'confirm' | 'cancel'): void
 }>()
 
 const open = defineModel<boolean>('open', { default: false })
@@ -74,7 +73,10 @@ const handleCancel = () => {
           <div
             :class="[iconBgClass, 'w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0']"
           >
-            <UIcon :name="icon" :class="[iconColorClass, 'text-2xl']" />
+            <UIcon
+              :name="icon"
+              :class="[iconColorClass, 'text-2xl']"
+            />
           </div>
           <div class="flex-1">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">

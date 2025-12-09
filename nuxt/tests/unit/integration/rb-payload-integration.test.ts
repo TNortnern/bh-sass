@@ -65,8 +65,8 @@ describe('rb-payload API Error Handling', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.message).toContain('timeout')
+    } catch (error: unknown) {
+      expect((error as Error).message).toContain('timeout')
     }
   })
 
@@ -79,8 +79,8 @@ describe('rb-payload API Error Handling', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.statusCode).toBe(401)
+    } catch (error: unknown) {
+      expect((error as { statusCode: number }).statusCode).toBe(401)
     }
   })
 
@@ -93,8 +93,8 @@ describe('rb-payload API Error Handling', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.statusCode).toBe(403)
+    } catch (error: unknown) {
+      expect((error as { statusCode: number }).statusCode).toBe(403)
     }
   })
 
@@ -107,8 +107,8 @@ describe('rb-payload API Error Handling', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.statusCode).toBe(404)
+    } catch (error: unknown) {
+      expect((error as { statusCode: number }).statusCode).toBe(404)
     }
   })
 
@@ -121,8 +121,8 @@ describe('rb-payload API Error Handling', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.statusCode).toBe(500)
+    } catch (error: unknown) {
+      expect((error as { statusCode: number }).statusCode).toBe(500)
     }
   })
 
@@ -132,8 +132,8 @@ describe('rb-payload API Error Handling', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.message).toContain('Network')
+    } catch (error: unknown) {
+      expect((error as Error).message).toContain('Network')
     }
   })
 })
@@ -251,7 +251,7 @@ describe('rb-payload Tenant Scoping', () => {
       `/api/services?where[tenantId][equals]=${TENANT_ID}`
     ]
 
-    apiUrls.forEach(url => {
+    apiUrls.forEach((url) => {
       expect(url).toContain('where[tenantId][equals]=6')
     })
   })
@@ -272,7 +272,7 @@ describe('rb-payload Tenant Scoping', () => {
       'where%5BtenantId%5D%5Bequals%5D=6' // URL encoded
     ]
 
-    queries.forEach(query => {
+    queries.forEach((query) => {
       expect(query).toContain('6')
     })
   })
@@ -355,7 +355,7 @@ describe('rb-payload Service Integration', () => {
     const response = await mockFetch()
 
     expect(response.docs.length).toBe(2)
-    response.docs.forEach(service => {
+    response.docs.forEach((service) => {
       expect(service.tenantId).toBe(6)
     })
   })
@@ -428,7 +428,7 @@ describe('rb-payload Retry Logic', () => {
   it('should not retry on 4xx client errors', () => {
     const clientErrors = [400, 401, 403, 404]
 
-    clientErrors.forEach(statusCode => {
+    clientErrors.forEach((statusCode) => {
       expect(statusCode).toBeGreaterThanOrEqual(400)
       expect(statusCode).toBeLessThan(500)
     })
@@ -437,7 +437,7 @@ describe('rb-payload Retry Logic', () => {
   it('should retry on 5xx server errors', () => {
     const serverErrors = [500, 502, 503, 504]
 
-    serverErrors.forEach(statusCode => {
+    serverErrors.forEach((statusCode) => {
       expect(statusCode).toBeGreaterThanOrEqual(500)
     })
   })

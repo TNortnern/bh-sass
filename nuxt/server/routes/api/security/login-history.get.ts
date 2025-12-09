@@ -6,10 +6,10 @@ export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const payloadUrl = config.payloadApiUrl || 'http://payload:3000'
 
-    const userResponse = await $fetch<any>(`${payloadUrl}/api/users/me`, {
+    const userResponse = await $fetch<Record<string, unknown>>(`${payloadUrl}/api/users/me`, {
       headers: {
-        Cookie: event.headers.get('cookie') || '',
-      },
+        Cookie: event.headers.get('cookie') || ''
+      }
     }).catch(() => null)
 
     if (!userResponse || !userResponse.user) {
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
         device: 'Desktop',
         browser: 'Chrome 120',
         location: 'San Francisco, CA',
-        ipAddress: '192.168.1.1',
+        ipAddress: '192.168.1.1'
       },
       {
         id: '2',
@@ -34,10 +34,10 @@ export default defineEventHandler(async (event) => {
         device: 'Mobile',
         browser: 'Safari 17',
         location: 'San Francisco, CA',
-        ipAddress: '192.168.1.2',
-      },
+        ipAddress: '192.168.1.2'
+      }
     ]
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch login history:', error)
     return []
   }

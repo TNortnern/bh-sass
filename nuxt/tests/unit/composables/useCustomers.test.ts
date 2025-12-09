@@ -2,7 +2,7 @@
  * useCustomers Composable Tests
  * Tests customer composable business logic and data handling
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 
 describe('useCustomers - Data Transformation', () => {
   it('should transform rb-payload customer to local format', () => {
@@ -243,7 +243,7 @@ describe('useCustomers - Tag Management', () => {
     ]
 
     const allTags = new Set<string>()
-    customers.forEach(c => {
+    customers.forEach((c) => {
       c.tags.forEach(tag => allTags.add(tag))
     })
 
@@ -282,7 +282,7 @@ describe('useCustomers - Customer Statistics', () => {
   })
 
   it('should handle customer with no bookings', () => {
-    const bookings: any[] = []
+    const bookings: { total: number }[] = []
 
     const totalSpent = bookings.reduce((sum, b) => sum + b.total, 0)
     const averageOrder = bookings.length > 0 ? totalSpent / bookings.length : 0
@@ -331,11 +331,11 @@ describe('useCustomers - Validation', () => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-    validEmails.forEach(email => {
+    validEmails.forEach((email) => {
       expect(emailRegex.test(email)).toBe(true)
     })
 
-    invalidEmails.forEach(email => {
+    invalidEmails.forEach((email) => {
       expect(emailRegex.test(email)).toBe(false)
     })
   })
@@ -348,7 +348,7 @@ describe('useCustomers - Validation', () => {
       '555.123.4567'
     ]
 
-    validPhones.forEach(phone => {
+    validPhones.forEach((phone) => {
       expect(phone).toMatch(/\d/)
       expect(phone.length).toBeGreaterThan(0)
     })

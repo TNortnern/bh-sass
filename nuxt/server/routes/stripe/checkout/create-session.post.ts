@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
     // Import Stripe dynamically
     const stripe = (await import('stripe')).default
     const stripeClient = new stripe(stripeSecretKey, {
-      apiVersion: '2024-12-18.acacia'
+      apiVersion: '2025-11-17.clover'
     })
 
     // Create Stripe Checkout session
@@ -84,12 +84,13 @@ export default defineEventHandler(async (event) => {
         url: session.url
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to create Stripe checkout session:', error)
 
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
       statusCode: 500,
-      message: error.message || 'Failed to create checkout session'
+      message: message || 'Failed to create checkout session'
     })
   }
 })

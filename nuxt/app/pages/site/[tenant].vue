@@ -1,22 +1,102 @@
 <script setup lang="ts">
+interface TenantWebsite {
+  enabled?: boolean
+  seo?: {
+    title?: string
+    description?: string
+  }
+  aboutContent?: string
+  showServices?: boolean
+}
+
+interface TenantBranding {
+  businessName?: string
+  tagline?: string
+  primaryColor?: string
+  secondaryColor?: string
+  accentColor?: string
+}
+
+interface TenantAddress {
+  street?: string
+  city?: string
+  state?: string
+  zip?: string
+}
+
+interface TenantServiceArea {
+  radius?: number
+  unit?: string
+}
+
+interface TenantSettings {
+  currency?: string
+}
+
+interface TenantLogo {
+  url: string
+  alt: string
+}
+
+interface Tenant {
+  id: string
+  name: string
+  slug: string
+  description?: string
+  phone?: string
+  email?: string
+  website?: TenantWebsite
+  branding?: TenantBranding
+  businessHours?: Record<string, { enabled?: boolean, open?: string, close?: string }>
+  settings?: TenantSettings
+  logo?: TenantLogo
+  address?: TenantAddress
+  serviceArea?: TenantServiceArea
+}
+
+interface RentalItem {
+  id: string
+  slug: string
+  name: string
+  description?: string
+  images?: Array<{ url: string, alt?: string }>
+  pricing?: {
+    fullDayRate?: number
+  }
+}
+
+interface ItemsResponse {
+  items: RentalItem[]
+}
+
 definePageMeta({
   layout: 'default'
 })
 
 const route = useRoute()
-const router = useRouter()
 const tenantSlug = route.params.tenant as string
 
 // Fetch tenant with website settings
-const { data: tenant, error: tenantError, status } = await useFetch(`/api/tenants-public/${tenantSlug}`)
+const { data: tenant, error: tenantError, status } = await useFetch<Tenant>(`/api/tenants-public/${tenantSlug}`)
 
 // Fetch rental items for services section
-const { data: itemsData } = await useFetch(() => {
-  if (!tenant.value?.id) return null
-  return `/public/items/${tenant.value.id}`
+const { data: itemsData } = await useFetch<ItemsResponse>('/public/items/dummy', {
+  query: computed(() => {
+    if (!tenant.value?.id) return {}
+    return { tenantId: tenant.value.id }
+  }),
+  immediate: false
 })
 
-const items = computed(() => (itemsData.value as any)?.items || [])
+// Fetch items when tenant is loaded
+watch(() => tenant.value?.id, async (tenantId) => {
+  if (tenantId) {
+    const response = await $fetch<ItemsResponse>(`/public/items/${tenantId}`)
+    itemsData.value = response
+  }
+}, { immediate: true })
+
+const items = computed(() => itemsData.value?.items || [])
 
 // Redirect to 404 if tenant not found or website not enabled
 if (tenantError.value || !tenant.value) {
@@ -44,11 +124,12 @@ const themeStyles = computed(() => {
   return {
     '--primary-color': tenant.value.branding.primaryColor || '#fbbf24',
     '--secondary-color': tenant.value.branding.secondaryColor || '#3b82f6',
-    '--accent-color': tenant.value.branding.accentColor || '#10b981',
+    '--accent-color': tenant.value.branding.accentColor || '#10b981'
   }
 })
 
 // Format business hours for display
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const formatBusinessHours = (hours: any) => {
   if (!hours) return []
 
@@ -88,51 +169,85 @@ const featuredItems = computed(() => items.value.slice(0, 6))
 </script>
 
 <template>
-  <div v-if="tenant" :style="themeStyles" class="min-h-screen">
+  <div
+    v-if="tenant"
+    :style="themeStyles"
+    class="min-h-screen"
+  >
     <!-- Loading State -->
-    <div v-if="status === 'pending'" class="flex items-center justify-center py-16">
+    <div
+      v-if="status === 'pending'"
+      class="flex items-center justify-center py-16"
+    >
       <div class="text-center">
-        <UIcon name="lucide:loader-circle" class="w-12 h-12 text-gray-400 animate-spin mx-auto mb-4" />
-        <p class="text-gray-600 dark:text-gray-400">Loading...</p>
+        <UIcon
+          name="lucide:loader-circle"
+          class="w-12 h-12 text-gray-400 animate-spin mx-auto mb-4"
+        />
+        <p class="text-gray-600 dark:text-gray-400">
+          Loading...
+        </p>
       </div>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="tenantError" class="text-center py-16 px-4">
-      <UIcon name="lucide:alert-circle" class="w-16 h-16 text-red-600 mx-auto mb-4" />
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Not Found</h2>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">The page you're looking for doesn't exist.</p>
-      <UButton to="/" label="Go Home" />
+    <div
+      v-else-if="tenantError"
+      class="text-center py-16 px-4"
+    >
+      <UIcon
+        name="lucide:alert-circle"
+        class="w-16 h-16 text-red-600 mx-auto mb-4"
+      />
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        Not Found
+      </h2>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">
+        The page you're looking for doesn't exist.
+      </p>
+      <UButton
+        to="/"
+        label="Go Home"
+      />
     </div>
 
     <!-- Main Content -->
     <div v-else>
       <!-- Hero Section -->
       <section class="relative bg-gradient-to-br from-orange-600 via-pink-600 to-purple-700 text-white overflow-hidden">
-        <div class="absolute inset-0 bg-black/20"></div>
+        <div class="absolute inset-0 bg-black/20" />
         <div class="relative container mx-auto px-4 py-16 md:py-24">
           <div class="max-w-3xl">
             <!-- Logo -->
-            <div v-if="tenant.logo" class="mb-6">
+            <div
+              v-if="tenant.logo"
+              class="mb-6"
+            >
               <img
                 :src="tenant.logo.url"
                 :alt="tenant.logo.alt"
                 class="h-16 md:h-20 w-auto"
-              />
+              >
             </div>
 
             <!-- Heading -->
             <h1 class="text-4xl md:text-6xl font-bold mb-4">
-              {{ tenant.branding.businessName }}
+              {{ tenant.branding?.businessName || tenant.name }}
             </h1>
 
             <!-- Tagline -->
-            <p v-if="tenant.branding.tagline" class="text-xl md:text-2xl text-orange-100 mb-6">
+            <p
+              v-if="tenant.branding?.tagline"
+              class="text-xl md:text-2xl text-orange-100 mb-6"
+            >
               {{ tenant.branding.tagline }}
             </p>
 
             <!-- Description -->
-            <p v-if="tenant.description" class="text-lg text-white/90 mb-8 max-w-2xl">
+            <p
+              v-if="tenant.description"
+              class="text-lg text-white/90 mb-8 max-w-2xl"
+            >
               {{ tenant.description }}
             </p>
 
@@ -160,7 +275,10 @@ const featuredItems = computed(() => items.value.slice(0, 6))
       </section>
 
       <!-- About Section -->
-      <section v-if="tenant.website.aboutContent" class="py-16 bg-white dark:bg-gray-950">
+      <section
+        v-if="tenant.website?.aboutContent"
+        class="py-16 bg-white dark:bg-gray-950"
+      >
         <div class="container mx-auto px-4">
           <div class="max-w-4xl mx-auto">
             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6 text-center">
@@ -174,7 +292,10 @@ const featuredItems = computed(() => items.value.slice(0, 6))
       </section>
 
       <!-- Services Section -->
-      <section v-if="tenant.website.showServices && featuredItems.length > 0" class="py-16 bg-gray-50 dark:bg-gray-900">
+      <section
+        v-if="tenant.website?.showServices && featuredItems.length > 0"
+        class="py-16 bg-gray-50 dark:bg-gray-900"
+      >
         <div class="container mx-auto px-4">
           <div class="text-center mb-12">
             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -200,7 +321,7 @@ const featuredItems = computed(() => items.value.slice(0, 6))
                     :src="item.images?.[0]?.url || 'https://images.unsplash.com/photo-1530981785497-a62037228fe9?w=400&h=300&fit=crop'"
                     :alt="item.name"
                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                  >
                 </div>
 
                 <!-- Content -->
@@ -245,38 +366,68 @@ const featuredItems = computed(() => items.value.slice(0, 6))
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <!-- Contact Info -->
               <div class="space-y-6">
-                <div v-if="tenant.phone" class="flex items-start gap-4">
+                <div
+                  v-if="tenant.phone"
+                  class="flex items-start gap-4"
+                >
                   <div class="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                    <UIcon name="i-lucide-phone" class="text-orange-600 dark:text-orange-500 text-xl" />
+                    <UIcon
+                      name="i-lucide-phone"
+                      class="text-orange-600 dark:text-orange-500 text-xl"
+                    />
                   </div>
                   <div>
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Phone</h3>
-                    <a :href="`tel:${tenant.phone}`" class="text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-500">
+                    <h3 class="font-semibold text-gray-900 dark:text-white mb-1">
+                      Phone
+                    </h3>
+                    <a
+                      :href="`tel:${tenant.phone}`"
+                      class="text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-500"
+                    >
                       {{ formatPhone(tenant.phone) }}
                     </a>
                   </div>
                 </div>
 
-                <div v-if="tenant.email" class="flex items-start gap-4">
+                <div
+                  v-if="tenant.email"
+                  class="flex items-start gap-4"
+                >
                   <div class="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                    <UIcon name="i-lucide-mail" class="text-orange-600 dark:text-orange-500 text-xl" />
+                    <UIcon
+                      name="i-lucide-mail"
+                      class="text-orange-600 dark:text-orange-500 text-xl"
+                    />
                   </div>
                   <div>
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Email</h3>
-                    <a :href="`mailto:${tenant.email}`" class="text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-500">
+                    <h3 class="font-semibold text-gray-900 dark:text-white mb-1">
+                      Email
+                    </h3>
+                    <a
+                      :href="`mailto:${tenant.email}`"
+                      class="text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-500"
+                    >
                       {{ tenant.email }}
                     </a>
                   </div>
                 </div>
 
-                <div v-if="tenant.address" class="flex items-start gap-4">
+                <div
+                  v-if="tenant.address"
+                  class="flex items-start gap-4"
+                >
                   <div class="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                    <UIcon name="i-lucide-map-pin" class="text-orange-600 dark:text-orange-500 text-xl" />
+                    <UIcon
+                      name="i-lucide-map-pin"
+                      class="text-orange-600 dark:text-orange-500 text-xl"
+                    />
                   </div>
                   <div>
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Address</h3>
+                    <h3 class="font-semibold text-gray-900 dark:text-white mb-1">
+                      Address
+                    </h3>
                     <p class="text-gray-600 dark:text-gray-400">
-                      <span v-if="tenant.address.street">{{ tenant.address.street }}<br /></span>
+                      <span v-if="tenant.address.street">{{ tenant.address.street }}<br></span>
                       <span v-if="tenant.address.city || tenant.address.state">
                         {{ tenant.address.city }}<span v-if="tenant.address.city && tenant.address.state">, </span>{{ tenant.address.state }} {{ tenant.address.zip }}
                       </span>
@@ -284,12 +435,20 @@ const featuredItems = computed(() => items.value.slice(0, 6))
                   </div>
                 </div>
 
-                <div v-if="tenant.serviceArea" class="flex items-start gap-4">
+                <div
+                  v-if="tenant.serviceArea"
+                  class="flex items-start gap-4"
+                >
                   <div class="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                    <UIcon name="i-lucide-truck" class="text-orange-600 dark:text-orange-500 text-xl" />
+                    <UIcon
+                      name="i-lucide-truck"
+                      class="text-orange-600 dark:text-orange-500 text-xl"
+                    />
                   </div>
                   <div>
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Service Area</h3>
+                    <h3 class="font-semibold text-gray-900 dark:text-white mb-1">
+                      Service Area
+                    </h3>
                     <p class="text-gray-600 dark:text-gray-400">
                       Within {{ tenant.serviceArea.radius }} {{ tenant.serviceArea.unit }} radius
                     </p>
@@ -299,7 +458,9 @@ const featuredItems = computed(() => items.value.slice(0, 6))
 
               <!-- Business Hours -->
               <div v-if="businessHours.length > 0">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Business Hours</h3>
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">
+                  Business Hours
+                </h3>
                 <div class="space-y-2">
                   <div
                     v-for="day in businessHours"
@@ -340,10 +501,13 @@ const featuredItems = computed(() => items.value.slice(0, 6))
         <div class="container mx-auto px-4">
           <div class="text-center">
             <p class="text-sm">
-              &copy; {{ new Date().getFullYear() }} {{ tenant.branding.businessName }}. All rights reserved.
+              &copy; {{ new Date().getFullYear() }} {{ tenant.branding?.businessName || tenant.name }}. All rights reserved.
             </p>
             <p class="text-xs mt-2">
-              Powered by <a href="/" class="text-orange-500 hover:text-orange-400">BouncePro</a>
+              Powered by <a
+                href="/"
+                class="text-orange-500 hover:text-orange-400"
+              >BouncePro</a>
             </p>
           </div>
         </div>

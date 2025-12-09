@@ -4,7 +4,7 @@ definePageMeta({
   middleware: 'admin'
 })
 
-const { data: subscriptions, pending } = useLazyFetch('/v1/admin/subscriptions', {
+const { pending } = useLazyFetch('/v1/admin/subscriptions', {
   credentials: 'include'
 })
 </script>
@@ -13,18 +13,36 @@ const { data: subscriptions, pending } = useLazyFetch('/v1/admin/subscriptions',
   <div class="admin-page">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Subscriptions</h1>
-        <p class="page-description">Manage platform subscriptions and billing</p>
+        <h1 class="page-title">
+          Subscriptions
+        </h1>
+        <p class="page-description">
+          Manage platform subscriptions and billing
+        </p>
       </div>
     </div>
 
-    <div v-if="pending" class="loading-state">
-      <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
+    <div
+      v-if="pending"
+      class="loading-state"
+    >
+      <UIcon
+        name="i-lucide-loader-circle"
+        class="animate-spin text-4xl text-gray-400"
+      />
     </div>
 
-    <div v-else class="placeholder">
-      <UIcon name="i-lucide-credit-card" class="placeholder-icon" />
-      <p class="placeholder-text">Subscription management coming soon</p>
+    <div
+      v-else
+      class="placeholder"
+    >
+      <UIcon
+        name="i-lucide-credit-card"
+        class="placeholder-icon"
+      />
+      <p class="placeholder-text">
+        Subscription management coming soon
+      </p>
     </div>
   </div>
 </template>

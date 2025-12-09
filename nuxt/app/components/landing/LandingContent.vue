@@ -37,21 +37,21 @@
           <!-- User Profile Card -->
           <div class="mock-card card-profile">
             <div class="card-header">
-              <div class="avatar-placeholder"></div>
+              <div class="avatar-placeholder" />
               <div class="header-text">
-                <div class="text-line line-name"></div>
-                <div class="text-line line-subtitle"></div>
+                <div class="text-line line-name" />
+                <div class="text-line line-subtitle" />
               </div>
             </div>
-            <div class="card-divider"></div>
+            <div class="card-divider" />
             <div class="card-stats">
               <div class="stat-block">
-                <div class="stat-bar bar-purple"></div>
-                <div class="stat-label-line"></div>
+                <div class="stat-bar bar-purple" />
+                <div class="stat-label-line" />
               </div>
               <div class="stat-block">
-                <div class="stat-bar bar-blue"></div>
-                <div class="stat-label-line"></div>
+                <div class="stat-bar bar-blue" />
+                <div class="stat-label-line" />
               </div>
             </div>
           </div>
@@ -59,32 +59,40 @@
           <!-- Event Details Card -->
           <div class="mock-card card-event">
             <div class="event-image-placeholder">
-              <div class="image-overlay"></div>
+              <div class="image-overlay" />
               <div class="play-button">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M8 5V19L19 12L8 5Z" fill="white"/>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M8 5V19L19 12L8 5Z"
+                    fill="white"
+                  />
                 </svg>
               </div>
             </div>
             <div class="event-content">
-              <div class="event-title-line"></div>
+              <div class="event-title-line" />
               <div class="event-meta">
                 <div class="meta-item">
-                  <div class="meta-icon icon-calendar"></div>
-                  <div class="meta-line"></div>
+                  <div class="meta-icon icon-calendar" />
+                  <div class="meta-line" />
                 </div>
                 <div class="meta-item">
-                  <div class="meta-icon icon-location"></div>
-                  <div class="meta-line"></div>
+                  <div class="meta-icon icon-location" />
+                  <div class="meta-line" />
                 </div>
               </div>
-              <div class="event-button"></div>
+              <div class="event-button" />
             </div>
           </div>
 
           <!-- Decorative Elements -->
-          <div class="float-accent accent-1"></div>
-          <div class="float-accent accent-2"></div>
+          <div class="float-accent accent-1" />
+          <div class="float-accent accent-2" />
         </div>
       </div>
     </div>

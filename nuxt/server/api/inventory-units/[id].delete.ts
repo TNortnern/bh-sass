@@ -47,16 +47,17 @@ export default defineEventHandler(async (event) => {
       success: true,
       message: 'Inventory unit deleted successfully'
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting inventory unit:', error)
 
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 
+    const message = error instanceof Error ? error.message : 'Failed to delete inventory unit'
     throw createError({
       statusCode: 500,
-      message: error.message || 'Failed to delete inventory unit'
+      message
     })
   }
 })

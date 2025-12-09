@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
  */
 
 describe('Server Route: POST /booking/services', () => {
-  let mockFetch: any
+  let mockFetch: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
     vi.clearAllMocks()

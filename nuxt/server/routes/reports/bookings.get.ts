@@ -3,7 +3,26 @@
  * Calculate booking metrics from rb-payload bookings
  * Requires API key for authentication
  */
-import { startOfDay, endOfDay, parseISO, format, eachDayOfInterval, getDay, getHours } from 'date-fns'
+import { parseISO, format, eachDayOfInterval, getDay, getHours } from 'date-fns'
+
+interface BookingItem {
+  service?: {
+    id: string
+    name: string
+  }
+}
+
+interface Booking {
+  id: string
+  createdAt: string
+  totalPrice: number
+  status: string
+  items?: BookingItem[]
+}
+
+interface BookingsResponse {
+  docs: Booking[]
+}
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -38,7 +57,7 @@ export default defineEventHandler(async (event) => {
   try {
     // Fetch all bookings for the date range
     const url = `${rbPayloadUrl}/api/bookings?where[tenantId][equals]=${TENANT_ID}&limit=1000`
-    const response = await $fetch<{ docs: any[] }>(url, { headers })
+    const response = await $fetch<BookingsResponse>(url, { headers })
 
     const bookings = response.docs || []
 
@@ -46,7 +65,7 @@ export default defineEventHandler(async (event) => {
     const start = parseISO(startDate)
     const end = parseISO(endDate)
 
-    const filteredBookings = bookings.filter((booking: any) => {
+    const filteredBookings = bookings.filter((booking) => {
       const bookingDate = parseISO(booking.createdAt)
       return bookingDate >= start && bookingDate <= end
     })
@@ -61,7 +80,7 @@ export default defineEventHandler(async (event) => {
     const previousEnd = new Date(start)
     previousEnd.setDate(previousEnd.getDate() - 1)
 
-    const previousBookings = bookings.filter((booking: any) => {
+    const previousBookings = bookings.filter((booking) => {
       const bookingDate = parseISO(booking.createdAt)
       return bookingDate >= previousStart && bookingDate <= previousEnd
     })
@@ -72,7 +91,7 @@ export default defineEventHandler(async (event) => {
       : 0
 
     // Bookings by status
-    const statusCounts = filteredBookings.reduce((acc: any, booking: any) => {
+    const statusCounts = filteredBookings.reduce((acc, booking) => {
       const status = booking.status || 'pending'
       if (!acc[status]) {
         acc[status] = { count: 0, value: 0 }
@@ -80,19 +99,19 @@ export default defineEventHandler(async (event) => {
       acc[status].count += 1
       acc[status].value += booking.totalPrice || 0
       return acc
-    }, {})
+    }, {} as Record<string, { count: number, value: number }>)
 
-    const byStatus = Object.entries(statusCounts).map(([status, data]: [string, any]) => ({
+    const byStatus = Object.entries(statusCounts).map(([status, data]) => ({
       status: status.charAt(0).toUpperCase() + status.slice(1),
       count: data.count,
       value: data.value
     }))
 
     // Bookings by item
-    const serviceBookingsMap = new Map<string, { bookings: number; revenue: number }>()
+    const serviceBookingsMap = new Map<string, { bookings: number, revenue: number }>()
 
-    filteredBookings.forEach((booking: any) => {
-      booking.items?.forEach((item: any) => {
+    filteredBookings.forEach((booking) => {
+      booking.items?.forEach((item) => {
         const serviceName = item.service?.name || 'Unknown Service'
         const existing = serviceBookingsMap.get(serviceName) || { bookings: 0, revenue: 0 }
         existing.bookings += 1
@@ -111,9 +130,9 @@ export default defineEventHandler(async (event) => {
       .slice(0, 10) // Top 10 items
 
     // Bookings by day
-    const byDay = eachDayOfInterval({ start, end }).map(day => {
+    const byDay = eachDayOfInterval({ start, end }).map((day) => {
       const dayStr = format(day, 'yyyy-MM-dd')
-      const dayBookings = filteredBookings.filter((booking: any) => {
+      const dayBookings = filteredBookings.filter((booking) => {
         const bookingDate = format(parseISO(booking.createdAt), 'yyyy-MM-dd')
         return bookingDate === dayStr
       })
@@ -121,11 +140,16 @@ export default defineEventHandler(async (event) => {
     })
 
     // Average duration (from startDate to endDate in bookings)
-    const durationsInHours = filteredBookings
-      .filter((booking: any) => booking.startDate && booking.endDate)
-      .map((booking: any) => {
-        const start = parseISO(booking.startDate)
-        const end = parseISO(booking.endDate)
+    interface BookingWithDates extends Booking {
+      startDate?: string
+      endDate?: string
+    }
+    const bookingsWithDates = filteredBookings as BookingWithDates[]
+    const durationsInHours = bookingsWithDates
+      .filter(booking => booking.startDate && booking.endDate)
+      .map((booking) => {
+        const start = parseISO(booking.startDate!)
+        const end = parseISO(booking.endDate!)
         return (end.getTime() - start.getTime()) / (1000 * 60 * 60)
       })
 
@@ -137,7 +161,7 @@ export default defineEventHandler(async (event) => {
     const conversionRate = 78.5
 
     // Cancellation rate
-    const cancelledCount = filteredBookings.filter((b: any) => b.status === 'cancelled').length
+    const cancelledCount = filteredBookings.filter(b => b.status === 'cancelled').length
     const cancellationRate = total > 0 ? (cancelledCount / total) * 100 : 0
 
     // Cancellation reasons (mock for now)
@@ -150,28 +174,28 @@ export default defineEventHandler(async (event) => {
 
     // Busiest days of week
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const
-    const dayOfWeekCounts = filteredBookings.reduce((acc: Record<string, number>, booking: any) => {
+    const dayOfWeekCounts = filteredBookings.reduce((acc, booking) => {
       const dayOfWeek = getDay(parseISO(booking.createdAt))
       const dayName = dayNames[dayOfWeek] ?? 'Unknown'
       acc[dayName] = (acc[dayName] || 0) + 1
       return acc
-    }, {})
+    }, {} as Record<string, number>)
 
     const busiestDays = Object.entries(dayOfWeekCounts)
-      .map(([day, bookings]) => ({ day, bookings: bookings as number }))
+      .map(([day, bookings]) => ({ day, bookings }))
       .sort((a, b) => b.bookings - a.bookings)
 
     // Busiest hours
-    const hourCounts = filteredBookings.reduce((acc: any, booking: any) => {
+    const hourCounts = filteredBookings.reduce((acc, booking) => {
       const hour = getHours(parseISO(booking.createdAt))
       acc[hour] = (acc[hour] || 0) + 1
       return acc
-    }, {})
+    }, {} as Record<number, number>)
 
     const busiestHours = Object.entries(hourCounts)
       .map(([hour, bookings]) => ({ hour: parseInt(hour), bookings: bookings as number }))
       .sort((a, b) => a.hour - b.hour)
-      .filter((item) => item.hour >= 8 && item.hour <= 20) // Business hours
+      .filter(item => item.hour >= 8 && item.hour <= 20) // Business hours
 
     return {
       success: true,
@@ -190,12 +214,13 @@ export default defineEventHandler(async (event) => {
         busiestHours
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch bookings report:', error)
 
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to fetch bookings report'
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      message: message || 'Failed to fetch bookings report'
     })
   }
 })

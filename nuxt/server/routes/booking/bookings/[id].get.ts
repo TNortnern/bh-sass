@@ -3,6 +3,12 @@
  * Fetch a single booking from rb-payload
  * Requires API key for authentication
  */
+interface FetchError {
+  statusCode?: number
+  message?: string
+  data?: { message?: string }
+}
+
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const rbPayloadUrl = config.rbPayloadUrl || 'https://reusablebook-payload-production.up.railway.app'
@@ -42,29 +48,30 @@ export default defineEventHandler(async (event) => {
       success: true,
       booking: response
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const fetchError = error as FetchError
     console.error('Failed to fetch booking from rb-payload:', {
       id,
       url: `${rbPayloadUrl}/api/bookings/${id}`,
-      statusCode: error.statusCode,
-      message: error.message,
-      data: error.data
+      statusCode: fetchError.statusCode,
+      message: fetchError.message,
+      data: fetchError.data
     })
 
     // Provide helpful error messages
     let message = 'Failed to fetch booking'
-    if (error.statusCode === 404) {
+    if (fetchError.statusCode === 404) {
       message = `Booking with ID ${id} not found. It may not exist in rb-payload yet.`
-    } else if (error.statusCode === 401 || error.statusCode === 403) {
+    } else if (fetchError.statusCode === 401 || fetchError.statusCode === 403) {
       message = 'Authentication failed. Please check the API key configuration.'
-    } else if (error.data?.message) {
-      message = error.data.message
-    } else if (error.message) {
-      message = error.message
+    } else if (fetchError.data?.message) {
+      message = fetchError.data.message
+    } else if (fetchError.message) {
+      message = fetchError.message
     }
 
     throw createError({
-      statusCode: error.statusCode || 500,
+      statusCode: fetchError.statusCode || 500,
       message
     })
   }

@@ -3,15 +3,68 @@
  * Fetch all rental items for the tenant
  */
 
+interface ImageData {
+  url?: string
+}
+
+interface DimensionsData {
+  length?: number
+  width?: number
+  height?: number
+}
+
+interface AgeRangeData {
+  minAge?: number
+  maxAge?: number
+}
+
+interface RequiredSpaceData {
+  length?: number
+  width?: number
+}
+
+interface PricingData {
+  hourlyRate?: number
+  dailyRate?: number
+  weekendRate?: number
+  weeklyRate?: number
+}
+
+interface SetupRequirementsData {
+  powerRequired?: boolean
+  waterRequired?: boolean
+}
+
+interface RentalItemData {
+  id: string | number
+  name?: string
+  category?: string
+  description?: string
+  isActive?: boolean
+  images?: (ImageData | string)[]
+  dimensions?: DimensionsData
+  weight?: number
+  capacity?: number
+  maxWeight?: number
+  ageRange?: AgeRangeData
+  setupTime?: number
+  requiredSpace?: RequiredSpaceData
+  pricing?: PricingData
+  setupRequirements?: SetupRequirementsData
+  quantity?: number
+  createdAt?: string
+  updatedAt?: string
+}
+
 // Transform Payload item to frontend format
-function transformItem(data: any) {
+function transformItem(data: RentalItemData) {
   return {
     id: String(data.id),
     name: data.name || '',
     category: data.category || 'bounce_house',
     description: data.description || '',
     status: data.isActive ? 'active' : 'inactive',
-    images: (data.images || []).map((img: any) => img.url || img),
+    images: (data.images || []).map(img => typeof img === 'object' ? img.url || '' : img),
     specifications: {
       dimensions: {
         length: data.dimensions?.length || 0,
@@ -99,16 +152,17 @@ export default defineEventHandler(async (event) => {
       ...data,
       docs: (data.docs || []).map(transformItem)
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching rental items:', error)
 
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 
+    const message = error instanceof Error ? error.message : 'Failed to fetch rental items'
     throw createError({
       statusCode: 500,
-      message: error.message || 'Failed to fetch rental items'
+      message
     })
   }
 })

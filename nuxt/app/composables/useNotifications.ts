@@ -13,7 +13,7 @@ export interface Notification {
   read: boolean
   relatedBookingId?: number
   relatedCustomerId?: number
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   createdAt: string
   updatedAt: string
 }
@@ -73,8 +73,9 @@ export const useNotifications = () => {
       }
 
       return response
-    } catch (e: any) {
-      error.value = e.message || 'Failed to fetch notifications'
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Failed to fetch notifications'
+      error.value = errorMessage
       console.error('Error fetching notifications:', e)
 
       // Set empty state on error instead of throwing
@@ -119,7 +120,7 @@ export const useNotifications = () => {
       if (notification) {
         notification.read = true
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Error marking notification as read:', e)
       // Don't throw - just log the error and update local state anyway
       // This provides better UX even if the API call fails
@@ -142,7 +143,7 @@ export const useNotifications = () => {
 
       // Mark each as read (rb-payload doesn't support bulk update yet)
       await Promise.all(unreadIds.map(id => markAsRead(id)))
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Error marking all as read:', e)
       throw e
     }

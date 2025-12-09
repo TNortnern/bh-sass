@@ -23,11 +23,11 @@ const passwordsMatch = computed(() => {
 
 const isFormValid = computed(() => {
   return (
-    form.value.businessName.trim() !== '' &&
-    form.value.email.trim() !== '' &&
-    form.value.password.length >= 8 &&
-    passwordsMatch.value &&
-    form.value.acceptedTerms
+    form.value.businessName.trim() !== ''
+    && form.value.email.trim() !== ''
+    && form.value.password.length >= 8
+    && passwordsMatch.value
+    && form.value.acceptedTerms
   )
 })
 
@@ -55,13 +55,20 @@ useHead({
       <!-- Header -->
       <template #header>
         <div class="text-center">
-          <h1 class="text-2xl font-bold text-white mb-2">Create your account</h1>
-          <p class="text-gray-400 text-sm">Start managing your bounce house business today</p>
+          <h1 class="text-2xl font-bold text-white mb-2">
+            Create your account
+          </h1>
+          <p class="text-gray-400 text-sm">
+            Start managing your bounce house business today
+          </p>
         </div>
       </template>
 
       <!-- Registration Form -->
-      <form @submit.prevent="handleRegister" class="space-y-4">
+      <form
+        class="space-y-4"
+        @submit.prevent="handleRegister"
+      >
         <!-- Business Name -->
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-2">Business Name</label>
@@ -76,7 +83,10 @@ useHead({
             autocomplete="organization"
           >
             <template #leading>
-              <UIcon name="i-lucide-building-2" class="w-5 h-5 text-gray-400" />
+              <UIcon
+                name="i-lucide-building-2"
+                class="w-5 h-5 text-gray-400"
+              />
             </template>
           </UInput>
         </div>
@@ -95,7 +105,10 @@ useHead({
             autocomplete="email"
           >
             <template #leading>
-              <UIcon name="i-lucide-mail" class="w-5 h-5 text-gray-400" />
+              <UIcon
+                name="i-lucide-mail"
+                class="w-5 h-5 text-gray-400"
+              />
             </template>
           </UInput>
         </div>
@@ -114,7 +127,10 @@ useHead({
             autocomplete="new-password"
           >
             <template #leading>
-              <UIcon name="i-lucide-lock" class="w-5 h-5 text-gray-400" />
+              <UIcon
+                name="i-lucide-lock"
+                class="w-5 h-5 text-gray-400"
+              />
             </template>
             <template #trailing>
               <UButton
@@ -146,7 +162,10 @@ useHead({
             :color="!passwordsMatch ? 'error' : undefined"
           >
             <template #leading>
-              <UIcon name="i-lucide-lock-keyhole" class="w-5 h-5 text-gray-400" />
+              <UIcon
+                name="i-lucide-lock-keyhole"
+                class="w-5 h-5 text-gray-400"
+              />
             </template>
             <template #trailing>
               <UButton
@@ -158,7 +177,10 @@ useHead({
               />
             </template>
           </UInput>
-          <p v-if="form.confirmPassword && !passwordsMatch" class="text-xs text-red-400 mt-1">
+          <p
+            v-if="form.confirmPassword && !passwordsMatch"
+            class="text-xs text-red-400 mt-1"
+          >
             Passwords do not match
           </p>
         </div>
@@ -173,11 +195,19 @@ useHead({
             <template #label>
               <span class="text-sm text-gray-300">
                 I agree to the
-                <NuxtLink to="/terms" class="text-orange-400 hover:text-orange-300" target="_blank">
+                <NuxtLink
+                  to="/terms"
+                  class="text-orange-400 hover:text-orange-300"
+                  target="_blank"
+                >
                   Terms of Service
                 </NuxtLink>
                 and
-                <NuxtLink to="/privacy" class="text-orange-400 hover:text-orange-300" target="_blank">
+                <NuxtLink
+                  to="/privacy"
+                  class="text-orange-400 hover:text-orange-300"
+                  target="_blank"
+                >
                   Privacy Policy
                 </NuxtLink>
               </span>
@@ -205,7 +235,10 @@ useHead({
           :disabled="!isFormValid"
         >
           <template #leading>
-            <UIcon name="i-lucide-user-plus" class="w-5 h-5" />
+            <UIcon
+              name="i-lucide-user-plus"
+              class="w-5 h-5"
+            />
           </template>
           Create account
         </UButton>

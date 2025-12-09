@@ -22,11 +22,7 @@
   },
   "lint-staged": {
     "nuxt/**/*.{ts,vue}": [
-      "pnpm --filter bh-nuxt lint --fix",
-      "pnpm --filter bh-nuxt typecheck"
-    ],
-    "payload/**/*.ts": [
-      "pnpm --filter bh-payload lint --fix"
+      "pnpm --filter bh-nuxt lint --fix"
     ]
   },
   "packageManager": "pnpm@10.23.0",

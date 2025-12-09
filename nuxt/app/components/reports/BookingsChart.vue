@@ -21,11 +21,11 @@ ChartJS.register(
 )
 
 const props = defineProps<{
-  data: Array<{ status: string; count: number; value: number }>
+  data: Array<{ status: string, count: number, value: number }>
   loading?: boolean
 }>()
 
-const statusColors: Record<string, { bg: string; border: string }> = {
+const statusColors: Record<string, { bg: string, border: string }> = {
   Confirmed: { bg: 'rgba(6, 182, 212, 0.8)', border: '#06b6d4' },
   Completed: { bg: 'rgba(16, 185, 129, 0.8)', border: '#10b981' },
   Pending: { bg: 'rgba(234, 179, 8, 0.8)', border: '#eab308' },
@@ -75,6 +75,7 @@ const chartOptions: ChartOptions<'bar'> = {
       callbacks: {
         label: (context) => {
           const dataItem = props.data[context.dataIndex]
+          if (!dataItem) return ''
           return [
             `Count: ${context.parsed.y}`,
             `Value: $${dataItem.value.toLocaleString('en-US', { minimumFractionDigits: 2 })}`
@@ -137,14 +138,20 @@ const chartOptions: ChartOptions<'bar'> = {
       class="absolute inset-0 bg-black/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg"
     >
       <div class="flex items-center gap-3 text-cyan-400">
-        <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
+        <UIcon
+          name="i-lucide-loader-circle"
+          class="w-6 h-6 animate-spin"
+        />
         <span class="font-mono text-sm">Loading chart data...</span>
       </div>
     </div>
 
     <!-- Chart container -->
     <div class="h-80">
-      <Bar :data="chartData" :options="chartOptions" />
+      <Bar
+        :data="chartData"
+        :options="chartOptions"
+      />
     </div>
   </div>
 </template>

@@ -12,9 +12,9 @@ import type {
   RbPayloadCustomer,
   RbPayloadBooking,
   RbPayloadBookingStatus,
-  CreateRbPayloadBookingData,
   CreateRbPayloadCustomerData
 } from '~/types/rb-payload'
+// CreateRbPayloadBookingData exported from types but not used directly here
 
 export const useRbPayload = () => {
   const toast = useToast()
@@ -27,14 +27,14 @@ export const useRbPayload = () => {
    */
   const getServices = async (): Promise<RbPayloadService[]> => {
     try {
-      const response = await $fetch<{ success: boolean; services: RbPayloadService[]; error?: string }>('/booking/services')
+      const response = await $fetch<{ success: boolean, services: RbPayloadService[], error?: string }>('/booking/services')
 
       if (!response.success && response.error) {
         console.warn('rb-payload services warning:', response.error)
       }
 
       return response.services || []
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to fetch services:', error)
       toast.add({
         title: 'Error',
@@ -50,14 +50,14 @@ export const useRbPayload = () => {
    */
   const getStaff = async (): Promise<RbPayloadStaff[]> => {
     try {
-      const response = await $fetch<{ success: boolean; staff: RbPayloadStaff[]; error?: string }>('/booking/staff')
+      const response = await $fetch<{ success: boolean, staff: RbPayloadStaff[], error?: string }>('/booking/staff')
 
       if (!response.success && response.error) {
         console.warn('rb-payload staff warning:', response.error)
       }
 
       return response.staff || []
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to fetch staff:', error)
       return []
     }
@@ -68,7 +68,7 @@ export const useRbPayload = () => {
    */
   const getOrCreateCustomer = async (data: CreateRbPayloadCustomerData): Promise<RbPayloadCustomer> => {
     try {
-      const response = await $fetch<{ success: boolean; customer: RbPayloadCustomer; created: boolean }>('/booking/customers', {
+      const response = await $fetch<{ success: boolean, customer: RbPayloadCustomer, created: boolean }>('/booking/customers', {
         method: 'POST',
         body: {
           firstName: data.firstName,
@@ -88,7 +88,7 @@ export const useRbPayload = () => {
       }
 
       return response.customer
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to create customer:', error)
       toast.add({
         title: 'Error',
@@ -118,7 +118,7 @@ export const useRbPayload = () => {
     paymentStatus?: 'unpaid' | 'paid' | 'refunded'
   }): Promise<RbPayloadBooking> => {
     try {
-      const response = await $fetch<{ success: boolean; booking: RbPayloadBooking }>('/booking/bookings', {
+      const response = await $fetch<{ success: boolean, booking: RbPayloadBooking }>('/booking/bookings', {
         method: 'POST',
         body: data
       })
@@ -130,11 +130,12 @@ export const useRbPayload = () => {
       })
 
       return response.booking
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to create booking:', error)
       toast.add({
         title: 'Error',
-        description: error.data?.message || 'Failed to create booking',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        description: (error as any).data?.message || 'Failed to create booking',
         color: 'error'
       })
       throw error
@@ -144,12 +145,12 @@ export const useRbPayload = () => {
   /**
    * Check availability for a given time slot
    */
-  const checkAvailability = async (params: {
+  const checkAvailability = async (_params: {
     startTime: string
     endTime: string
     serviceId?: number
     staffId?: number
-  }): Promise<{ available: boolean; conflicts?: RbPayloadBooking[] }> => {
+  }): Promise<{ available: boolean, conflicts?: RbPayloadBooking[] }> => {
     // For now, assume available - can be implemented later
     return { available: true }
   }

@@ -6,7 +6,7 @@ interface Props {
   compact?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   showActions: true,
   compact: false
 })
@@ -40,20 +40,32 @@ const formatTime = (time24: string): string => {
     <!-- Header -->
     <div class="p-4 border-b border-gray-200 dark:border-gray-800">
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-        <UIcon name="i-lucide-shopping-cart" class="w-5 h-5" />
+        <UIcon
+          name="i-lucide-shopping-cart"
+          class="w-5 h-5"
+        />
         Cart Summary
       </h3>
     </div>
 
     <!-- Items -->
-    <div v-if="items.length === 0" class="p-8 text-center">
-      <UIcon name="i-lucide-shopping-cart" class="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
+    <div
+      v-if="items.length === 0"
+      class="p-8 text-center"
+    >
+      <UIcon
+        name="i-lucide-shopping-cart"
+        class="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3"
+      />
       <p class="text-sm text-gray-500 dark:text-gray-400">
         Your cart is empty
       </p>
     </div>
 
-    <div v-else class="divide-y divide-gray-200 dark:divide-gray-800">
+    <div
+      v-else
+      class="divide-y divide-gray-200 dark:divide-gray-800"
+    >
       <div
         v-for="item in items"
         :key="item.id"
@@ -61,7 +73,10 @@ const formatTime = (time24: string): string => {
       >
         <div class="flex gap-3">
           <!-- Item Image -->
-          <div v-if="!compact && item.itemImage" class="flex-shrink-0">
+          <div
+            v-if="!compact && item.itemImage"
+            class="flex-shrink-0"
+          >
             <img
               :src="item.itemImage"
               :alt="item.itemName"
@@ -78,14 +93,26 @@ const formatTime = (time24: string): string => {
                 </h4>
                 <div class="text-sm text-gray-600 dark:text-gray-400 mt-1 space-y-0.5">
                   <p class="flex items-center gap-1.5">
-                    <UIcon name="i-lucide-truck" class="w-3.5 h-3.5 text-green-600" />
+                    <UIcon
+                      name="i-lucide-truck"
+                      class="w-3.5 h-3.5 text-green-600"
+                    />
                     <span>{{ formatDate(item.startDate) }}</span>
-                    <span v-if="item.deliveryTime" class="text-gray-500">at {{ formatTime(item.deliveryTime) }}</span>
+                    <span
+                      v-if="item.deliveryTime"
+                      class="text-gray-500"
+                    >at {{ formatTime(item.deliveryTime) }}</span>
                   </p>
                   <p class="flex items-center gap-1.5">
-                    <UIcon name="i-lucide-package-check" class="w-3.5 h-3.5 text-blue-600" />
+                    <UIcon
+                      name="i-lucide-package-check"
+                      class="w-3.5 h-3.5 text-blue-600"
+                    />
                     <span>{{ formatDate(item.endDate) }}</span>
-                    <span v-if="item.pickupTime" class="text-gray-500">at {{ formatTime(item.pickupTime) }}</span>
+                    <span
+                      v-if="item.pickupTime"
+                      class="text-gray-500"
+                    >at {{ formatTime(item.pickupTime) }}</span>
                   </p>
                   <span class="text-xs text-gray-500 dark:text-gray-500">
                     ({{ calculateDays(item.startDate, item.endDate) }} {{ calculateDays(item.startDate, item.endDate) === 1 ? 'day' : 'days' }})
@@ -93,7 +120,10 @@ const formatTime = (time24: string): string => {
                 </div>
 
                 <!-- Add-ons -->
-                <div v-if="item.addOns.length > 0" class="mt-2">
+                <div
+                  v-if="item.addOns.length > 0"
+                  class="mt-2"
+                >
                   <p class="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Add-ons:
                   </p>
@@ -103,14 +133,20 @@ const formatTime = (time24: string): string => {
                       :key="addOn.id"
                       class="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1"
                     >
-                      <UIcon name="i-lucide-plus" class="w-3 h-3" />
+                      <UIcon
+                        name="i-lucide-plus"
+                        class="w-3 h-3"
+                      />
                       {{ addOn.name }} (+{{ formatCurrency(addOn.price) }})
                     </li>
                   </ul>
                 </div>
 
                 <!-- Quantity -->
-                <div v-if="item.quantity > 1" class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <div
+                  v-if="item.quantity > 1"
+                  class="mt-2 text-sm text-gray-600 dark:text-gray-400"
+                >
                   Quantity: {{ item.quantity }}
                 </div>
               </div>
@@ -136,7 +172,10 @@ const formatTime = (time24: string): string => {
     </div>
 
     <!-- Totals -->
-    <div v-if="items.length > 0" class="p-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
+    <div
+      v-if="items.length > 0"
+      class="p-4 border-t border-gray-200 dark:border-gray-800 space-y-2"
+    >
       <div class="flex items-center justify-between text-sm">
         <span class="text-gray-600 dark:text-gray-400">Subtotal</span>
         <span class="font-medium text-gray-900 dark:text-white">{{ formatCurrency(subtotal) }}</span>
@@ -144,7 +183,10 @@ const formatTime = (time24: string): string => {
 
       <div class="flex items-center justify-between text-sm">
         <span class="text-gray-600 dark:text-gray-400 flex items-center gap-1">
-          <UIcon name="i-lucide-truck" class="w-4 h-4" />
+          <UIcon
+            name="i-lucide-truck"
+            class="w-4 h-4"
+          />
           Delivery
         </span>
         <span class="font-medium text-gray-900 dark:text-white">{{ formatCurrency(deliveryFee) }}</span>

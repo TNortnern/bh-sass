@@ -47,10 +47,15 @@ const isPositiveTrend = computed(() => props.trend && props.trend > 0)
   <UCard class="bg-white dark:bg-gray-900">
     <div class="flex items-center justify-between">
       <div class="flex-1">
-        <p class="text-sm text-gray-600 dark:text-gray-400">{{ label }}</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          {{ label }}
+        </p>
 
         <!-- Loading state -->
-        <div v-if="loading" class="mt-1 space-y-2">
+        <div
+          v-if="loading"
+          class="mt-1 space-y-2"
+        >
           <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-24" />
           <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-32" />
         </div>
@@ -77,7 +82,10 @@ const isPositiveTrend = computed(() => props.trend && props.trend > 0)
           </div>
 
           <!-- Previous value comparison -->
-          <p v-if="previousValue" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <p
+            v-if="previousValue"
+            class="text-xs text-gray-500 dark:text-gray-400 mt-1"
+          >
             vs {{ previousValue }} prev period
           </p>
         </div>

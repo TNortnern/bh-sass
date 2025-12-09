@@ -40,12 +40,13 @@ export default defineEventHandler(async (event) => {
       success: true,
       message: 'Service deleted successfully'
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to delete service from rb-payload:', error)
 
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to delete service'
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      message: message || 'Failed to delete service'
     })
   }
 })

@@ -2,7 +2,8 @@
 // Redirect to the actual profile settings page
 definePageMeta({
   layout: 'dashboard',
-  middleware: 'auth',
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  middleware: ['auth' as any]
 })
 
 // Immediate redirect on mount
@@ -13,6 +14,9 @@ onMounted(() => {
 
 <template>
   <div class="flex items-center justify-center h-full">
-    <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
+    <UIcon
+      name="i-lucide-loader-circle"
+      class="animate-spin text-4xl text-gray-400"
+    />
   </div>
 </template>

@@ -4,7 +4,10 @@
       <!-- Section Header -->
       <div class="max-w-3xl mx-auto text-center mb-16">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-medium mb-4">
-          <UIcon name="i-lucide-star" class="w-3 h-3" />
+          <UIcon
+            name="i-lucide-star"
+            class="w-3 h-3"
+          />
           <span>TESTIMONIALS</span>
         </div>
         <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -24,7 +27,12 @@
         >
           <!-- Stars -->
           <div class="flex gap-1 mb-4">
-            <UIcon v-for="i in 5" :key="i" name="i-lucide-star" class="w-5 h-5 text-amber-400 fill-current" />
+            <UIcon
+              v-for="i in 5"
+              :key="i"
+              name="i-lucide-star"
+              class="w-5 h-5 text-amber-400 fill-current"
+            />
           </div>
 
           <!-- Quote -->
@@ -41,8 +49,12 @@
               {{ testimonial.initials }}
             </div>
             <div>
-              <p class="font-semibold text-gray-900 dark:text-white">{{ testimonial.name }}</p>
-              <p class="text-sm text-gray-500 dark:text-gray-400">{{ testimonial.company }}</p>
+              <p class="font-semibold text-gray-900 dark:text-white">
+                {{ testimonial.name }}
+              </p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{ testimonial.company }}
+              </p>
             </div>
           </div>
         </div>
@@ -50,18 +62,29 @@
 
       <!-- Trust Badges -->
       <div class="mt-16 text-center">
-        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Rated 4.9/5 based on 127+ reviews</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          Rated 4.9/5 based on 127+ reviews
+        </p>
         <div class="flex justify-center items-center gap-8 flex-wrap">
           <div class="flex items-center gap-2 text-gray-400">
-            <UIcon name="i-lucide-shield-check" class="w-5 h-5" />
+            <UIcon
+              name="i-lucide-shield-check"
+              class="w-5 h-5"
+            />
             <span class="text-sm">SSL Secured</span>
           </div>
           <div class="flex items-center gap-2 text-gray-400">
-            <UIcon name="i-lucide-credit-card" class="w-5 h-5" />
+            <UIcon
+              name="i-lucide-credit-card"
+              class="w-5 h-5"
+            />
             <span class="text-sm">PCI Compliant</span>
           </div>
           <div class="flex items-center gap-2 text-gray-400">
-            <UIcon name="i-lucide-clock" class="w-5 h-5" />
+            <UIcon
+              name="i-lucide-clock"
+              class="w-5 h-5"
+            />
             <span class="text-sm">24/7 Support</span>
           </div>
         </div>

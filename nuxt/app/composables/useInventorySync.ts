@@ -51,7 +51,7 @@ interface RbPayloadService {
 }
 
 export function useInventorySync() {
-  const config = useRuntimeConfig()
+  // const config = useRuntimeConfig()
 
   /**
    * Transform RentalItem to rb-payload Service format
@@ -76,8 +76,8 @@ export function useInventorySync() {
         pricing: item.pricing,
         dimensions: item.dimensions,
         capacity: item.capacity,
-        syncedAt: new Date().toISOString(),
-      },
+        syncedAt: new Date().toISOString()
+      }
     }
   }
 
@@ -94,7 +94,7 @@ export function useInventorySync() {
       tent_canopy: 'Tents & Canopies',
       table_chair: 'Tables & Chairs',
       concession: 'Concessions',
-      other: 'Other',
+      other: 'Other'
     }
     return labels[category] || category
   }
@@ -113,35 +113,35 @@ export function useInventorySync() {
 
       if (item.rbPayloadServiceId) {
         // UPDATE existing service
-        const response = await $fetch<{ success: boolean; service: { id: number } }>(
+        const response = await $fetch<{ success: boolean, service: { id: number } }>(
           `/booking/services/${item.rbPayloadServiceId}`,
           {
             method: 'PATCH',
             body: {
               ...serviceData,
               tenantId
-            },
+            }
           }
         )
         return {
           success: true,
-          rbPayloadServiceId: response.service?.id || item.rbPayloadServiceId,
+          rbPayloadServiceId: response.service?.id || item.rbPayloadServiceId
         }
       } else {
         // CREATE new service
-        const response = await $fetch<{ success: boolean; service: { id: number } }>(
+        const response = await $fetch<{ success: boolean, service: { id: number } }>(
           '/booking/services',
           {
             method: 'POST',
             body: {
               ...serviceData,
               tenantId
-            },
+            }
           }
         )
         return {
           success: true,
-          rbPayloadServiceId: response.service?.id,
+          rbPayloadServiceId: response.service?.id
         }
       }
     } catch (error: unknown) {
@@ -149,7 +149,7 @@ export function useInventorySync() {
       console.error('Failed to sync to rb-payload:', error)
       return {
         success: false,
-        error: errorMessage,
+        error: errorMessage
       }
     }
   }
@@ -163,7 +163,7 @@ export function useInventorySync() {
   }> {
     try {
       await $fetch(`/booking/services/${rbPayloadServiceId}`, {
-        method: 'DELETE',
+        method: 'DELETE'
       })
       return { success: true }
     } catch (error: unknown) {
@@ -171,7 +171,7 @@ export function useInventorySync() {
       console.error('Failed to delete from rb-payload:', error)
       return {
         success: false,
-        error: errorMessage,
+        error: errorMessage
       }
     }
   }
@@ -181,7 +181,7 @@ export function useInventorySync() {
    */
   async function fetchRbPayloadServices(): Promise<RbPayloadService[]> {
     try {
-      const response = await $fetch<{ success: boolean; services: RbPayloadService[] }>(
+      const response = await $fetch<{ success: boolean, services: RbPayloadService[] }>(
         '/booking/services'
       )
       return response.services || []
@@ -200,16 +200,18 @@ export function useInventorySync() {
   ): Promise<{
     success: number
     failed: number
-    errors: Array<{ itemId: number; error: string }>
+    errors: Array<{ itemId: number, error: string }>
   }> {
     const results = {
       success: 0,
       failed: 0,
-      errors: [] as Array<{ itemId: number; error: string }>,
+      errors: [] as Array<{ itemId: number, error: string }>
     }
 
     for (let i = 0; i < items.length; i++) {
       const item = items[i]
+      if (!item) continue
+
       onProgress?.(i + 1, items.length, item)
 
       const result = await syncToRbPayload(item)
@@ -219,7 +221,7 @@ export function useInventorySync() {
         results.failed++
         results.errors.push({
           itemId: item.id,
-          error: result.error || 'Unknown error',
+          error: result.error || 'Unknown error'
         })
       }
     }
@@ -243,8 +245,8 @@ export function useInventorySync() {
     const services = await fetchRbPayloadServices()
     const serviceMap = new Map(
       services
-        .filter((s) => s.externalId?.startsWith('bh-saas-'))
-        .map((s) => [s.externalId, s])
+        .filter(s => s.externalId?.startsWith('bh-saas-'))
+        .map(s => [s.externalId, s])
     )
 
     const details: Array<{
@@ -265,10 +267,10 @@ export function useInventorySync() {
         notSynced++
         details.push({ itemId: item.id, name: item.name, status: 'not_synced' })
       } else if (
-        service.name !== item.name ||
-        service.price !== item.pricing.dailyRate ||
-        service.isActive !== item.isActive ||
-        service.quantity !== item.quantity
+        service.name !== item.name
+        || service.price !== item.pricing.dailyRate
+        || service.isActive !== item.isActive
+        || service.quantity !== item.quantity
       ) {
         outOfSync++
         details.push({ itemId: item.id, name: item.name, status: 'out_of_sync' })
@@ -287,6 +289,6 @@ export function useInventorySync() {
     fetchRbPayloadServices,
     syncAllToRbPayload,
     checkSyncStatus,
-    rentalItemToService,
+    rentalItemToService
   }
 }

@@ -6,8 +6,14 @@
       <div class="footer-grid">
         <!-- Brand column -->
         <div class="footer-brand">
-          <NuxtLink to="/" class="brand-logo">
-            <UIcon name="i-lucide-castle" class="logo-icon" />
+          <NuxtLink
+            to="/"
+            class="brand-logo"
+          >
+            <UIcon
+              name="i-lucide-castle"
+              class="logo-icon"
+            />
             <span class="brand-name">BouncePro</span>
           </NuxtLink>
           <p class="brand-tagline">
@@ -17,7 +23,9 @@
 
           <!-- Newsletter signup -->
           <div class="newsletter-section">
-            <h4 class="newsletter-title">Stay updated</h4>
+            <h4 class="newsletter-title">
+              Stay updated
+            </h4>
             <div class="newsletter-form">
               <UInput
                 v-model="newsletterEmail"
@@ -80,20 +88,31 @@
 
         <!-- Product links -->
         <div class="footer-links-column">
-          <h3 class="footer-column-title">Product</h3>
+          <h3 class="footer-column-title">
+            Product
+          </h3>
           <ul class="footer-links-list">
             <li>
-              <NuxtLink to="/features" class="footer-link">
+              <NuxtLink
+                to="/features"
+                class="footer-link"
+              >
                 Features
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/pricing" class="footer-link">
+              <NuxtLink
+                to="/pricing"
+                class="footer-link"
+              >
                 Pricing
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/integrations" class="footer-link">
+              <NuxtLink
+                to="/integrations"
+                class="footer-link"
+              >
                 Integrations
               </NuxtLink>
             </li>
@@ -105,11 +124,17 @@
                 class="footer-link"
               >
                 API
-                <UIcon name="i-lucide-external-link" class="external-icon" />
+                <UIcon
+                  name="i-lucide-external-link"
+                  class="external-icon"
+                />
               </a>
             </li>
             <li>
-              <NuxtLink to="/changelog" class="footer-link">
+              <NuxtLink
+                to="/changelog"
+                class="footer-link"
+              >
                 Changelog
               </NuxtLink>
             </li>
@@ -118,30 +143,47 @@
 
         <!-- Company links -->
         <div class="footer-links-column">
-          <h3 class="footer-column-title">Company</h3>
+          <h3 class="footer-column-title">
+            Company
+          </h3>
           <ul class="footer-links-list">
             <li>
-              <NuxtLink to="/about" class="footer-link">
+              <NuxtLink
+                to="/about"
+                class="footer-link"
+              >
                 About
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/blog" class="footer-link">
+              <NuxtLink
+                to="/blog"
+                class="footer-link"
+              >
                 Blog
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/careers" class="footer-link">
+              <NuxtLink
+                to="/careers"
+                class="footer-link"
+              >
                 Careers
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/contact" class="footer-link">
+              <NuxtLink
+                to="/contact"
+                class="footer-link"
+              >
                 Contact
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/press" class="footer-link">
+              <NuxtLink
+                to="/press"
+                class="footer-link"
+              >
                 Press Kit
               </NuxtLink>
             </li>
@@ -150,10 +192,15 @@
 
         <!-- Resources links -->
         <div class="footer-links-column">
-          <h3 class="footer-column-title">Resources</h3>
+          <h3 class="footer-column-title">
+            Resources
+          </h3>
           <ul class="footer-links-list">
             <li>
-              <NuxtLink to="/help" class="footer-link">
+              <NuxtLink
+                to="/help"
+                class="footer-link"
+              >
                 Help Center
               </NuxtLink>
             </li>
@@ -165,7 +212,10 @@
                 class="footer-link"
               >
                 Documentation
-                <UIcon name="i-lucide-external-link" class="external-icon" />
+                <UIcon
+                  name="i-lucide-external-link"
+                  class="external-icon"
+                />
               </a>
             </li>
             <li>
@@ -176,16 +226,25 @@
                 class="footer-link"
               >
                 Status
-                <UIcon name="i-lucide-external-link" class="external-icon" />
+                <UIcon
+                  name="i-lucide-external-link"
+                  class="external-icon"
+                />
               </a>
             </li>
             <li>
-              <NuxtLink to="/community" class="footer-link">
+              <NuxtLink
+                to="/community"
+                class="footer-link"
+              >
                 Community
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/tutorials" class="footer-link">
+              <NuxtLink
+                to="/tutorials"
+                class="footer-link"
+              >
                 Tutorials
               </NuxtLink>
             </li>
@@ -194,30 +253,47 @@
 
         <!-- Legal links -->
         <div class="footer-links-column">
-          <h3 class="footer-column-title">Legal</h3>
+          <h3 class="footer-column-title">
+            Legal
+          </h3>
           <ul class="footer-links-list">
             <li>
-              <NuxtLink to="/privacy" class="footer-link">
+              <NuxtLink
+                to="/privacy"
+                class="footer-link"
+              >
                 Privacy
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/terms" class="footer-link">
+              <NuxtLink
+                to="/terms"
+                class="footer-link"
+              >
                 Terms
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/security" class="footer-link">
+              <NuxtLink
+                to="/security"
+                class="footer-link"
+              >
                 Security
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/gdpr" class="footer-link">
+              <NuxtLink
+                to="/gdpr"
+                class="footer-link"
+              >
                 GDPR
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/cookies" class="footer-link">
+              <NuxtLink
+                to="/cookies"
+                class="footer-link"
+              >
                 Cookies
               </NuxtLink>
             </li>
@@ -227,8 +303,8 @@
 
       <!-- Decorative divider -->
       <div class="footer-divider">
-        <div class="divider-line"></div>
-        <div class="divider-decoration"></div>
+        <div class="divider-line" />
+        <div class="divider-decoration" />
       </div>
 
       <!-- Bottom bar -->
@@ -238,17 +314,29 @@
         </p>
 
         <div class="footer-bottom-links">
-          <NuxtLink to="/sitemap" class="bottom-link">
+          <NuxtLink
+            to="/sitemap"
+            class="bottom-link"
+          >
             Sitemap
           </NuxtLink>
           <span class="link-separator">•</span>
-          <NuxtLink to="/accessibility" class="bottom-link">
+          <NuxtLink
+            to="/accessibility"
+            class="bottom-link"
+          >
             Accessibility
           </NuxtLink>
           <span class="link-separator">•</span>
-          <button class="bottom-link" @click="handleLanguageChange">
+          <button
+            class="bottom-link"
+            @click="handleLanguageChange"
+          >
             English
-            <UIcon name="i-lucide-chevron-down" class="language-icon" />
+            <UIcon
+              name="i-lucide-chevron-down"
+              class="language-icon"
+            />
           </button>
         </div>
       </div>
@@ -256,9 +344,9 @@
 
     <!-- Decorative background elements -->
     <div class="footer-background">
-      <div class="bg-gradient-1"></div>
-      <div class="bg-gradient-2"></div>
-      <div class="bg-pattern"></div>
+      <div class="bg-gradient-1" />
+      <div class="bg-gradient-2" />
+      <div class="bg-pattern" />
     </div>
   </footer>
 </template>

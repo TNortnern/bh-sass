@@ -5,6 +5,26 @@
  */
 import { parseISO } from 'date-fns'
 
+interface RbPayloadBooking {
+  id: string
+  createdAt: string
+  customer?: { id: string, name?: string, email?: string }
+  customerId?: string
+  totalPrice?: number
+  [key: string]: unknown
+}
+
+interface RbPayloadCustomer {
+  id: string
+  name?: string
+  email?: string
+  address?: {
+    city?: string
+    state?: string
+  }
+  [key: string]: unknown
+}
+
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const rbPayloadUrl = config.rbPayloadUrl || 'https://reusablebook-payload-production.up.railway.app'
@@ -38,8 +58,8 @@ export default defineEventHandler(async (event) => {
   try {
     // Fetch bookings and customers in parallel
     const [bookingsResponse, customersResponse] = await Promise.all([
-      $fetch<{ docs: any[] }>(`${rbPayloadUrl}/api/bookings?where[tenantId][equals]=${TENANT_ID}&limit=1000`, { headers }),
-      $fetch<{ docs: any[] }>(`${rbPayloadUrl}/api/customers?where[tenantId][equals]=${TENANT_ID}&limit=1000`, { headers })
+      $fetch<{ docs: RbPayloadBooking[] }>(`${rbPayloadUrl}/api/bookings?where[tenantId][equals]=${TENANT_ID}&limit=1000`, { headers }),
+      $fetch<{ docs: RbPayloadCustomer[] }>(`${rbPayloadUrl}/api/customers?where[tenantId][equals]=${TENANT_ID}&limit=1000`, { headers })
     ])
 
     const bookings = bookingsResponse.docs || []
@@ -49,7 +69,7 @@ export default defineEventHandler(async (event) => {
     const start = parseISO(startDate)
     const end = parseISO(endDate)
 
-    const filteredBookings = bookings.filter((booking: any) => {
+    const filteredBookings = bookings.filter((booking) => {
       const bookingDate = parseISO(booking.createdAt)
       return bookingDate >= start && bookingDate <= end
     })
@@ -61,18 +81,18 @@ export default defineEventHandler(async (event) => {
     const previousEnd = new Date(start)
     previousEnd.setDate(previousEnd.getDate() - 1)
 
-    const previousBookings = bookings.filter((booking: any) => {
+    const previousBookings = bookings.filter((booking) => {
       const bookingDate = parseISO(booking.createdAt)
       return bookingDate >= previousStart && bookingDate <= previousEnd
     })
 
     // Get unique customer IDs from filtered bookings
     const customerIds = new Set(
-      filteredBookings.map((booking: any) => booking.customer?.id || booking.customerId).filter(Boolean)
+      filteredBookings.map(booking => booking.customer?.id || booking.customerId).filter(Boolean)
     )
 
     const previousCustomerIds = new Set(
-      previousBookings.map((booking: any) => booking.customer?.id || booking.customerId).filter(Boolean)
+      previousBookings.map(booking => booking.customer?.id || booking.customerId).filter(Boolean)
     )
 
     const totalCustomers = customerIds.size
@@ -84,17 +104,17 @@ export default defineEventHandler(async (event) => {
 
     // Calculate new vs returning customers
     const customerBookingCounts = new Map<string, number>()
-    bookings.forEach((booking: any) => {
+    bookings.forEach((booking) => {
       const customerId = booking.customer?.id || booking.customerId
       if (!customerId) return
-      customerBookingCounts.set(customerId, (customerBookingCounts.get(customerId) || 0) + 1)
+      customerBookingCounts.set(customerId as string, (customerBookingCounts.get(customerId as string) || 0) + 1)
     })
 
     let newCustomers = 0
     let returningCustomers = 0
 
-    customerIds.forEach(customerId => {
-      const totalBookings = customerBookingCounts.get(customerId) || 0
+    customerIds.forEach((customerId) => {
+      const totalBookings = customerBookingCounts.get(customerId as string) || 0
       if (totalBookings === 1) {
         newCustomers++
       } else {
@@ -110,24 +130,24 @@ export default defineEventHandler(async (event) => {
       lifetimeValue: number
     }>()
 
-    bookings.forEach((booking: any) => {
+    bookings.forEach((booking) => {
       const customerId = booking.customer?.id || booking.customerId
       if (!customerId) return
 
-      const customer = customers.find((c: any) => c.id === customerId)
+      const customer = customers.find(c => c.id === customerId)
       const customerName = booking.customer?.name || customer?.name || 'Unknown Customer'
       const customerEmail = booking.customer?.email || customer?.email || ''
 
-      const existing = customerLifetimeValues.get(customerId) || {
-        name: customerName,
-        email: customerEmail,
+      const existing = customerLifetimeValues.get(customerId as string) || {
+        name: customerName as string,
+        email: customerEmail as string,
         bookings: 0,
         lifetimeValue: 0
       }
 
       existing.bookings += 1
       existing.lifetimeValue += booking.totalPrice || 0
-      customerLifetimeValues.set(customerId, existing)
+      customerLifetimeValues.set(customerId as string, existing)
     })
 
     // Top customers by lifetime value
@@ -158,7 +178,7 @@ export default defineEventHandler(async (event) => {
 
     // Booking frequency distribution
     const frequencyMap = new Map<string, number>()
-    customerLifetimeValues.forEach(customer => {
+    customerLifetimeValues.forEach((customer) => {
       let frequency: string
       if (customer.bookings === 1) frequency = '1 booking'
       else if (customer.bookings === 2) frequency = '2 bookings'
@@ -179,7 +199,7 @@ export default defineEventHandler(async (event) => {
 
     // Geographic distribution (from customer addresses)
     const locationMap = new Map<string, number>()
-    customers.forEach((customer: any) => {
+    customers.forEach((customer) => {
       if (!customer.address?.city || !customer.address?.state) return
       const location = `${customer.address.city}, ${customer.address.state}`
       locationMap.set(location, (locationMap.get(location) || 0) + 1)
@@ -209,12 +229,13 @@ export default defineEventHandler(async (event) => {
         geographicDistribution
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch customers report:', error)
 
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to fetch customers report'
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      message: message || 'Failed to fetch customers report'
     })
   }
 })

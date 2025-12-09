@@ -55,16 +55,16 @@ export default defineEventHandler(async (event) => {
     return {
       success: true
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting rental item:', error)
 
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 
     throw createError({
       statusCode: 500,
-      message: error.message || 'Failed to delete rental item'
+      message: (error as Error).message || 'Failed to delete rental item'
     })
   }
 })

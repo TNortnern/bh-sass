@@ -3,21 +3,27 @@
     <!-- Welcome Card -->
     <div class="relative">
       <!-- Glow effect -->
-      <div class="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 rounded-3xl blur-2xl opacity-50"></div>
+      <div class="absolute -inset-4 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 rounded-3xl blur-2xl opacity-50" />
 
       <div class="relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl border border-gray-700/50 rounded-2xl overflow-hidden">
         <!-- Decorative pattern -->
         <div class="absolute inset-0 opacity-5">
-          <div class="absolute inset-0" style="background-image: radial-gradient(circle at 1px 1px, rgb(251 191 36) 1px, transparent 0); background-size: 40px 40px;"></div>
+          <div
+            class="absolute inset-0"
+            style="background-image: radial-gradient(circle at 1px 1px, rgb(251 191 36) 1px, transparent 0); background-size: 40px 40px;"
+          />
         </div>
 
         <div class="relative p-8 sm:p-12">
           <!-- Welcome Icon -->
           <div class="flex justify-center mb-6">
             <div class="relative">
-              <div class="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl blur-xl opacity-50 animate-pulse"></div>
+              <div class="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl blur-xl opacity-50 animate-pulse" />
               <div class="relative bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6">
-                <Icon name="lucide:sparkles" class="w-12 h-12 text-white" />
+                <Icon
+                  name="lucide:sparkles"
+                  class="w-12 h-12 text-white"
+                />
               </div>
             </div>
           </div>
@@ -41,18 +47,28 @@
               :style="{ animationDelay: `${index * 100}ms` }"
             >
               <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center group-hover:from-amber-500/30 group-hover:to-orange-500/30 transition-all">
-                <Icon :name="feature.icon" class="w-5 h-5 text-amber-400" />
+                <Icon
+                  :name="feature.icon"
+                  class="w-5 h-5 text-amber-400"
+                />
               </div>
               <div>
-                <h3 class="text-white font-semibold mb-1">{{ feature.title }}</h3>
-                <p class="text-sm text-gray-400 leading-relaxed">{{ feature.description }}</p>
+                <h3 class="text-white font-semibold mb-1">
+                  {{ feature.title }}
+                </h3>
+                <p class="text-sm text-gray-400 leading-relaxed">
+                  {{ feature.description }}
+                </p>
               </div>
             </div>
           </div>
 
           <!-- Time Estimate -->
           <div class="flex items-center justify-center gap-2 mb-8 text-gray-400">
-            <Icon name="lucide:clock" class="w-4 h-4" />
+            <Icon
+              name="lucide:clock"
+              class="w-4 h-4"
+            />
             <span class="text-sm">Takes about 2-3 minutes to complete</span>
           </div>
 
@@ -64,17 +80,23 @@
               @click="handleGetStarted"
             >
               <template #leading>
-                <Icon name="lucide:rocket" class="w-5 h-5" />
+                <Icon
+                  name="lucide:rocket"
+                  class="w-5 h-5"
+                />
               </template>
               <span class="text-lg font-semibold">Let's Get Started</span>
               <template #trailing>
-                <Icon name="lucide:arrow-right" class="w-5 h-5" />
+                <Icon
+                  name="lucide:arrow-right"
+                  class="w-5 h-5"
+                />
               </template>
             </UButton>
 
             <button
-              @click="handleSkip"
               class="text-sm text-gray-500 hover:text-gray-300 transition-colors"
+              @click="handleSkip"
             >
               I'll do this later
             </button>
@@ -101,8 +123,10 @@ const { currentUser } = useAuth()
 const { nextStep, loadProgress } = useOnboarding()
 
 const userName = computed(() => {
-  if (currentUser.value?.businessName) {
-    return currentUser.value.businessName.split(' ')[0]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (currentUser.value && (currentUser.value.profile as any)?.firstName) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (currentUser.value.profile as any).firstName
   }
   return null
 })

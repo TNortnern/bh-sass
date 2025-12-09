@@ -3,7 +3,6 @@
  * Tests critical error scenarios and boundary conditions
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 
 const mockFetch = vi.fn()
 vi.stubGlobal('$fetch', mockFetch)
@@ -19,8 +18,8 @@ describe('Network Failures', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.message).toContain('Network')
+    } catch (error: unknown) {
+      expect((error as Error).message).toContain('Network')
     }
   })
 
@@ -30,8 +29,8 @@ describe('Network Failures', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.message).toContain('timeout')
+    } catch (error: unknown) {
+      expect((error as Error).message).toContain('timeout')
     }
   })
 
@@ -41,8 +40,8 @@ describe('Network Failures', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.message).toContain('ENOTFOUND')
+    } catch (error: unknown) {
+      expect((error as Error).message).toContain('ENOTFOUND')
     }
   })
 
@@ -52,8 +51,8 @@ describe('Network Failures', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.message).toContain('ECONNREFUSED')
+    } catch (error: unknown) {
+      expect((error as Error).message).toContain('ECONNREFUSED')
     }
   })
 })
@@ -83,7 +82,7 @@ describe('API Authentication Errors', () => {
 
     const validKeyPattern = /^tk_[a-z0-9]{32}$/
 
-    invalidKeys.forEach(key => {
+    invalidKeys.forEach((key) => {
       expect(validKeyPattern.test(key)).toBe(false)
     })
   })
@@ -97,8 +96,8 @@ describe('API Authentication Errors', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.statusCode).toBe(401)
+    } catch (error: unknown) {
+      expect((error as { statusCode: number }).statusCode).toBe(401)
     }
   })
 
@@ -111,8 +110,8 @@ describe('API Authentication Errors', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.statusCode).toBe(403)
+    } catch (error: unknown) {
+      expect((error as { statusCode: number }).statusCode).toBe(403)
     }
   })
 })
@@ -159,7 +158,7 @@ describe('Malformed Request Data', () => {
   })
 
   it('should handle arrays when object expected', () => {
-    const invalidData = [] as any
+    const invalidData = [] as unknown
 
     expect(Array.isArray(invalidData)).toBe(true)
     expect(typeof invalidData).toBe('object')
@@ -228,8 +227,8 @@ describe('Rate Limiting and Throttling', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.statusCode).toBe(429)
+    } catch (error: unknown) {
+      expect((error as { statusCode: number }).statusCode).toBe(429)
     }
   })
 
@@ -255,8 +254,8 @@ describe('Server Errors', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.statusCode).toBe(500)
+    } catch (error: unknown) {
+      expect((error as { statusCode: number }).statusCode).toBe(500)
     }
   })
 
@@ -269,8 +268,8 @@ describe('Server Errors', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.statusCode).toBe(502)
+    } catch (error: unknown) {
+      expect((error as { statusCode: number }).statusCode).toBe(502)
     }
   })
 
@@ -283,8 +282,8 @@ describe('Server Errors', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.statusCode).toBe(503)
+    } catch (error: unknown) {
+      expect((error as { statusCode: number }).statusCode).toBe(503)
     }
   })
 
@@ -297,8 +296,8 @@ describe('Server Errors', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.statusCode).toBe(504)
+    } catch (error: unknown) {
+      expect((error as { statusCode: number }).statusCode).toBe(504)
     }
   })
 })
@@ -317,7 +316,7 @@ describe('Data Validation Errors', () => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-    invalidEmails.forEach(email => {
+    invalidEmails.forEach((email) => {
       expect(emailRegex.test(email)).toBe(false)
     })
   })
@@ -331,7 +330,7 @@ describe('Data Validation Errors', () => {
       ''
     ]
 
-    invalidDates.forEach(date => {
+    invalidDates.forEach((date) => {
       const parsed = Date.parse(date)
       expect(isNaN(parsed)).toBe(true)
     })
@@ -340,7 +339,7 @@ describe('Data Validation Errors', () => {
   it('should detect negative prices', () => {
     const invalidPrices = [-100, -0.01, -1000]
 
-    invalidPrices.forEach(price => {
+    invalidPrices.forEach((price) => {
       expect(price < 0).toBe(true)
     })
   })
@@ -379,7 +378,7 @@ describe('Boundary Value Testing', () => {
   })
 
   it('should handle empty arrays', () => {
-    const emptyItems: any[] = []
+    const emptyItems: unknown[] = []
 
     expect(emptyItems.length).toBe(0)
     expect(Array.isArray(emptyItems)).toBe(true)
@@ -433,8 +432,8 @@ describe('Resource Not Found Errors', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.statusCode).toBe(404)
+    } catch (error: unknown) {
+      expect((error as { statusCode: number }).statusCode).toBe(404)
     }
   })
 
@@ -447,8 +446,8 @@ describe('Resource Not Found Errors', () => {
     try {
       await mockFetch()
       expect.fail('Should have thrown error')
-    } catch (error: any) {
-      expect(error.statusCode).toBe(404)
+    } catch (error: unknown) {
+      expect((error as { statusCode: number }).statusCode).toBe(404)
     }
   })
 
@@ -465,13 +464,13 @@ describe('Resource Not Found Errors', () => {
     // IDs that would fail validation
     const invalidIds = ['', null, undefined, 'abc-', '-123', 'BK-']
 
-    invalidIds.forEach(id => {
+    invalidIds.forEach((id) => {
       // Any of these conditions make an ID invalid
-      const isInvalid =
-        !id || // Falsy
-        id === null ||
-        id === undefined ||
-        (typeof id === 'string' && (id.length === 0 || id.endsWith('-') || id.startsWith('-')))
+      const isInvalid
+        = !id // Falsy
+          || id === null
+          || id === undefined
+          || (typeof id === 'string' && (id.length === 0 || id.endsWith('-') || id.startsWith('-')))
 
       if (id !== 'BK-abc') { // BK-abc is technically a string, so skip that one
         expect(isInvalid).toBeTruthy()
@@ -483,7 +482,7 @@ describe('Resource Not Found Errors', () => {
 describe('Special Characters and Encoding', () => {
   it('should handle special characters in names', () => {
     const names = [
-      "O'Brien",
+      'O\'Brien',
       'José García',
       'Müller',
       'Nguyễn',
@@ -491,7 +490,7 @@ describe('Special Characters and Encoding', () => {
       'van der Berg'
     ]
 
-    names.forEach(name => {
+    names.forEach((name) => {
       expect(name.length).toBeGreaterThan(0)
       expect(typeof name).toBe('string')
     })
@@ -505,7 +504,7 @@ describe('Special Characters and Encoding', () => {
       '789 Straße'
     ]
 
-    addresses.forEach(address => {
+    addresses.forEach((address) => {
       expect(address.length).toBeGreaterThan(0)
     })
   })
@@ -536,7 +535,6 @@ describe('Date and Time Edge Cases', () => {
 
   it('should handle timezone differences', () => {
     const utcDate = new Date('2025-06-15T00:00:00Z')
-    const localDate = new Date('2025-06-15T00:00:00')
 
     expect(utcDate.toISOString()).toContain('Z')
   })
@@ -597,10 +595,10 @@ describe('Memory and Performance Edge Cases', () => {
 
 describe('Security Edge Cases', () => {
   it('should prevent SQL injection attempts in queries', () => {
-    const maliciousInput = "1' OR '1'='1"
+    const maliciousInput = '1\' OR \'1\'=\'1'
 
     // Input should be sanitized/escaped
-    expect(maliciousInput).toContain("'")
+    expect(maliciousInput).toContain('\'')
   })
 
   it('should prevent XSS attempts in text fields', () => {

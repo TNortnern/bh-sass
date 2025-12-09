@@ -29,7 +29,7 @@ const formData = ref({
   deliveryZip: '',
   deliveryInstructions: '',
   // Status
-  status: 'pending' as 'pending' | 'confirmed' | 'delivered' | 'completed' | 'cancelled',
+  status: 'pending' as 'pending' | 'confirmed' | 'preparing' | 'in_route' | 'delivered' | 'picked_up' | 'completed' | 'cancelled',
   paymentStatus: 'unpaid' as 'unpaid' | 'deposit' | 'paid' | 'refunded',
   // Notes
   customerNotes: '',
@@ -126,12 +126,13 @@ const saveChanges = async () => {
       // Redirect back to booking detail page
       router.push(`/app/bookings/${bookingId}`)
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     console.error('Failed to update booking:', err)
     toast.add({
       title: 'Error',
       description: err.message || 'Failed to update booking',
-      color: 'red'
+      color: 'error'
     })
   } finally {
     isSaving.value = false
@@ -145,7 +146,10 @@ const cancelEdit = () => {
 </script>
 
 <template>
-  <div v-if="currentBooking" class="space-y-6">
+  <div
+    v-if="currentBooking"
+    class="space-y-6"
+  >
     <!-- Header -->
     <div class="flex items-start justify-between gap-4">
       <div class="flex items-center gap-4">
@@ -171,8 +175,8 @@ const cancelEdit = () => {
           color="neutral"
           variant="outline"
           size="md"
-          @click="cancelEdit"
           :disabled="isSaving"
+          @click="cancelEdit"
         >
           Cancel
         </UButton>
@@ -180,9 +184,9 @@ const cancelEdit = () => {
           color="primary"
           size="md"
           icon="i-lucide-save"
-          @click="saveChanges"
           :loading="isSaving"
           :disabled="isSaving"
+          @click="saveChanges"
         >
           Save Changes
         </UButton>
@@ -196,11 +200,16 @@ const cancelEdit = () => {
         <!-- Dates Section -->
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Event Dates</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Event Dates
+            </h2>
           </template>
 
           <div class="grid sm:grid-cols-2 gap-4">
-            <UFormField label="Start Date" required>
+            <UFormField
+              label="Start Date"
+              required
+            >
               <UInput
                 v-model="formData.startDate"
                 type="date"
@@ -209,7 +218,10 @@ const cancelEdit = () => {
               />
             </UFormField>
 
-            <UFormField label="End Date" required>
+            <UFormField
+              label="End Date"
+              required
+            >
               <UInput
                 v-model="formData.endDate"
                 type="date"
@@ -221,7 +233,7 @@ const cancelEdit = () => {
 
           <div class="mt-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/10">
             <p class="text-sm text-blue-700 dark:text-blue-300">
-              <strong>Delivery:</strong> {{ format(parseISO(formData.startDate), 'MMM dd, yyyy') }}<br />
+              <strong>Delivery:</strong> {{ format(parseISO(formData.startDate), 'MMM dd, yyyy') }}<br>
               <strong>Pickup:</strong> {{ format(parseISO(formData.endDate), 'MMM dd, yyyy') }}
             </p>
           </div>
@@ -230,11 +242,16 @@ const cancelEdit = () => {
         <!-- Customer Information -->
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Customer Information</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Customer Information
+            </h2>
           </template>
 
           <div class="space-y-4">
-            <UFormField label="Full Name" required>
+            <UFormField
+              label="Full Name"
+              required
+            >
               <UInput
                 v-model="formData.customerName"
                 icon="i-lucide-user"
@@ -244,7 +261,10 @@ const cancelEdit = () => {
             </UFormField>
 
             <div class="grid sm:grid-cols-2 gap-4">
-              <UFormField label="Email" required>
+              <UFormField
+                label="Email"
+                required
+              >
                 <UInput
                   v-model="formData.customerEmail"
                   type="email"
@@ -254,7 +274,10 @@ const cancelEdit = () => {
                 />
               </UFormField>
 
-              <UFormField label="Phone" required>
+              <UFormField
+                label="Phone"
+                required
+              >
                 <UInput
                   v-model="formData.customerPhone"
                   type="tel"
@@ -270,11 +293,16 @@ const cancelEdit = () => {
         <!-- Delivery Address -->
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Delivery Address</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Delivery Address
+            </h2>
           </template>
 
           <div class="space-y-4">
-            <UFormField label="Street Address" required>
+            <UFormField
+              label="Street Address"
+              required
+            >
               <UInput
                 v-model="formData.deliveryStreet"
                 icon="i-lucide-map-pin"
@@ -284,7 +312,11 @@ const cancelEdit = () => {
             </UFormField>
 
             <div class="grid sm:grid-cols-3 gap-4">
-              <UFormField label="City" required class="sm:col-span-1">
+              <UFormField
+                label="City"
+                required
+                class="sm:col-span-1"
+              >
                 <UInput
                   v-model="formData.deliveryCity"
                   placeholder="San Francisco"
@@ -292,7 +324,10 @@ const cancelEdit = () => {
                 />
               </UFormField>
 
-              <UFormField label="State" required>
+              <UFormField
+                label="State"
+                required
+              >
                 <UInput
                   v-model="formData.deliveryState"
                   placeholder="CA"
@@ -301,7 +336,10 @@ const cancelEdit = () => {
                 />
               </UFormField>
 
-              <UFormField label="ZIP Code" required>
+              <UFormField
+                label="ZIP Code"
+                required
+              >
                 <UInput
                   v-model="formData.deliveryZip"
                   placeholder="94102"
@@ -323,7 +361,9 @@ const cancelEdit = () => {
         <!-- Notes -->
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Notes</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Notes
+            </h2>
           </template>
 
           <div class="space-y-4">
@@ -351,12 +391,17 @@ const cancelEdit = () => {
         <!-- Rental Item (Read-only) -->
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Rental Item</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Rental Item
+            </h2>
           </template>
 
           <div class="flex gap-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
             <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 flex items-center justify-center flex-shrink-0">
-              <UIcon name="i-lucide-tent" class="w-8 h-8 text-orange-600 dark:text-orange-400" />
+              <UIcon
+                name="i-lucide-tent"
+                class="w-8 h-8 text-orange-600 dark:text-orange-400"
+              />
             </div>
             <div class="flex-1">
               <h3 class="text-base font-semibold text-gray-900 dark:text-white">
@@ -381,11 +426,16 @@ const cancelEdit = () => {
         <!-- Status -->
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Booking Status</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Booking Status
+            </h2>
           </template>
 
           <div class="space-y-4">
-            <UFormField label="Booking Status" required>
+            <UFormField
+              label="Booking Status"
+              required
+            >
               <USelect
                 v-model="formData.status"
                 :options="statusOptions"
@@ -393,7 +443,10 @@ const cancelEdit = () => {
               />
             </UFormField>
 
-            <UFormField label="Payment Status" required>
+            <UFormField
+              label="Payment Status"
+              required
+            >
               <USelect
                 v-model="formData.paymentStatus"
                 :options="paymentStatusOptions"
@@ -406,7 +459,9 @@ const cancelEdit = () => {
         <!-- Payment Info (Read-only) -->
         <UCard class="bg-white dark:bg-gray-900">
           <template #header>
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Payment Information</h2>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Payment Information
+            </h2>
           </template>
 
           <div class="space-y-3">
@@ -444,9 +499,9 @@ const cancelEdit = () => {
             size="lg"
             block
             icon="i-lucide-save"
-            @click="saveChanges"
             :loading="isSaving"
             :disabled="isSaving"
+            @click="saveChanges"
           >
             Save Changes
           </UButton>
@@ -455,8 +510,8 @@ const cancelEdit = () => {
             variant="outline"
             size="lg"
             block
-            @click="cancelEdit"
             :disabled="isSaving"
+            @click="cancelEdit"
           >
             Cancel
           </UButton>
@@ -466,11 +521,19 @@ const cancelEdit = () => {
   </div>
 
   <!-- Error State -->
-  <div v-else-if="fetchError" class="flex flex-col items-center justify-center py-12">
+  <div
+    v-else-if="fetchError"
+    class="flex flex-col items-center justify-center py-12"
+  >
     <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mb-4">
-      <UIcon name="i-lucide-alert-circle" class="w-8 h-8 text-red-600 dark:text-red-400" />
+      <UIcon
+        name="i-lucide-alert-circle"
+        class="w-8 h-8 text-red-600 dark:text-red-400"
+      />
     </div>
-    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Failed to Load Booking</h2>
+    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+      Failed to Load Booking
+    </h2>
     <p class="text-gray-600 dark:text-gray-400 mb-6 text-center max-w-md">
       {{ fetchError }}
     </p>
@@ -487,10 +550,18 @@ const cancelEdit = () => {
   </div>
 
   <!-- Loading State -->
-  <div v-else-if="isLoadingBooking" class="flex items-center justify-center py-12">
+  <div
+    v-else-if="isLoadingBooking"
+    class="flex items-center justify-center py-12"
+  >
     <div class="text-center">
-      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-gray-400 mx-auto mb-3" />
-      <p class="text-sm text-gray-600 dark:text-gray-400">Loading booking details...</p>
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-8 h-8 animate-spin text-gray-400 mx-auto mb-3"
+      />
+      <p class="text-sm text-gray-600 dark:text-gray-400">
+        Loading booking details...
+      </p>
     </div>
   </div>
 </template>

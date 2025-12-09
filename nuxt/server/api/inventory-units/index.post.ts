@@ -77,16 +77,16 @@ export default defineEventHandler(async (event) => {
       success: true,
       unit: data.doc
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating inventory unit:', error)
 
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 
     throw createError({
       statusCode: 500,
-      message: error.message || 'Failed to create inventory unit'
+      message: (error as Error).message || 'Failed to create inventory unit'
     })
   }
 })

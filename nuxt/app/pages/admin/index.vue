@@ -58,8 +58,12 @@ const statusColor = computed(() => {
     <!-- Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Platform Overview</h1>
-        <p class="page-description">Real-time metrics and system health for BouncePro</p>
+        <h1 class="page-title">
+          Platform Overview
+        </h1>
+        <p class="page-description">
+          Real-time metrics and system health for BouncePro
+        </p>
       </div>
       <UButton
         icon="i-lucide-refresh-cw"
@@ -71,17 +75,29 @@ const statusColor = computed(() => {
     </div>
 
     <!-- Loading State -->
-    <div v-if="pending && !stats" class="loading-state">
-      <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
+    <div
+      v-if="pending && !stats"
+      class="loading-state"
+    >
+      <UIcon
+        name="i-lucide-loader-circle"
+        class="animate-spin text-4xl text-gray-400"
+      />
     </div>
 
     <!-- Stats Content -->
-    <div v-else-if="stats" class="stats-grid">
+    <div
+      v-else-if="stats"
+      class="stats-grid"
+    >
       <!-- System Health Card -->
       <div class="stat-card system-health-card">
         <div class="stat-header">
           <div class="stat-icon system-icon">
-            <UIcon name="i-lucide-activity" class="size-5" />
+            <UIcon
+              name="i-lucide-activity"
+              class="size-5"
+            />
           </div>
           <UBadge
             :label="stats.systemHealth.status"
@@ -90,7 +106,9 @@ const statusColor = computed(() => {
             size="sm"
           />
         </div>
-        <div class="stat-value">System Health</div>
+        <div class="stat-value">
+          System Health
+        </div>
         <div class="health-metrics">
           <div class="health-metric">
             <span class="metric-label">API Requests (24h)</span>
@@ -111,11 +129,16 @@ const statusColor = computed(() => {
       <div class="stat-card">
         <div class="stat-header">
           <div class="stat-icon">
-            <UIcon name="i-lucide-building-2" class="size-5" />
+            <UIcon
+              name="i-lucide-building-2"
+              class="size-5"
+            />
           </div>
           <span class="stat-label">Total Tenants</span>
         </div>
-        <div class="stat-value">{{ formatNumber(stats.tenants.total) }}</div>
+        <div class="stat-value">
+          {{ formatNumber(stats.tenants.total) }}
+        </div>
         <div class="stat-footer">
           <div class="stat-detail">
             <span class="detail-value success">{{ stats.tenants.active }}</span>
@@ -136,14 +159,22 @@ const statusColor = computed(() => {
       <div class="stat-card">
         <div class="stat-header">
           <div class="stat-icon revenue-icon">
-            <UIcon name="i-lucide-trending-up" class="size-5" />
+            <UIcon
+              name="i-lucide-trending-up"
+              class="size-5"
+            />
           </div>
           <span class="stat-label">Monthly Recurring Revenue</span>
         </div>
-        <div class="stat-value">{{ formatCurrency(stats.revenue.mrr) }}</div>
+        <div class="stat-value">
+          {{ formatCurrency(stats.revenue.mrr) }}
+        </div>
         <div class="stat-footer">
           <div class="stat-detail">
-            <span class="detail-value" :class="stats.revenue.growth >= 0 ? 'success' : 'error'">
+            <span
+              class="detail-value"
+              :class="stats.revenue.growth >= 0 ? 'success' : 'error'"
+            >
               {{ stats.revenue.growth >= 0 ? '+' : '' }}{{ stats.revenue.growth.toFixed(1) }}%
             </span>
             <span class="detail-label">Growth</span>
@@ -159,7 +190,10 @@ const statusColor = computed(() => {
       <div class="stat-card subscriptions-card">
         <div class="stat-header">
           <div class="stat-icon">
-            <UIcon name="i-lucide-credit-card" class="size-5" />
+            <UIcon
+              name="i-lucide-credit-card"
+              class="size-5"
+            />
           </div>
           <span class="stat-label">Subscription Distribution</span>
         </div>
@@ -219,25 +253,52 @@ const statusColor = computed(() => {
       <div class="stat-card quick-actions-card">
         <div class="stat-header">
           <div class="stat-icon">
-            <UIcon name="i-lucide-zap" class="size-5" />
+            <UIcon
+              name="i-lucide-zap"
+              class="size-5"
+            />
           </div>
           <span class="stat-label">Quick Actions</span>
         </div>
         <div class="quick-actions">
-          <NuxtLink to="/admin/tenants" class="action-button">
-            <UIcon name="i-lucide-building-2" class="size-5" />
+          <NuxtLink
+            to="/admin/tenants"
+            class="action-button"
+          >
+            <UIcon
+              name="i-lucide-building-2"
+              class="size-5"
+            />
             <span>View All Tenants</span>
           </NuxtLink>
-          <NuxtLink to="/admin/revenue" class="action-button">
-            <UIcon name="i-lucide-dollar-sign" class="size-5" />
+          <NuxtLink
+            to="/admin/revenue"
+            class="action-button"
+          >
+            <UIcon
+              name="i-lucide-dollar-sign"
+              class="size-5"
+            />
             <span>Revenue Analytics</span>
           </NuxtLink>
-          <NuxtLink to="/admin/system" class="action-button">
-            <UIcon name="i-lucide-activity" class="size-5" />
+          <NuxtLink
+            to="/admin/system"
+            class="action-button"
+          >
+            <UIcon
+              name="i-lucide-activity"
+              class="size-5"
+            />
             <span>System Health</span>
           </NuxtLink>
-          <NuxtLink to="/admin/audit" class="action-button">
-            <UIcon name="i-lucide-file-text" class="size-5" />
+          <NuxtLink
+            to="/admin/audit"
+            class="action-button"
+          >
+            <UIcon
+              name="i-lucide-file-text"
+              class="size-5"
+            />
             <span>Audit Logs</span>
           </NuxtLink>
         </div>

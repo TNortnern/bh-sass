@@ -152,6 +152,22 @@ export const Bookings: CollectionConfig = {
       },
     },
     {
+      name: 'deliveryTime',
+      type: 'text',
+      admin: {
+        description: 'Preferred delivery time (e.g., 9:00 AM)',
+        placeholder: '9:00 AM',
+      },
+    },
+    {
+      name: 'pickupTime',
+      type: 'text',
+      admin: {
+        description: 'Preferred pickup time (e.g., 5:00 PM)',
+        placeholder: '5:00 PM',
+      },
+    },
+    {
       name: 'deliveryAddress',
       type: 'group',
       fields: [
@@ -211,8 +227,20 @@ export const Bookings: CollectionConfig = {
           value: 'confirmed',
         },
         {
+          label: 'Preparing',
+          value: 'preparing',
+        },
+        {
+          label: 'In Route',
+          value: 'in_route',
+        },
+        {
           label: 'Delivered',
           value: 'delivered',
+        },
+        {
+          label: 'Picked Up',
+          value: 'picked_up',
         },
         {
           label: 'Completed',

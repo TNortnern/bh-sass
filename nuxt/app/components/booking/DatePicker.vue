@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isAfter, isBefore, startOfDay } from 'date-fns'
+import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isAfter, isBefore, startOfDay } from 'date-fns'
 
 interface Props {
-  modelValue?: { start: string; end: string } | null
+  modelValue?: { start: string, end: string } | null
   unavailableDates?: string[]
   minDate?: Date
 }
 
 interface Emits {
-  (e: 'update:modelValue', value: { start: string; end: string } | null): void
+  (e: 'update:modelValue', value: { start: string, end: string } | null): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -148,7 +148,10 @@ const getDayClasses = (date: Date) => {
     </div>
 
     <!-- Selected Range Display -->
-    <div v-if="tempStartDate || tempEndDate" class="mb-4 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+    <div
+      v-if="tempStartDate || tempEndDate"
+      class="mb-4 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg"
+    >
       <div class="text-sm font-medium text-gray-900 dark:text-white mb-1">
         Selected Dates:
       </div>
@@ -156,7 +159,10 @@ const getDayClasses = (date: Date) => {
         <span v-if="tempStartDate">{{ format(tempStartDate, 'MMM d, yyyy') }}</span>
         <span v-if="tempStartDate && tempEndDate"> - </span>
         <span v-if="tempEndDate">{{ format(tempEndDate, 'MMM d, yyyy') }}</span>
-        <span v-if="tempStartDate && !tempEndDate" class="text-orange-600 dark:text-orange-400 ml-2">
+        <span
+          v-if="tempStartDate && !tempEndDate"
+          class="text-orange-600 dark:text-orange-400 ml-2"
+        >
           (Select end date)
         </span>
       </div>
@@ -167,7 +173,7 @@ const getDayClasses = (date: Date) => {
       <UButton
         color="neutral"
         variant="ghost"
-        icon="lucide:chevron-left"
+        icon="i-lucide-chevron-left"
         @click="previousMonth"
       />
       <div class="text-base font-semibold text-gray-900 dark:text-white">
@@ -176,7 +182,7 @@ const getDayClasses = (date: Date) => {
       <UButton
         color="neutral"
         variant="ghost"
-        icon="lucide:chevron-right"
+        icon="i-lucide-chevron-right"
         @click="nextMonth"
       />
     </div>

@@ -5,9 +5,15 @@
       <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 pb-12 border-b border-gray-800">
         <!-- Brand Column -->
         <div class="col-span-2">
-          <NuxtLink to="/" class="flex items-center gap-2.5 mb-4">
+          <NuxtLink
+            to="/"
+            class="flex items-center gap-2.5 mb-4"
+          >
             <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
-              <UIcon name="i-lucide-tent" class="w-5 h-5 text-white" />
+              <UIcon
+                name="i-lucide-tent"
+                class="w-5 h-5 text-white"
+              />
             </div>
             <span class="text-xl font-bold text-white">BouncePro</span>
           </NuxtLink>
@@ -24,16 +30,27 @@
               rel="noopener noreferrer"
               class="w-10 h-10 rounded-lg bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
             >
-              <UIcon :name="social.icon" class="w-5 h-5" />
+              <UIcon
+                :name="social.icon"
+                class="w-5 h-5"
+              />
             </a>
           </div>
         </div>
 
         <!-- Link Columns -->
-        <div v-for="column in footerLinks" :key="column.title">
-          <h4 class="text-white font-semibold mb-4">{{ column.title }}</h4>
+        <div
+          v-for="column in footerLinks"
+          :key="column.title"
+        >
+          <h4 class="text-white font-semibold mb-4">
+            {{ column.title }}
+          </h4>
           <ul class="space-y-3">
-            <li v-for="link in column.links" :key="link.label">
+            <li
+              v-for="link in column.links"
+              :key="link.label"
+            >
               <NuxtLink
                 :to="link.url"
                 class="text-gray-400 hover:text-orange-400 text-sm transition-colors"
@@ -51,13 +68,22 @@
           &copy; {{ new Date().getFullYear() }} BouncePro. All rights reserved.
         </p>
         <div class="flex items-center gap-6">
-          <NuxtLink to="/privacy" class="text-gray-500 hover:text-gray-400 text-sm transition-colors">
+          <NuxtLink
+            to="/privacy"
+            class="text-gray-500 hover:text-gray-400 text-sm transition-colors"
+          >
             Privacy Policy
           </NuxtLink>
-          <NuxtLink to="/terms" class="text-gray-500 hover:text-gray-400 text-sm transition-colors">
+          <NuxtLink
+            to="/terms"
+            class="text-gray-500 hover:text-gray-400 text-sm transition-colors"
+          >
             Terms of Service
           </NuxtLink>
-          <NuxtLink to="/cookies" class="text-gray-500 hover:text-gray-400 text-sm transition-colors">
+          <NuxtLink
+            to="/cookies"
+            class="text-gray-500 hover:text-gray-400 text-sm transition-colors"
+          >
             Cookie Policy
           </NuxtLink>
         </div>

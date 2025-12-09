@@ -86,9 +86,7 @@ async function extractBookingVariables(
       : 'N/A',
 
     // Customer variables
-    customerName: customer
-      ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim()
-      : 'N/A',
+    customerName: customer?.name || 'N/A',
     customerPhone: customer?.phone || 'N/A',
     customerEmail: customer?.email || 'N/A',
     customerAddress: customer?.address
@@ -120,15 +118,8 @@ async function extractBookingVariables(
  */
 export const generateFromTemplate = async (req: PayloadRequest) => {
   try {
-    // Parse JSON body from request (Payload 3.x uses Web Fetch API)
-    let body: { templateId?: string; bookingId?: string; customVariables?: Record<string, string> } = {}
-    try {
-      body = await req.json?.() || {}
-    } catch {
-      // Body already parsed or empty
-      body = req.data || {}
-    }
-    const { templateId, bookingId, customVariables } = body
+    // In Payload 3.x endpoints, the body is pre-parsed and available on req.data
+    const { templateId, bookingId, customVariables } = req.data || {}
 
     if (!templateId || !bookingId) {
       return Response.json(

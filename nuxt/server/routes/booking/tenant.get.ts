@@ -3,7 +3,7 @@
  * Fetch tenant info from rb-payload
  * Requires API key for authentication
  */
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (_event) => {
   const config = useRuntimeConfig()
   const rbPayloadUrl = config.rbPayloadUrl || 'https://reusablebook-payload-production.up.railway.app'
   const apiKey = config.rbPayloadApiKey
@@ -31,12 +31,13 @@ export default defineEventHandler(async (event) => {
       success: true,
       tenant: response
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch tenant from rb-payload:', error)
 
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to fetch tenant info'
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      message: message || 'Failed to fetch tenant info'
     })
   }
 })

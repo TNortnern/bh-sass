@@ -50,7 +50,7 @@ test.describe('Calendar View', () => {
 
       // Week view should be active or button should be highlighted
       const isActive = await weekButton.getAttribute('aria-current')
-      const hasActiveClass = await weekButton.evaluate((el) => el.classList.contains('active'))
+      const hasActiveClass = await weekButton.evaluate(el => el.classList.contains('active'))
 
       expect(isActive === 'true' || hasActiveClass || await weekView.isVisible()).toBeTruthy()
     }
@@ -68,7 +68,7 @@ test.describe('Calendar View', () => {
       )
 
       const isActive = await dayButton.getAttribute('aria-current')
-      const hasActiveClass = await dayButton.evaluate((el) => el.classList.contains('active'))
+      const hasActiveClass = await dayButton.evaluate(el => el.classList.contains('active'))
 
       expect(isActive === 'true' || hasActiveClass || await dayView.isVisible()).toBeTruthy()
     }
@@ -201,10 +201,10 @@ test.describe('Calendar View', () => {
       const statusAttr = await firstBooking.getAttribute('data-status')
 
       // Should have some status indication
-      const hasStatusStyling = className?.includes('status') ||
-        className?.includes('pending') ||
-        className?.includes('confirmed') ||
-        statusAttr !== null
+      const hasStatusStyling = className?.includes('status')
+        || className?.includes('pending')
+        || className?.includes('confirmed')
+        || statusAttr !== null
 
       expect(hasStatusStyling).toBeTruthy()
     }

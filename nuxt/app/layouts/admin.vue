@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-
 const { currentUser, logout } = useAuth()
 const { isImpersonating, impersonatedTenant, stopImpersonation } = useImpersonation()
 
@@ -18,6 +16,26 @@ const navigation = [
     to: '/admin/tenants'
   },
   {
+    label: 'Bookings',
+    icon: 'i-lucide-calendar',
+    to: '/admin/bookings'
+  },
+  {
+    label: 'Users',
+    icon: 'i-lucide-users',
+    to: '/admin/users'
+  },
+  {
+    label: 'API Keys',
+    icon: 'i-lucide-key',
+    to: '/admin/api-keys'
+  },
+  {
+    label: 'Plans',
+    icon: 'i-lucide-package',
+    to: '/admin/plans'
+  },
+  {
     label: 'Subscriptions',
     icon: 'i-lucide-credit-card',
     to: '/admin/subscriptions'
@@ -28,13 +46,8 @@ const navigation = [
     to: '/admin/revenue'
   },
   {
-    label: 'Users',
-    icon: 'i-lucide-users',
-    to: '/admin/users'
-  },
-  {
-    label: 'System Health',
-    icon: 'i-lucide-activity',
+    label: 'System Settings',
+    icon: 'i-lucide-settings',
     to: '/admin/system'
   },
   {
@@ -63,7 +76,10 @@ const isActive = (path: string) => {
       <div class="container">
         <div class="banner-content">
           <div class="banner-info">
-            <UIcon name="i-lucide-eye" class="size-5" />
+            <UIcon
+              name="i-lucide-eye"
+              class="size-5"
+            />
             <span class="banner-text">
               Viewing as: <strong>{{ impersonatedTenant?.name }}</strong>
             </span>
@@ -88,11 +104,18 @@ const isActive = (path: string) => {
         <div class="sidebar-header">
           <div class="platform-logo">
             <div class="logo-icon">
-              <UIcon name="i-lucide-shield-check" class="size-6" />
+              <UIcon
+                name="i-lucide-shield-check"
+                class="size-6"
+              />
             </div>
             <div class="logo-text">
-              <div class="platform-name">BouncePro</div>
-              <div class="platform-label">Platform Admin</div>
+              <div class="platform-name">
+                BouncePro
+              </div>
+              <div class="platform-label">
+                Platform Admin
+              </div>
             </div>
           </div>
         </div>
@@ -106,7 +129,10 @@ const isActive = (path: string) => {
             class="nav-item"
             :class="{ active: isActive(item.to) }"
           >
-            <UIcon :name="item.icon" class="nav-icon" />
+            <UIcon
+              :name="item.icon"
+              class="nav-icon"
+            />
             <span class="nav-label">{{ item.label }}</span>
           </NuxtLink>
         </nav>
@@ -115,11 +141,18 @@ const isActive = (path: string) => {
         <div class="sidebar-footer">
           <div class="admin-user">
             <div class="user-avatar">
-              <UIcon name="i-lucide-shield" class="size-4" />
+              <UIcon
+                name="i-lucide-shield"
+                class="size-4"
+              />
             </div>
             <div class="user-info">
-              <div class="user-name">{{ currentUser?.email }}</div>
-              <div class="user-role">Super Admin</div>
+              <div class="user-name">
+                {{ currentUser?.email }}
+              </div>
+              <div class="user-role">
+                Super Admin
+              </div>
             </div>
           </div>
           <UButton

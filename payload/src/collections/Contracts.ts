@@ -188,6 +188,18 @@ export const Contracts: CollectionConfig = {
           value: 'liability-waiver',
         },
         {
+          label: 'Damage Policy',
+          value: 'damage-policy',
+        },
+        {
+          label: 'Safety Rules',
+          value: 'safety-rules',
+        },
+        {
+          label: 'Weather Policy',
+          value: 'weather-policy',
+        },
+        {
           label: 'Custom',
           value: 'custom',
         },

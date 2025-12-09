@@ -1,3 +1,40 @@
+interface TenantLogo {
+  id: string
+  url: string
+}
+
+interface TenantBranding {
+  businessName?: string
+  tagline?: string
+  primaryColor?: string
+  secondaryColor?: string
+  accentColor?: string
+  emailHeaderBg?: string
+  emailButtonColor?: string
+  emailFooter?: string
+  invoiceHeader?: string
+  termsAndConditions?: string
+  safetyGuidelines?: string
+}
+
+interface TenantWebsite {
+  templateId?: string
+}
+
+interface Tenant {
+  id: string
+  name: string
+  logo?: TenantLogo | string
+  branding?: TenantBranding
+  website?: TenantWebsite
+}
+
+interface UserResponse {
+  user?: {
+    tenantId?: { id: string } | string
+  }
+}
+
 export default defineEventHandler(async (event) => {
   try {
     // Get authenticated user from Payload using the session cookie
@@ -5,26 +42,26 @@ export default defineEventHandler(async (event) => {
     const payloadUrl = config.payloadApiUrl || 'http://payload:3000'
 
     // First, get the current user from Payload
-    const userResponse = await $fetch<any>(`${payloadUrl}/api/users/me`, {
+    const userResponse = await $fetch<UserResponse>(`${payloadUrl}/api/users/me`, {
       headers: {
-        Cookie: event.headers.get('cookie') || '',
-      },
+        Cookie: event.headers.get('cookie') || ''
+      }
     })
 
     if (!userResponse || !userResponse.user) {
       throw createError({
         statusCode: 401,
-        message: 'Unauthorized - Please log in',
+        message: 'Unauthorized - Please log in'
       })
     }
 
     // Get tenant ID from user
-    const tenantId = typeof userResponse.user.tenantId === 'object' ? userResponse.user.tenantId.id : userResponse.user.tenantId
+    const tenantId = typeof userResponse.user.tenantId === 'object' ? userResponse.user.tenantId?.id : userResponse.user.tenantId
 
     if (!tenantId) {
       throw createError({
         statusCode: 400,
-        message: 'No tenant associated with user',
+        message: 'No tenant associated with user'
       })
     }
 
@@ -32,7 +69,7 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
 
     // Build branding payload (includes both branding and website.templateId)
-    const brandingPayload: Record<string, any> = {
+    const brandingPayload: Record<string, unknown> = {
       branding: {
         businessName: body.businessName || '',
         tagline: body.tagline || '',
@@ -44,14 +81,14 @@ export default defineEventHandler(async (event) => {
         emailFooter: body.emailFooter || '',
         invoiceHeader: body.invoiceHeader || 'INVOICE',
         termsAndConditions: body.termsAndConditions || '',
-        safetyGuidelines: body.safetyGuidelines || '',
-      },
+        safetyGuidelines: body.safetyGuidelines || ''
+      }
     }
 
     // Include templateId in website settings if provided
     if (body.templateId) {
       brandingPayload.website = {
-        templateId: body.templateId,
+        templateId: body.templateId
       }
     }
 
@@ -65,20 +102,20 @@ export default defineEventHandler(async (event) => {
     }
 
     // Update tenant in Payload
-    const updatedTenant = await $fetch<any>(`${payloadUrl}/api/tenants/${tenantId}`, {
+    const updatedTenant = await $fetch<Tenant>(`${payloadUrl}/api/tenants/${tenantId}`, {
       method: 'PATCH',
       headers: {
-        Cookie: event.headers.get('cookie') || '',
-        'Content-Type': 'application/json',
+        'Cookie': event.headers.get('cookie') || '',
+        'Content-Type': 'application/json'
       },
-      body: brandingPayload,
+      body: brandingPayload
     })
 
     // Return updated branding settings
     return {
       success: true,
       branding: {
-        logo: updatedTenant.logo?.url || null,
+        logo: typeof updatedTenant.logo === 'object' ? updatedTenant.logo.url : null,
         logoId: typeof updatedTenant.logo === 'object' ? updatedTenant.logo.id : updatedTenant.logo,
         businessName: updatedTenant.branding?.businessName || updatedTenant.name || '',
         tagline: updatedTenant.branding?.tagline || '',
@@ -91,20 +128,23 @@ export default defineEventHandler(async (event) => {
         emailFooter: updatedTenant.branding?.emailFooter || '',
         invoiceHeader: updatedTenant.branding?.invoiceHeader || 'INVOICE',
         termsAndConditions: updatedTenant.branding?.termsAndConditions || '',
-        safetyGuidelines: updatedTenant.branding?.safetyGuidelines || '',
-      },
+        safetyGuidelines: updatedTenant.branding?.safetyGuidelines || ''
+      }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to save branding settings:', error)
 
     // If it's already a H3 error, rethrow it
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 
+    // Type guard for error with data property
+    const errorData = error && typeof error === 'object' && 'data' in error ? (error as { data?: { errors?: Array<{ message?: string }> } }).data : undefined
+
     throw createError({
       statusCode: 500,
-      message: error?.data?.errors?.[0]?.message || 'Failed to save branding settings',
+      message: errorData?.errors?.[0]?.message || 'Failed to save branding settings'
     })
   }
 })

@@ -17,8 +17,8 @@ const { data: settings } = await useFetch<{
 })
 
 const maintenanceMessage = computed(() =>
-  settings.value?.maintenanceMode?.message ||
-  'We are currently performing scheduled maintenance. We will be back online shortly. Thank you for your patience!'
+  settings.value?.maintenanceMode?.message
+  || 'We are currently performing scheduled maintenance. We will be back online shortly. Thank you for your patience!'
 )
 
 const maintenanceEndTime = computed(() => settings.value?.maintenanceMode?.endTime)
@@ -86,9 +86,14 @@ const refreshPage = () => {
       <!-- Logo -->
       <div class="logo">
         <div class="logo-icon">
-          <UIcon name="i-lucide-construction" class="size-10" />
+          <UIcon
+            name="i-lucide-construction"
+            class="size-10"
+          />
         </div>
-        <h1 class="logo-text">BouncePro</h1>
+        <h1 class="logo-text">
+          BouncePro
+        </h1>
       </div>
 
       <!-- Status Badge -->
@@ -99,15 +104,29 @@ const refreshPage = () => {
 
       <!-- Main Message -->
       <div class="message-box">
-        <UIcon name="i-lucide-wrench" class="message-icon" />
-        <h2 class="message-title">We'll Be Right Back</h2>
-        <p class="message-text">{{ maintenanceMessage }}</p>
+        <UIcon
+          name="i-lucide-wrench"
+          class="message-icon"
+        />
+        <h2 class="message-title">
+          We'll Be Right Back
+        </h2>
+        <p class="message-text">
+          {{ maintenanceMessage }}
+        </p>
       </div>
 
       <!-- Countdown Timer -->
-      <div v-if="timeRemaining" class="countdown">
-        <div class="countdown-label">Expected completion in:</div>
-        <div class="countdown-timer">{{ timeRemaining }}</div>
+      <div
+        v-if="timeRemaining"
+        class="countdown"
+      >
+        <div class="countdown-label">
+          Expected completion in:
+        </div>
+        <div class="countdown-timer">
+          {{ timeRemaining }}
+        </div>
       </div>
 
       <!-- Action Buttons -->
@@ -124,7 +143,10 @@ const refreshPage = () => {
       <div class="footer">
         <p class="footer-text">
           Need immediate assistance? Contact our support team at
-          <a href="mailto:support@bouncepro.com" class="footer-link">support@bouncepro.com</a>
+          <a
+            href="mailto:support@bouncepro.com"
+            class="footer-link"
+          >support@bouncepro.com</a>
         </p>
       </div>
     </div>

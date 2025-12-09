@@ -28,13 +28,14 @@ const handleKeyDown = (e: KeyboardEvent) => {
       e.preventDefault()
       selectedIndex.value = Math.max(selectedIndex.value - 1, 0)
       break
-    case 'Enter':
+    case 'Enter': {
       e.preventDefault()
       const selected = results.value[selectedIndex.value]
       if (selected) {
         navigateToResult(selected)
       }
       break
+    }
     case 'Escape':
       e.preventDefault()
       closeSearch()
@@ -147,7 +148,7 @@ const formatType = (type: string) => {
 
 // Detect if Mac
 const isMac = computed(() => {
-  if (process.client) {
+  if (import.meta.client) {
     return navigator.platform.toUpperCase().indexOf('MAC') >= 0
   }
   return false
@@ -155,7 +156,10 @@ const isMac = computed(() => {
 </script>
 
 <template>
-  <div ref="searchContainerRef" class="relative">
+  <div
+    ref="searchContainerRef"
+    class="relative"
+  >
     <!-- Search Trigger Button -->
     <UButton
       color="neutral"
@@ -164,9 +168,14 @@ const isMac = computed(() => {
       class="items-center gap-2 min-w-[240px] justify-start text-gray-500 dark:text-gray-400"
       @click="openSearch"
     >
-      <UIcon name="i-lucide-search" class="w-4 h-4" />
+      <UIcon
+        name="i-lucide-search"
+        class="w-4 h-4"
+      />
       <span class="text-sm">Search...</span>
-      <UKbd class="ml-auto">{{ isMac ? 'Cmd' : 'Ctrl' }}+K</UKbd>
+      <UKbd class="ml-auto">
+        {{ isMac ? 'Cmd' : 'Ctrl' }}+K
+      </UKbd>
     </UButton>
 
     <!-- Search Modal -->
@@ -201,7 +210,10 @@ const isMac = computed(() => {
           <UCard class="shadow-2xl">
             <!-- Search Input -->
             <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-800">
-              <UIcon name="i-lucide-search" class="w-5 h-5 text-gray-400 flex-shrink-0" />
+              <UIcon
+                name="i-lucide-search"
+                class="w-5 h-5 text-gray-400 flex-shrink-0"
+              />
               <input
                 ref="searchInputRef"
                 v-model="searchQuery"
@@ -210,7 +222,7 @@ const isMac = computed(() => {
                 class="flex-1 bg-transparent border-0 outline-none text-gray-900 dark:text-white placeholder-gray-400"
                 @input="handleInput"
                 @keydown="handleKeyDown"
-              />
+              >
               <UButton
                 v-if="searchQuery"
                 color="neutral"
@@ -224,8 +236,14 @@ const isMac = computed(() => {
             <!-- Search Results -->
             <div class="max-h-[60vh] overflow-y-auto">
               <!-- Loading State -->
-              <div v-if="isSearching" class="flex items-center justify-center py-12">
-                <UIcon name="i-lucide-loader-circle" class="w-8 h-8 text-gray-400 animate-spin" />
+              <div
+                v-if="isSearching"
+                class="flex items-center justify-center py-12"
+              >
+                <UIcon
+                  name="i-lucide-loader-circle"
+                  class="w-8 h-8 text-gray-400 animate-spin"
+                />
               </div>
 
               <!-- No Results -->
@@ -233,17 +251,28 @@ const isMac = computed(() => {
                 v-else-if="searchQuery && !hasResults"
                 class="flex flex-col items-center justify-center py-12 px-4 text-center"
               >
-                <UIcon name="i-lucide-search-x" class="w-12 h-12 text-gray-300 dark:text-gray-700 mb-3" />
-                <p class="text-sm font-medium text-gray-900 dark:text-white">No results found</p>
+                <UIcon
+                  name="i-lucide-search-x"
+                  class="w-12 h-12 text-gray-300 dark:text-gray-700 mb-3"
+                />
+                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                  No results found
+                </p>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   Try searching with different keywords
                 </p>
               </div>
 
               <!-- Results List -->
-              <div v-else-if="hasResults" class="py-2">
+              <div
+                v-else-if="hasResults"
+                class="py-2"
+              >
                 <!-- Navigation / Quick Actions -->
-                <div v-if="groupedResults.navigation.length > 0" class="mb-4">
+                <div
+                  v-if="groupedResults.navigation.length > 0"
+                  class="mb-4"
+                >
                   <div class="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     {{ searchQuery ? 'Pages' : 'Quick Actions' }}
                   </div>
@@ -254,19 +283,34 @@ const isMac = computed(() => {
                     :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex((r: SearchResult) => r.id === result.id) }"
                     @click="navigateToResult(result)"
                   >
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :class="getIconBgColor(result.type)">
-                      <UIcon :name="result.icon" class="w-5 h-5" :class="getIconColor(result.type)" />
+                    <div
+                      class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                      :class="getIconBgColor(result.type)"
+                    >
+                      <UIcon
+                        :name="result.icon"
+                        class="w-5 h-5"
+                        :class="getIconColor(result.type)"
+                      />
                     </div>
                     <div class="flex-1 min-w-0 text-left">
                       <span class="text-sm font-medium text-gray-900 dark:text-white">{{ result.title }}</span>
-                      <p class="text-sm text-gray-600 dark:text-gray-400">{{ result.subtitle }}</p>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">
+                        {{ result.subtitle }}
+                      </p>
                     </div>
-                    <UIcon name="i-lucide-arrow-right" class="w-4 h-4 text-gray-400 flex-shrink-0 mt-2" />
+                    <UIcon
+                      name="i-lucide-arrow-right"
+                      class="w-4 h-4 text-gray-400 flex-shrink-0 mt-2"
+                    />
                   </button>
                 </div>
 
                 <!-- Bookings -->
-                <div v-if="groupedResults.bookings.length > 0" class="mb-4">
+                <div
+                  v-if="groupedResults.bookings.length > 0"
+                  class="mb-4"
+                >
                   <div class="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Bookings
                   </div>
@@ -277,25 +321,46 @@ const isMac = computed(() => {
                     :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex((r: SearchResult) => r.id === result.id) }"
                     @click="navigateToResult(result)"
                   >
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :class="getIconBgColor(result.type)">
-                      <UIcon :name="result.icon" class="w-5 h-5" :class="getIconColor(result.type)" />
+                    <div
+                      class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                      :class="getIconBgColor(result.type)"
+                    >
+                      <UIcon
+                        :name="result.icon"
+                        class="w-5 h-5"
+                        :class="getIconColor(result.type)"
+                      />
                     </div>
                     <div class="flex-1 min-w-0 text-left">
                       <div class="flex items-center gap-2 mb-1">
                         <span class="text-sm font-medium text-gray-900 dark:text-white">{{ result.title }}</span>
-                        <UBadge :color="getBadgeColor(result.type)" variant="subtle" size="xs">
+                        <UBadge
+                          :color="getBadgeColor(result.type)"
+                          variant="subtle"
+                          size="xs"
+                        >
                           {{ formatType(result.type) }}
                         </UBadge>
                       </div>
-                      <p class="text-sm text-gray-600 dark:text-gray-300">{{ result.subtitle }}</p>
-                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ result.metadata }}</p>
+                      <p class="text-sm text-gray-600 dark:text-gray-300">
+                        {{ result.subtitle }}
+                      </p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {{ result.metadata }}
+                      </p>
                     </div>
-                    <UIcon name="i-lucide-arrow-right" class="w-4 h-4 text-gray-400 flex-shrink-0 mt-2" />
+                    <UIcon
+                      name="i-lucide-arrow-right"
+                      class="w-4 h-4 text-gray-400 flex-shrink-0 mt-2"
+                    />
                   </button>
                 </div>
 
                 <!-- Customers -->
-                <div v-if="groupedResults.customers.length > 0" class="mb-4">
+                <div
+                  v-if="groupedResults.customers.length > 0"
+                  class="mb-4"
+                >
                   <div class="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Customers
                   </div>
@@ -306,25 +371,46 @@ const isMac = computed(() => {
                     :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex((r: SearchResult) => r.id === result.id) }"
                     @click="navigateToResult(result)"
                   >
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :class="getIconBgColor(result.type)">
-                      <UIcon :name="result.icon" class="w-5 h-5" :class="getIconColor(result.type)" />
+                    <div
+                      class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                      :class="getIconBgColor(result.type)"
+                    >
+                      <UIcon
+                        :name="result.icon"
+                        class="w-5 h-5"
+                        :class="getIconColor(result.type)"
+                      />
                     </div>
                     <div class="flex-1 min-w-0 text-left">
                       <div class="flex items-center gap-2 mb-1">
                         <span class="text-sm font-medium text-gray-900 dark:text-white">{{ result.title }}</span>
-                        <UBadge :color="getBadgeColor(result.type)" variant="subtle" size="xs">
+                        <UBadge
+                          :color="getBadgeColor(result.type)"
+                          variant="subtle"
+                          size="xs"
+                        >
                           {{ formatType(result.type) }}
                         </UBadge>
                       </div>
-                      <p class="text-sm text-gray-600 dark:text-gray-300">{{ result.subtitle }}</p>
-                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ result.metadata }}</p>
+                      <p class="text-sm text-gray-600 dark:text-gray-300">
+                        {{ result.subtitle }}
+                      </p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {{ result.metadata }}
+                      </p>
                     </div>
-                    <UIcon name="i-lucide-arrow-right" class="w-4 h-4 text-gray-400 flex-shrink-0 mt-2" />
+                    <UIcon
+                      name="i-lucide-arrow-right"
+                      class="w-4 h-4 text-gray-400 flex-shrink-0 mt-2"
+                    />
                   </button>
                 </div>
 
                 <!-- Inventory -->
-                <div v-if="groupedResults.inventory.length > 0" class="mb-2">
+                <div
+                  v-if="groupedResults.inventory.length > 0"
+                  class="mb-2"
+                >
                   <div class="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Inventory
                   </div>
@@ -335,20 +421,38 @@ const isMac = computed(() => {
                     :class="{ 'bg-gray-50 dark:bg-gray-800/50': selectedIndex === results.findIndex((r: SearchResult) => r.id === result.id) }"
                     @click="navigateToResult(result)"
                   >
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :class="getIconBgColor(result.type)">
-                      <UIcon :name="result.icon" class="w-5 h-5" :class="getIconColor(result.type)" />
+                    <div
+                      class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                      :class="getIconBgColor(result.type)"
+                    >
+                      <UIcon
+                        :name="result.icon"
+                        class="w-5 h-5"
+                        :class="getIconColor(result.type)"
+                      />
                     </div>
                     <div class="flex-1 min-w-0 text-left">
                       <div class="flex items-center gap-2 mb-1">
                         <span class="text-sm font-medium text-gray-900 dark:text-white">{{ result.title }}</span>
-                        <UBadge :color="getBadgeColor(result.type)" variant="subtle" size="xs">
+                        <UBadge
+                          :color="getBadgeColor(result.type)"
+                          variant="subtle"
+                          size="xs"
+                        >
                           {{ formatType(result.type) }}
                         </UBadge>
                       </div>
-                      <p class="text-sm text-gray-600 dark:text-gray-300">{{ result.subtitle }}</p>
-                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ result.metadata }}</p>
+                      <p class="text-sm text-gray-600 dark:text-gray-300">
+                        {{ result.subtitle }}
+                      </p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {{ result.metadata }}
+                      </p>
                     </div>
-                    <UIcon name="i-lucide-arrow-right" class="w-4 h-4 text-gray-400 flex-shrink-0 mt-2" />
+                    <UIcon
+                      name="i-lucide-arrow-right"
+                      class="w-4 h-4 text-gray-400 flex-shrink-0 mt-2"
+                    />
                   </button>
                 </div>
               </div>

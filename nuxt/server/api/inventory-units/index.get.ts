@@ -50,16 +50,16 @@ export default defineEventHandler(async (event) => {
       units: data.docs || [],
       totalDocs: data.totalDocs || 0
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching inventory units:', error)
 
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 
     throw createError({
       statusCode: 500,
-      message: error.message || 'Failed to fetch inventory units'
+      message: (error as Error).message || 'Failed to fetch inventory units'
     })
   }
 })

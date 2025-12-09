@@ -5,6 +5,7 @@ definePageMeta({
 
 const { loading, dateRange, fetchRevenueReport, exportToCsv } = useReports()
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const revenueData = ref<any>(null)
 
 async function loadData() {
@@ -38,10 +39,16 @@ onMounted(() => {
             to="/app/reports"
             class="w-10 h-10 rounded-lg bg-gray-900 border-2 border-gray-800 hover:border-cyan-500 flex items-center justify-center transition-all"
           >
-            <UIcon name="i-lucide-chevron-left" class="w-5 h-5 text-gray-400" />
+            <UIcon
+              name="i-lucide-chevron-left"
+              class="w-5 h-5 text-gray-400"
+            />
           </NuxtLink>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center">
-            <UIcon name="i-lucide-dollar-sign" class="w-6 h-6 text-black" />
+            <UIcon
+              name="i-lucide-dollar-sign"
+              class="w-6 h-6 text-black"
+            />
           </div>
           <div>
             <h1 class="text-3xl font-bold text-white font-mono tracking-tight">
@@ -132,13 +139,18 @@ onMounted(() => {
       <template #header>
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded bg-cyan-500/20 flex items-center justify-center">
-            <UIcon name="i-lucide-trending-up" class="w-4 h-4 text-cyan-400" />
+            <UIcon
+              name="i-lucide-trending-up"
+              class="w-4 h-4 text-cyan-400"
+            />
           </div>
           <div>
             <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
               Revenue Trend
             </h3>
-            <p class="text-xs font-mono text-gray-500">Daily revenue breakdown</p>
+            <p class="text-xs font-mono text-gray-500">
+              Daily revenue breakdown
+            </p>
           </div>
         </div>
       </template>
@@ -159,13 +171,18 @@ onMounted(() => {
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-pink-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-box" class="w-4 h-4 text-pink-400" />
+              <UIcon
+                name="i-lucide-box"
+                class="w-4 h-4 text-pink-400"
+              />
             </div>
             <div>
               <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
                 Revenue by Item
               </h3>
-              <p class="text-xs font-mono text-gray-500">Top performing items</p>
+              <p class="text-xs font-mono text-gray-500">
+                Top performing items
+              </p>
             </div>
           </div>
         </template>
@@ -199,13 +216,18 @@ onMounted(() => {
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-yellow-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-credit-card" class="w-4 h-4 text-yellow-400" />
+              <UIcon
+                name="i-lucide-credit-card"
+                class="w-4 h-4 text-yellow-400"
+              />
             </div>
             <div>
               <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
                 By Payment Method
               </h3>
-              <p class="text-xs font-mono text-gray-500">Payment breakdown</p>
+              <p class="text-xs font-mono text-gray-500">
+                Payment breakdown
+              </p>
             </div>
           </div>
         </template>
@@ -240,13 +262,18 @@ onMounted(() => {
       <template #header>
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded bg-cyan-500/20 flex items-center justify-center">
-            <UIcon name="i-lucide-users" class="w-4 h-4 text-cyan-400" />
+            <UIcon
+              name="i-lucide-users"
+              class="w-4 h-4 text-cyan-400"
+            />
           </div>
           <div>
             <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
               Top Customers by Revenue
             </h3>
-            <p class="text-xs font-mono text-gray-500">Best customers</p>
+            <p class="text-xs font-mono text-gray-500">
+              Best customers
+            </p>
           </div>
         </div>
       </template>
@@ -276,9 +303,15 @@ onMounted(() => {
               class="border-b border-gray-800 hover:bg-gray-900/50 transition-colors"
               :style="{ animationDelay: `${index * 50}ms` }"
             >
-              <td class="py-3 px-4 text-white">{{ customer.name }}</td>
-              <td class="py-3 px-4 text-gray-400">{{ customer.email }}</td>
-              <td class="py-3 px-4 text-right text-white">{{ customer.bookings }}</td>
+              <td class="py-3 px-4 text-white">
+                {{ customer.name }}
+              </td>
+              <td class="py-3 px-4 text-gray-400">
+                {{ customer.email }}
+              </td>
+              <td class="py-3 px-4 text-right text-white">
+                {{ customer.bookings }}
+              </td>
               <td class="py-3 px-4 text-right text-cyan-400 font-bold">
                 ${{ customer.revenue.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
               </td>
@@ -296,13 +329,18 @@ onMounted(() => {
       <template #header>
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded bg-red-500/20 flex items-center justify-center">
-            <UIcon name="i-lucide-trending-down" class="w-4 h-4 text-red-400" />
+            <UIcon
+              name="i-lucide-trending-down"
+              class="w-4 h-4 text-red-400"
+            />
           </div>
           <div>
             <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
               Refunds Analysis
             </h3>
-            <p class="text-xs font-mono text-gray-500">Refund reasons and totals</p>
+            <p class="text-xs font-mono text-gray-500">
+              Refund reasons and totals
+            </p>
           </div>
         </div>
       </template>
@@ -310,7 +348,9 @@ onMounted(() => {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="space-y-4">
           <div class="p-4 bg-gray-900 border-2 border-gray-800 rounded-lg">
-            <div class="text-xs font-mono text-gray-400 mb-2">Total Refunded</div>
+            <div class="text-xs font-mono text-gray-400 mb-2">
+              Total Refunded
+            </div>
             <div class="text-3xl font-mono font-bold text-red-400">
               ${{ revenueData?.refunds.total.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '0.00' }}
             </div>

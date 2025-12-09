@@ -1,10 +1,16 @@
 <template>
-  <section id="use-cases" class="py-24 bg-white dark:bg-gray-900 transition-colors duration-300">
+  <section
+    id="use-cases"
+    class="py-24 bg-white dark:bg-gray-900 transition-colors duration-300"
+  >
     <div class="container mx-auto px-6 lg:px-8">
       <!-- Section Header -->
       <div class="max-w-3xl mx-auto text-center mb-16">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-medium mb-4">
-          <UIcon name="i-lucide-briefcase" class="w-3 h-3" />
+          <UIcon
+            name="i-lucide-briefcase"
+            class="w-3 h-3"
+          />
           <span>WHO IT'S FOR</span>
         </div>
         <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -25,17 +31,35 @@
         >
           <!-- Icon -->
           <div class="w-16 h-16 rounded-2xl bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center mb-6">
-            <UIcon :name="useCase.icon" class="w-8 h-8" :class="useCase.iconColor" />
+            <UIcon
+              :name="useCase.icon"
+              class="w-8 h-8"
+              :class="useCase.iconColor"
+            />
           </div>
 
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">{{ useCase.title }}</h3>
-          <p class="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">{{ useCase.description }}</p>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+            {{ useCase.title }}
+          </h3>
+          <p class="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+            {{ useCase.description }}
+          </p>
 
           <!-- Stats -->
           <div class="flex items-center gap-6">
-            <div v-for="stat in useCase.stats" :key="stat.label">
-              <p class="text-2xl font-bold" :class="useCase.statColor">{{ stat.value }}</p>
-              <p class="text-sm text-gray-500 dark:text-gray-400">{{ stat.label }}</p>
+            <div
+              v-for="stat in useCase.stats"
+              :key="stat.label"
+            >
+              <p
+                class="text-2xl font-bold"
+                :class="useCase.statColor"
+              >
+                {{ stat.value }}
+              </p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{ stat.label }}
+              </p>
             </div>
           </div>
         </div>
@@ -52,7 +76,10 @@
             :key="equipment.name"
             class="flex flex-col items-center p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 hover:border-orange-200 dark:hover:border-orange-800 transition-colors"
           >
-            <UIcon :name="equipment.icon" class="w-8 h-8 text-orange-500 mb-2" />
+            <UIcon
+              :name="equipment.icon"
+              class="w-8 h-8 text-orange-500 mb-2"
+            />
             <span class="text-sm text-gray-600 dark:text-gray-300 text-center">{{ equipment.name }}</span>
           </div>
         </div>

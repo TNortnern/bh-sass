@@ -49,6 +49,7 @@ const handleSuspend = async () => {
     })
 
     navigateTo('/admin/tenants')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     toast.add({
       title: 'Error',
@@ -71,8 +72,18 @@ const handleSuspend = async () => {
           to="/admin/tenants"
           class="mb-4"
         />
-        <h1 v-if="tenant" class="page-title">{{ tenant.name }}</h1>
-        <p v-if="tenant" class="page-description">@{{ tenant.slug }}</p>
+        <h1
+          v-if="tenant"
+          class="page-title"
+        >
+          {{ tenant.name }}
+        </h1>
+        <p
+          v-if="tenant"
+          class="page-description"
+        >
+          @{{ tenant.slug }}
+        </p>
       </div>
       <div class="header-actions">
         <UButton
@@ -92,15 +103,26 @@ const handleSuspend = async () => {
     </div>
 
     <!-- Loading State -->
-    <div v-if="pending" class="loading-state">
-      <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
+    <div
+      v-if="pending"
+      class="loading-state"
+    >
+      <UIcon
+        name="i-lucide-loader-circle"
+        class="animate-spin text-4xl text-gray-400"
+      />
     </div>
 
     <!-- Tenant Details -->
-    <div v-else-if="tenant" class="tenant-details">
+    <div
+      v-else-if="tenant"
+      class="tenant-details"
+    >
       <!-- Overview Section -->
       <div class="detail-section">
-        <h2 class="section-title">Overview</h2>
+        <h2 class="section-title">
+          Overview
+        </h2>
         <div class="detail-grid">
           <div class="detail-item">
             <span class="detail-label">Plan</span>
@@ -136,7 +158,9 @@ const handleSuspend = async () => {
 
       <!-- Business Info -->
       <div class="detail-section">
-        <h2 class="section-title">Business Information</h2>
+        <h2 class="section-title">
+          Business Information
+        </h2>
         <div class="detail-grid">
           <div class="detail-item">
             <span class="detail-label">Email</span>
@@ -156,30 +180,51 @@ const handleSuspend = async () => {
             >
               {{ tenant.businessInfo.website }}
             </a>
-            <span v-else class="detail-value">N/A</span>
+            <span
+              v-else
+              class="detail-value"
+            >N/A</span>
           </div>
         </div>
       </div>
 
       <!-- Metrics -->
       <div class="detail-section">
-        <h2 class="section-title">Metrics</h2>
+        <h2 class="section-title">
+          Metrics
+        </h2>
         <div class="metrics-grid">
           <div class="metric-card">
-            <div class="metric-label">Total Bookings</div>
-            <div class="metric-value">{{ tenant.totalBookings || 0 }}</div>
+            <div class="metric-label">
+              Total Bookings
+            </div>
+            <div class="metric-value">
+              {{ tenant.totalBookings || 0 }}
+            </div>
           </div>
           <div class="metric-card">
-            <div class="metric-label">Monthly Revenue</div>
-            <div class="metric-value">{{ formatCurrency(tenant.monthlyRevenue || 0) }}</div>
+            <div class="metric-label">
+              Monthly Revenue
+            </div>
+            <div class="metric-value">
+              {{ formatCurrency(tenant.monthlyRevenue || 0) }}
+            </div>
           </div>
           <div class="metric-card">
-            <div class="metric-label">Total Users</div>
-            <div class="metric-value">{{ tenant.totalUsers || 0 }}</div>
+            <div class="metric-label">
+              Total Users
+            </div>
+            <div class="metric-value">
+              {{ tenant.totalUsers || 0 }}
+            </div>
           </div>
           <div class="metric-card">
-            <div class="metric-label">Total Inventory</div>
-            <div class="metric-value">{{ tenant.totalInventory || 0 }}</div>
+            <div class="metric-label">
+              Total Inventory
+            </div>
+            <div class="metric-value">
+              {{ tenant.totalInventory || 0 }}
+            </div>
           </div>
         </div>
       </div>

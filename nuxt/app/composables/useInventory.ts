@@ -151,8 +151,8 @@ export const useInventory = () => {
     if (searchQuery.value) {
       const query = searchQuery.value.toLowerCase()
       result = result.filter(item =>
-        item?.name?.toLowerCase().includes(query) ||
-        item?.description?.toLowerCase().includes(query)
+        item?.name?.toLowerCase().includes(query)
+        || item?.description?.toLowerCase().includes(query)
       )
     }
 
@@ -204,9 +204,10 @@ export const useInventory = () => {
         revenue: item.revenue || { total: 0, thisMonth: 0 },
         utilization: item.utilization || 0
       }))
-    } catch (err: any) {
-      console.error('Failed to fetch inventory from API:', err.message)
-      error.value = err.message || 'Failed to fetch inventory items'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch inventory items'
+      console.error('Failed to fetch inventory from API:', errorMessage)
+      error.value = errorMessage
       items.value = []
     } finally {
       isLoading.value = false
@@ -226,9 +227,10 @@ export const useInventory = () => {
       })
 
       return item
-    } catch (err: any) {
-      console.error('Failed to fetch inventory item from API:', err.message)
-      error.value = err.message || 'Failed to fetch inventory item'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch inventory item'
+      console.error('Failed to fetch inventory item from API:', errorMessage)
+      error.value = errorMessage
 
       // Check if item exists in already loaded items
       const item = items.value.find(i => i.id === id)
@@ -258,9 +260,10 @@ export const useInventory = () => {
 
       items.value.push(newItem)
       return { success: true, item: newItem }
-    } catch (err: any) {
-      console.error('Failed to create inventory item via API:', err.message)
-      error.value = err.message || 'Failed to create inventory item'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create inventory item'
+      console.error('Failed to create inventory item via API:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -287,9 +290,10 @@ export const useInventory = () => {
       }
 
       return { success: true, item: updatedItem }
-    } catch (err: any) {
-      console.error('Failed to update inventory item via API:', err.message)
-      error.value = err.message || 'Failed to update inventory item'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update inventory item'
+      console.error('Failed to update inventory item via API:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -311,9 +315,10 @@ export const useInventory = () => {
 
       items.value = items.value.filter(i => i.id !== id)
       return { success: true }
-    } catch (err: any) {
-      console.error('Failed to delete inventory item via API:', err.message)
-      error.value = err.message || 'Failed to delete inventory item'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete inventory item'
+      console.error('Failed to delete inventory item via API:', errorMessage)
+      error.value = errorMessage
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -333,9 +338,10 @@ export const useInventory = () => {
       })
 
       bundles.value = response.docs || []
-    } catch (err: any) {
-      console.error('Failed to fetch bundles from API:', err.message)
-      error.value = err.message || 'Failed to fetch bundles'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch bundles'
+      console.error('Failed to fetch bundles from API:', errorMessage)
+      error.value = errorMessage
       bundles.value = []
     } finally {
       isLoading.value = false
@@ -355,9 +361,10 @@ export const useInventory = () => {
       })
 
       addons.value = response.docs || []
-    } catch (err: any) {
-      console.error('Failed to fetch addons from API:', err.message)
-      error.value = err.message || 'Failed to fetch addons'
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch addons'
+      console.error('Failed to fetch addons from API:', errorMessage)
+      error.value = errorMessage
       addons.value = []
     } finally {
       isLoading.value = false

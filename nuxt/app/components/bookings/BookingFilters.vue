@@ -17,7 +17,7 @@ const emit = defineEmits<Emits>()
 // Local filter state
 const localFilters = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value)
+  set: value => emit('update:modelValue', value)
 })
 
 // Filter options
@@ -76,10 +76,10 @@ const resetFilters = () => {
 // Check if any filters are active
 const hasActiveFilters = computed(() => {
   return !!(
-    localFilters.value.search ||
-    (localFilters.value.status && localFilters.value.status.length > 0) ||
-    (localFilters.value.paymentStatus && localFilters.value.paymentStatus.length > 0) ||
-    localFilters.value.dateRange
+    localFilters.value.search
+    || (localFilters.value.status && localFilters.value.status.length > 0)
+    || (localFilters.value.paymentStatus && localFilters.value.paymentStatus.length > 0)
+    || localFilters.value.dateRange
   )
 })
 
@@ -214,7 +214,10 @@ const activeFilterCount = computed(() => {
     </div>
 
     <!-- Active Filters Display -->
-    <div v-if="hasActiveFilters" class="flex flex-wrap gap-2">
+    <div
+      v-if="hasActiveFilters"
+      class="flex flex-wrap gap-2"
+    >
       <!-- Search Badge -->
       <UBadge
         v-if="searchQuery"
@@ -248,7 +251,7 @@ const activeFilterCount = computed(() => {
           size="2xs"
           icon="i-lucide-x"
           class="ml-1 -mr-1"
-          @click="selectedStatuses = selectedStatuses.filter(s => s !== status)"
+          @click="selectedStatuses = selectedStatuses.filter((s: string) => s !== status)"
         />
       </UBadge>
 
@@ -267,7 +270,7 @@ const activeFilterCount = computed(() => {
           size="2xs"
           icon="i-lucide-x"
           class="ml-1 -mr-1"
-          @click="selectedPaymentStatuses = selectedPaymentStatuses.filter(p => p !== paymentStatus)"
+          @click="selectedPaymentStatuses = selectedPaymentStatuses.filter((p: string) => p !== paymentStatus)"
         />
       </UBadge>
 

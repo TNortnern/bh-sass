@@ -90,20 +90,21 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       booking: {
-        id: booking?.id,
-        bookingNumber: booking?.bookingNumber || bookingNumber,
-        status: booking?.status || 'pending',
+        id: (booking as any)?.id,
+        bookingNumber: (booking as any)?.bookingNumber || bookingNumber,
+        status: (booking as any)?.status || 'pending',
         totalPrice: body.totalPrice,
         startDate,
         endDate
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to create booking:', error)
 
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
       statusCode: 500,
-      message: error.message || 'Failed to create booking'
+      message: message || 'Failed to create booking'
     })
   }
 })

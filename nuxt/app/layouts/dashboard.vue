@@ -56,11 +56,6 @@ const navigationItems = [
     to: '/app/customers'
   },
   {
-    label: 'Documents',
-    icon: 'i-lucide-file-text',
-    to: '/app/documents'
-  },
-  {
     label: 'Contracts',
     icon: 'i-lucide-file-signature',
     to: '/app/contracts'
@@ -159,7 +154,10 @@ watch(() => route.path, () => {
       <!-- Logo -->
       <div class="h-16 flex items-center gap-3 px-6 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
         <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center flex-shrink-0">
-          <UIcon name="i-lucide-tent" class="w-5 h-5 text-white" />
+          <UIcon
+            name="i-lucide-tent"
+            class="w-5 h-5 text-white"
+          />
         </div>
         <span class="text-xl font-bold text-gray-900 dark:text-white">BouncePro</span>
       </div>
@@ -175,14 +173,20 @@ watch(() => route.path, () => {
             ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 font-medium'
             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'"
         >
-          <UIcon :name="item.icon" class="w-5 h-5 flex-shrink-0" />
+          <UIcon
+            :name="item.icon"
+            class="w-5 h-5 flex-shrink-0"
+          />
           <span>{{ item.label }}</span>
         </NuxtLink>
       </nav>
 
       <!-- Sidebar Footer -->
       <div class="p-4 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
-        <UDropdownMenu :items="userDropdownItems" :popper="{ placement: 'top-start' }">
+        <UDropdownMenu
+          :items="userDropdownItems"
+          :popper="{ placement: 'top-start' }"
+        >
           <button class="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             <div class="flex-shrink-0">
               <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold">
@@ -190,10 +194,17 @@ watch(() => route.path, () => {
               </div>
             </div>
             <div class="flex-1 min-w-0 text-left">
-              <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ displayName || 'BouncePro Demo' }}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ currentUser?.email || 'demo@bouncepro.com' }}</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                {{ displayName || 'BouncePro Demo' }}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {{ currentUser?.email || 'demo@bouncepro.com' }}
+              </p>
             </div>
-            <UIcon name="i-lucide-chevron-up" class="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <UIcon
+              name="i-lucide-chevron-up"
+              class="w-4 h-4 text-gray-400 flex-shrink-0"
+            />
           </button>
         </UDropdownMenu>
       </div>
@@ -236,7 +247,10 @@ watch(() => route.path, () => {
             <DashboardNotificationsDropdown />
 
             <!-- User dropdown -->
-            <UDropdownMenu :items="userDropdownItems" :popper="{ placement: 'bottom-end' }">
+            <UDropdownMenu
+              :items="userDropdownItems"
+              :popper="{ placement: 'bottom-end' }"
+            >
               <UButton
                 color="neutral"
                 variant="ghost"

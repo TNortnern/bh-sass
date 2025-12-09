@@ -56,10 +56,10 @@ export default defineEventHandler(async (event) => {
       headers
     })
 
-    let units: any[] = []
+    let units: Record<string, unknown>[] = []
     if (unitsResponse.ok) {
       const unitsData = await unitsResponse.json()
-      units = (unitsData.docs || []).map((unit: any) => ({
+      units = (unitsData.docs || []).map((unit: Record<string, unknown>) => ({
         id: String(unit.id),
         serialNumber: unit.serialNumber || '',
         barcode: unit.barcode || undefined,
@@ -82,7 +82,7 @@ export default defineEventHandler(async (event) => {
       category: data.category || 'bounce_house',
       description: data.description || '',
       status: data.isActive ? 'active' : 'inactive',
-      images: (data.images || []).map((img: any) => img.url || img),
+      images: (data.images || []).map((img: Record<string, unknown>) => img.url || img),
       specifications: {
         dimensions: {
           length: data.dimensions?.length || 0,
@@ -125,16 +125,16 @@ export default defineEventHandler(async (event) => {
       createdAt: data.createdAt,
       updatedAt: data.updatedAt
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching rental item:', error)
 
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error
     }
 
     throw createError({
       statusCode: 500,
-      message: error.message || 'Failed to fetch rental item'
+      message: (error as Error).message || 'Failed to fetch rental item'
     })
   }
 })

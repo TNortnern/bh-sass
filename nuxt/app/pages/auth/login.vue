@@ -54,8 +54,12 @@ useHead({
       <!-- Header -->
       <template #header>
         <div class="text-center">
-          <h1 class="text-2xl font-bold text-white mb-2">Welcome back</h1>
-          <p class="text-gray-400 text-sm">Sign in to your BouncePro account</p>
+          <h1 class="text-2xl font-bold text-white mb-2">
+            Welcome back
+          </h1>
+          <p class="text-gray-400 text-sm">
+            Sign in to your BouncePro account
+          </p>
         </div>
       </template>
 
@@ -67,11 +71,14 @@ useHead({
           variant="outline"
           size="lg"
           class="w-full"
-          @click="handleSocialLogin('google')"
           :loading="isLoading && loginMethod === 'google'"
+          @click="handleSocialLogin('google')"
         >
           <template #leading>
-            <UIcon name="i-simple-icons-google" class="w-5 h-5" />
+            <UIcon
+              name="i-simple-icons-google"
+              class="w-5 h-5"
+            />
           </template>
           Continue with Google
         </UButton>
@@ -80,7 +87,7 @@ useHead({
       <!-- Divider -->
       <div class="relative my-6">
         <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-gray-800"></div>
+          <div class="w-full border-t border-gray-800" />
         </div>
         <div class="relative flex justify-center text-sm">
           <span class="px-4 bg-gray-900 text-gray-400">Or continue with email</span>
@@ -88,7 +95,10 @@ useHead({
       </div>
 
       <!-- Login Form -->
-      <form @submit.prevent="handleLogin" class="space-y-4">
+      <form
+        class="space-y-4"
+        @submit.prevent="handleLogin"
+      >
         <!-- Email -->
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
@@ -103,7 +113,10 @@ useHead({
             autocomplete="email"
           >
             <template #leading>
-              <UIcon name="i-lucide-mail" class="w-5 h-5 text-gray-400" />
+              <UIcon
+                name="i-lucide-mail"
+                class="w-5 h-5 text-gray-400"
+              />
             </template>
           </UInput>
         </div>
@@ -122,7 +135,10 @@ useHead({
             autocomplete="current-password"
           >
             <template #leading>
-              <UIcon name="i-lucide-lock" class="w-5 h-5 text-gray-400" />
+              <UIcon
+                name="i-lucide-lock"
+                class="w-5 h-5 text-gray-400"
+              />
             </template>
             <template #trailing>
               <UButton
@@ -170,7 +186,10 @@ useHead({
           :loading="isLoading && loginMethod === 'email'"
         >
           <template #leading>
-            <UIcon name="i-lucide-log-in" class="w-5 h-5" />
+            <UIcon
+              name="i-lucide-log-in"
+              class="w-5 h-5"
+            />
           </template>
           Sign in
         </UButton>
@@ -178,7 +197,9 @@ useHead({
 
       <!-- Demo Accounts Section -->
       <div class="mt-6 pt-6 border-t border-gray-800">
-        <p class="text-xs text-gray-500 uppercase tracking-wider mb-3">Quick login for testing:</p>
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-3">
+          Quick login for testing:
+        </p>
         <div class="grid grid-cols-3 gap-2">
           <button
             v-for="account in demoAccounts"
@@ -188,8 +209,14 @@ useHead({
             :class="{ 'border-orange-500 bg-orange-500/10': form.email === account.email }"
             @click="useDemoAccount(account)"
           >
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white" :class="`bg-gradient-to-br ${account.color}`">
-              <UIcon :name="account.icon" class="w-4 h-4" />
+            <div
+              class="w-8 h-8 rounded-lg flex items-center justify-center text-white"
+              :class="`bg-gradient-to-br ${account.color}`"
+            >
+              <UIcon
+                :name="account.icon"
+                class="w-4 h-4"
+              />
             </div>
             <span class="text-xs font-medium text-gray-300">{{ account.label }}</span>
           </button>

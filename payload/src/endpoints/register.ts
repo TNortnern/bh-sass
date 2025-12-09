@@ -120,7 +120,10 @@ export const registerHandler: Endpoint['handler'] = async (req) => {
         id: tenant.id,
         name: tenant.name,
         slug: tenant.slug,
-        plan: tenant.plan
+        plan: tenant.plan,
+        rbPayloadTenantId: tenant.rbPayloadTenantId,
+        rbPayloadApiKey: tenant.rbPayloadApiKey,
+        rbPayloadSyncStatus: tenant.rbPayloadSyncStatus
       },
       token: loginResult.token
     }, { status: 201 })

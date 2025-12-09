@@ -186,6 +186,7 @@ const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
     })
 
     refresh()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     toast.add({
       title: 'Error',
@@ -201,8 +202,12 @@ const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
     <!-- Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Platform Users</h1>
-        <p class="page-description">Manage all users across all tenants</p>
+        <h1 class="page-title">
+          Platform Users
+        </h1>
+        <p class="page-description">
+          Manage all users across all tenants
+        </p>
       </div>
       <UButton
         icon="i-lucide-refresh-cw"
@@ -245,9 +250,17 @@ const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
     </div>
 
     <!-- Empty State -->
-    <div v-if="!pending && (!users || users.length === 0)" class="empty-state">
-      <UIcon name="i-lucide-users" class="empty-icon" />
-      <p class="empty-title">No users found</p>
+    <div
+      v-if="!pending && (!users || users.length === 0)"
+      class="empty-state"
+    >
+      <UIcon
+        name="i-lucide-users"
+        class="empty-icon"
+      />
+      <p class="empty-title">
+        No users found
+      </p>
       <p class="empty-description">
         {{ searchQuery || selectedRole || selectedStatus ? 'Try adjusting your filters' : 'Users will appear here once they sign up' }}
       </p>

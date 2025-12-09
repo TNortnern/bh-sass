@@ -23,8 +23,14 @@
     <!-- Content -->
     <div class="px-6 lg:px-12 py-8">
       <!-- Loading State -->
-      <div v-if="pending" class="flex items-center justify-center py-12">
-        <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
+      <div
+        v-if="pending"
+        class="flex items-center justify-center py-12"
+      >
+        <UIcon
+          name="i-lucide-loader-circle"
+          class="animate-spin text-4xl text-gray-400"
+        />
       </div>
 
       <!-- Empty State -->
@@ -32,16 +38,28 @@
         v-else-if="!categories?.length"
         class="flex flex-col items-center justify-center py-16 text-gray-500"
       >
-        <UIcon name="i-lucide-folder-tree" class="text-6xl mb-4 text-gray-300" />
-        <p class="text-lg font-medium">No Categories Yet</p>
+        <UIcon
+          name="i-lucide-folder-tree"
+          class="text-6xl mb-4 text-gray-300"
+        />
+        <p class="text-lg font-medium">
+          No Categories Yet
+        </p>
         <p class="text-sm mb-6 text-center max-w-sm">
           Create categories to organize your rental items and make it easier for customers to browse.
         </p>
-        <UButton icon="i-lucide-plus" label="Add First Category" @click="openCreateModal" />
+        <UButton
+          icon="i-lucide-plus"
+          label="Add First Category"
+          @click="openCreateModal"
+        />
       </div>
 
       <!-- Categories Grid -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        v-else
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
         <div
           v-for="category in sortedCategories"
           :key="category.id"
@@ -84,7 +102,10 @@
 
           <!-- Sort Order -->
           <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
-            <UIcon name="i-lucide-arrow-up-down" class="w-4 h-4" />
+            <UIcon
+              name="i-lucide-arrow-up-down"
+              class="w-4 h-4"
+            />
             <span>Sort Order: {{ category.sortOrder }}</span>
           </div>
 
@@ -112,11 +133,24 @@
     </div>
 
     <!-- Create/Edit Modal -->
-    <UModal v-model:open="isModalOpen" :title="isEditing ? 'Edit Category' : 'Create Category'">
+    <UModal
+      v-model:open="isModalOpen"
+      :title="isEditing ? 'Edit Category' : 'Create Category'"
+    >
       <template #body>
-        <form @submit.prevent="saveCategory" class="space-y-4">
-          <UFormField label="Name" required>
-            <UInput v-model="formData.name" placeholder="e.g., Bounce Houses" class="w-full" />
+        <form
+          class="space-y-4"
+          @submit.prevent="saveCategory"
+        >
+          <UFormField
+            label="Name"
+            required
+          >
+            <UInput
+              v-model="formData.name"
+              placeholder="e.g., Bounce Houses"
+              class="w-full"
+            />
           </UFormField>
 
           <UFormField label="Description">
@@ -129,10 +163,16 @@
           </UFormField>
 
           <UFormField label="Icon">
-            <IconPicker v-model="formData.icon" variant="categories" />
+            <IconPicker
+              v-model="formData.icon"
+              variant="categories"
+            />
           </UFormField>
 
-          <UFormField label="Sort Order" help="Lower numbers appear first">
+          <UFormField
+            label="Sort Order"
+            help="Lower numbers appear first"
+          >
             <UInput
               v-model.number="formData.sortOrder"
               type="number"
@@ -142,14 +182,22 @@
           </UFormField>
 
           <UFormField label="Status">
-            <UCheckbox v-model="formData.isActive" label="Active" />
+            <UCheckbox
+              v-model="formData.isActive"
+              label="Active"
+            />
           </UFormField>
         </form>
       </template>
 
       <template #footer="{ close }">
         <div class="flex justify-end gap-2">
-          <UButton label="Cancel" color="neutral" variant="ghost" @click="close" />
+          <UButton
+            label="Cancel"
+            color="neutral"
+            variant="ghost"
+            @click="close"
+          />
           <UButton
             :label="isEditing ? 'Update' : 'Create'"
             color="primary"
@@ -161,22 +209,33 @@
     </UModal>
 
     <!-- Delete Confirmation Modal -->
-    <UModal v-model:open="isDeleteModalOpen" title="Delete Category">
+    <UModal
+      v-model:open="isDeleteModalOpen"
+      title="Delete Category"
+    >
       <template #body>
         <div class="space-y-4">
           <div class="flex items-center gap-3">
             <div
               class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center"
             >
-              <UIcon name="i-lucide-trash-2" class="text-red-600 dark:text-red-400 text-xl" />
+              <UIcon
+                name="i-lucide-trash-2"
+                class="text-red-600 dark:text-red-400 text-xl"
+              />
             </div>
-            <h3 class="text-lg font-semibold">Confirm Deletion</h3>
+            <h3 class="text-lg font-semibold">
+              Confirm Deletion
+            </h3>
           </div>
           <p class="text-gray-600 dark:text-gray-400">
             Are you sure you want to delete
             <strong>{{ categoryToDelete?.name }}</strong>?
           </p>
-          <p v-if="categoryToDelete?.itemCount > 0" class="text-sm text-amber-600 dark:text-amber-400">
+          <p
+            v-if="categoryToDelete?.itemCount > 0"
+            class="text-sm text-amber-600 dark:text-amber-400"
+          >
             Warning: This category has {{ categoryToDelete.itemCount }} item(s). They will need to be
             recategorized.
           </p>
@@ -205,8 +264,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'dashboard',
-  middleware: 'auth',
+  layout: 'dashboard'
 })
 
 interface Category {
@@ -215,6 +273,7 @@ interface Category {
   slug: string
   description?: string
   icon?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   image?: any
   sortOrder: number
   isActive: boolean
@@ -242,7 +301,7 @@ const formData = ref({
   description: '',
   icon: '',
   sortOrder: 0,
-  isActive: true,
+  isActive: true
 })
 
 const editingId = ref<string | null>(null)
@@ -258,7 +317,7 @@ async function fetchCategories() {
     pending.value = true
     const response = await fetchCollection<Category>('categories', {
       limit: 100,
-      sort: 'sortOrder',
+      sort: 'sortOrder'
     })
     categories.value = response.docs
   } catch (error) {
@@ -266,7 +325,7 @@ async function fetchCategories() {
     toast.add({
       title: 'Error',
       description: 'Failed to load categories',
-      color: 'error',
+      color: 'error'
     })
   } finally {
     pending.value = false
@@ -281,7 +340,7 @@ function openCreateModal() {
     description: '',
     icon: '',
     sortOrder: categories.value.length,
-    isActive: true,
+    isActive: true
   }
   isModalOpen.value = true
 }
@@ -294,7 +353,7 @@ function openEditModal(category: Category) {
     description: category.description || '',
     icon: category.icon || '',
     sortOrder: category.sortOrder,
-    isActive: category.isActive,
+    isActive: category.isActive
   }
   isModalOpen.value = true
 }
@@ -314,7 +373,7 @@ async function saveCategory() {
       toast.add({
         title: 'Success',
         description: 'Category updated successfully',
-        color: 'success',
+        color: 'success'
       })
     } else {
       // Create new category
@@ -322,7 +381,7 @@ async function saveCategory() {
       toast.add({
         title: 'Success',
         description: 'Category created successfully',
-        color: 'success',
+        color: 'success'
       })
     }
 
@@ -333,7 +392,7 @@ async function saveCategory() {
     toast.add({
       title: 'Error',
       description: 'Failed to save category',
-      color: 'error',
+      color: 'error'
     })
   } finally {
     isSaving.value = false
@@ -349,7 +408,7 @@ async function confirmDelete() {
     toast.add({
       title: 'Success',
       description: 'Category deleted successfully',
-      color: 'success',
+      color: 'success'
     })
     isDeleteModalOpen.value = false
     await fetchCategories()
@@ -358,7 +417,7 @@ async function confirmDelete() {
     toast.add({
       title: 'Error',
       description: 'Failed to delete category',
-      color: 'error',
+      color: 'error'
     })
   } finally {
     isDeleting.value = false

@@ -71,20 +71,20 @@ export interface RbPayloadBookingItem {
 /**
  * Booking status values
  */
-export type RbPayloadBookingStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'cancelled'
-  | 'completed'
-  | 'no_show'
+export type RbPayloadBookingStatus
+  = | 'pending'
+    | 'confirmed'
+    | 'cancelled'
+    | 'completed'
+    | 'no_show'
 
 /**
  * Payment status values
  */
-export type RbPayloadPaymentStatus =
-  | 'unpaid'
-  | 'paid'
-  | 'refunded'
+export type RbPayloadPaymentStatus
+  = | 'unpaid'
+    | 'paid'
+    | 'refunded'
 
 /**
  * Complete booking object

@@ -25,7 +25,7 @@ export const useAddOns = () => {
   const getTenantId = (): string | null => {
     if (!currentUser.value?.tenantId) return null
     if (typeof currentUser.value.tenantId === 'object') {
-      return (currentUser.value.tenantId as any).id
+      return (currentUser.value.tenantId as Record<string, unknown>).id as string
     }
     return currentUser.value.tenantId as string
   }
@@ -47,8 +47,8 @@ export const useAddOns = () => {
     if (searchQuery.value) {
       const query = searchQuery.value.toLowerCase()
       result = result.filter(addon =>
-        addon?.name?.toLowerCase().includes(query) ||
-        addon?.description?.toLowerCase().includes(query)
+        addon?.name?.toLowerCase().includes(query)
+        || addon?.description?.toLowerCase().includes(query)
       )
     }
 
@@ -95,9 +95,10 @@ export const useAddOns = () => {
       })
 
       addons.value = response.docs || []
-    } catch (err: any) {
-      console.error('Failed to fetch add-ons from API:', err.message)
-      error.value = err.message || 'Failed to fetch add-ons'
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      console.error('Failed to fetch add-ons from API:', message)
+      error.value = message || 'Failed to fetch add-ons'
       addons.value = []
     } finally {
       isLoading.value = false
@@ -117,9 +118,10 @@ export const useAddOns = () => {
       })
 
       return addon
-    } catch (err: any) {
-      console.error('Failed to fetch add-on from API:', err.message)
-      error.value = err.message || 'Failed to fetch add-on'
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      console.error('Failed to fetch add-on from API:', message)
+      error.value = message || 'Failed to fetch add-on'
 
       // Check if add-on exists in already loaded add-ons
       const addon = addons.value.find(a => a.id === id)
@@ -152,9 +154,10 @@ export const useAddOns = () => {
 
       addons.value.push(newAddOn)
       return { success: true, addon: newAddOn }
-    } catch (err: any) {
-      console.error('Failed to create add-on via API:', err.message)
-      error.value = err.message || 'Failed to create add-on'
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      console.error('Failed to create add-on via API:', message)
+      error.value = message || 'Failed to create add-on'
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -181,9 +184,10 @@ export const useAddOns = () => {
       }
 
       return { success: true, addon: updatedAddOn }
-    } catch (err: any) {
-      console.error('Failed to update add-on via API:', err.message)
-      error.value = err.message || 'Failed to update add-on'
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      console.error('Failed to update add-on via API:', message)
+      error.value = message || 'Failed to update add-on'
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -205,9 +209,10 @@ export const useAddOns = () => {
 
       addons.value = addons.value.filter(a => a.id !== id)
       return { success: true }
-    } catch (err: any) {
-      console.error('Failed to delete add-on via API:', err.message)
-      error.value = err.message || 'Failed to delete add-on'
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      console.error('Failed to delete add-on via API:', message)
+      error.value = message || 'Failed to delete add-on'
       return { success: false, error: error.value }
     } finally {
       isLoading.value = false
@@ -227,7 +232,7 @@ export const useAddOns = () => {
   /**
    * Calculate add-on price for a booking
    */
-  const calculateAddOnPrice = (addon: AddOn, booking: { items: number; days: number }) => {
+  const calculateAddOnPrice = (addon: AddOn, booking: { items: number, days: number }) => {
     switch (addon.pricing.type) {
       case 'fixed':
         return addon.pricing.amount

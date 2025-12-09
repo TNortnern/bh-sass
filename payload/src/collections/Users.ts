@@ -9,7 +9,19 @@ export const Users: CollectionConfig = {
     defaultColumns: ['email', 'role', 'tenantId', 'createdAt'],
     group: 'Multi-Tenancy',
   },
-  auth: true,
+  auth: {
+    // Configure cookie settings for auth persistence
+    cookies: {
+      sameSite: 'lax', // Allow cookies in development with different ports
+      secure: false, // Set to false for development (http://localhost)
+      domain: undefined, // Allow cookies to work across localhost ports
+    },
+    // Token expiration: 7 days (in seconds)
+    tokenExpiration: 7 * 24 * 60 * 60,
+    // Session/Cookie max age: 7 days (in seconds)
+    maxLoginAttempts: 5,
+    lockTime: 10 * 60 * 1000, // 10 minutes in milliseconds
+  },
   access: {
     // Super admins can see all users, tenant admins can see their tenant's users
     read: (({ req: { user } }) => {

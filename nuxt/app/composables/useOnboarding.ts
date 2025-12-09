@@ -15,7 +15,7 @@ export interface OnboardingState {
     photo: string | null
   } | null
   availability: {
-    [key: string]: { open: string; close: string; enabled: boolean }
+    [key: string]: { open: string, close: string, enabled: boolean }
   }
   paymentsConnected: boolean
 }
@@ -166,8 +166,13 @@ export function useOnboarding() {
   const isFirstStep = computed(() => state.value.currentStep === 1)
   const isLastStep = computed(() => state.value.currentStep === state.value.totalSteps)
 
+  function updateState(updates: Partial<OnboardingState>) {
+    Object.assign(state.value, updates)
+    saveProgress()
+  }
+
   return {
-    state: readonly(state),
+    state,
     progress,
     isFirstStep,
     isLastStep,
@@ -178,6 +183,7 @@ export function useOnboarding() {
     completeOnboarding,
     saveProgress,
     loadProgress,
-    resetOnboarding
+    resetOnboarding,
+    updateState
   }
 }

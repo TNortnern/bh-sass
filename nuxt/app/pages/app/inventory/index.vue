@@ -53,6 +53,7 @@ const confirmDelete = async () => {
       color: 'success'
     })
   } catch (err) {
+    console.error('Delete error:', err)
     toast.add({
       title: 'Error',
       description: 'Failed to delete item. Please try again.',
@@ -75,6 +76,7 @@ const handleToggleActive = async (item: InventoryItem) => {
     })
     await fetchItems()
   } catch (err) {
+    console.error('Update error:', err)
     toast.add({
       title: 'Error',
       description: 'Failed to update item status.',
@@ -116,15 +118,22 @@ const sortOptions = [
     <!-- Page Header -->
     <div class="flex items-center justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Inventory</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">Manage your rental items and units</p>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+          Inventory
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">
+          Manage your rental items and units
+        </p>
       </div>
       <UButton
         color="primary"
         size="lg"
         to="/app/inventory/new"
       >
-        <UIcon name="i-lucide-plus" class="w-5 h-5 mr-2" />
+        <UIcon
+          name="i-lucide-plus"
+          class="w-5 h-5 mr-2"
+        />
         Add Item
       </UButton>
     </div>
@@ -134,14 +143,21 @@ const sortOptions = [
       <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
         <div class="flex items-start justify-between">
           <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Items</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ stats.total }}</p>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Total Items
+            </p>
+            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+              {{ stats.total }}
+            </p>
             <p class="text-sm text-green-600 dark:text-green-400 mt-2">
               {{ stats.active }} active
             </p>
           </div>
           <div class="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
-            <UIcon name="i-lucide-box" class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <UIcon
+              name="i-lucide-box"
+              class="w-6 h-6 text-blue-600 dark:text-blue-400"
+            />
           </div>
         </div>
       </UCard>
@@ -149,14 +165,21 @@ const sortOptions = [
       <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
         <div class="flex items-start justify-between">
           <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Units Rented</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ stats.rented }}</p>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Units Rented
+            </p>
+            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+              {{ stats.rented }}
+            </p>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
               Currently in use
             </p>
           </div>
           <div class="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
-            <UIcon name="i-lucide-calendar-check" class="w-6 h-6 text-green-600 dark:text-green-400" />
+            <UIcon
+              name="i-lucide-calendar-check"
+              class="w-6 h-6 text-green-600 dark:text-green-400"
+            />
           </div>
         </div>
       </UCard>
@@ -164,14 +187,21 @@ const sortOptions = [
       <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
         <div class="flex items-start justify-between">
           <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Maintenance</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ stats.maintenance }}</p>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Maintenance
+            </p>
+            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+              {{ stats.maintenance }}
+            </p>
             <p class="text-sm text-orange-600 dark:text-orange-400 mt-2">
               Needs attention
             </p>
           </div>
           <div class="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center flex-shrink-0">
-            <UIcon name="i-lucide-wrench" class="w-6 h-6 text-orange-600 dark:text-orange-400" />
+            <UIcon
+              name="i-lucide-wrench"
+              class="w-6 h-6 text-orange-600 dark:text-orange-400"
+            />
           </div>
         </div>
       </UCard>
@@ -179,14 +209,21 @@ const sortOptions = [
       <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
         <div class="flex items-start justify-between">
           <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Avg Utilization</p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ stats.avgUtilization }}%</p>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Avg Utilization
+            </p>
+            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+              {{ stats.avgUtilization }}%
+            </p>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
               Fleet efficiency
             </p>
           </div>
           <div class="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center flex-shrink-0">
-            <UIcon name="i-lucide-activity" class="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            <UIcon
+              name="i-lucide-activity"
+              class="w-6 h-6 text-purple-600 dark:text-purple-400"
+            />
           </div>
         </div>
       </UCard>
@@ -214,8 +251,11 @@ const sortOptions = [
           class="w-full lg:w-48"
         >
           <template #label>
-            <UIcon name="i-lucide-tag" class="w-4 h-4 mr-2" />
-            {{ categories.find(c => c.value === selectedCategory)?.label }}
+            <UIcon
+              name="i-lucide-tag"
+              class="w-4 h-4 mr-2"
+            />
+            {{ categories.find((c: { value: string; label: string }) => c.value === selectedCategory)?.label }}
           </template>
         </USelectMenu>
 
@@ -227,8 +267,11 @@ const sortOptions = [
           class="w-full lg:w-40"
         >
           <template #label>
-            <UIcon name="i-lucide-filter" class="w-4 h-4 mr-2" />
-            {{ statusOptions.find(s => s.value === selectedStatus)?.label }}
+            <UIcon
+              name="i-lucide-filter"
+              class="w-4 h-4 mr-2"
+            />
+            {{ statusOptions.find((s: { value: string; label: string }) => s.value === selectedStatus)?.label }}
           </template>
         </USelectMenu>
 
@@ -240,8 +283,11 @@ const sortOptions = [
           class="w-full lg:w-48"
         >
           <template #label>
-            <UIcon name="i-lucide-arrow-up-down" class="w-4 h-4 mr-2" />
-            {{ sortOptions.find(s => s.value === sortBy)?.label }}
+            <UIcon
+              name="i-lucide-arrow-up-down"
+              class="w-4 h-4 mr-2"
+            />
+            {{ sortOptions.find((s: { value: string; label: string }) => s.value === sortBy)?.label }}
           </template>
         </USelectMenu>
 
@@ -268,8 +314,15 @@ const sortOptions = [
     </UCard>
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <USkeleton v-for="i in 6" :key="i" class="h-80" />
+    <div
+      v-if="isLoading"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
+      <USkeleton
+        v-for="i in 6"
+        :key="i"
+        class="h-80"
+      />
     </div>
 
     <!-- Items Grid/List -->
@@ -312,9 +365,14 @@ const sortOptions = [
         class="text-center py-16"
       >
         <div class="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
-          <UIcon name="i-lucide-package-search" class="w-10 h-10 text-gray-400 dark:text-gray-600" />
+          <UIcon
+            name="i-lucide-package-search"
+            class="w-10 h-10 text-gray-400 dark:text-gray-600"
+          />
         </div>
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">No items found</h3>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          No items found
+        </h3>
         <p class="text-gray-600 dark:text-gray-400 mb-6">
           {{ searchQuery ? 'Try adjusting your search or filters' : 'Get started by adding your first inventory item' }}
         </p>
@@ -324,7 +382,10 @@ const sortOptions = [
           size="lg"
           to="/app/inventory/new"
         >
-          <UIcon name="i-lucide-plus" class="w-5 h-5 mr-2" />
+          <UIcon
+            name="i-lucide-plus"
+            class="w-5 h-5 mr-2"
+          />
           Add First Item
         </UButton>
         <UButton
@@ -345,11 +406,18 @@ const sortOptions = [
         <div class="p-6">
           <div class="flex items-center gap-3 mb-4">
             <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-              <UIcon name="i-lucide-trash-2" class="w-6 h-6 text-red-600 dark:text-red-400" />
+              <UIcon
+                name="i-lucide-trash-2"
+                class="w-6 h-6 text-red-600 dark:text-red-400"
+              />
             </div>
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Delete Item</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone</p>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Delete Item
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                This action cannot be undone
+              </p>
             </div>
           </div>
 
@@ -370,7 +438,10 @@ const sortOptions = [
               color="error"
               @click="confirmDelete"
             >
-              <UIcon name="i-lucide-trash-2" class="w-4 h-4 mr-2" />
+              <UIcon
+                name="i-lucide-trash-2"
+                class="w-4 h-4 mr-2"
+              />
               Delete Item
             </UButton>
           </div>

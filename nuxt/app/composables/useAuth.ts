@@ -2,12 +2,12 @@ export interface User {
   id: string
   email: string
   role?: 'super_admin' | 'tenant_admin' | 'staff' | 'customer'
-  tenantId?: string | { id: string; name: string; slug: string }
+  tenantId?: string | { id: string, name: string, slug: string }
   profile?: {
     businessName?: string
     name?: string
     phone?: string
-    avatar?: any
+    avatar?: Record<string, unknown>
   }
   createdAt: string
   updatedAt?: string
@@ -74,7 +74,7 @@ export const useAuth = () => {
       })
       currentUser.value = response.user
       return { success: true, user: response.user }
-    } catch (err) {
+    } catch {
       currentUser.value = null
       return { success: false }
     } finally {
@@ -90,7 +90,7 @@ export const useAuth = () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ user: User; token: string }>('/v1/users/login', {
+      const response = await $fetch<{ user: User, token: string }>('/v1/users/login', {
         method: 'POST',
         body: { email: credentials.email, password: credentials.password },
         credentials: 'include'
@@ -108,8 +108,9 @@ export const useAuth = () => {
       await navigateTo('/app')
 
       return { success: true }
-    } catch (err: any) {
-      const message = err?.data?.errors?.[0]?.message || 'Invalid email or password'
+    } catch (err: unknown) {
+      const errorData = err as { data?: { errors?: Array<{ message?: string }> } }
+      const message = errorData?.data?.errors?.[0]?.message || 'Invalid email or password'
       error.value = message
       toast.add({
         title: 'Login failed',
@@ -141,7 +142,7 @@ export const useAuth = () => {
       }
 
       // Create user and tenant via custom registration endpoint
-      const response = await $fetch<{ user: User; tenant: any; token: string }>('/v1/register', {
+      const response = await $fetch<{ user: User, tenant: Record<string, unknown>, token: string }>('/v1/register', {
         method: 'POST',
         body: {
           email: data.email,
@@ -164,8 +165,9 @@ export const useAuth = () => {
       await navigateTo('/app/onboarding')
 
       return { success: true, user: response.user }
-    } catch (err: any) {
-      const message = err?.data?.errors?.[0]?.message || err.message || 'Registration failed. Please try again.'
+    } catch (err: unknown) {
+      const errorData = err as { data?: { errors?: Array<{ message?: string }> }, message?: string }
+      const message = errorData?.data?.errors?.[0]?.message || errorData.message || 'Registration failed. Please try again.'
       error.value = message
       toast.add({
         title: 'Registration failed',
@@ -198,8 +200,9 @@ export const useAuth = () => {
       })
 
       return { success: true }
-    } catch (err: any) {
-      const message = err?.data?.errors?.[0]?.message || 'Failed to send reset email. Please try again.'
+    } catch (err: unknown) {
+      const errorData = err as { data?: { errors?: Array<{ message?: string }> } }
+      const message = errorData?.data?.errors?.[0]?.message || 'Failed to send reset email. Please try again.'
       error.value = message
       toast.add({
         title: 'Reset failed',
@@ -262,8 +265,9 @@ export const useAuth = () => {
       })
 
       return { success: true }
-    } catch (err: any) {
-      const message = err?.data?.errors?.[0]?.message || 'Failed to reset password. Please try again.'
+    } catch (err: unknown) {
+      const errorData = err as { data?: { errors?: Array<{ message?: string }> } }
+      const message = errorData?.data?.errors?.[0]?.message || 'Failed to reset password. Please try again.'
       error.value = message
       toast.add({
         title: 'Reset failed',
@@ -293,8 +297,9 @@ export const useAuth = () => {
       currentUser.value = response.user
 
       return { success: true, user: response.user }
-    } catch (err: any) {
-      const message = err?.data?.errors?.[0]?.message || 'Failed to verify email. Please try again.'
+    } catch (err: unknown) {
+      const errorData = err as { data?: { errors?: Array<{ message?: string }> } }
+      const message = errorData?.data?.errors?.[0]?.message || 'Failed to verify email. Please try again.'
       error.value = message
       return { success: false, error: message }
     } finally {
@@ -322,8 +327,9 @@ export const useAuth = () => {
       currentUser.value = response.user
 
       return { success: true, user: response.user }
-    } catch (err: any) {
-      const message = err?.data?.errors?.[0]?.message || 'Failed to accept invite. Please try again.'
+    } catch (err: unknown) {
+      const errorData = err as { data?: { errors?: Array<{ message?: string }> } }
+      const message = errorData?.data?.errors?.[0]?.message || 'Failed to accept invite. Please try again.'
       error.value = message
       toast.add({
         title: 'Failed to accept invite',
@@ -349,9 +355,9 @@ export const useAuth = () => {
   // Computed helpers
   const displayName = computed(() => {
     if (!currentUser.value) return ''
-    return currentUser.value.profile?.businessName ||
-           currentUser.value.profile?.name ||
-           currentUser.value.email.split('@')[0]
+    return currentUser.value.profile?.businessName
+      || currentUser.value.profile?.name
+      || currentUser.value.email.split('@')[0]
   })
 
   const initials = computed(() => {

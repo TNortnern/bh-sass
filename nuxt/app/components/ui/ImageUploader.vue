@@ -23,7 +23,7 @@ const urlInput = ref('')
 
 const images = computed({
   get: () => props.modelValue || [],
-  set: (value) => emit('update:modelValue', value)
+  set: value => emit('update:modelValue', value)
 })
 
 const maxImagesAllowed = computed(() => props.maxImages || 10)
@@ -91,7 +91,7 @@ const uploadFile = async (file: File) => {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await $fetch<{ success: boolean; url: string }>('/api/upload', {
+    const response = await $fetch<{ success: boolean, url: string }>('/api/upload', {
       method: 'POST',
       body: formData
     })
@@ -104,11 +104,12 @@ const uploadFile = async (file: File) => {
         color: 'success'
       })
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Upload error:', error)
+    const errorData = error && typeof error === 'object' && 'data' in error ? (error as Record<string, unknown>).data as Record<string, unknown> : undefined
     toast.add({
       title: 'Upload Failed',
-      description: error.data?.message || 'Failed to upload image',
+      description: (errorData?.message as string) || 'Failed to upload image',
       color: 'error'
     })
   } finally {
@@ -157,7 +158,7 @@ const addImageFromUrl = async () => {
 
   try {
     // Download and re-upload to Bunny CDN
-    const response = await $fetch<{ success: boolean; url: string; message?: string }>('/api/upload-from-url', {
+    const response = await $fetch<{ success: boolean, url: string, message?: string }>('/api/upload-from-url', {
       method: 'POST',
       body: { url }
     })
@@ -173,11 +174,12 @@ const addImageFromUrl = async () => {
         color: 'success'
       })
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('URL upload error:', error)
+    const errorData = error && typeof error === 'object' && 'data' in error ? (error as Record<string, unknown>).data as Record<string, unknown> : undefined
     toast.add({
       title: 'Upload Failed',
-      description: error.data?.message || 'Failed to upload image from URL',
+      description: (errorData?.message as string) || 'Failed to upload image from URL',
       color: 'error'
     })
   } finally {
@@ -196,7 +198,9 @@ const removeImage = (index: number) => {
 const moveImage = (from: number, to: number) => {
   const newImages = [...images.value]
   const [removed] = newImages.splice(from, 1)
-  newImages.splice(to, 0, removed)
+  if (removed) {
+    newImages.splice(to, 0, removed)
+  }
   images.value = newImages
 }
 </script>
@@ -211,10 +215,13 @@ const moveImage = (from: number, to: number) => {
       multiple
       class="hidden"
       @change="handleFileSelect"
-    />
+    >
 
     <!-- Image Grid -->
-    <div v-if="images.length > 0" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+    <div
+      v-if="images.length > 0"
+      class="grid grid-cols-2 sm:grid-cols-3 gap-3"
+    >
       <div
         v-for="(image, index) in images"
         :key="index"
@@ -225,7 +232,7 @@ const moveImage = (from: number, to: number) => {
           :alt="`Image ${index + 1}`"
           class="w-full h-full object-cover"
           @error="($event.target as HTMLImageElement).src = 'https://placehold.co/400x300?text=Error'"
-        />
+        >
 
         <!-- Overlay with actions -->
         <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -312,10 +319,17 @@ const moveImage = (from: number, to: number) => {
       >
         <div class="flex flex-col items-center gap-2">
           <div class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-            <UIcon name="i-lucide-link" class="w-6 h-6 text-gray-500 dark:text-gray-400" />
+            <UIcon
+              name="i-lucide-link"
+              class="w-6 h-6 text-gray-500 dark:text-gray-400"
+            />
           </div>
-          <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Add URL</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Paste image link</p>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Add URL
+          </p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            Paste image link
+          </p>
         </div>
       </button>
     </div>
@@ -333,7 +347,10 @@ const moveImage = (from: number, to: number) => {
             Add Image from URL
           </h3>
 
-          <UFormField label="Image URL" class="mb-6">
+          <UFormField
+            label="Image URL"
+            class="mb-6"
+          >
             <UInput
               v-model="urlInput"
               placeholder="https://example.com/image.jpg"
@@ -345,15 +362,20 @@ const moveImage = (from: number, to: number) => {
           </UFormField>
 
           <!-- Preview -->
-          <div v-if="urlInput" class="mb-6">
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Preview:</p>
+          <div
+            v-if="urlInput"
+            class="mb-6"
+          >
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+              Preview:
+            </p>
             <div class="aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
               <img
                 :src="urlInput"
                 alt="Preview"
                 class="w-full h-full object-cover"
                 @error="($event.target as HTMLImageElement).src = 'https://placehold.co/400x300?text=Invalid+URL'"
-              />
+              >
             </div>
           </div>
 

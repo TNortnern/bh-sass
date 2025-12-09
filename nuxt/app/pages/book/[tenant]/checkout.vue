@@ -10,8 +10,9 @@ const router = useRouter()
 const tenantSlug = route.params.tenant as string
 
 const { items, total, clear } = useCart()
-const { loadTenant, createBooking, createCheckoutSession, loading, error } = usePublicBooking()
+const { loadTenant, createBooking, createCheckoutSession, loading: _loading, error: _error } = usePublicBooking()
 const customerInfo = ref<CustomerInfo | null>(null)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const tenantData = ref<any>(null)
 
 // Load tenant and redirect if cart is empty
@@ -31,16 +32,16 @@ const isFormValid = computed(() => {
 
   const c = customerInfo.value
   return !!(
-    c.firstName &&
-    c.lastName &&
-    c.email &&
-    c.phone &&
-    c.address.street &&
-    c.address.city &&
-    c.address.state &&
-    c.address.zip &&
-    c.eventDetails.type &&
-    c.termsAccepted
+    c.firstName
+    && c.lastName
+    && c.email
+    && c.phone
+    && c.address.street
+    && c.address.city
+    && c.address.state
+    && c.address.zip
+    && c.eventDetails.type
+    && c.termsAccepted
   )
 })
 
@@ -70,33 +71,37 @@ const proceedToPayment = async (paymentType: 'deposit' | 'full' = 'deposit') => 
         type: customerInfo.value.eventDetails.type,
         date: items.value[0]?.startDate || new Date().toISOString(),
         attendees: customerInfo.value.eventDetails.attendees,
-        specialInstructions: customerInfo.value.eventDetails.specialInstructions
+        specialInstructions: customerInfo.value.eventDetails.specialRequests
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       items: items.value.map((item: any) => ({
         itemId: item.itemId,
         serviceId: item.itemId, // Use itemId as serviceId for now
         startDate: item.startDate,
         endDate: item.endDate,
         quantity: item.quantity,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         addOns: item.addOns?.map((a: any) => a.id) || []
       })),
       totalPrice: total.value,
       depositAmount: depositAmount.value
     })
 
-    if (!booking || !booking.id) {
+    const bookingData = booking as { id?: string } | null
+    if (!bookingData || !bookingData.id) {
       throw new Error('Failed to create booking')
     }
 
     // Create Stripe checkout session
     const session = await createCheckoutSession(
-      booking.id,
+      bookingData.id,
       paymentAmount,
       customerInfo.value.email,
       tenantSlug
     )
 
-    if (!session || !session.url) {
+    const sessionData = session as { url?: string } | null
+    if (!sessionData || !sessionData.url) {
       throw new Error('Failed to create checkout session')
     }
 
@@ -104,7 +109,8 @@ const proceedToPayment = async (paymentType: 'deposit' | 'full' = 'deposit') => 
     clear()
 
     // Redirect to Stripe Checkout
-    window.location.href = session.url
+    window.location.href = sessionData.url
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     console.error('Payment error:', err)
     bookingError.value = err.message || 'Failed to process booking. Please try again.'
@@ -126,12 +132,22 @@ const depositAmount = computed(() => total.value * 0.5)
 <template>
   <div>
     <!-- Error Alert -->
-    <div v-if="bookingError" class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+    <div
+      v-if="bookingError"
+      class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+    >
       <div class="flex items-start gap-3">
-        <UIcon name="lucide:alert-circle" class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+        <UIcon
+          name="lucide:alert-circle"
+          class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
+        />
         <div>
-          <h3 class="font-semibold text-red-900 dark:text-red-100 mb-1">Booking Error</h3>
-          <p class="text-sm text-red-700 dark:text-red-300">{{ bookingError }}</p>
+          <h3 class="font-semibold text-red-900 dark:text-red-100 mb-1">
+            Booking Error
+          </h3>
+          <p class="text-sm text-red-700 dark:text-red-300">
+            {{ bookingError }}
+          </p>
         </div>
       </div>
     </div>
@@ -160,7 +176,10 @@ const depositAmount = computed(() => total.value * 0.5)
         <!-- Payment Options -->
         <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <UIcon name="lucide:credit-card" class="w-5 h-5" />
+            <UIcon
+              name="lucide:credit-card"
+              class="w-5 h-5"
+            />
             Payment Options
           </h3>
 
@@ -223,7 +242,10 @@ const depositAmount = computed(() => total.value * 0.5)
           <!-- Payment Info -->
           <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <div class="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-400">
-              <UIcon name="lucide:shield-check" class="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+              <UIcon
+                name="lucide:shield-check"
+                class="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5"
+              />
               <div>
                 <p class="font-medium text-gray-900 dark:text-white mb-1">
                   Secure Payment Processing
@@ -244,7 +266,10 @@ const depositAmount = computed(() => total.value * 0.5)
           <div class="space-y-3">
             <div class="flex items-start gap-3">
               <div class="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                <UIcon name="lucide:check-circle" class="w-4 h-4 text-orange-600 dark:text-orange-500" />
+                <UIcon
+                  name="lucide:check-circle"
+                  class="w-4 h-4 text-orange-600 dark:text-orange-500"
+                />
               </div>
               <div>
                 <div class="text-sm font-medium text-gray-900 dark:text-white">
@@ -258,7 +283,10 @@ const depositAmount = computed(() => total.value * 0.5)
 
             <div class="flex items-start gap-3">
               <div class="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                <UIcon name="lucide:phone" class="w-4 h-4 text-orange-600 dark:text-orange-500" />
+                <UIcon
+                  name="lucide:phone"
+                  class="w-4 h-4 text-orange-600 dark:text-orange-500"
+                />
               </div>
               <div>
                 <div class="text-sm font-medium text-gray-900 dark:text-white">
@@ -272,7 +300,10 @@ const depositAmount = computed(() => total.value * 0.5)
 
             <div class="flex items-start gap-3">
               <div class="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                <UIcon name="lucide:truck" class="w-4 h-4 text-orange-600 dark:text-orange-500" />
+                <UIcon
+                  name="lucide:truck"
+                  class="w-4 h-4 text-orange-600 dark:text-orange-500"
+                />
               </div>
               <div>
                 <div class="text-sm font-medium text-gray-900 dark:text-white">
@@ -286,7 +317,10 @@ const depositAmount = computed(() => total.value * 0.5)
 
             <div class="flex items-start gap-3">
               <div class="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
-                <UIcon name="lucide:party-popper" class="w-4 h-4 text-orange-600 dark:text-orange-500" />
+                <UIcon
+                  name="lucide:party-popper"
+                  class="w-4 h-4 text-orange-600 dark:text-orange-500"
+                />
               </div>
               <div>
                 <div class="text-sm font-medium text-gray-900 dark:text-white">

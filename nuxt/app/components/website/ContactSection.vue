@@ -22,7 +22,12 @@ function formatTime(time: string): string {
   if (!time) return ''
 
   // Handle HH:MM format
-  const [hours, minutes] = time.split(':').map(Number)
+  const parts = time.split(':').map(Number)
+  const hours = parts[0]
+  const minutes = parts[1]
+
+  if (hours === undefined || minutes === undefined) return time
+
   const period = hours >= 12 ? 'PM' : 'AM'
   const displayHours = hours % 12 || 12
 

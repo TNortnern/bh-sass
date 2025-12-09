@@ -14,15 +14,22 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig()
   const payloadUrl = config.payloadApiUrl || 'http://payload:3000'
+  const apiKey = config.payloadApiKey
+
+  // Build headers with API key for authentication
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+  if (apiKey) {
+    headers['X-API-Key'] = apiKey
+  }
 
   try {
     // Fetch active add-ons from Payload
     const url = `${payloadUrl}/api/add-ons?where[tenantId][equals]=${tenantId}&where[isActive][equals]=true&limit=100`
 
-    const response = await $fetch<{ docs: any[] }>(url, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
+    const response = await $fetch<{ docs: Record<string, unknown>[] }>(url, {
+      headers
     })
 
     const addOns = (response.docs || []).map((addOn: any) => ({
@@ -36,7 +43,7 @@ export default defineEventHandler(async (event) => {
     return {
       addOns
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch add-ons:', error)
 
     throw createError({

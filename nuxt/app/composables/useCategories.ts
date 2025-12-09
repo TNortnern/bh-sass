@@ -8,7 +8,7 @@ interface Category {
   slug: string
   description?: string
   icon?: string
-  image?: any
+  image?: Record<string, unknown>
   sortOrder: number
   isActive: boolean
   itemCount?: number
@@ -17,15 +17,15 @@ interface Category {
 }
 
 export const useCategories = () => {
-  const { fetchCollection, createDocument, updateDocument, deleteDocument } = usePayloadApi()
+  const { fetchCollection, createDocument, updateDocument, deleteDocument, fetchDocument } = usePayloadApi()
   const toast = useToast()
 
   /**
    * Fetch all categories for the current tenant
    */
-  async function fetchCategories(params?: { limit?: number; includeInactive?: boolean }) {
+  async function fetchCategories(params?: { limit?: number, includeInactive?: boolean }) {
     try {
-      const where: any = {}
+      const where: Record<string, unknown> = {}
 
       if (!params?.includeInactive) {
         where.isActive = { equals: true }
@@ -34,7 +34,7 @@ export const useCategories = () => {
       const response = await fetchCollection<Category>('categories', {
         limit: params?.limit || 100,
         sort: 'sortOrder',
-        where: Object.keys(where).length > 0 ? where : undefined,
+        where: Object.keys(where).length > 0 ? where : undefined
       })
 
       return response.docs
@@ -43,7 +43,7 @@ export const useCategories = () => {
       toast.add({
         title: 'Error',
         description: 'Failed to load categories',
-        color: 'error',
+        color: 'error'
       })
       return []
     }
@@ -60,7 +60,7 @@ export const useCategories = () => {
       toast.add({
         title: 'Error',
         description: 'Failed to load category',
-        color: 'error',
+        color: 'error'
       })
       return null
     }
@@ -75,7 +75,7 @@ export const useCategories = () => {
       toast.add({
         title: 'Success',
         description: 'Category created successfully',
-        color: 'success',
+        color: 'success'
       })
       return category
     } catch (error) {
@@ -83,7 +83,7 @@ export const useCategories = () => {
       toast.add({
         title: 'Error',
         description: 'Failed to create category',
-        color: 'error',
+        color: 'error'
       })
       throw error
     }
@@ -98,7 +98,7 @@ export const useCategories = () => {
       toast.add({
         title: 'Success',
         description: 'Category updated successfully',
-        color: 'success',
+        color: 'success'
       })
       return category
     } catch (error) {
@@ -106,7 +106,7 @@ export const useCategories = () => {
       toast.add({
         title: 'Error',
         description: 'Failed to update category',
-        color: 'error',
+        color: 'error'
       })
       throw error
     }
@@ -121,14 +121,14 @@ export const useCategories = () => {
       toast.add({
         title: 'Success',
         description: 'Category deleted successfully',
-        color: 'success',
+        color: 'success'
       })
     } catch (error) {
       console.error('Error deleting category:', error)
       toast.add({
         title: 'Error',
         description: 'Failed to delete category',
-        color: 'error',
+        color: 'error'
       })
       throw error
     }
@@ -149,14 +149,14 @@ export const useCategories = () => {
       toast.add({
         title: 'Success',
         description: 'Categories reordered successfully',
-        color: 'success',
+        color: 'success'
       })
     } catch (error) {
       console.error('Error reordering categories:', error)
       toast.add({
         title: 'Error',
         description: 'Failed to reorder categories',
-        color: 'error',
+        color: 'error'
       })
       throw error
     }
@@ -168,6 +168,6 @@ export const useCategories = () => {
     createCategory,
     updateCategory,
     deleteCategory,
-    reorderCategories,
+    reorderCategories
   }
 }

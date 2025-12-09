@@ -9,7 +9,10 @@
         <!-- Personal Information Section -->
         <div>
           <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <UIcon name="i-lucide-user" class="w-5 h-5 text-amber-500" />
+            <UIcon
+              name="i-lucide-user"
+              class="w-5 h-5 text-amber-500"
+            />
             Personal Information
           </h3>
 
@@ -57,7 +60,10 @@
         <!-- Contact Information Section -->
         <div>
           <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <UIcon name="i-lucide-phone" class="w-5 h-5 text-amber-500" />
+            <UIcon
+              name="i-lucide-phone"
+              class="w-5 h-5 text-amber-500"
+            />
             Contact Information
           </h3>
 
@@ -81,7 +87,10 @@
                 }"
               >
                 <template #leading>
-                  <UIcon name="i-lucide-mail" class="w-5 h-5 text-slate-500" />
+                  <UIcon
+                    name="i-lucide-mail"
+                    class="w-5 h-5 text-slate-500"
+                  />
                 </template>
               </UInput>
             </UFormGroup>
@@ -105,7 +114,10 @@
                 }"
               >
                 <template #leading>
-                  <UIcon name="i-lucide-phone" class="w-5 h-5 text-slate-500" />
+                  <UIcon
+                    name="i-lucide-phone"
+                    class="w-5 h-5 text-slate-500"
+                  />
                 </template>
               </UInput>
             </UFormGroup>
@@ -115,7 +127,10 @@
         <!-- Address Section -->
         <div>
           <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <UIcon name="i-lucide-map-pin" class="w-5 h-5 text-amber-500" />
+            <UIcon
+              name="i-lucide-map-pin"
+              class="w-5 h-5 text-amber-500"
+            />
             Address
           </h3>
 
@@ -199,7 +214,10 @@
         <!-- Tags Section -->
         <div>
           <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <UIcon name="i-lucide-tag" class="w-5 h-5 text-amber-500" />
+            <UIcon
+              name="i-lucide-tag"
+              class="w-5 h-5 text-amber-500"
+            />
             Tags
           </h3>
 
@@ -247,7 +265,10 @@
                   :ui="{ rounded: 'rounded-xl' }"
                   @click="addCustomTag"
                 >
-                  <UIcon name="i-lucide-plus" class="w-5 h-5" />
+                  <UIcon
+                    name="i-lucide-plus"
+                    class="w-5 h-5"
+                  />
                 </UButton>
               </div>
             </UFormGroup>
@@ -257,7 +278,10 @@
         <!-- Notes Section -->
         <div>
           <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-            <UIcon name="i-lucide-file-text" class="w-5 h-5 text-amber-500" />
+            <UIcon
+              name="i-lucide-file-text"
+              class="w-5 h-5 text-amber-500"
+            />
             Notes
           </h3>
 
@@ -290,7 +314,10 @@
             :loading="loading"
             :ui="{ rounded: 'rounded-xl' }"
           >
-            <UIcon name="i-lucide-check" class="w-5 h-5 mr-2" />
+            <UIcon
+              name="i-lucide-check"
+              class="w-5 h-5 mr-2"
+            />
             {{ submitLabel }}
           </UButton>
 
@@ -302,7 +329,10 @@
             :ui="{ rounded: 'rounded-xl' }"
             @click="handleCreateAnother"
           >
-            <UIcon name="i-lucide-plus" class="w-5 h-5 mr-2" />
+            <UIcon
+              name="i-lucide-plus"
+              class="w-5 h-5 mr-2"
+            />
             Create & Add Another
           </UButton>
 

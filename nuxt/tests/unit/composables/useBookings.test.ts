@@ -2,7 +2,7 @@
  * useBookings Composable Tests
  * Tests the booking composable business logic and state management
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { format, parseISO, differenceInDays } from 'date-fns'
 
 describe('useBookings - Data Transformation', () => {
@@ -92,10 +92,10 @@ describe('useBookings - Data Transformation', () => {
 describe('useBookings - Status Mapping', () => {
   it('should map rb-payload status to local status', () => {
     const statusMap: Record<string, string> = {
-      pending: 'pending',
-      confirmed: 'confirmed',
-      completed: 'completed',
-      cancelled: 'cancelled',
+      'pending': 'pending',
+      'confirmed': 'confirmed',
+      'completed': 'completed',
+      'cancelled': 'cancelled',
       'no-show': 'cancelled'
     }
 
@@ -277,7 +277,7 @@ describe('useBookings - Filtering', () => {
     const rangeStart = parseISO('2025-06-01')
     const rangeEnd = parseISO('2025-06-30')
 
-    const filtered = mockBookings.filter(b => {
+    const filtered = mockBookings.filter((b) => {
       const bookingStart = parseISO(b.dates.start)
       return bookingStart >= rangeStart && bookingStart <= rangeEnd
     })
@@ -459,7 +459,7 @@ describe('useBookings - Bulk Operations', () => {
     }))
 
     expect(updates.length).toBe(3)
-    updates.forEach(update => {
+    updates.forEach((update) => {
       expect(update.status).toBe('confirmed')
     })
   })

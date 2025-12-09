@@ -9,15 +9,18 @@ export const useSubscription = () => {
     try {
       const response = await $fetch('/api/stripe/subscription', {
         baseURL: config.public.payloadUrl,
-        credentials: 'include',
+        credentials: 'include'
       })
       return response
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching subscription:', error)
+      const errorMessage = error && typeof error === 'object' && 'data' in error && error.data && typeof error.data === 'object' && 'message' in error.data
+        ? String(error.data.message)
+        : 'Failed to fetch subscription'
       toast.add({
         title: 'Error',
-        description: error.data?.message || 'Failed to fetch subscription',
-        color: 'red',
+        description: errorMessage,
+        color: 'error'
       })
       throw error
     }
@@ -35,8 +38,8 @@ export const useSubscription = () => {
         body: {
           priceId,
           successUrl,
-          cancelUrl,
-        },
+          cancelUrl
+        }
       })
 
       // Redirect to Stripe Checkout
@@ -45,12 +48,15 @@ export const useSubscription = () => {
       }
 
       return response
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating checkout session:', error)
+      const errorMessage = error && typeof error === 'object' && 'data' in error && error.data && typeof error.data === 'object' && 'message' in error.data
+        ? String(error.data.message)
+        : 'Failed to create checkout session'
       toast.add({
         title: 'Error',
-        description: error.data?.message || 'Failed to create checkout session',
-        color: 'red',
+        description: errorMessage,
+        color: 'error'
       })
       throw error
     }
@@ -66,23 +72,26 @@ export const useSubscription = () => {
         baseURL: config.public.payloadUrl,
         credentials: 'include',
         body: {
-          cancelAtPeriodEnd,
-        },
+          cancelAtPeriodEnd
+        }
       })
 
       toast.add({
         title: 'Success',
         description: response.message || 'Subscription canceled successfully',
-        color: 'green',
+        color: 'success'
       })
 
       return response
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error canceling subscription:', error)
+      const errorMessage = error && typeof error === 'object' && 'data' in error && error.data && typeof error.data === 'object' && 'message' in error.data
+        ? String(error.data.message)
+        : 'Failed to cancel subscription'
       toast.add({
         title: 'Error',
-        description: error.data?.message || 'Failed to cancel subscription',
-        color: 'red',
+        description: errorMessage,
+        color: 'error'
       })
       throw error
     }
@@ -95,7 +104,7 @@ export const useSubscription = () => {
     try {
       const response = await $fetch('/api/stripe/portal', {
         baseURL: config.public.payloadUrl,
-        credentials: 'include',
+        credentials: 'include'
       })
 
       // Redirect to Stripe Customer Portal
@@ -104,12 +113,15 @@ export const useSubscription = () => {
       }
 
       return response
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error getting customer portal:', error)
+      const errorMessage = error && typeof error === 'object' && 'data' in error && error.data && typeof error.data === 'object' && 'message' in error.data
+        ? String(error.data.message)
+        : 'Failed to open customer portal'
       toast.add({
         title: 'Error',
-        description: error.data?.message || 'Failed to open customer portal',
-        color: 'red',
+        description: errorMessage,
+        color: 'error'
       })
       throw error
     }
@@ -119,6 +131,6 @@ export const useSubscription = () => {
     getSubscription,
     createCheckoutSession,
     cancelSubscription,
-    getCustomerPortal,
+    getCustomerPortal
   }
 }

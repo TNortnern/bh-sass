@@ -41,14 +41,20 @@ export const categoryLabels: Record<string, string> = {
 /**
  * Status labels mapping
  * Maps status enum values to user-friendly labels
+ * Includes driver-friendly workflow statuses
  */
 export const statusLabels: Record<string, string> = {
   'pending': 'Pending',
   'confirmed': 'Confirmed',
-  'in-progress': 'In Progress',
+  'preparing': 'Preparing',
+  'in_route': 'In Route',
+  'in-route': 'In Route',
   'delivered': 'Delivered',
+  'picked_up': 'Picked Up',
+  'picked-up': 'Picked Up',
   'completed': 'Completed',
   'cancelled': 'Cancelled',
+  'in-progress': 'In Progress',
   'active': 'Active',
   'inactive': 'Inactive',
   'discontinued': 'Discontinued'
@@ -59,11 +65,11 @@ export const statusLabels: Record<string, string> = {
  * Maps payment status enum values to user-friendly labels
  */
 export const paymentStatusLabels: Record<string, string> = {
-  'unpaid': 'Unpaid',
-  'deposit': 'Deposit Paid',
-  'paid': 'Paid',
-  'refunded': 'Refunded',
-  'partial': 'Partially Paid'
+  unpaid: 'Unpaid',
+  deposit: 'Deposit Paid',
+  paid: 'Paid',
+  refunded: 'Refunded',
+  partial: 'Partially Paid'
 }
 
 /**
@@ -99,7 +105,7 @@ export const getPaymentStatusLabel = (paymentStatus: string): string => {
  * @param richText - The Lexical richText object from Payload
  * @returns Plain text string
  */
-export const extractTextFromLexical = (richText: any): string => {
+export const extractTextFromLexical = (richText: unknown): string => {
   if (!richText) return ''
 
   // If it's already a string, return it
@@ -109,15 +115,17 @@ export const extractTextFromLexical = (richText: any): string => {
   if (typeof richText !== 'object') return ''
 
   // Extract text from Lexical format
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const extractFromNode = (node: any): string => {
     if (!node) return ''
 
     // If node has text property, it's a text node
-    if (node.text) return node.text
+    if (node.text) return node.text as string
 
     // If node has children, recursively extract from them
     if (node.children && Array.isArray(node.children)) {
       return node.children
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .map((child: any) => extractFromNode(child))
         .filter(Boolean)
         .join(' ')
@@ -127,10 +135,12 @@ export const extractTextFromLexical = (richText: any): string => {
   }
 
   // Start extraction from root
-  if (richText.root) {
-    return extractFromNode(richText.root).trim()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const richTextObj = richText as any
+  if (richTextObj.root) {
+    return extractFromNode(richTextObj.root).trim()
   }
 
   // If no root, try extracting directly
-  return extractFromNode(richText).trim()
+  return extractFromNode(richTextObj).trim()
 }

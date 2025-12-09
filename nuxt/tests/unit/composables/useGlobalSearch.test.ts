@@ -238,8 +238,6 @@ describe('useGlobalSearch', () => {
 
   describe('debouncing', () => {
     it('should debounce search by 300ms', async () => {
-      const searchSpy = vi.fn()
-
       // Trigger multiple searches quickly
       search.performSearch('test1')
       search.performSearch('test2')

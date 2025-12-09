@@ -47,7 +47,7 @@ describe('GET /booking/customers - Fetch Customers', () => {
     })
 
     // All customers should belong to tenant 6
-    mockCustomers.forEach(customer => {
+    mockCustomers.forEach((customer) => {
       expect(customer.tenantId).toBe(TENANT_ID)
     })
   })
@@ -60,9 +60,6 @@ describe('GET /booking/customers - Fetch Customers', () => {
         { id: 'customer-2', tenantId: 7, name: 'SHOULD NOT BE VISIBLE' }
       ]
     }
-
-    // The API query MUST filter by tenantId
-    const expectedUrl = expect.stringContaining('where[tenantId][equals]=6')
 
     // If any customer with different tenantId is returned, it's a security breach
     const hasSecurityBreach = maliciousResponse.docs.some(c => c.tenantId !== 6)
@@ -201,7 +198,7 @@ describe('POST /booking/customers - Create Customer', () => {
     const validPhones = ['555-1234', '(555) 123-4567', '+1-555-123-4567']
     const invalidPhone = 'abc'
 
-    validPhones.forEach(phone => {
+    validPhones.forEach((phone) => {
       expect(phone).toBeTruthy()
       expect(phone.match(/\d/)).toBeTruthy() // Has digits
     })
@@ -322,8 +319,6 @@ describe('DELETE /booking/customers/:id - Delete Customer', () => {
   })
 
   it('should delete customer by ID', () => {
-    const customerId = 'customer-123'
-
     const response = {
       success: true
     }
@@ -346,13 +341,13 @@ describe('DELETE /booking/customers/:id - Delete Customer', () => {
 describe('Customer Data Integrity', () => {
   it('should handle special characters in names', () => {
     const names = [
-      "O'Brien",
+      'O\'Brien',
       'José García',
       'Müller',
       'Nguyễn'
     ]
 
-    names.forEach(name => {
+    names.forEach((name) => {
       expect(name.length).toBeGreaterThan(0)
       expect(typeof name).toBe('string')
     })

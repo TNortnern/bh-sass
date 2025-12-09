@@ -57,7 +57,8 @@ export default defineEventHandler(async (event) => {
         'AccessKey': storageApiKey,
         'Content-Type': file.type || 'application/octet-stream'
       },
-      body: file.data
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      body: file.data as any
     })
 
     if (!response.ok) {
@@ -80,11 +81,13 @@ export default defineEventHandler(async (event) => {
       size: file.data.length,
       type: file.type
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Upload error:', error)
+
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
       statusCode: 500,
-      message: error.message || 'Upload failed'
+      message: message || 'Upload failed'
     })
   }
 })

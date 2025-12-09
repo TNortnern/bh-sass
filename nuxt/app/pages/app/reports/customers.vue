@@ -16,6 +16,7 @@ definePageMeta({
 
 const { loading, dateRange, fetchCustomersReport, exportToCsv } = useReports()
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const customersData = ref<any>(null)
 
 async function loadData() {
@@ -50,7 +51,7 @@ const customerSegmentChartData = computed(() => {
         data: [newCount, returningCount],
         backgroundColor: [
           'rgba(6, 182, 212, 0.8)', // cyan
-          'rgba(236, 72, 153, 0.8)'  // pink
+          'rgba(236, 72, 153, 0.8)' // pink
         ],
         borderColor: ['#06b6d4', '#ec4899'],
         borderWidth: 2
@@ -99,10 +100,16 @@ const customerSegmentChartOptions: ChartOptions<'doughnut'> = {
             to="/app/reports"
             class="w-10 h-10 rounded-lg bg-gray-900 border-2 border-gray-800 hover:border-purple-500 flex items-center justify-center transition-all"
           >
-            <UIcon name="i-lucide-chevron-left" class="w-5 h-5 text-gray-400" />
+            <UIcon
+              name="i-lucide-chevron-left"
+              class="w-5 h-5 text-gray-400"
+            />
           </NuxtLink>
           <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-            <UIcon name="i-lucide-users" class="w-6 h-6 text-black" />
+            <UIcon
+              name="i-lucide-users"
+              class="w-6 h-6 text-black"
+            />
           </div>
           <div>
             <h1 class="text-3xl font-bold text-white font-mono tracking-tight">
@@ -195,13 +202,18 @@ const customerSegmentChartOptions: ChartOptions<'doughnut'> = {
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-purple-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-pie-chart" class="w-4 h-4 text-purple-400" />
+              <UIcon
+                name="i-lucide-pie-chart"
+                class="w-4 h-4 text-purple-400"
+              />
             </div>
             <div>
               <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
                 Customer Segments
               </h3>
-              <p class="text-xs font-mono text-gray-500">New vs returning</p>
+              <p class="text-xs font-mono text-gray-500">
+                New vs returning
+              </p>
             </div>
           </div>
         </template>
@@ -212,12 +224,18 @@ const customerSegmentChartOptions: ChartOptions<'doughnut'> = {
             class="absolute inset-0 bg-black/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg"
           >
             <div class="flex items-center gap-3 text-purple-400">
-              <UIcon name="i-lucide-loader-circle" class="w-6 h-6 animate-spin" />
+              <UIcon
+                name="i-lucide-loader-circle"
+                class="w-6 h-6 animate-spin"
+              />
               <span class="font-mono text-sm">Loading chart data...</span>
             </div>
           </div>
           <div class="h-80 flex items-center justify-center">
-            <Doughnut :data="customerSegmentChartData" :options="customerSegmentChartOptions" />
+            <Doughnut
+              :data="customerSegmentChartData"
+              :options="customerSegmentChartOptions"
+            />
           </div>
         </div>
       </UCard>
@@ -230,13 +248,18 @@ const customerSegmentChartOptions: ChartOptions<'doughnut'> = {
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-cyan-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-globe" class="w-4 h-4 text-cyan-400" />
+              <UIcon
+                name="i-lucide-globe"
+                class="w-4 h-4 text-cyan-400"
+              />
             </div>
             <div>
               <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
                 Acquisition Sources
               </h3>
-              <p class="text-xs font-mono text-gray-500">Where customers come from</p>
+              <p class="text-xs font-mono text-gray-500">
+                Where customers come from
+              </p>
             </div>
           </div>
         </template>
@@ -271,13 +294,18 @@ const customerSegmentChartOptions: ChartOptions<'doughnut'> = {
       <template #header>
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded bg-purple-500/20 flex items-center justify-center">
-            <UIcon name="i-lucide-crown" class="w-4 h-4 text-purple-400" />
+            <UIcon
+              name="i-lucide-crown"
+              class="w-4 h-4 text-purple-400"
+            />
           </div>
           <div>
             <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
               Top Customers by Lifetime Value
             </h3>
-            <p class="text-xs font-mono text-gray-500">VIP customers</p>
+            <p class="text-xs font-mono text-gray-500">
+              VIP customers
+            </p>
           </div>
         </div>
       </template>
@@ -307,9 +335,15 @@ const customerSegmentChartOptions: ChartOptions<'doughnut'> = {
               class="border-b border-gray-800 hover:bg-gray-900/50 transition-colors"
               :style="{ animationDelay: `${index * 50}ms` }"
             >
-              <td class="py-3 px-4 text-white">{{ customer.name }}</td>
-              <td class="py-3 px-4 text-gray-400">{{ customer.email }}</td>
-              <td class="py-3 px-4 text-right text-white">{{ customer.bookings }}</td>
+              <td class="py-3 px-4 text-white">
+                {{ customer.name }}
+              </td>
+              <td class="py-3 px-4 text-gray-400">
+                {{ customer.email }}
+              </td>
+              <td class="py-3 px-4 text-right text-white">
+                {{ customer.bookings }}
+              </td>
               <td class="py-3 px-4 text-right text-purple-400 font-bold">
                 ${{ customer.lifetimeValue.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
               </td>
@@ -329,13 +363,18 @@ const customerSegmentChartOptions: ChartOptions<'doughnut'> = {
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-yellow-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-calendar-clock" class="w-4 h-4 text-yellow-400" />
+              <UIcon
+                name="i-lucide-calendar-clock"
+                class="w-4 h-4 text-yellow-400"
+              />
             </div>
             <div>
               <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
                 Booking Frequency
               </h3>
-              <p class="text-xs font-mono text-gray-500">Customer behavior</p>
+              <p class="text-xs font-mono text-gray-500">
+                Customer behavior
+              </p>
             </div>
           </div>
         </template>
@@ -363,13 +402,18 @@ const customerSegmentChartOptions: ChartOptions<'doughnut'> = {
         <template #header>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded bg-green-500/20 flex items-center justify-center">
-              <UIcon name="i-lucide-map-pin" class="w-4 h-4 text-green-400" />
+              <UIcon
+                name="i-lucide-map-pin"
+                class="w-4 h-4 text-green-400"
+              />
             </div>
             <div>
               <h3 class="text-lg font-mono font-bold text-white uppercase tracking-wide">
                 Geographic Distribution
               </h3>
-              <p class="text-xs font-mono text-gray-500">Top locations</p>
+              <p class="text-xs font-mono text-gray-500">
+                Top locations
+              </p>
             </div>
           </div>
         </template>

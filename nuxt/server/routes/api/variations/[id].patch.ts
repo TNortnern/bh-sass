@@ -12,25 +12,27 @@ export default defineEventHandler(async (event) => {
   if (!id) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Variation ID is required',
+      statusMessage: 'Variation ID is required'
     })
   }
 
   try {
-    const variation = await $fetch<any>(
+    const variation = await $fetch<Record<string, unknown>>(
       `${config.payloadApiUrl}/api/variations/${id}`,
       {
         method: 'PATCH',
-        body,
+        body
       }
     )
 
     return variation
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating variation:', error)
+
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.message || 'Failed to update variation',
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      statusMessage: message || 'Failed to update variation'
     })
   }
 })

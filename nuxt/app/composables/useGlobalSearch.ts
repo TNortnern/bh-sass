@@ -1,7 +1,5 @@
 import { ref, computed } from 'vue'
-import type { Booking } from './useBookings'
-import type { Customer } from './useCustomers'
-import type { InventoryItem } from './useInventory'
+// import type { Booking, Customer, InventoryItem } from "#shared"
 
 export interface SearchResult {
   id: string
@@ -173,7 +171,7 @@ export const useGlobalSearch = () => {
       const searchResults: SearchResult[] = []
 
       // Search navigation items first
-      navigationItems.forEach(nav => {
+      navigationItems.forEach((nav) => {
         let relevance = 0
         const title = nav.title.toLowerCase()
         const subtitle = nav.subtitle.toLowerCase()
@@ -181,24 +179,19 @@ export const useGlobalSearch = () => {
         // Check if title matches exactly
         if (title === lowerQuery) {
           relevance = 110
-        }
-        // Check if title starts with query
-        else if (title.startsWith(lowerQuery)) {
+        } else if (title.startsWith(lowerQuery)) {
+          // Check if title starts with query
           relevance = 105
-        }
-        // Check if title includes query
-        else if (title.includes(lowerQuery)) {
+        } else if (title.includes(lowerQuery)) {
+          // Check if title includes query
           relevance = 100
-        }
-        // Check subtitle
-        else if (subtitle.includes(lowerQuery)) {
+        } else if (subtitle.includes(lowerQuery)) {
+          // Check subtitle
           relevance = 95
-        }
-        // Check keywords
-        else if (nav.keywords.some(keyword => keyword.includes(lowerQuery))) {
+        } else if (nav.keywords.some(keyword => keyword.includes(lowerQuery))) {
+          // Check keywords
           relevance = 90
         }
-
         if (relevance > 0) {
           searchResults.push({
             id: nav.id,
@@ -213,7 +206,7 @@ export const useGlobalSearch = () => {
       })
 
       // Search bookings
-      bookings.value.forEach(booking => {
+      bookings.value.forEach((booking) => {
         let relevance = 0
         const bookingNumber = booking.bookingNumber.toLowerCase()
         const customerName = booking.customer.name.toLowerCase()
@@ -223,20 +216,16 @@ export const useGlobalSearch = () => {
         // Check booking number (highest priority)
         if (bookingNumber.includes(lowerQuery)) {
           relevance = 100
-        }
-        // Check customer name
-        else if (customerName.includes(lowerQuery)) {
+        } else if (customerName.includes(lowerQuery)) {
+          // Check customer name
           relevance = 80
-        }
-        // Check customer email
-        else if (customerEmail.includes(lowerQuery)) {
+        } else if (customerEmail.includes(lowerQuery)) {
+          // Check customer email
           relevance = 70
-        }
-        // Check item name
-        else if (itemName.includes(lowerQuery)) {
+        } else if (itemName.includes(lowerQuery)) {
+          // Check item name
           relevance = 60
         }
-
         if (relevance > 0) {
           searchResults.push({
             id: booking.id,
@@ -252,7 +241,7 @@ export const useGlobalSearch = () => {
       })
 
       // Search customers
-      customers.value.forEach(customer => {
+      customers.value.forEach((customer) => {
         let relevance = 0
         const fullName = `${customer.firstName} ${customer.lastName}`.toLowerCase()
         const email = customer.email.toLowerCase()
@@ -261,16 +250,13 @@ export const useGlobalSearch = () => {
         // Check full name (highest priority)
         if (fullName.includes(lowerQuery)) {
           relevance = 90
-        }
-        // Check email
-        else if (email.includes(lowerQuery)) {
+        } else if (email.includes(lowerQuery)) {
+          // Check email
           relevance = 85
-        }
-        // Check phone
-        else if (phone.includes(lowerQuery)) {
+        } else if (phone.includes(lowerQuery)) {
+          // Check phone
           relevance = 75
         }
-
         if (relevance > 0) {
           searchResults.push({
             id: customer.id,
@@ -286,7 +272,7 @@ export const useGlobalSearch = () => {
       })
 
       // Search inventory
-      items.value.forEach(item => {
+      items.value.forEach((item) => {
         let relevance = 0
         const itemName = item.name.toLowerCase()
         const description = item.description?.toLowerCase() || ''
@@ -295,16 +281,13 @@ export const useGlobalSearch = () => {
         // Check item name (highest priority)
         if (itemName.includes(lowerQuery)) {
           relevance = 95
-        }
-        // Check description
-        else if (description.includes(lowerQuery)) {
+        } else if (description.includes(lowerQuery)) {
+          // Check description
           relevance = 65
-        }
-        // Check category
-        else if (category.includes(lowerQuery)) {
+        } else if (category.includes(lowerQuery)) {
+          // Check category
           relevance = 55
         }
-
         if (relevance > 0) {
           const categoryLabel = item.category
             .split('_')
@@ -356,7 +339,7 @@ export const useGlobalSearch = () => {
       inventory: []
     }
 
-    results.value.forEach(result => {
+    results.value.forEach((result) => {
       if (result.type === 'navigation') {
         groups.navigation.push(result)
       } else if (result.type === 'booking') {

@@ -40,12 +40,13 @@ export default defineEventHandler(async (event) => {
       success: true,
       message: `Notification broadcasted to tenant ${tenantId}`
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error broadcasting notification:', error)
 
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to broadcast notification'
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      message: message || 'Failed to broadcast notification'
     })
   }
 })

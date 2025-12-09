@@ -1,10 +1,16 @@
 <template>
-  <section id="features" class="py-24 bg-white dark:bg-gray-900 transition-colors duration-300">
+  <section
+    id="features"
+    class="py-24 bg-white dark:bg-gray-900 transition-colors duration-300"
+  >
     <div class="container mx-auto px-6 lg:px-8">
       <!-- Section Header -->
       <div class="max-w-3xl mx-auto text-center mb-16">
         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-medium mb-4">
-          <UIcon name="i-lucide-zap" class="w-3 h-3" />
+          <UIcon
+            name="i-lucide-zap"
+            class="w-3 h-3"
+          />
           <span>POWERFUL FEATURES</span>
         </div>
         <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -25,17 +31,31 @@
         >
           <!-- Icon -->
           <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-            <UIcon :name="feature.icon" class="w-7 h-7 text-white" />
+            <UIcon
+              :name="feature.icon"
+              class="w-7 h-7 text-white"
+            />
           </div>
 
           <!-- Content -->
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">{{ feature.title }}</h3>
-          <p class="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">{{ feature.description }}</p>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+            {{ feature.title }}
+          </h3>
+          <p class="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+            {{ feature.description }}
+          </p>
 
           <!-- Feature highlights -->
           <ul class="space-y-2">
-            <li v-for="highlight in feature.highlights" :key="highlight" class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-              <UIcon name="i-lucide-check" class="w-4 h-4 text-orange-500 flex-shrink-0" />
+            <li
+              v-for="highlight in feature.highlights"
+              :key="highlight"
+              class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400"
+            >
+              <UIcon
+                name="i-lucide-check"
+                class="w-4 h-4 text-orange-500 flex-shrink-0"
+              />
               <span>{{ highlight }}</span>
             </li>
           </ul>
@@ -44,13 +64,18 @@
 
       <!-- Bottom CTA -->
       <div class="mt-16 text-center">
-        <p class="text-gray-600 dark:text-gray-400 mb-6">Ready to streamline your rental business?</p>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">
+          Ready to streamline your rental business?
+        </p>
         <UButton
           to="/auth/register"
           class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all"
         >
           Start Your Free Trial
-          <UIcon name="i-lucide-arrow-right" class="w-4 h-4 ml-2" />
+          <UIcon
+            name="i-lucide-arrow-right"
+            class="w-4 h-4 ml-2"
+          />
         </UButton>
       </div>
     </div>

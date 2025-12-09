@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { InventoryItem, InventoryUnit } from '~/composables/useInventory'
-import { getCategoryLabel, getStatusLabel } from '~/utils/formatters'
+import { getStatusLabel } from '~/utils/formatters'
 import { format } from 'date-fns'
 
 definePageMeta({
@@ -9,7 +9,7 @@ definePageMeta({
 
 const route = useRoute()
 const toast = useToast()
-const { fetchItem, isLoading } = useInventory()
+const { fetchItem } = useInventory()
 const { fetchBookings, filteredBookings, filters, isLoading: bookingsLoading } = useBookings()
 const { setBreadcrumbs } = useBreadcrumbs()
 
@@ -40,8 +40,8 @@ onMounted(async () => {
     ])
 
     // Fetch bookings for this item using rbPayloadServiceId
-    if ((result as any).rbPayloadServiceId) {
-      filters.value.itemId = (result as any).rbPayloadServiceId.toString()
+    if ((result as unknown as Record<string, unknown>).rbPayloadServiceId) {
+      filters.value.itemId = ((result as unknown as Record<string, unknown>).rbPayloadServiceId as string | number).toString()
       await fetchBookings()
     }
   }
@@ -99,7 +99,7 @@ const tabs = [
 
 // Computed bookings for this item
 const itemBookings = computed(() => {
-  return filteredBookings.value.map(booking => {
+  return filteredBookings.value.map((booking) => {
     const startDate = new Date(booking.dates.start)
     const endDate = new Date(booking.dates.end)
     const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
@@ -196,7 +196,7 @@ const addUnit = async () => {
 
   try {
     // 1. Create unit in Payload CMS
-    const response = await $fetch('/api/inventory-units', {
+    const response = await $fetch<{ success: boolean, unit: Record<string, unknown> }>('/api/inventory-units', {
       method: 'POST',
       credentials: 'include',
       body: {
@@ -217,13 +217,13 @@ const addUnit = async () => {
       }
 
       const newLocalUnit: InventoryUnit = {
-        id: response.unit.id,
-        serialNumber: response.unit.serialNumber,
-        barcode: response.unit.barcode || undefined,
-        status: response.unit.status,
-        condition: response.unit.condition,
-        purchaseDate: response.unit.purchaseDate,
-        purchasePrice: response.unit.purchasePrice
+        id: response.unit.id as string,
+        serialNumber: response.unit.serialNumber as string,
+        barcode: (response.unit.barcode as string | undefined) || undefined,
+        status: response.unit.status as 'available' | 'rented' | 'maintenance' | 'retired',
+        condition: response.unit.condition as 'excellent' | 'good' | 'fair' | 'poor',
+        purchaseDate: response.unit.purchaseDate as string,
+        purchasePrice: response.unit.purchasePrice as number
       }
 
       item.value.units.push(newLocalUnit)
@@ -258,7 +258,7 @@ const addUnit = async () => {
         capacity: item.value.specifications?.capacity?.maxOccupants,
         quantity: newQuantity,
         isActive: item.value.status === 'active',
-        rbPayloadServiceId: (item.value as any).rbPayloadServiceId
+        rbPayloadServiceId: (item.value as Record<string, unknown>).rbPayloadServiceId as number | undefined
       }
 
       await syncToRbPayload(rentalItemForSync)
@@ -272,7 +272,8 @@ const addUnit = async () => {
       // Close modal
       isAddUnitModalOpen.value = false
     }
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as { data?: { message?: string }, message?: string }
     console.error('Failed to add unit:', error)
     toast.add({
       title: 'Failed to Add Unit',
@@ -304,7 +305,7 @@ const updateUnit = async () => {
   isSaving.value = true
 
   try {
-    const response = await $fetch(`/api/inventory-units/${editingUnit.value.id}`, {
+    const response = await $fetch<{ success: boolean, unit: Record<string, unknown> }>(`/api/inventory-units/${editingUnit.value.id}`, {
       method: 'PATCH',
       credentials: 'include',
       body: {
@@ -322,13 +323,13 @@ const updateUnit = async () => {
       const unitIndex = item.value.units?.findIndex(u => u.id === editingUnit.value?.id)
       if (unitIndex !== undefined && unitIndex >= 0 && item.value.units) {
         item.value.units[unitIndex] = {
-          id: response.unit.id,
-          serialNumber: response.unit.serialNumber,
-          barcode: response.unit.barcode || undefined,
-          status: response.unit.status,
-          condition: response.unit.condition,
-          purchaseDate: response.unit.purchaseDate,
-          purchasePrice: response.unit.purchasePrice
+          id: response.unit.id as string,
+          serialNumber: response.unit.serialNumber as string,
+          barcode: (response.unit.barcode as string | undefined) || undefined,
+          status: response.unit.status as 'available' | 'rented' | 'maintenance' | 'retired',
+          condition: response.unit.condition as 'excellent' | 'good' | 'fair' | 'poor',
+          purchaseDate: response.unit.purchaseDate as string,
+          purchasePrice: response.unit.purchasePrice as number
         }
       }
 
@@ -344,7 +345,8 @@ const updateUnit = async () => {
       isEditUnitModalOpen.value = false
       editingUnit.value = null
     }
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as { data?: { message?: string }, message?: string }
     console.error('Failed to update unit:', error)
     toast.add({
       title: 'Failed to Update Unit',
@@ -370,7 +372,7 @@ const deleteUnit = async () => {
   isDeleting.value = true
 
   try {
-    const response = await $fetch(`/api/inventory-units/${deletingUnit.value.id}`, {
+    const response = await $fetch<{ success: boolean }>(`/api/inventory-units/${deletingUnit.value.id}`, {
       method: 'DELETE',
       credentials: 'include'
     })
@@ -411,7 +413,7 @@ const deleteUnit = async () => {
         capacity: item.value.specifications?.capacity?.maxOccupants,
         quantity: newQuantity,
         isActive: item.value.status === 'active',
-        rbPayloadServiceId: (item.value as any).rbPayloadServiceId
+        rbPayloadServiceId: (item.value as Record<string, unknown>).rbPayloadServiceId as number | undefined
       }
 
       await syncToRbPayload(rentalItemForSync)
@@ -425,7 +427,8 @@ const deleteUnit = async () => {
       isDeleteConfirmOpen.value = false
       deletingUnit.value = null
     }
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as { data?: { message?: string }, message?: string }
     console.error('Failed to delete unit:', error)
     toast.add({
       title: 'Failed to Delete Unit',
@@ -441,13 +444,19 @@ const deleteUnit = async () => {
 <template>
   <div class="space-y-6">
     <!-- Loading State -->
-    <div v-if="isLoading" class="space-y-6">
+    <div
+      v-if="isLoading"
+      class="space-y-6"
+    >
       <USkeleton class="h-12 w-96" />
       <USkeleton class="h-96" />
     </div>
 
     <!-- Content -->
-    <div v-else-if="item" class="space-y-6">
+    <div
+      v-else-if="item"
+      class="space-y-6"
+    >
       <!-- Header with Back Button -->
       <div class="flex items-center gap-4">
         <UButton
@@ -459,7 +468,9 @@ const deleteUnit = async () => {
         />
         <div class="flex-1">
           <div class="flex items-center gap-3 mb-2">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ item.name }}</h1>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+              {{ item.name }}
+            </h1>
             <UBadge
               :color="getCategoryColor(item.category)"
               variant="subtle"
@@ -475,7 +486,9 @@ const deleteUnit = async () => {
               {{ getStatusLabel(item.status) }}
             </UBadge>
           </div>
-          <p class="text-gray-600 dark:text-gray-400">{{ item.description }}</p>
+          <p class="text-gray-600 dark:text-gray-400">
+            {{ item.description }}
+          </p>
         </div>
         <UButton
           color="neutral"
@@ -505,12 +518,18 @@ const deleteUnit = async () => {
                 v-else
                 class="w-full h-full flex items-center justify-center"
               >
-                <UIcon name="i-lucide-image-off" class="w-16 h-16 text-gray-400 dark:text-gray-600" />
+                <UIcon
+                  name="i-lucide-image-off"
+                  class="w-16 h-16 text-gray-400 dark:text-gray-600"
+                />
               </div>
             </div>
 
             <!-- Thumbnail Gallery -->
-            <div v-if="item.images.length > 1" class="flex gap-2">
+            <div
+              v-if="item.images.length > 1"
+              class="flex gap-2"
+            >
               <button
                 v-for="(image, index) in item.images"
                 :key="index"
@@ -520,7 +539,11 @@ const deleteUnit = async () => {
                   : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
                 @click="selectedImageIndex = index"
               >
-                <img :src="image" :alt="`${item.name} - ${index + 1}`" class="w-full h-full object-cover">
+                <img
+                  :src="image"
+                  :alt="`${item.name} - ${index + 1}`"
+                  class="w-full h-full object-cover"
+                >
               </button>
             </div>
           </UCard>
@@ -531,7 +554,9 @@ const deleteUnit = async () => {
           <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
             <div class="space-y-4">
               <div>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Pricing</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                  Pricing
+                </p>
                 <div class="space-y-2">
                   <div class="flex items-center justify-between">
                     <span class="text-sm text-gray-700 dark:text-gray-300">Hourly</span>
@@ -545,7 +570,10 @@ const deleteUnit = async () => {
                     <span class="text-sm text-gray-700 dark:text-gray-300">Weekend</span>
                     <span class="text-lg font-bold text-gray-900 dark:text-white">${{ item.pricing?.weekend || 0 }}</span>
                   </div>
-                  <div v-if="item.pricing?.weekly" class="flex items-center justify-between">
+                  <div
+                    v-if="item.pricing?.weekly"
+                    class="flex items-center justify-between"
+                  >
                     <span class="text-sm text-gray-700 dark:text-gray-300">Weekly</span>
                     <span class="text-lg font-bold text-gray-900 dark:text-white">${{ item.pricing?.weekly || 0 }}</span>
                   </div>
@@ -553,7 +581,9 @@ const deleteUnit = async () => {
               </div>
 
               <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Availability</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                  Availability
+                </p>
                 <div class="space-y-3">
                   <div class="flex items-center justify-between">
                     <span class="text-sm text-gray-700 dark:text-gray-300">Total Units</span>
@@ -565,13 +595,18 @@ const deleteUnit = async () => {
                   </div>
                   <div class="flex items-center justify-between">
                     <span class="text-sm text-gray-700 dark:text-gray-300">Utilization</span>
-                    <span class="text-lg font-bold" :class="utilizationColor">{{ item.utilization }}%</span>
+                    <span
+                      class="text-lg font-bold"
+                      :class="utilizationColor"
+                    >{{ item.utilization }}%</span>
                   </div>
                 </div>
               </div>
 
               <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Revenue</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                  Revenue
+                </p>
                 <div class="space-y-3">
                   <div class="flex items-center justify-between">
                     <span class="text-sm text-gray-700 dark:text-gray-300">This Month</span>
@@ -596,7 +631,10 @@ const deleteUnit = async () => {
             block
             :to="`/app/bookings/new?itemId=${item.id}`"
           >
-            <UIcon name="i-lucide-calendar-plus" class="w-5 h-5 mr-2" />
+            <UIcon
+              name="i-lucide-calendar-plus"
+              class="w-5 h-5 mr-2"
+            />
             Create Booking
           </UButton>
         </div>
@@ -614,7 +652,10 @@ const deleteUnit = async () => {
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
             @click="activeTab = tab.key"
           >
-            <UIcon :name="tab.icon" class="w-4 h-4" />
+            <UIcon
+              :name="tab.icon"
+              class="w-4 h-4"
+            />
             {{ tab.label }}
             <div
               v-if="activeTab === tab.key"
@@ -627,21 +668,34 @@ const deleteUnit = async () => {
       <!-- Tab Content -->
       <div>
         <!-- Overview Tab -->
-        <div v-if="activeTab === 'overview'" class="grid lg:grid-cols-2 gap-6">
+        <div
+          v-if="activeTab === 'overview'"
+          class="grid lg:grid-cols-2 gap-6"
+        >
           <!-- Specifications -->
           <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
             <template #header>
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                  <UIcon name="i-lucide-ruler" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <UIcon
+                    name="i-lucide-ruler"
+                    class="w-5 h-5 text-blue-600 dark:text-blue-400"
+                  />
                 </div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Specifications</h3>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                  Specifications
+                </h3>
               </div>
             </template>
 
-            <div v-if="item.specifications" class="space-y-4">
+            <div
+              v-if="item.specifications"
+              class="space-y-4"
+            >
               <div v-if="item.specifications.dimensions">
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Dimensions</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  Dimensions
+                </p>
                 <p class="text-sm text-gray-900 dark:text-white">
                   {{ item.specifications.dimensions.length || 0 }}' L x
                   {{ item.specifications.dimensions.width || 0 }}' W x
@@ -649,33 +703,52 @@ const deleteUnit = async () => {
                 </p>
               </div>
               <div v-if="item.specifications.weight">
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Weight</p>
-                <p class="text-sm text-gray-900 dark:text-white">{{ item.specifications.weight }} lbs</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  Weight
+                </p>
+                <p class="text-sm text-gray-900 dark:text-white">
+                  {{ item.specifications.weight }} lbs
+                </p>
               </div>
               <div v-if="item.specifications.capacity">
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Capacity</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  Capacity
+                </p>
                 <p class="text-sm text-gray-900 dark:text-white">
                   {{ item.specifications.capacity.maxOccupants || 0 }} people / {{ item.specifications.capacity.maxWeight || 0 }} lbs max
                 </p>
               </div>
               <div v-if="item.specifications.ageRange">
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Age Range</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  Age Range
+                </p>
                 <p class="text-sm text-gray-900 dark:text-white">
                   {{ item.specifications.ageRange.min || 0 }} - {{ item.specifications.ageRange.max || 0 }} years
                 </p>
               </div>
               <div v-if="item.specifications.setupTime">
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Setup Time</p>
-                <p class="text-sm text-gray-900 dark:text-white">{{ item.specifications.setupTime }} minutes</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  Setup Time
+                </p>
+                <p class="text-sm text-gray-900 dark:text-white">
+                  {{ item.specifications.setupTime }} minutes
+                </p>
               </div>
               <div v-if="item.specifications.requiredSpace">
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Required Space</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  Required Space
+                </p>
                 <p class="text-sm text-gray-900 dark:text-white">
                   {{ item.specifications.requiredSpace.length || 0 }}' x {{ item.specifications.requiredSpace.width || 0 }}'
                 </p>
               </div>
             </div>
-            <p v-else class="text-sm text-gray-500 dark:text-gray-400">No specifications available</p>
+            <p
+              v-else
+              class="text-sm text-gray-500 dark:text-gray-400"
+            >
+              No specifications available
+            </p>
           </UCard>
 
           <!-- Setup Requirements -->
@@ -683,28 +756,42 @@ const deleteUnit = async () => {
             <template #header>
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                  <UIcon name="i-lucide-wrench" class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <UIcon
+                    name="i-lucide-wrench"
+                    class="w-5 h-5 text-purple-600 dark:text-purple-400"
+                  />
                 </div>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Setup Requirements</h3>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                  Setup Requirements
+                </h3>
               </div>
             </template>
 
             <div class="space-y-4">
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-700 dark:text-gray-300">Power Outlet</span>
-                <UBadge :color="item.setupRequirements.powerOutlet ? 'green' : 'gray'" variant="subtle">
+                <UBadge
+                  :color="item.setupRequirements.powerOutlet ? 'green' : 'gray'"
+                  variant="subtle"
+                >
                   {{ item.setupRequirements.powerOutlet ? 'Required' : 'Not Required' }}
                 </UBadge>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-700 dark:text-gray-300">Water Source</span>
-                <UBadge :color="item.setupRequirements.waterSource ? 'blue' : 'gray'" variant="subtle">
+                <UBadge
+                  :color="item.setupRequirements.waterSource ? 'blue' : 'gray'"
+                  variant="subtle"
+                >
                   {{ item.setupRequirements.waterSource ? 'Required' : 'Not Required' }}
                 </UBadge>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-700 dark:text-gray-300">Anchoring Method</span>
-                <UBadge color="orange" variant="subtle">
+                <UBadge
+                  color="orange"
+                  variant="subtle"
+                >
                   {{ item.setupRequirements.anchoringMethod }}
                 </UBadge>
               </div>
@@ -725,15 +812,29 @@ const deleteUnit = async () => {
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                    <UIcon name="i-lucide-box" class="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <UIcon
+                      name="i-lucide-box"
+                      class="w-5 h-5 text-green-600 dark:text-green-400"
+                    />
                   </div>
                   <div>
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Individual Units</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ item.units?.length || 0 }} units total</p>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                      Individual Units
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      {{ item.units?.length || 0 }} units total
+                    </p>
                   </div>
                 </div>
-                <UButton color="primary" size="sm" @click="openAddUnitModal">
-                  <UIcon name="i-lucide-plus" class="w-4 h-4 mr-2" />
+                <UButton
+                  color="primary"
+                  size="sm"
+                  @click="openAddUnitModal"
+                >
+                  <UIcon
+                    name="i-lucide-plus"
+                    class="w-4 h-4 mr-2"
+                  />
                   Add Unit
                 </UButton>
               </div>
@@ -745,11 +846,28 @@ const deleteUnit = async () => {
               @edit="openEditUnitModal"
               @delete="openDeleteConfirm"
             />
-            <div v-else class="text-center py-8">
-              <UIcon name="i-lucide-box" class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-              <p class="text-gray-500 dark:text-gray-400">No units configured yet</p>
-              <UButton color="primary" variant="soft" size="sm" class="mt-4" @click="openAddUnitModal">
-                <UIcon name="i-lucide-plus" class="w-4 h-4 mr-2" />
+            <div
+              v-else
+              class="text-center py-8"
+            >
+              <UIcon
+                name="i-lucide-box"
+                class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3"
+              />
+              <p class="text-gray-500 dark:text-gray-400">
+                No units configured yet
+              </p>
+              <UButton
+                color="primary"
+                variant="soft"
+                size="sm"
+                class="mt-4"
+                @click="openAddUnitModal"
+              >
+                <UIcon
+                  name="i-lucide-plus"
+                  class="w-4 h-4 mr-2"
+                />
                 Add First Unit
               </UButton>
             </div>
@@ -762,10 +880,15 @@ const deleteUnit = async () => {
             <template #header>
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
-                  <UIcon name="i-lucide-calendar" class="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                  <UIcon
+                    name="i-lucide-calendar"
+                    class="w-5 h-5 text-orange-600 dark:text-orange-400"
+                  />
                 </div>
                 <div>
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Booking History</h3>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                    Booking History
+                  </h3>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
                     {{ itemBookings.length }} {{ itemBookings.length === 1 ? 'booking' : 'bookings' }}
                   </p>
@@ -774,12 +897,21 @@ const deleteUnit = async () => {
             </template>
 
             <!-- Loading State -->
-            <div v-if="bookingsLoading" class="flex items-center justify-center py-12">
-              <UIcon name="i-lucide-loader-circle" class="animate-spin text-4xl text-gray-400" />
+            <div
+              v-if="bookingsLoading"
+              class="flex items-center justify-center py-12"
+            >
+              <UIcon
+                name="i-lucide-loader-circle"
+                class="animate-spin text-4xl text-gray-400"
+              />
             </div>
 
             <!-- Bookings List -->
-            <div v-else-if="itemBookings.length > 0" class="space-y-3">
+            <div
+              v-else-if="itemBookings.length > 0"
+              class="space-y-3"
+            >
               <div
                 v-for="booking in itemBookings"
                 :key="booking.id"
@@ -797,21 +929,31 @@ const deleteUnit = async () => {
                         {{ getStatusLabel(booking.status) }}
                       </UBadge>
                     </div>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ booking.customer }}</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">
+                      {{ booking.customer }}
+                    </p>
                     <div class="flex items-center gap-4 mt-1 text-sm text-gray-600 dark:text-gray-400">
                       <div class="flex items-center gap-1.5">
-                        <UIcon name="i-lucide-calendar" class="w-3.5 h-3.5" />
+                        <UIcon
+                          name="i-lucide-calendar"
+                          class="w-3.5 h-3.5"
+                        />
                         <span>{{ booking.date }}</span>
                       </div>
                       <div class="flex items-center gap-1.5">
-                        <UIcon name="i-lucide-clock" class="w-3.5 h-3.5" />
+                        <UIcon
+                          name="i-lucide-clock"
+                          class="w-3.5 h-3.5"
+                        />
                         <span>{{ booking.duration }}</span>
                       </div>
                     </div>
                   </div>
                   <div class="flex items-center gap-3">
                     <div class="text-right">
-                      <p class="text-lg font-bold text-gray-900 dark:text-white">{{ booking.revenue }}</p>
+                      <p class="text-lg font-bold text-gray-900 dark:text-white">
+                        {{ booking.revenue }}
+                      </p>
                     </div>
                     <UButton
                       color="neutral"
@@ -828,13 +970,25 @@ const deleteUnit = async () => {
             </div>
 
             <!-- Empty State -->
-            <div v-else class="flex flex-col items-center justify-center py-12 text-gray-500">
-              <UIcon name="i-lucide-calendar-x" class="text-6xl mb-4 text-gray-300 dark:text-gray-600" />
-              <p class="text-lg font-medium">No Bookings Yet</p>
+            <div
+              v-else
+              class="flex flex-col items-center justify-center py-12 text-gray-500"
+            >
+              <UIcon
+                name="i-lucide-calendar-x"
+                class="text-6xl mb-4 text-gray-300 dark:text-gray-600"
+              />
+              <p class="text-lg font-medium">
+                No Bookings Yet
+              </p>
               <p class="text-sm text-center max-w-sm mb-6">
                 This item hasn't been booked yet. Bookings will appear here once customers start reserving this item.
               </p>
-              <UButton icon="i-lucide-plus" label="Create Booking" :to="`/app/bookings/new?itemId=${item?.id}`" />
+              <UButton
+                icon="i-lucide-plus"
+                label="Create Booking"
+                :to="`/app/bookings/new?itemId=${item?.id}`"
+              />
             </div>
           </UCard>
         </div>
@@ -844,13 +998,18 @@ const deleteUnit = async () => {
           <div class="grid lg:grid-cols-2 gap-6">
             <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
               <template #header>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Performance Metrics</h3>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                  Performance Metrics
+                </h3>
               </template>
               <div class="space-y-4">
                 <div>
                   <div class="flex items-center justify-between mb-2">
                     <span class="text-sm text-gray-600 dark:text-gray-400">Utilization Rate</span>
-                    <span class="text-sm font-semibold" :class="utilizationColor">{{ item.utilization }}%</span>
+                    <span
+                      class="text-sm font-semibold"
+                      :class="utilizationColor"
+                    >{{ item.utilization }}%</span>
                   </div>
                   <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
@@ -860,13 +1019,17 @@ const deleteUnit = async () => {
                   </div>
                 </div>
                 <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Total Revenue</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    Total Revenue
+                  </p>
                   <p class="text-3xl font-bold text-gray-900 dark:text-white">
                     ${{ (item.revenue?.total || 0).toLocaleString() }}
                   </p>
                 </div>
                 <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">This Month</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    This Month
+                  </p>
                   <p class="text-2xl font-bold text-green-600 dark:text-green-400">
                     ${{ (item.revenue?.thisMonth || 0).toLocaleString() }}
                   </p>
@@ -876,9 +1039,14 @@ const deleteUnit = async () => {
 
             <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
               <template #header>
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Unit Status</h3>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                  Unit Status
+                </h3>
               </template>
-              <div v-if="item.units?.length" class="space-y-3">
+              <div
+                v-if="item.units?.length"
+                class="space-y-3"
+              >
                 <div
                   v-for="status in ['available', 'rented', 'maintenance', 'retired']"
                   :key="status"
@@ -889,12 +1057,17 @@ const deleteUnit = async () => {
                     :color="status === 'available' ? 'green' : status === 'rented' ? 'blue' : status === 'maintenance' ? 'orange' : 'red'"
                     variant="subtle"
                   >
-                    {{ item.units.filter(u => u.status === status).length }}
+                    {{ item.units.filter((u: InventoryUnit) => u.status === status).length }}
                   </UBadge>
                 </div>
               </div>
-              <div v-else class="text-center py-4">
-                <p class="text-sm text-gray-500 dark:text-gray-400">No units tracked yet</p>
+              <div
+                v-else
+                class="text-center py-4"
+              >
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  No units tracked yet
+                </p>
               </div>
             </UCard>
           </div>
@@ -903,46 +1076,102 @@ const deleteUnit = async () => {
     </div>
 
     <!-- Error State -->
-    <div v-else class="text-center py-16">
+    <div
+      v-else
+      class="text-center py-16"
+    >
       <div class="w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-4">
-        <UIcon name="i-lucide-alert-circle" class="w-10 h-10 text-red-600 dark:text-red-400" />
+        <UIcon
+          name="i-lucide-alert-circle"
+          class="w-10 h-10 text-red-600 dark:text-red-400"
+        />
       </div>
-      <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Item not found</h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">The inventory item you're looking for doesn't exist.</p>
-      <UButton color="primary" to="/app/inventory">
+      <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+        Item not found
+      </h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">
+        The inventory item you're looking for doesn't exist.
+      </p>
+      <UButton
+        color="primary"
+        to="/app/inventory"
+      >
         Back to Inventory
       </UButton>
     </div>
 
     <!-- Add Unit Modal -->
-    <UModal v-model:open="isAddUnitModalOpen" title="Add New Unit">
+    <UModal
+      v-model:open="isAddUnitModalOpen"
+      title="Add New Unit"
+    >
       <template #body>
         <div class="space-y-4 p-6">
-          <UFormField label="Serial Number" required>
-            <UInput v-model="newUnit.serialNumber" placeholder="e.g., CBH-XL-004" class="w-full" />
+          <UFormField
+            label="Serial Number"
+            required
+          >
+            <UInput
+              v-model="newUnit.serialNumber"
+              placeholder="e.g., CBH-XL-004"
+              class="w-full"
+            />
           </UFormField>
 
           <UFormField label="Barcode">
-            <UInput v-model="newUnit.barcode" placeholder="e.g., 123456789004" class="w-full" />
+            <UInput
+              v-model="newUnit.barcode"
+              placeholder="e.g., 123456789004"
+              class="w-full"
+            />
           </UFormField>
 
           <div class="grid grid-cols-2 gap-4">
-            <UFormField label="Status" required>
-              <USelect v-model="newUnit.status" :items="statusOptions" class="w-full" />
+            <UFormField
+              label="Status"
+              required
+            >
+              <USelect
+                v-model="newUnit.status"
+                :items="statusOptions"
+                class="w-full"
+              />
             </UFormField>
 
-            <UFormField label="Condition" required>
-              <USelect v-model="newUnit.condition" :items="conditionOptions" class="w-full" />
+            <UFormField
+              label="Condition"
+              required
+            >
+              <USelect
+                v-model="newUnit.condition"
+                :items="conditionOptions"
+                class="w-full"
+              />
             </UFormField>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
-            <UFormField label="Purchase Date" required>
-              <UInput v-model="newUnit.purchaseDate" type="date" class="w-full" />
+            <UFormField
+              label="Purchase Date"
+              required
+            >
+              <UInput
+                v-model="newUnit.purchaseDate"
+                type="date"
+                class="w-full"
+              />
             </UFormField>
 
-            <UFormField label="Purchase Price" required>
-              <UInput v-model.number="newUnit.purchasePrice" type="number" placeholder="0" class="w-full">
+            <UFormField
+              label="Purchase Price"
+              required
+            >
+              <UInput
+                v-model.number="newUnit.purchasePrice"
+                type="number"
+                placeholder="0"
+                class="w-full"
+              >
                 <template #leading>
                   <span class="text-gray-500">$</span>
                 </template>
@@ -954,41 +1183,99 @@ const deleteUnit = async () => {
 
       <template #footer="{ close }">
         <div class="flex justify-end gap-2 px-6 pb-6">
-          <UButton label="Cancel" color="neutral" variant="ghost" @click="close" :disabled="isSaving" />
-          <UButton label="Add Unit" color="primary" @click="addUnit" :loading="isSaving" :disabled="isSaving" />
+          <UButton
+            label="Cancel"
+            color="neutral"
+            variant="ghost"
+            :disabled="isSaving"
+            @click="close"
+          />
+          <UButton
+            label="Add Unit"
+            color="primary"
+            :loading="isSaving"
+            :disabled="isSaving"
+            @click="addUnit"
+          />
         </div>
       </template>
     </UModal>
 
     <!-- Edit Unit Modal -->
-    <UModal v-model:open="isEditUnitModalOpen" title="Edit Unit">
+    <UModal
+      v-model:open="isEditUnitModalOpen"
+      title="Edit Unit"
+    >
       <template #body>
-        <div v-if="editingUnit" class="space-y-4 p-6">
-          <UFormField label="Serial Number" required>
-            <UInput v-model="editingUnit.serialNumber" placeholder="e.g., CBH-XL-004" class="w-full" />
+        <div
+          v-if="editingUnit"
+          class="space-y-4 p-6"
+        >
+          <UFormField
+            label="Serial Number"
+            required
+          >
+            <UInput
+              v-model="editingUnit.serialNumber"
+              placeholder="e.g., CBH-XL-004"
+              class="w-full"
+            />
           </UFormField>
 
           <UFormField label="Barcode">
-            <UInput v-model="editingUnit.barcode" placeholder="e.g., 123456789004" class="w-full" />
+            <UInput
+              v-model="editingUnit.barcode"
+              placeholder="e.g., 123456789004"
+              class="w-full"
+            />
           </UFormField>
 
           <div class="grid grid-cols-2 gap-4">
-            <UFormField label="Status" required>
-              <USelect v-model="editingUnit.status" :items="statusOptions" class="w-full" />
+            <UFormField
+              label="Status"
+              required
+            >
+              <USelect
+                v-model="editingUnit.status"
+                :items="statusOptions"
+                class="w-full"
+              />
             </UFormField>
 
-            <UFormField label="Condition" required>
-              <USelect v-model="editingUnit.condition" :items="conditionOptions" class="w-full" />
+            <UFormField
+              label="Condition"
+              required
+            >
+              <USelect
+                v-model="editingUnit.condition"
+                :items="conditionOptions"
+                class="w-full"
+              />
             </UFormField>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
-            <UFormField label="Purchase Date" required>
-              <UInput v-model="editingUnit.purchaseDate" type="date" class="w-full" />
+            <UFormField
+              label="Purchase Date"
+              required
+            >
+              <UInput
+                v-model="editingUnit.purchaseDate"
+                type="date"
+                class="w-full"
+              />
             </UFormField>
 
-            <UFormField label="Purchase Price" required>
-              <UInput v-model.number="editingUnit.purchasePrice" type="number" placeholder="0" class="w-full">
+            <UFormField
+              label="Purchase Price"
+              required
+            >
+              <UInput
+                v-model.number="editingUnit.purchasePrice"
+                type="number"
+                placeholder="0"
+                class="w-full"
+              >
                 <template #leading>
                   <span class="text-gray-500">$</span>
                 </template>
@@ -1000,8 +1287,20 @@ const deleteUnit = async () => {
 
       <template #footer="{ close }">
         <div class="flex justify-end gap-2 px-6 pb-6">
-          <UButton label="Cancel" color="neutral" variant="ghost" @click="close" :disabled="isSaving" />
-          <UButton label="Update Unit" color="primary" @click="updateUnit" :loading="isSaving" :disabled="isSaving" />
+          <UButton
+            label="Cancel"
+            color="neutral"
+            variant="ghost"
+            :disabled="isSaving"
+            @click="close"
+          />
+          <UButton
+            label="Update Unit"
+            color="primary"
+            :loading="isSaving"
+            :disabled="isSaving"
+            @click="updateUnit"
+          />
         </div>
       </template>
     </UModal>

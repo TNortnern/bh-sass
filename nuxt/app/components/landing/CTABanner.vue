@@ -1,24 +1,27 @@
 <template>
   <section class="cta-banner">
     <!-- Animated background gradient -->
-    <div class="cta-gradient"></div>
+    <div class="cta-gradient" />
 
     <!-- Decorative elements -->
     <div class="cta-particles">
-      <div class="particle particle-1"></div>
-      <div class="particle particle-2"></div>
-      <div class="particle particle-3"></div>
-      <div class="particle particle-4"></div>
-      <div class="particle particle-5"></div>
+      <div class="particle particle-1" />
+      <div class="particle particle-2" />
+      <div class="particle particle-3" />
+      <div class="particle particle-4" />
+      <div class="particle particle-5" />
     </div>
 
     <!-- Geometric pattern overlay -->
-    <div class="cta-pattern"></div>
+    <div class="cta-pattern" />
 
     <!-- Content -->
     <div class="cta-content">
       <div class="cta-badge">
-        <UIcon name="i-lucide-sparkles" class="badge-icon" />
+        <UIcon
+          name="i-lucide-sparkles"
+          class="badge-icon"
+        />
         <span>Free 14-Day Trial</span>
       </div>
 
@@ -48,11 +51,17 @@
             @click="handleSignup"
           >
             Start Free Trial
-            <UIcon name="i-lucide-arrow-right" class="button-icon" />
+            <UIcon
+              name="i-lucide-arrow-right"
+              class="button-icon"
+            />
           </UButton>
         </div>
         <p class="cta-note">
-          <UIcon name="i-lucide-check-circle" class="note-icon" />
+          <UIcon
+            name="i-lucide-check-circle"
+            class="note-icon"
+          />
           No credit card required • Cancel anytime
         </p>
       </div>
@@ -60,18 +69,30 @@
       <!-- Stats bar -->
       <div class="cta-stats">
         <div class="stat-item">
-          <div class="stat-value">10,000+</div>
-          <div class="stat-label">Active Rentals</div>
+          <div class="stat-value">
+            10,000+
+          </div>
+          <div class="stat-label">
+            Active Rentals
+          </div>
         </div>
-        <div class="stat-divider"></div>
+        <div class="stat-divider" />
         <div class="stat-item">
-          <div class="stat-value">98%</div>
-          <div class="stat-label">Customer Satisfaction</div>
+          <div class="stat-value">
+            98%
+          </div>
+          <div class="stat-label">
+            Customer Satisfaction
+          </div>
         </div>
-        <div class="stat-divider"></div>
+        <div class="stat-divider" />
         <div class="stat-item">
-          <div class="stat-value">$2M+</div>
-          <div class="stat-label">Revenue Processed</div>
+          <div class="stat-value">
+            $2M+
+          </div>
+          <div class="stat-label">
+            Revenue Processed
+          </div>
         </div>
       </div>
     </div>

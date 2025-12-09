@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-dynamic-delete */
 import { format, addDays, differenceInDays, parseISO } from 'date-fns'
 import type { CreateBookingData } from '~/composables/useBookings'
 import type { Customer } from '~/composables/useCustomers'
@@ -181,9 +182,9 @@ const filteredCustomers = computed(() => {
 
   const query = customerSearchQuery.value.toLowerCase()
   return existingCustomers.value.filter(c =>
-    `${c.firstName} ${c.lastName}`.toLowerCase().includes(query) ||
-    c.email.toLowerCase().includes(query) ||
-    c.phone.includes(query)
+    `${c.firstName} ${c.lastName}`.toLowerCase().includes(query)
+    || c.email.toLowerCase().includes(query)
+    || c.phone.includes(query)
   )
 })
 
@@ -283,20 +284,20 @@ const canProceedToStep2 = computed(() => {
   // Check if customer is selected (existing mode) or filled out (new mode)
   const hasCustomer = customerMode.value === 'existing'
     ? selectedCustomerId.value !== ''
-    : (form.value.customer?.firstName &&
-       form.value.customer?.lastName &&
-       form.value.customer?.email)
+    : (form.value.customer?.firstName
+      && form.value.customer?.lastName
+      && form.value.customer?.email)
 
   return hasCustomer && form.value.itemId
 })
 
 const canProceedToStep3 = computed(() => {
-  return form.value.startDate &&
-         form.value.endDate &&
-         form.value.deliveryAddress.street &&
-         form.value.deliveryAddress.city &&
-         form.value.deliveryAddress.state &&
-         form.value.deliveryAddress.zip
+  return form.value.startDate
+    && form.value.endDate
+    && form.value.deliveryAddress.street
+    && form.value.deliveryAddress.city
+    && form.value.deliveryAddress.state
+    && form.value.deliveryAddress.zip
 })
 
 // Navigation
@@ -335,22 +336,23 @@ const handleSubmit = async () => {
       toast.add({
         title: 'Booking Created',
         description: `Booking for ${form.value.customer?.firstName} ${form.value.customer?.lastName} has been created`,
-        color: 'success',
+        color: 'success'
       })
       router.push(`/app/bookings/${result.data.id}`)
     } else {
       toast.add({
         title: 'Failed to Create Booking',
         description: result.error || 'An unexpected error occurred',
-        color: 'error',
+        color: 'error'
       })
     }
-  } catch (error: any) {
+  } catch (err) {
+    const error = err as { data?: { message?: string } }
     console.error('Failed to create booking:', error)
     toast.add({
       title: 'Error',
-      description: error.message || 'Failed to create booking',
-      color: 'error',
+      description: error?.data?.message || 'Failed to create booking',
+      color: 'error'
     })
   } finally {
     isSubmitting.value = false
@@ -399,8 +401,12 @@ const states = [
         @click="router.back()"
       />
       <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">New Booking</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">Create a new rental booking</p>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+          New Booking
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">
+          Create a new rental booking
+        </p>
       </div>
     </div>
 
@@ -434,7 +440,10 @@ const states = [
     </div>
 
     <!-- Step 1: Customer & Item Selection -->
-    <UCard v-show="currentStep === 1" class="bg-white dark:bg-gray-900">
+    <UCard
+      v-show="currentStep === 1"
+      class="bg-white dark:bg-gray-900"
+    >
       <div class="space-y-6">
         <!-- Customer Information -->
         <div>
@@ -452,7 +461,10 @@ const states = [
                 : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-orange-300 dark:hover:border-orange-700'"
               @click="customerMode = 'existing'"
             >
-              <UIcon name="i-lucide-user-check" class="w-4 h-4 inline mr-2" />
+              <UIcon
+                name="i-lucide-user-check"
+                class="w-4 h-4 inline mr-2"
+              />
               Select Existing Customer
             </button>
             <button
@@ -463,14 +475,23 @@ const states = [
                 : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-orange-300 dark:hover:border-orange-700'"
               @click="customerMode = 'new'"
             >
-              <UIcon name="i-lucide-user-plus" class="w-4 h-4 inline mr-2" />
+              <UIcon
+                name="i-lucide-user-plus"
+                class="w-4 h-4 inline mr-2"
+              />
               Enter New Customer
             </button>
           </div>
 
           <!-- Existing Customer Selection -->
-          <div v-if="customerMode === 'existing'" class="space-y-4">
-            <UFormField label="Search & Select Customer" required>
+          <div
+            v-if="customerMode === 'existing'"
+            class="space-y-4"
+          >
+            <UFormField
+              label="Search & Select Customer"
+              required
+            >
               <USelect
                 v-model="selectedCustomerId"
                 :options="customerOptions"
@@ -481,7 +502,10 @@ const states = [
                 :loading="isLoadingCustomers"
               >
                 <template #leading>
-                  <UIcon name="i-lucide-search" class="w-4 h-4 text-gray-400" />
+                  <UIcon
+                    name="i-lucide-search"
+                    class="w-4 h-4 text-gray-400"
+                  />
                 </template>
               </USelect>
             </UFormField>
@@ -499,8 +523,13 @@ const states = [
                   <p class="font-semibold text-gray-900 dark:text-white">
                     {{ form.customer?.firstName }} {{ form.customer?.lastName }}
                   </p>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">{{ form.customer?.email }}</p>
-                  <p v-if="form.customer?.phone" class="text-sm text-gray-600 dark:text-gray-400">
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ form.customer?.email }}
+                  </p>
+                  <p
+                    v-if="form.customer?.phone"
+                    class="text-sm text-gray-600 dark:text-gray-400"
+                  >
                     {{ form.customer?.phone }}
                   </p>
                 </div>
@@ -509,9 +538,15 @@ const states = [
           </div>
 
           <!-- New Customer Form -->
-          <div v-else class="space-y-4">
+          <div
+            v-else
+            class="space-y-4"
+          >
             <div class="grid grid-cols-2 gap-4">
-              <UFormField label="First Name" required>
+              <UFormField
+                label="First Name"
+                required
+              >
                 <UInput
                   v-model="form.customer!.firstName"
                   placeholder="John"
@@ -519,7 +554,10 @@ const states = [
                   class="w-full"
                 />
               </UFormField>
-              <UFormField label="Last Name" required>
+              <UFormField
+                label="Last Name"
+                required
+              >
                 <UInput
                   v-model="form.customer!.lastName"
                   placeholder="Smith"
@@ -529,7 +567,10 @@ const states = [
               </UFormField>
             </div>
 
-            <UFormField label="Email" required>
+            <UFormField
+              label="Email"
+              required
+            >
               <UInput
                 v-model="form.customer!.email"
                 type="email"
@@ -562,12 +603,21 @@ const states = [
           </label>
 
           <!-- Loading state -->
-          <div v-if="isLoadingServices" class="flex items-center justify-center py-8">
-            <UIcon name="i-lucide-loader-2" class="w-8 h-8 text-orange-500 animate-spin" />
+          <div
+            v-if="isLoadingServices"
+            class="flex items-center justify-center py-8"
+          >
+            <UIcon
+              name="i-lucide-loader-2"
+              class="w-8 h-8 text-orange-500 animate-spin"
+            />
             <span class="ml-2 text-gray-600 dark:text-gray-400">Loading services...</span>
           </div>
 
-          <div v-else class="grid sm:grid-cols-2 gap-3">
+          <div
+            v-else
+            class="grid sm:grid-cols-2 gap-3"
+          >
             <button
               v-for="item in items"
               :key="item.id"
@@ -579,7 +629,10 @@ const states = [
               @click="form.itemId = item.id"
             >
               <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 flex items-center justify-center flex-shrink-0">
-                <UIcon name="i-lucide-tent" class="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                <UIcon
+                  name="i-lucide-tent"
+                  class="w-8 h-8 text-orange-600 dark:text-orange-400"
+                />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-start justify-between gap-2 mb-1">
@@ -592,7 +645,9 @@ const states = [
                     class="w-5 h-5 text-orange-500 flex-shrink-0"
                   />
                 </div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ getCategoryLabel(item.category) }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  {{ getCategoryLabel(item.category) }}
+                </p>
                 <p class="text-sm font-semibold text-orange-600 dark:text-orange-400">
                   {{ formatCurrency(item.dailyRate) }}/day
                 </p>
@@ -619,18 +674,27 @@ const states = [
             @click="nextStep"
           >
             Continue
-            <UIcon name="i-lucide-arrow-right" class="w-4 h-4 ml-2" />
+            <UIcon
+              name="i-lucide-arrow-right"
+              class="w-4 h-4 ml-2"
+            />
           </UButton>
         </div>
       </template>
     </UCard>
 
     <!-- Step 2: Dates & Delivery -->
-    <UCard v-show="currentStep === 2" class="bg-white dark:bg-gray-900">
+    <UCard
+      v-show="currentStep === 2"
+      class="bg-white dark:bg-gray-900"
+    >
       <div class="space-y-6">
         <!-- Date Selection -->
         <div class="grid sm:grid-cols-2 gap-4">
-          <UFormField label="Start Date" required>
+          <UFormField
+            label="Start Date"
+            required
+          >
             <UInput
               v-model="form.startDate"
               type="date"
@@ -638,7 +702,10 @@ const states = [
               class="w-full"
             />
           </UFormField>
-          <UFormField label="End Date" required>
+          <UFormField
+            label="End Date"
+            required
+          >
             <UInput
               v-model="form.endDate"
               type="date"
@@ -651,8 +718,13 @@ const states = [
         <!-- Rental Summary -->
         <div class="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
           <div class="flex items-center gap-2 mb-2">
-            <UIcon name="i-lucide-info" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            <p class="text-sm font-medium text-blue-900 dark:text-blue-100">Rental Period</p>
+            <UIcon
+              name="i-lucide-info"
+              class="w-5 h-5 text-blue-600 dark:text-blue-400"
+            />
+            <p class="text-sm font-medium text-blue-900 dark:text-blue-100">
+              Rental Period
+            </p>
           </div>
           <p class="text-sm text-blue-800 dark:text-blue-200">
             {{ rentalDays }} day(s) at {{ formatCurrency(selectedItem?.dailyRate || 0) }}/day
@@ -663,10 +735,15 @@ const states = [
 
         <!-- Delivery Address -->
         <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Delivery Address</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Delivery Address
+          </h3>
 
           <div class="space-y-4">
-            <UFormField label="Street Address" required>
+            <UFormField
+              label="Street Address"
+              required
+            >
               <UInput
                 v-model="form.deliveryAddress.street"
                 placeholder="1234 Main St"
@@ -676,7 +753,10 @@ const states = [
             </UFormField>
 
             <div class="grid grid-cols-2 gap-4">
-              <UFormField label="City" required>
+              <UFormField
+                label="City"
+                required
+              >
                 <UInput
                   v-model="form.deliveryAddress.city"
                   placeholder="San Francisco"
@@ -684,7 +764,10 @@ const states = [
                   class="w-full"
                 />
               </UFormField>
-              <UFormField label="State" required>
+              <UFormField
+                label="State"
+                required
+              >
                 <USelect
                   v-model="form.deliveryAddress.state"
                   :items="states"
@@ -695,7 +778,10 @@ const states = [
               </UFormField>
             </div>
 
-            <UFormField label="ZIP Code" required>
+            <UFormField
+              label="ZIP Code"
+              required
+            >
               <UInput
                 v-model="form.deliveryAddress.zip"
                 placeholder="94102"
@@ -719,7 +805,9 @@ const states = [
 
         <!-- Add-ons -->
         <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Add-ons (Optional)</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Add-ons (Optional)
+          </h3>
 
           <div class="grid sm:grid-cols-2 gap-3">
             <button
@@ -736,8 +824,12 @@ const states = [
                 @click.stop
               />
               <div class="flex-1">
-                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ addon.name }}</p>
-                <p class="text-sm text-orange-600 dark:text-orange-400">{{ formatCurrency(addon.price) }}</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                  {{ addon.name }}
+                </p>
+                <p class="text-sm text-orange-600 dark:text-orange-400">
+                  {{ formatCurrency(addon.price) }}
+                </p>
               </div>
             </button>
           </div>
@@ -752,7 +844,10 @@ const states = [
             size="lg"
             @click="prevStep"
           >
-            <UIcon name="i-lucide-arrow-left" class="w-4 h-4 mr-2" />
+            <UIcon
+              name="i-lucide-arrow-left"
+              class="w-4 h-4 mr-2"
+            />
             Back
           </UButton>
           <UButton
@@ -762,40 +857,61 @@ const states = [
             @click="nextStep"
           >
             Continue
-            <UIcon name="i-lucide-arrow-right" class="w-4 h-4 ml-2" />
+            <UIcon
+              name="i-lucide-arrow-right"
+              class="w-4 h-4 ml-2"
+            />
           </UButton>
         </div>
       </template>
     </UCard>
 
     <!-- Step 3: Review & Payment -->
-    <UCard v-show="currentStep === 3" class="bg-white dark:bg-gray-900">
+    <UCard
+      v-show="currentStep === 3"
+      class="bg-white dark:bg-gray-900"
+    >
       <div class="space-y-6">
         <!-- Booking Summary -->
         <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Booking Summary</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Booking Summary
+          </h3>
 
           <div class="space-y-4">
             <!-- Customer -->
             <div class="flex items-center gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
               <div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold">
-                {{ selectedCustomer?.name.split(' ').map(n => n[0]).join('') }}
+                {{ selectedCustomer?.name.split(' ').map((n: string) => n[0]).join('') }}
               </div>
               <div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Customer</p>
-                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedCustomer?.name }}</p>
-                <p class="text-xs text-gray-600 dark:text-gray-400">{{ selectedCustomer?.email }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">
+                  Customer
+                </p>
+                <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                  {{ selectedCustomer?.name }}
+                </p>
+                <p class="text-xs text-gray-600 dark:text-gray-400">
+                  {{ selectedCustomer?.email }}
+                </p>
               </div>
             </div>
 
             <!-- Item -->
             <div class="flex gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
               <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30 flex items-center justify-center">
-                <UIcon name="i-lucide-tent" class="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                <UIcon
+                  name="i-lucide-tent"
+                  class="w-8 h-8 text-orange-600 dark:text-orange-400"
+                />
               </div>
               <div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Rental Item</p>
-                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedItem?.name }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">
+                  Rental Item
+                </p>
+                <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                  {{ selectedItem?.name }}
+                </p>
                 <p class="text-xs text-gray-600 dark:text-gray-400">
                   {{ format(parseISO(form.startDate), 'MMM dd') }} - {{ format(parseISO(form.endDate), 'MMM dd, yyyy') }} ({{ rentalDays }} days)
                 </p>
@@ -804,8 +920,12 @@ const states = [
 
             <!-- Address -->
             <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-              <p class="text-xs text-gray-500 dark:text-gray-400 uppercase mb-1">Delivery Address</p>
-              <p class="text-sm text-gray-900 dark:text-white">{{ form.deliveryAddress.street }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 uppercase mb-1">
+                Delivery Address
+              </p>
+              <p class="text-sm text-gray-900 dark:text-white">
+                {{ form.deliveryAddress.street }}
+              </p>
               <p class="text-sm text-gray-900 dark:text-white">
                 {{ form.deliveryAddress.city }}, {{ form.deliveryAddress.state }} {{ form.deliveryAddress.zip }}
               </p>
@@ -817,7 +937,9 @@ const states = [
 
         <!-- Price Breakdown -->
         <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Price Breakdown</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Price Breakdown
+          </h3>
 
           <div class="space-y-3">
             <div class="flex justify-between">
@@ -836,10 +958,10 @@ const states = [
                 class="flex justify-between"
               >
                 <span class="text-sm text-gray-600 dark:text-gray-400">
-                  {{ availableAddons.find(a => a.id === addon.id)?.name }}
+                  {{ availableAddons.find((a: any) => a.id === addon.id)?.name }}
                 </span>
                 <span class="text-sm font-medium text-gray-900 dark:text-white">
-                  {{ formatCurrency(availableAddons.find(a => a.id === addon.id)?.price || 0) }}
+                  {{ formatCurrency(availableAddons.find((a: any) => a.id === addon.id)?.price || 0) }}
                 </span>
               </div>
             </div>
@@ -864,7 +986,9 @@ const states = [
 
         <!-- Payment Selection -->
         <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Payment
+          </h3>
 
           <div class="space-y-3">
             <button
@@ -880,9 +1004,11 @@ const states = [
                 value="deposit"
                 class="mt-0.5"
                 @click.stop
-              />
+              >
               <div class="flex-1">
-                <p class="text-sm font-medium text-gray-900 dark:text-white">Pay Deposit (50%)</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                  Pay Deposit (50%)
+                </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Pay {{ formatCurrency(depositAmount) }} now, remaining {{ formatCurrency(total - depositAmount) }} due before event
                 </p>
@@ -902,9 +1028,11 @@ const states = [
                 value="full"
                 class="mt-0.5"
                 @click.stop
-              />
+              >
               <div class="flex-1">
-                <p class="text-sm font-medium text-gray-900 dark:text-white">Pay in Full</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                  Pay in Full
+                </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Pay {{ formatCurrency(total) }} now and you're all set
                 </p>
@@ -940,10 +1068,17 @@ const states = [
         <div class="p-6 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm opacity-90">Amount Due Today</p>
-              <p class="text-3xl font-bold mt-1">{{ formatCurrency(amountDue) }}</p>
+              <p class="text-sm opacity-90">
+                Amount Due Today
+              </p>
+              <p class="text-3xl font-bold mt-1">
+                {{ formatCurrency(amountDue) }}
+              </p>
             </div>
-            <UIcon name="i-lucide-credit-card" class="w-12 h-12 opacity-50" />
+            <UIcon
+              name="i-lucide-credit-card"
+              class="w-12 h-12 opacity-50"
+            />
           </div>
         </div>
       </div>
@@ -956,7 +1091,10 @@ const states = [
             size="lg"
             @click="prevStep"
           >
-            <UIcon name="i-lucide-arrow-left" class="w-4 h-4 mr-2" />
+            <UIcon
+              name="i-lucide-arrow-left"
+              class="w-4 h-4 mr-2"
+            />
             Back
           </UButton>
           <UButton
@@ -965,7 +1103,10 @@ const states = [
             :loading="isSubmitting"
             @click="handleSubmit"
           >
-            <UIcon name="i-lucide-check" class="w-4 h-4 mr-2" />
+            <UIcon
+              name="i-lucide-check"
+              class="w-4 h-4 mr-2"
+            />
             Create Booking
           </UButton>
         </div>

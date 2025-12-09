@@ -4,28 +4,30 @@ import { defineEventHandler, getRouterParam } from 'h3'
  * GET /api/variations/:id
  * Get a specific variation
  */
-export default defineEventHandler(async (event): Promise<any> => {
+export default defineEventHandler(async (event): Promise<Record<string, unknown>> => {
   const config = useRuntimeConfig()
   const id = getRouterParam(event, 'id')
 
   if (!id) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Variation ID is required',
+      statusMessage: 'Variation ID is required'
     })
   }
 
   try {
-    const variation: any = await $fetch<any>(
+    const variation: Record<string, unknown> = await $fetch<Record<string, unknown>>(
       `${config.payloadApiUrl}/api/variations/${id}`
     )
 
     return variation
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching variation:', error)
+
+    const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.message || 'Failed to fetch variation',
+      statusCode: (error && typeof error === 'object' && 'statusCode' in error) ? (error.statusCode as number) : 500,
+      statusMessage: message || 'Failed to fetch variation'
     })
   }
 })

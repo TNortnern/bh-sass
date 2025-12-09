@@ -104,7 +104,7 @@ export const useBookingFlow = () => {
     return addOns.value.filter(a => a.selected)
   })
 
-  const submitBooking = async (paymentIntentId?: string): Promise<string> => {
+  const submitBooking = async (_paymentIntentId?: string): Promise<string> => {
     // This would normally make an API call to create the booking
     // For now, we'll generate a mock booking number
     const number = `BH-${Date.now()}`
@@ -128,9 +128,9 @@ export const useBookingFlow = () => {
 
   const canSubmitBooking = computed(() => {
     return !!(
-      canProceedToCheckout.value &&
-      customerInfo.value &&
-      customerInfo.value.termsAccepted
+      canProceedToCheckout.value
+      && customerInfo.value
+      && customerInfo.value.termsAccepted
     )
   })
 

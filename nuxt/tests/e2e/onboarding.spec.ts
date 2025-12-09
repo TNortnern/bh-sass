@@ -294,7 +294,7 @@ test.describe('Tenant Onboarding Flow', () => {
 
   test('should show plan selection during onboarding', async ({ page }) => {
     // Plan selection might be part of onboarding
-    const planPage = page.goto('/app/onboarding')
+    await page.goto('/app/onboarding')
 
     const planOptions = page.locator('[data-testid="plan-option"]').or(
       page.locator('text=/free|growth|pro|scale/i')

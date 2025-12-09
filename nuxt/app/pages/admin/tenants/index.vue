@@ -205,6 +205,7 @@ const handleToggleSuspend = async (tenantId: string, currentStatus: string) => {
     })
 
     refresh()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     toast.add({
       title: 'Error',
@@ -220,8 +221,12 @@ const handleToggleSuspend = async (tenantId: string, currentStatus: string) => {
     <!-- Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Tenants</h1>
-        <p class="page-description">Manage all rental businesses on the platform</p>
+        <h1 class="page-title">
+          Tenants
+        </h1>
+        <p class="page-description">
+          Manage all rental businesses on the platform
+        </p>
       </div>
       <UButton
         icon="i-lucide-refresh-cw"
@@ -264,9 +269,17 @@ const handleToggleSuspend = async (tenantId: string, currentStatus: string) => {
     </div>
 
     <!-- Empty State -->
-    <div v-if="!pending && (!tenants || tenants.length === 0)" class="empty-state">
-      <UIcon name="i-lucide-building-2" class="empty-icon" />
-      <p class="empty-title">No tenants found</p>
+    <div
+      v-if="!pending && (!tenants || tenants.length === 0)"
+      class="empty-state"
+    >
+      <UIcon
+        name="i-lucide-building-2"
+        class="empty-icon"
+      />
+      <p class="empty-title">
+        No tenants found
+      </p>
       <p class="empty-description">
         {{ searchQuery || selectedStatus || selectedPlan ? 'Try adjusting your filters' : 'Tenants will appear here once they sign up' }}
       </p>
