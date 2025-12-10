@@ -242,9 +242,20 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
-      // SSL: Use DATABASE_SSL env var to control (Railway internal URLs don't need SSL)
-      // Set DATABASE_SSL=true for external connections, false/unset for internal
-      ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
+      // SSL configuration for Railway Postgres
+      // DATABASE_SSL=true enables SSL with certificate validation disabled (for Railway)
+      // DATABASE_SSL=require uses simple require mode
+      ...(process.env.DATABASE_SSL === 'true'
+        ? {
+            ssl: {
+              rejectUnauthorized: false,
+              // Explicitly allow any TLS version
+              minVersion: 'TLSv1.2' as const,
+            },
+          }
+        : process.env.DATABASE_SSL === 'require'
+          ? { ssl: 'require' as const }
+          : {}),
     },
     // Enable schema push to auto-sync database schema on startup
     // This is needed for fresh databases or schema changes
