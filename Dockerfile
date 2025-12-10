@@ -78,6 +78,7 @@ echo "Payload internal port: ${PAYLOAD_PORT}"\n\
 echo "Nuxt public port: ${NUXT_PORT}"\n\
 \n\
 # Generate PM2 config at runtime with correct ports\n\
+# Explicitly pass through ALL required environment variables\n\
 cat > /app/ecosystem.config.json << EOF\n\
 {\n\
   "apps": [\n\
@@ -88,7 +89,24 @@ cat > /app/ecosystem.config.json << EOF\n\
       "env": {\n\
         "NODE_ENV": "production",\n\
         "PORT": "${PAYLOAD_PORT}",\n\
-        "HOSTNAME": "0.0.0.0"\n\
+        "HOSTNAME": "0.0.0.0",\n\
+        "PAYLOAD_SECRET": "${PAYLOAD_SECRET}",\n\
+        "DATABASE_URI": "${DATABASE_URI}",\n\
+        "DATABASE_URL": "${DATABASE_URL}",\n\
+        "DATABASE_SSL": "${DATABASE_SSL}",\n\
+        "PGSSLMODE": "${PGSSLMODE}",\n\
+        "NODE_TLS_REJECT_UNAUTHORIZED": "${NODE_TLS_REJECT_UNAUTHORIZED}",\n\
+        "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}",\n\
+        "STRIPE_PUBLISHABLE_KEY": "${STRIPE_PUBLISHABLE_KEY}",\n\
+        "STRIPE_WEBHOOK_SECRET": "${STRIPE_WEBHOOK_SECRET}",\n\
+        "BREVO_API_KEY": "${BREVO_API_KEY}",\n\
+        "EMAIL_FROM_ADDRESS": "${EMAIL_FROM_ADDRESS}",\n\
+        "EMAIL_FROM_NAME": "${EMAIL_FROM_NAME}",\n\
+        "PAYLOAD_PUBLIC_SERVER_URL": "${PAYLOAD_PUBLIC_SERVER_URL}",\n\
+        "BUNNY_STORAGE_API_KEY": "${BUNNY_STORAGE_API_KEY}",\n\
+        "BUNNY_STORAGE_ZONE": "${BUNNY_STORAGE_ZONE}",\n\
+        "BUNNY_CDN_HOSTNAME": "${BUNNY_CDN_HOSTNAME}",\n\
+        "BUNNY_STORAGE_HOSTNAME": "${BUNNY_STORAGE_HOSTNAME}"\n\
       }\n\
     },\n\
     {\n\
@@ -99,7 +117,20 @@ cat > /app/ecosystem.config.json << EOF\n\
         "NODE_ENV": "production",\n\
         "PORT": "${NUXT_PORT}",\n\
         "HOST": "0.0.0.0",\n\
-        "NUXT_PAYLOAD_API_URL": "http://localhost:${PAYLOAD_PORT}"\n\
+        "NUXT_PAYLOAD_API_URL": "http://localhost:${PAYLOAD_PORT}",\n\
+        "NUXT_PUBLIC_PAYLOAD_URL": "${NUXT_PUBLIC_PAYLOAD_URL}",\n\
+        "PAYLOAD_API_KEY": "${PAYLOAD_API_KEY}",\n\
+        "PAYLOAD_TENANT_ID": "${PAYLOAD_TENANT_ID}",\n\
+        "RB_PAYLOAD_URL": "${RB_PAYLOAD_URL}",\n\
+        "NUXT_PUBLIC_RB_PAYLOAD_URL": "${NUXT_PUBLIC_RB_PAYLOAD_URL}",\n\
+        "RB_PAYLOAD_API_KEY": "${RB_PAYLOAD_API_KEY}",\n\
+        "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}",\n\
+        "STRIPE_PUBLISHABLE_KEY": "${STRIPE_PUBLISHABLE_KEY}",\n\
+        "STRIPE_WEBHOOK_SECRET": "${STRIPE_WEBHOOK_SECRET}",\n\
+        "BUNNY_STORAGE_API_KEY": "${BUNNY_STORAGE_API_KEY}",\n\
+        "BUNNY_STORAGE_ZONE": "${BUNNY_STORAGE_ZONE}",\n\
+        "BUNNY_CDN_HOSTNAME": "${BUNNY_CDN_HOSTNAME}",\n\
+        "BUNNY_STORAGE_HOSTNAME": "${BUNNY_STORAGE_HOSTNAME}"\n\
       }\n\
     }\n\
   ]\n\
