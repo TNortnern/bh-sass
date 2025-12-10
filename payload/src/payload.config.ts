@@ -242,6 +242,8 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
+      // SSL configuration for Railway PostgreSQL (uses self-signed certs)
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
     },
     // Enable schema push to auto-sync database schema on startup
     // This is needed for fresh databases or schema changes
