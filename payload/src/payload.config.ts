@@ -243,18 +243,23 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
       // SSL configuration for Railway Postgres
-      // DATABASE_SSL=simple uses just `ssl: true`
-      // DATABASE_SSL=true enables SSL with certificate validation disabled
-      // DATABASE_SSL=require uses simple require mode
-      // DATABASE_SSL=false or empty = explicitly disable SSL
-      ssl:
-        process.env.DATABASE_SSL === 'simple'
-          ? true
-          : process.env.DATABASE_SSL === 'true'
-            ? { rejectUnauthorized: false }
-            : process.env.DATABASE_SSL === 'require'
-              ? ('require' as const)
-              : false, // Explicitly disable SSL when not configured
+      // DATABASE_SSL=auto: Don't set ssl option, let pg use PGSSLMODE or connection string
+      // DATABASE_SSL=simple: uses just `ssl: true`
+      // DATABASE_SSL=true: enables SSL with certificate validation disabled
+      // DATABASE_SSL=require: uses simple require mode
+      // DATABASE_SSL=false or empty: explicitly disable SSL
+      ...(process.env.DATABASE_SSL === 'auto'
+        ? {} // Don't set ssl at all, let connection string/PGSSLMODE handle it
+        : {
+            ssl:
+              process.env.DATABASE_SSL === 'simple'
+                ? true
+                : process.env.DATABASE_SSL === 'true'
+                  ? { rejectUnauthorized: false }
+                  : process.env.DATABASE_SSL === 'require'
+                    ? ('require' as const)
+                    : false,
+          }),
     },
     // Enable schema push to auto-sync database schema on startup
     // This is needed for fresh databases or schema changes
