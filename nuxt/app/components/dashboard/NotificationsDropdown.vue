@@ -143,13 +143,7 @@ const recentNotifications = computed(() => notifications.value.slice(0, 5))
                   <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                     Notifications
                   </h3>
-                  <UBadge
-                    v-if="unreadCount > 0"
-                    :label="String(unreadCount)"
-                    color="error"
-                    variant="solid"
-                    size="xs"
-                  />
+                  <!-- Count badge removed - already shown on bell icon -->
                 </div>
                 <UButton
                   v-if="notifications.length > 0 && unreadCount > 0"
