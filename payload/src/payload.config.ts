@@ -246,18 +246,15 @@ export default buildConfig({
       // DATABASE_SSL=simple uses just `ssl: true`
       // DATABASE_SSL=true enables SSL with certificate validation disabled
       // DATABASE_SSL=require uses simple require mode
-      // No DATABASE_SSL = no SSL
-      ...(process.env.DATABASE_SSL === 'simple'
-        ? { ssl: true }
-        : process.env.DATABASE_SSL === 'true'
-          ? {
-              ssl: {
-                rejectUnauthorized: false,
-              },
-            }
-          : process.env.DATABASE_SSL === 'require'
-            ? { ssl: 'require' as const }
-            : {}),
+      // DATABASE_SSL=false or empty = explicitly disable SSL
+      ssl:
+        process.env.DATABASE_SSL === 'simple'
+          ? true
+          : process.env.DATABASE_SSL === 'true'
+            ? { rejectUnauthorized: false }
+            : process.env.DATABASE_SSL === 'require'
+              ? ('require' as const)
+              : false, // Explicitly disable SSL when not configured
     },
     // Enable schema push to auto-sync database schema on startup
     // This is needed for fresh databases or schema changes
