@@ -96,6 +96,11 @@ cat > /app/ecosystem.config.json << EOF\n\
         "DATABASE_SSL": "${DATABASE_SSL}",\n\
         "PGSSLMODE": "${PGSSLMODE}",\n\
         "NODE_TLS_REJECT_UNAUTHORIZED": "${NODE_TLS_REJECT_UNAUTHORIZED}",\n\
+        "PGHOST": "${PGHOST}",\n\
+        "PGPORT": "${PGPORT}",\n\
+        "PGUSER": "${PGUSER}",\n\
+        "PGPASSWORD": "${PGPASSWORD}",\n\
+        "PGDATABASE": "${PGDATABASE}",\n\
         "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}",\n\
         "STRIPE_PUBLISHABLE_KEY": "${STRIPE_PUBLISHABLE_KEY}",\n\
         "STRIPE_WEBHOOK_SECRET": "${STRIPE_WEBHOOK_SECRET}",\n\
