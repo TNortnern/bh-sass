@@ -85,6 +85,40 @@ const dirname = path.dirname(filename)
 // Store webhook retry job interval
 let webhookRetryInterval: NodeJS.Timeout | null = null
 
+/**
+ * Get database connection string with fallback to individual PG* variables.
+ * This works around Railway CLI bug that truncates long DATABASE_URI values.
+ */
+function getDatabaseUri(): string {
+  const uri = process.env.DATABASE_URI || ''
+
+  // Check if DATABASE_URI is valid (not just 'postgresql://' or empty)
+  if (uri && uri.length > 15 && uri.includes('@')) {
+    console.log('[DB] Using DATABASE_URI from environment')
+    return uri
+  }
+
+  // Fallback: construct from individual PG* variables (Railway provides these)
+  const { PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE } = process.env
+
+  if (PGHOST && PGUSER && PGPASSWORD && PGDATABASE) {
+    const port = PGPORT || '5432'
+    const constructedUri = `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${port}/${PGDATABASE}`
+    console.log(`[DB] Constructed connection string from PG* vars: ${PGHOST}:${port}/${PGDATABASE}`)
+    return constructedUri
+  }
+
+  // Last resort: try DATABASE_URL (Railway's default variable name)
+  if (process.env.DATABASE_URL) {
+    console.log('[DB] Using DATABASE_URL from environment')
+    return process.env.DATABASE_URL
+  }
+
+  console.error('[DB] WARNING: No valid database connection string found!')
+  console.error('[DB] Set DATABASE_URI, DATABASE_URL, or individual PG* variables')
+  return ''
+}
+
 export default buildConfig({
   // Server URL for Payload (used for cookie domain and redirects)
   serverURL: process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3004',
@@ -241,7 +275,7 @@ export default buildConfig({
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URI || '',
+      connectionString: getDatabaseUri(),
       // SSL configuration for Railway Postgres
       // DATABASE_SSL=auto: Don't set ssl option, let pg use PGSSLMODE or connection string
       // DATABASE_SSL=simple: uses just `ssl: true`
