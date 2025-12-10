@@ -1,4 +1,4 @@
-import type { Endpoint } from 'payload'
+import type { Endpoint, PayloadRequest } from 'payload'
 import {
   onboardStripeConnect,
   refreshOnboardingLink,
@@ -16,65 +16,124 @@ import {
   cancelSubscription,
   getCustomerPortal,
 } from './stripe/subscription'
+import {
+  checkoutLimiter,
+  refundLimiter,
+  webhookLimiter,
+  connectLimiter,
+  subscriptionLimiter,
+  generalStripeLimiter,
+} from '../lib/stripe/rateLimiter'
+
+/**
+ * Wrapper to apply Express rate limiter middleware to Payload handlers
+ * Converts PayloadRequest to Express req/res for rate limiting
+ */
+const withRateLimit = (limiter: any, handler: (req: PayloadRequest) => Promise<Response>) => {
+  return async (req: PayloadRequest): Promise<Response> => {
+    // Create a promise to handle rate limiting
+    return new Promise((resolve, reject) => {
+      // Create minimal Express-compatible req/res objects
+      const expressReq = {
+        ip: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+        headers: Object.fromEntries(req.headers.entries()),
+      }
+
+      const expressRes = {
+        status: (code: number) => ({
+          json: (data: any) => {
+            resolve(Response.json(data, { status: code }))
+          },
+          send: (data: any) => {
+            resolve(new Response(data, { status: code }))
+          },
+        }),
+        setHeader: () => {},
+      }
+
+      const next = async (err?: any) => {
+        if (err) {
+          reject(err)
+        } else {
+          try {
+            const result = await handler(req)
+            resolve(result)
+          } catch (error) {
+            reject(error)
+          }
+        }
+      }
+
+      // Call the rate limiter
+      limiter(expressReq, expressRes, next)
+    })
+  }
+}
 
 /**
  * Stripe Connect onboarding endpoint
  * POST /api/stripe/connect/onboard
+ * Rate limited: 10 requests per minute
  */
 export const stripeConnectOnboardEndpoint: Endpoint = {
   path: '/stripe/connect/onboard',
   method: 'post',
-  handler: onboardStripeConnect,
+  handler: withRateLimit(connectLimiter, onboardStripeConnect),
 }
 
 /**
  * Stripe Connect refresh endpoint
  * POST /api/stripe/connect/refresh
+ * Rate limited: 10 requests per minute
  */
 export const stripeConnectRefreshEndpoint: Endpoint = {
   path: '/stripe/connect/refresh',
   method: 'post',
-  handler: refreshOnboardingLink,
+  handler: withRateLimit(connectLimiter, refreshOnboardingLink),
 }
 
 /**
  * Stripe Connect account status endpoint
  * GET /api/stripe/connect/status
+ * Rate limited: 20 requests per minute
  */
 export const stripeAccountStatusEndpoint: Endpoint = {
   path: '/stripe/connect/status',
   method: 'get',
-  handler: getAccountStatus,
+  handler: withRateLimit(generalStripeLimiter, getAccountStatus),
 }
 
 /**
  * Stripe Connect disconnect endpoint
  * POST /api/stripe/connect/disconnect
+ * Rate limited: 10 requests per minute
  */
 export const stripeDisconnectEndpoint: Endpoint = {
   path: '/stripe/connect/disconnect',
   method: 'post',
-  handler: disconnectAccount,
+  handler: withRateLimit(connectLimiter, disconnectAccount),
 }
 
 /**
  * Stripe checkout session creation endpoint
  * POST /api/stripe/checkout/create-session
+ * Rate limited: 5 requests per minute (prevents checkout spam/abuse)
  */
 export const stripeCheckoutCreateEndpoint: Endpoint = {
   path: '/stripe/checkout/create-session',
   method: 'post',
-  handler: createCheckoutSession,
+  handler: withRateLimit(checkoutLimiter, createCheckoutSession),
 }
 
 /**
  * Stripe checkout session retrieval endpoint
  * GET /api/stripe/checkout/session/:sessionId
+ * Rate limited: 20 requests per minute
  */
 export const stripeCheckoutGetEndpoint: Endpoint = {
   path: '/stripe/checkout/session/:sessionId',
   method: 'get',
-  handler: getCheckoutSession,
+  handler: withRateLimit(generalStripeLimiter, getCheckoutSession),
 }
 
 /**
@@ -83,69 +142,76 @@ export const stripeCheckoutGetEndpoint: Endpoint = {
  *
  * IMPORTANT: This endpoint requires raw body parsing
  * The webhook handler expects req.body to be a raw buffer for signature verification
+ * Rate limited: 100 requests per minute (high limit for Stripe webhooks)
  */
 export const stripeWebhookEndpoint: Endpoint = {
   path: '/stripe/webhook',
   method: 'post',
-  handler: handleWebhook,
+  handler: withRateLimit(webhookLimiter, handleWebhook),
 }
 
 /**
  * Refund payment endpoint
  * POST /api/stripe/payments/:id/refund
+ * Rate limited: 3 requests per minute (prevents refund abuse)
  */
 export const stripeRefundEndpoint: Endpoint = {
   path: '/stripe/payments/:id/refund',
   method: 'post',
-  handler: refundPayment,
+  handler: withRateLimit(refundLimiter, refundPayment),
 }
 
 /**
  * Get payment details endpoint
  * GET /api/stripe/payments/:id
+ * Rate limited: 20 requests per minute
  */
 export const stripePaymentGetEndpoint: Endpoint = {
   path: '/stripe/payments/:id',
   method: 'get',
-  handler: getPayment,
+  handler: withRateLimit(generalStripeLimiter, getPayment),
 }
 
 /**
  * Get current subscription endpoint
  * GET /api/stripe/subscription
+ * Rate limited: 10 requests per minute
  */
 export const stripeSubscriptionGetEndpoint: Endpoint = {
   path: '/stripe/subscription',
   method: 'get',
-  handler: getSubscription,
+  handler: withRateLimit(subscriptionLimiter, getSubscription),
 }
 
 /**
  * Create subscription checkout session endpoint
  * POST /api/stripe/subscription/create
+ * Rate limited: 10 requests per minute
  */
 export const stripeSubscriptionCreateEndpoint: Endpoint = {
   path: '/stripe/subscription/create',
   method: 'post',
-  handler: createSubscriptionCheckout,
+  handler: withRateLimit(subscriptionLimiter, createSubscriptionCheckout),
 }
 
 /**
  * Cancel subscription endpoint
  * POST /api/stripe/subscription/cancel
+ * Rate limited: 10 requests per minute
  */
 export const stripeSubscriptionCancelEndpoint: Endpoint = {
   path: '/stripe/subscription/cancel',
   method: 'post',
-  handler: cancelSubscription,
+  handler: withRateLimit(subscriptionLimiter, cancelSubscription),
 }
 
 /**
  * Get Stripe Customer Portal endpoint
  * GET /api/stripe/portal
+ * Rate limited: 10 requests per minute
  */
 export const stripePortalEndpoint: Endpoint = {
   path: '/stripe/portal',
   method: 'get',
-  handler: getCustomerPortal,
+  handler: withRateLimit(subscriptionLimiter, getCustomerPortal),
 }

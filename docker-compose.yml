@@ -1,26 +1,5 @@
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:16-alpine
-    container_name: bh_postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: bounce_house_saas
-      POSTGRES_USER: bh_user
-      POSTGRES_PASSWORD: dev_password_change_in_prod
-    ports:
-      - '5433:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U bh_user -d bounce_house_saas']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - bh_network
-
-  # Payload CMS Backend (Next.js)
+  # Payload CMS Backend (Next.js) - Using Neon PostgreSQL
   payload:
     build:
       context: ./payload
@@ -31,7 +10,7 @@ services:
       - '3004:3000'
     environment:
       NODE_ENV: development
-      DATABASE_URI: postgresql://bh_user:dev_password_change_in_prod@postgres:5432/bounce_house_saas
+      DATABASE_URI: postgresql://neondb_owner:npg_xjR9K0TdpOyI@ep-wandering-breeze-a4yv4lui-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
       # CRITICAL: Use env variable to ensure secret persists across restarts
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-dev-secret-change-in-production-use-openssl-rand}
       PORT: 3000
@@ -59,9 +38,6 @@ services:
       - ./payload/tsconfig.json:/app/tsconfig.json
       # Persist node_modules (don't sync with host)
       - payload_node_modules:/app/node_modules
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - bh_network
 
@@ -109,8 +85,6 @@ services:
       - bh_network
 
 volumes:
-  postgres_data:
-    driver: local
   payload_node_modules:
     driver: local
   nuxt_node_modules:

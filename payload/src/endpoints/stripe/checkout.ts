@@ -142,6 +142,10 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
       },
     ]
 
+    // Generate unique idempotency key to prevent duplicate charges on retries
+    // Use deterministic value, not timestamp - Stripe caches based on exact key
+    const idempotencyKey = `booking_${bookingId}_checkout_v1`
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -172,6 +176,8 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
         isDeposit: depositPercentage && depositPercentage < 100 ? 'true' : 'false',
         ...metadata,
       },
+    }, {
+      idempotencyKey,
     })
 
     const response: CheckoutSessionResponse = {
@@ -181,13 +187,14 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
 
     return Response.json(response)
   } catch (error) {
-    console.error('Stripe checkout session error:', error)
+    console.error('Stripe checkout session error:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
 
-    const message = error instanceof Error ? error.message : 'Unknown error'
     return Response.json(
       {
         error: 'Internal Server Error',
-        message: `Failed to create checkout session: ${message}`,
+        message: 'Failed to create checkout session',
       },
       { status: 500 },
     )
@@ -224,18 +231,17 @@ export const getCheckoutSession = async (req: PayloadRequest): Promise<Response>
       paymentStatus: session.payment_status,
       amountTotal: session.amount_total,
       currency: session.currency,
-      customerEmail: session.customer_email,
-      metadata: session.metadata,
       paymentIntent: session.payment_intent,
     })
   } catch (error) {
-    console.error('Stripe session retrieval error:', error)
+    console.error('Stripe session retrieval error:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
 
-    const message = error instanceof Error ? error.message : 'Unknown error'
     return Response.json(
       {
         error: 'Internal Server Error',
-        message: `Failed to retrieve session: ${message}`,
+        message: 'Failed to retrieve session',
       },
       { status: 500 },
     )

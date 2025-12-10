@@ -57,6 +57,10 @@ export const onboardStripeConnect = async (req: PayloadRequest): Promise<Respons
 
     // Create Connect account if it doesn't exist
     if (!accountId) {
+      // Generate unique idempotency key to prevent duplicate account creation on retries
+      // Use deterministic value, not timestamp - Stripe caches based on exact key
+      const idempotencyKey = `tenant_${tenantId}_connect_v1`
+
       const account = await stripe.accounts.create({
         type: 'express',
         country: 'US',
@@ -71,6 +75,8 @@ export const onboardStripeConnect = async (req: PayloadRequest): Promise<Respons
           tenantName: tenant.name,
           tenantSlug: tenant.slug,
         },
+      }, {
+        idempotencyKey,
       })
 
       accountId = account.id
@@ -93,11 +99,17 @@ export const onboardStripeConnect = async (req: PayloadRequest): Promise<Respons
     const returnUrl = `${process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'}/admin/collections/tenants/${tenantId}`
     const refreshUrl = `${process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'}/api/stripe/connect/onboard`
 
+    // Generate unique idempotency key for account link creation
+    // Use deterministic value, not timestamp - Stripe caches based on exact key
+    const linkIdempotencyKey = `tenant_${tenantId}_onboarding_link_v1`
+
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
       refresh_url: refreshUrl,
       return_url: returnUrl,
       type: 'account_onboarding',
+    }, {
+      idempotencyKey: linkIdempotencyKey,
     })
 
     const response: StripeOnboardingLink = {
@@ -107,13 +119,14 @@ export const onboardStripeConnect = async (req: PayloadRequest): Promise<Respons
 
     return Response.json(response)
   } catch (error) {
-    console.error('Stripe Connect onboarding error:', error)
+    console.error('Stripe Connect onboarding error:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
 
-    const message = error instanceof Error ? error.message : 'Unknown error'
     return Response.json(
       {
         error: 'Internal Server Error',
-        message: `Failed to create onboarding link: ${message}`,
+        message: 'Failed to create onboarding link',
       },
       { status: 500 },
     )
@@ -171,11 +184,17 @@ export const refreshOnboardingLink = async (req: PayloadRequest): Promise<Respon
     const returnUrl = `${process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'}/admin/collections/tenants/${tenantId}`
     const refreshUrl = `${process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'}/api/stripe/connect/refresh`
 
+    // Generate unique idempotency key for refresh link
+    // Use deterministic value, not timestamp - Stripe caches based on exact key
+    const idempotencyKey = `tenant_${tenantId}_refresh_link_v1`
+
     const accountLink = await stripe.accountLinks.create({
       account: tenant.stripeAccountId,
       refresh_url: refreshUrl,
       return_url: returnUrl,
       type: 'account_onboarding',
+    }, {
+      idempotencyKey,
     })
 
     const response: StripeOnboardingLink = {
@@ -185,13 +204,14 @@ export const refreshOnboardingLink = async (req: PayloadRequest): Promise<Respon
 
     return Response.json(response)
   } catch (error) {
-    console.error('Stripe Connect refresh error:', error)
+    console.error('Stripe Connect refresh error:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
 
-    const message = error instanceof Error ? error.message : 'Unknown error'
     return Response.json(
       {
         error: 'Internal Server Error',
-        message: `Failed to refresh onboarding link: ${message}`,
+        message: 'Failed to refresh onboarding link',
       },
       { status: 500 },
     )

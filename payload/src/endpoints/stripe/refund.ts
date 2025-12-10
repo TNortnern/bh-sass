@@ -128,6 +128,10 @@ export const refundPayment = async (req: PayloadRequest): Promise<Response> => {
 
     const stripe = getStripeClient()
 
+    // Generate unique idempotency key to prevent duplicate refunds on retries
+    // Use deterministic value, not timestamp - Stripe caches based on exact key
+    const idempotencyKey = `payment_${paymentId}_refund_v1`
+
     // Create refund in Stripe
     const paymentTenantId = typeof payment.tenantId === 'number' ? payment.tenantId : (typeof payment.tenantId === 'object' && payment.tenantId ? payment.tenantId.id : null)
     const refundParams: any = {
@@ -144,7 +148,9 @@ export const refundPayment = async (req: PayloadRequest): Promise<Response> => {
       refundParams.amount = amount
     }
 
-    const refund = await stripe.refunds.create(refundParams)
+    const refund = await stripe.refunds.create(refundParams, {
+      idempotencyKey,
+    })
 
     // Calculate new totals
     const newRefundAmount = totalRefunded + refund.amount
@@ -189,13 +195,14 @@ export const refundPayment = async (req: PayloadRequest): Promise<Response> => {
       },
     })
   } catch (error) {
-    console.error('Stripe refund error:', error)
+    console.error('Stripe refund error:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
 
-    const message = error instanceof Error ? error.message : 'Unknown error'
     return Response.json(
       {
         error: 'Internal Server Error',
-        message: `Failed to process refund: ${message}`,
+        message: 'Failed to process refund',
       },
       { status: 500 },
     )
@@ -288,7 +295,9 @@ export const getPayment = async (req: PayloadRequest): Promise<Response> => {
           stripeRefunds = refunds.data
         }
       } catch (err) {
-        console.error('Error fetching Stripe data:', err)
+        console.error('Error fetching Stripe data:', {
+          type: err instanceof Error ? err.name : 'Unknown',
+        })
         // Continue without Stripe data
       }
     }
@@ -330,13 +339,14 @@ export const getPayment = async (req: PayloadRequest): Promise<Response> => {
         : null,
     })
   } catch (error) {
-    console.error('Get payment error:', error)
+    console.error('Get payment error:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
 
-    const message = error instanceof Error ? error.message : 'Unknown error'
     return Response.json(
       {
         error: 'Internal Server Error',
-        message: `Failed to fetch payment: ${message}`,
+        message: 'Failed to fetch payment',
       },
       { status: 500 },
     )

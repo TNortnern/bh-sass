@@ -101,12 +101,12 @@ export const Bookings: CollectionConfig = {
       required: true,
       hooks: {
         beforeValidate: [
-          ({ req, value }) => {
-            if (!value && req.user) {
-              // Use getTenantId to handle populated tenantId objects
+          ({ req }) => {
+            // Always use the authenticated user's tenant - never allow client-provided tenantId
+            if (req.user?.tenantId) {
               return getTenantId(req.user)
             }
-            return value
+            return undefined
           },
         ],
       },

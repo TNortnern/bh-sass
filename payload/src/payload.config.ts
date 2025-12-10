@@ -35,6 +35,7 @@ import { MaintenanceSchedules } from './collections/MaintenanceSchedules'
 import { EmailTemplates } from './collections/EmailTemplates'
 import { Documents } from './collections/Documents'
 import { SignedDocuments } from './collections/SignedDocuments'
+import { StripeWebhookEvents } from './collections/StripeWebhookEvents'
 import { PlatformSettings } from './globals/PlatformSettings'
 import { availabilityCheckEndpoint } from './endpoints/availability-check'
 import {
@@ -178,6 +179,7 @@ export default buildConfig({
     EmailTemplates,
     Documents,
     SignedDocuments,
+    StripeWebhookEvents,
   ],
   globals: [PlatformSettings],
   endpoints: [

@@ -174,6 +174,10 @@ export const createSubscriptionCheckout = async (req: PayloadRequest): Promise<R
     // Create Stripe checkout session
     const stripe = getStripeClient()
 
+    // Generate unique idempotency key to prevent duplicate subscriptions on retries
+    // Use deterministic value, not timestamp - Stripe caches based on exact key
+    const idempotencyKey = `tenant_${tenantId}_subscription_checkout_v1`
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
@@ -195,6 +199,8 @@ export const createSubscriptionCheckout = async (req: PayloadRequest): Promise<R
           tenantId: tenantId.toString(),
         },
       },
+    }, {
+      idempotencyKey,
     })
 
     return Response.json({
@@ -284,16 +290,24 @@ export const cancelSubscription = async (req: PayloadRequest): Promise<Response>
     // Cancel subscription in Stripe
     const stripe = getStripeClient()
 
+    // Generate unique idempotency key to prevent duplicate cancellations on retries
+    // Use deterministic value, not timestamp - Stripe caches based on exact key
+    const idempotencyKey = `subscription_${subscription.id}_cancel_v1`
+
     let updatedSubscription: Stripe.Subscription
 
     if (cancelAtPeriodEnd) {
       // Cancel at period end (allows access until end of billing period)
       updatedSubscription = await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
         cancel_at_period_end: true,
+      }, {
+        idempotencyKey,
       })
     } else {
       // Cancel immediately
-      updatedSubscription = await stripe.subscriptions.cancel(subscription.stripeSubscriptionId)
+      updatedSubscription = await stripe.subscriptions.cancel(subscription.stripeSubscriptionId, {
+        idempotencyKey,
+      })
     }
 
     // Update local subscription record

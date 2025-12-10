@@ -90,15 +90,12 @@ export const Customers: CollectionConfig = {
       required: true,
       hooks: {
         beforeValidate: [
-          ({ req, value }) => {
-            // Auto-assign tenantId from logged-in user if not provided
-            if (!value && req.user) {
-              const tenantId = getTenantId(req.user)
-              if (tenantId) {
-                return tenantId
-              }
+          ({ req }) => {
+            // Always use the authenticated user's tenant - never allow client-provided tenantId
+            if (req.user?.tenantId) {
+              return getTenantId(req.user)
             }
-            return value
+            return undefined
           },
         ],
       },

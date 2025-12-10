@@ -93,11 +93,12 @@ export const Invoices: CollectionConfig = {
       required: true,
       hooks: {
         beforeValidate: [
-          ({ req, value }) => {
-            if (!value && req.user) {
+          ({ req }) => {
+            // Always use the authenticated user's tenant - never allow client-provided tenantId
+            if (req.user?.tenantId) {
               return getTenantId(req.user)
             }
-            return value
+            return undefined
           },
         ],
       },

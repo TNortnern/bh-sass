@@ -46,7 +46,9 @@ export const handleWebhook = async (req: PayloadRequest): Promise<Response> => {
     try {
       event = constructWebhookEvent(rawBody, signature)
     } catch (err) {
-      console.error('Webhook signature verification failed:', err)
+      console.error('Webhook signature verification failed:', {
+        type: err instanceof Error ? err.name : 'Unknown',
+      })
       return Response.json(
         {
           error: 'Bad Request',
@@ -57,6 +59,79 @@ export const handleWebhook = async (req: PayloadRequest): Promise<Response> => {
     }
 
     console.log(`Received Stripe webhook: ${event.type}`)
+
+    // === REPLAY ATTACK PREVENTION ===
+
+    // 1. Validate webhook timestamp (reject if older than 5 minutes)
+    const TOLERANCE_SECONDS = 300 // 5 minutes
+    const eventTime = event.created
+    const currentTime = Math.floor(Date.now() / 1000)
+
+    if (currentTime - eventTime > TOLERANCE_SECONDS) {
+      console.warn(`Webhook rejected: event too old (${currentTime - eventTime}s old)`, {
+        eventId: event.id,
+        eventType: event.type,
+        eventTime,
+        currentTime,
+      })
+      return Response.json(
+        {
+          error: 'Bad Request',
+          message: 'Webhook event too old',
+        },
+        { status: 400 },
+      )
+    }
+
+    // 2. Check for duplicate event IDs
+    const existingEvent = await payload.find({
+      collection: 'stripe-webhook-events',
+      where: { stripeEventId: { equals: event.id } },
+      limit: 1,
+    })
+
+    if (existingEvent.docs && existingEvent.docs.length > 0) {
+      // Event already processed, return success to Stripe to avoid retries
+      console.log(`Webhook skipped: event already processed`, {
+        eventId: event.id,
+        eventType: event.type,
+        originallyProcessedAt: existingEvent.docs[0].processedAt,
+      })
+      return Response.json({
+        success: true,
+        message: 'Event already processed',
+      })
+    }
+
+    // 3. Store event ID to prevent future replays
+    try {
+      await payload.create({
+        collection: 'stripe-webhook-events',
+        data: {
+          stripeEventId: event.id,
+          eventType: event.type,
+          processedAt: new Date().toISOString(),
+          eventCreatedAt: new Date(event.created * 1000).toISOString(),
+        },
+      })
+    } catch (err) {
+      // CRITICAL: If deduplication storage fails, reject the webhook
+      // Fail-closed: prevent processing if we can't prevent replays
+      // This is safer than risking duplicate charges
+      console.error('Failed to store webhook event ID for deduplication', {
+        type: err instanceof Error ? err.name : 'Unknown',
+        eventId: event.id,
+      })
+      return Response.json(
+        {
+          error: 'Webhook Processing Error',
+          message: 'Failed to store event ID for deduplication',
+        },
+        { status: 500 },
+      )
+    }
+
+    // === END REPLAY ATTACK PREVENTION ===
 
     // Handle the event
     let result: WebhookHandlerResult
@@ -118,13 +193,14 @@ export const handleWebhook = async (req: PayloadRequest): Promise<Response> => {
 
     return Response.json(result)
   } catch (error) {
-    console.error('Webhook processing error:', error)
+    console.error('Webhook processing error:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
 
-    const message = error instanceof Error ? error.message : 'Unknown error'
     return Response.json(
       {
         error: 'Internal Server Error',
-        message: `Webhook processing failed: ${message}`,
+        message: 'Webhook processing failed',
       },
       { status: 500 },
     )
@@ -143,6 +219,7 @@ async function handleCheckoutSessionCompleted(
 
   try {
     const bookingId = session.metadata?.bookingId || session.client_reference_id
+    const tenantId = session.metadata?.tenantId
 
     if (!bookingId) {
       console.warn('Checkout session completed but no bookingId found in metadata')
@@ -152,13 +229,20 @@ async function handleCheckoutSessionCompleted(
       }
     }
 
+    // CRITICAL: Validate metadata - verify booking belongs to the tenant
+    if (tenantId) {
+      // Optionally verify the booking exists and belongs to this tenant
+      // This prevents malicious Stripe events from creating/updating bookings
+      // For now, we just log the association
+      console.log('Checkout session for booking:', { bookingId, tenantId })
+    }
+
     // Log the successful payment
     console.log('Checkout session completed:', {
       sessionId: session.id,
       bookingId,
       amount: session.amount_total,
       paymentStatus: session.payment_status,
-      metadata: session.metadata,
     })
 
     // TODO: Update booking record when Bookings collection supports payment tracking
@@ -179,10 +263,14 @@ async function handleCheckoutSessionCompleted(
       data: { bookingId, sessionId: session.id },
     }
   } catch (error) {
-    console.error('Error handling checkout.session.completed:', error)
+    // Don't log full error message - only log type to prevent PII leakage
+    console.error('Error handling checkout.session.completed:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+      code: (error as any)?.code || 'UNKNOWN',
+    })
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to process checkout session',
     }
   }
 }
@@ -205,7 +293,6 @@ async function handlePaymentIntentSucceeded(
       bookingId,
       amount: paymentIntent.amount,
       applicationFee: paymentIntent.application_fee_amount,
-      transferData: paymentIntent.transfer_data,
     })
 
     return {
@@ -214,10 +301,12 @@ async function handlePaymentIntentSucceeded(
       data: { bookingId, paymentIntentId: paymentIntent.id },
     }
   } catch (error) {
-    console.error('Error handling payment_intent.succeeded:', error)
+    console.error('Error handling payment_intent.succeeded:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to process payment intent',
     }
   }
 }
@@ -238,7 +327,7 @@ async function handlePaymentIntentFailed(
     console.error('Payment intent failed:', {
       paymentIntentId: paymentIntent.id,
       bookingId,
-      lastPaymentError: paymentIntent.last_payment_error,
+      errorCode: paymentIntent.last_payment_error?.code,
     })
 
     // TODO: Update booking record when Bookings collection supports payment tracking
@@ -254,13 +343,15 @@ async function handlePaymentIntentFailed(
     return {
       success: true,
       message: 'Payment failure processed',
-      data: { bookingId, error: paymentIntent.last_payment_error?.message },
+      data: { bookingId },
     }
   } catch (error) {
-    console.error('Error handling payment_intent.payment_failed:', error)
+    console.error('Error handling payment_intent.payment_failed:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to process payment failure',
     }
   }
 }
@@ -325,10 +416,12 @@ async function handleAccountUpdated(
       data: { tenantId, status },
     }
   } catch (error) {
-    console.error('Error handling account.updated:', error)
+    console.error('Error handling account.updated:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to update account status',
     }
   }
 }
@@ -378,10 +471,12 @@ async function handleAccountDeauthorized(
       data: { tenantId },
     }
   } catch (error) {
-    console.error('Error handling account.application.deauthorized:', error)
+    console.error('Error handling account.application.deauthorized:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to process account deauthorization',
     }
   }
 }
@@ -453,10 +548,12 @@ async function handleSubscriptionCreated(
       data: { tenantId, subscriptionId: subscription.id },
     }
   } catch (error) {
-    console.error('Error handling customer.subscription.created:', error)
+    console.error('Error handling customer.subscription.created:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to create subscription',
     }
   }
 }
@@ -534,10 +631,12 @@ async function handleSubscriptionUpdated(
       data: { subscriptionId: subscription.id },
     }
   } catch (error) {
-    console.error('Error handling customer.subscription.updated:', error)
+    console.error('Error handling customer.subscription.updated:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to update subscription',
     }
   }
 }
@@ -591,10 +690,12 @@ async function handleSubscriptionDeleted(
       data: { subscriptionId: subscription.id },
     }
   } catch (error) {
-    console.error('Error handling customer.subscription.deleted:', error)
+    console.error('Error handling customer.subscription.deleted:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to delete subscription',
     }
   }
 }
@@ -653,10 +754,12 @@ async function handleInvoicePaid(
       data: { invoiceId: invoice.id, subscriptionId },
     }
   } catch (error) {
-    console.error('Error handling invoice.paid:', error)
+    console.error('Error handling invoice.paid:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to process invoice payment',
     }
   }
 }
@@ -713,10 +816,12 @@ async function handleInvoicePaymentFailed(
       data: { invoiceId: invoice.id, subscriptionId },
     }
   } catch (error) {
-    console.error('Error handling invoice.payment_failed:', error)
+    console.error('Error handling invoice.payment_failed:', {
+      type: error instanceof Error ? error.name : 'Unknown',
+    })
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Failed to process invoice payment failure',
     }
   }
 }

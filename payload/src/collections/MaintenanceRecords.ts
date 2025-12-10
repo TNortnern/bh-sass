@@ -88,12 +88,12 @@ export const MaintenanceRecords: CollectionConfig = {
       },
       hooks: {
         beforeValidate: [
-          ({ req, value }) => {
-            // Auto-assign tenant for tenant admins or staff
-            if (!value && req.user && (req.user.role === 'tenant_admin' || req.user.role === 'staff')) {
+          ({ req }) => {
+            // Always use the authenticated user's tenant - never allow client-provided tenantId
+            if (req.user?.tenantId) {
               return getTenantId(req.user)
             }
-            return value
+            return undefined
           },
         ],
       },

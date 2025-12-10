@@ -189,5 +189,27 @@ export const Subscriptions: CollectionConfig = {
       },
     },
   ],
+  hooks: {
+    beforeValidate: [
+      async ({ req, data }) => {
+        // CRITICAL: Always enforce tenant isolation on subscription operations
+        // Never trust client-provided tenantId
+        const tenantId = getTenantId(req.user)
+
+        if (!tenantId) {
+          throw new Error('Subscription operations require authentication with a valid tenant context')
+        }
+
+        // Super admins can create subscriptions for any tenant via direct assignment
+        // Non-admins must have their subscription belong to their authenticated tenant
+        if (req.user?.role !== 'super_admin') {
+          // For non-super-admins, always enforce their tenant
+          data.tenantId = tenantId
+        }
+
+        return data
+      },
+    ],
+  },
   timestamps: true,
 }

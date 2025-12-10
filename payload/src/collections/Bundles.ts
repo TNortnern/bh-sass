@@ -102,12 +102,12 @@ export const Bundles: CollectionConfig = {
       },
       hooks: {
         beforeValidate: [
-          ({ req, value }) => {
-            // Auto-assign tenant from current user if not provided
-            if (!value && req.user) {
+          ({ req }) => {
+            // Always use the authenticated user's tenant - never allow client-provided tenantId
+            if (req.user?.tenantId) {
               return getTenantId(req.user)
             }
-            return value
+            return undefined
           },
         ],
       },
