@@ -1,8 +1,51 @@
-import type { Access, CollectionConfig, CollectionAfterChangeHook } from 'payload'
+import type { Access, CollectionConfig, CollectionAfterChangeHook, CollectionBeforeValidateHook } from 'payload'
 import { getTenantId } from '../utilities/getTenantId'
 import { getAccessContext } from '../utilities/accessControl'
 import { auditCreateAndUpdate, auditDelete } from '../hooks/auditHooks'
 import { syncRentalItemToRbPayload } from '../lib/inventory-sync'
+
+/**
+ * Layer 3: Business Logic Validation Hook
+ * Comprehensive validation of all required fields before database write
+ * Prevents invalid data from reaching the database
+ *
+ * This hook runs on both create and update operations to prevent data corruption.
+ * - On create: Validates all required fields exist and have valid values
+ * - On update: Ensures updated values maintain data integrity (e.g., pricing can't become invalid)
+ */
+const validateRequiredFieldsHook: CollectionBeforeValidateHook = async ({ data, req, operation }) => {
+  // Validate name (required on create, validated on update if provided)
+  if (data.name !== undefined) {
+    if (typeof data.name !== 'string' || data.name.trim().length === 0) {
+      throw new Error('Rental item name is required and must be a non-empty string')
+    }
+  } else if (operation === 'create') {
+    throw new Error('Rental item name is required and must be a non-empty string')
+  }
+
+  // Validate pricing structure exists and has valid values
+  if (data.pricing !== undefined) {
+    if (!data.pricing) {
+      throw new Error('Pricing information is required')
+    }
+
+    const dailyRate = data.pricing.dailyRate
+
+    // Check if dailyRate is a valid positive number (rejects NaN, Infinity, negative, zero)
+    if (dailyRate !== undefined) {
+      if (typeof dailyRate !== 'number' || !Number.isFinite(dailyRate) || dailyRate <= 0) {
+        throw new Error(`Daily rate is required and must be a valid positive number (received: ${String(dailyRate)})`)
+      }
+    } else if (operation === 'create') {
+      throw new Error('Daily rate is required and must be a positive number')
+    }
+  } else if (operation === 'create') {
+    throw new Error('Pricing information is required')
+  }
+
+  // Validation passed
+  return data
+}
 
 /**
  * Hook to automatically sync rental items to rb-payload after create/update
@@ -146,12 +189,28 @@ export const RentalItems: CollectionConfig = {
       },
       hooks: {
         beforeValidate: [
-          ({ req }) => {
-            // Always use the authenticated user's tenant - never allow client-provided tenantId
-            if (req.user?.tenantId) {
-              return getTenantId(req.user)
+          ({ req, data, operation }) => {
+            // Layer 3: Authorization - User must have associated tenant
+            // This hook only runs on CREATE operations to auto-assign the tenant
+            // On UPDATE operations, preserve the existing tenantId (don't auto-set)
+            if (operation !== 'create') {
+              // On update, return the provided tenantId if updating that field
+              // If not updating tenantId field, return undefined (Payload will preserve existing value)
+              return data.tenantId
             }
-            return undefined
+
+            // On CREATE: Always use the authenticated user's tenant
+            // Never allow client-provided tenantId (prevents data leakage across tenants)
+            const tenantId = getTenantId(req.user)
+
+            // If no user or no tenant associated, throw error
+            if (!tenantId) {
+              throw new Error('User must be associated with a tenant to create rental items')
+            }
+
+            // Override client-provided value with user's tenant
+            // This prevents data leakage across tenants
+            return tenantId
           },
         ],
       },
@@ -540,6 +599,11 @@ export const RentalItems: CollectionConfig = {
   ],
   timestamps: true,
   hooks: {
+    // Layer 3: Business logic validation before database write
+    // Field-level tenantId hook already handles tenant authorization and assignment
+    // This collection-level hook validates remaining required fields and data integrity
+    beforeValidate: [validateRequiredFieldsHook],
+    // Layer 4: Audit and sync hooks after successful database write
     afterChange: [auditCreateAndUpdate, syncToRbPayloadHook],
     afterDelete: [auditDelete],
   },
