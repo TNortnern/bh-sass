@@ -12,6 +12,20 @@ const RB_PAYLOAD_URL = process.env.RB_PAYLOAD_URL || 'https://reusablebook-paylo
 const RB_PAYLOAD_API_KEY = process.env.RB_PAYLOAD_API_KEY || ''
 const RB_PAYLOAD_TENANT_ID = process.env.RB_PAYLOAD_TENANT_ID || '6'
 
+// Check if rb-payload sync is enabled (requires API key)
+const isRbPayloadSyncEnabled = (): boolean => {
+  return !!RB_PAYLOAD_API_KEY
+}
+
+// Log sync disabled message once
+let syncDisabledLogged = false
+const logSyncDisabled = () => {
+  if (!syncDisabledLogged) {
+    console.log('[Inventory Sync] rb-payload sync is disabled (RB_PAYLOAD_API_KEY not configured)')
+    syncDisabledLogged = true
+  }
+}
+
 interface RentalItem {
   id: number
   name: string
@@ -113,11 +127,18 @@ async function callRbPayloadApi(
 
 /**
  * Sync a single rental item to rb-payload
+ * Returns success: true if sync completed or skipped (not configured)
  */
 export async function syncRentalItemToRbPayload(
   payload: Payload,
   item: RentalItem
 ): Promise<SyncResult> {
+  // Skip sync gracefully if rb-payload is not configured
+  if (!isRbPayloadSyncEnabled()) {
+    logSyncDisabled()
+    return { success: true } // Return success so item creation doesn't fail
+  }
+
   const serviceData = transformRentalItemToService(item)
 
   console.log(`[Inventory Sync] Syncing item ${item.id} (${item.name}) to rb-payload...`)
