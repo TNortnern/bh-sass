@@ -51,15 +51,25 @@ RUN printf '#!/bin/sh\n\
 set -e\n\
 \n\
 echo "=== BouncePro SaaS Starting ==="\n\
+\n\
+# Debug: Show critical env vars (redacted)\n\
+echo "=== Environment Check ==="\n\
+echo "PORT=${PORT:-not set}"\n\
+echo "NODE_ENV=${NODE_ENV:-not set}"\n\
+echo "DATABASE_URI present: $([ -n \"${DATABASE_URI}\" ] && echo yes || echo no)"\n\
+echo "DATABASE_URL present: $([ -n \"${DATABASE_URL}\" ] && echo yes || echo no)"\n\
+echo "PAYLOAD_SECRET present: $([ -n \"${PAYLOAD_SECRET}\" ] && echo yes || echo no)"\n\
+echo "PAYLOAD_SECRET length: ${#PAYLOAD_SECRET}"\n\
+\n\
 echo "=== Configuring services ==="\n\
 \n\
 # Payload always uses internal port 3000\n\
 PAYLOAD_PORT=3000\n\
 \n\
-# Nuxt uses Railway PORT, but if its 3000, use 3001 to avoid conflict\n\
-if [ "${PORT}" = "3000" ] || [ -z "${PORT}" ]; then\n\
+# Nuxt uses Railway PORT. Avoid 3000 (conflict) and 5432 (postgres)\n\
+if [ "${PORT}" = "3000" ] || [ "${PORT}" = "5432" ] || [ -z "${PORT}" ]; then\n\
   NUXT_PORT=3001\n\
-  echo "PORT was 3000 or empty, using NUXT_PORT=3001 to avoid conflict"\n\
+  echo "PORT was ${PORT:-empty}, using NUXT_PORT=3001 to avoid conflict"\n\
 else\n\
   NUXT_PORT=${PORT}\n\
 fi\n\
@@ -99,8 +109,13 @@ EOF\n\
 echo "=== PM2 Config ==="\n\
 cat /app/ecosystem.config.json\n\
 \n\
+# Run migrations only if PAYLOAD_SECRET is set\n\
 echo "=== Running database migrations ==="\n\
-cd /app/payload-migrate && yes | npx payload migrate 2>&1 || echo "Migration completed or no migrations needed"\n\
+if [ -n "${PAYLOAD_SECRET}" ]; then\n\
+  cd /app/payload-migrate && npx payload migrate 2>&1 || echo "Migration completed or no migrations needed"\n\
+else\n\
+  echo "WARNING: PAYLOAD_SECRET not set, skipping migrations"\n\
+fi\n\
 \n\
 echo "=== Starting services with PM2 ==="\n\
 exec pm2-runtime /app/ecosystem.config.json\n\
