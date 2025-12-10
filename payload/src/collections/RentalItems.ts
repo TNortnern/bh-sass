@@ -146,26 +146,12 @@ export const RentalItems: CollectionConfig = {
       },
       hooks: {
         beforeValidate: [
-          ({ req, value, data }) => {
-            console.log('[RentalItems] beforeValidate hook called:', {
-              value,
-              dataKeys: data ? Object.keys(data) : 'no data',
-              dataTenantId: data?.tenantId,
-              userExists: !!req.user,
-              userId: req.user?.id,
-              userTenantId: req.user?.tenantId,
-              userRole: req.user?.role,
-            })
-
-            // Auto-assign tenant for users with a tenantId
-            if (!value && req.user?.tenantId) {
-              const extractedTenantId = getTenantId(req.user)
-              console.log('[RentalItems] Auto-assigning tenantId:', extractedTenantId)
-              return extractedTenantId
+          ({ req }) => {
+            // Always use the authenticated user's tenant - never allow client-provided tenantId
+            if (req.user?.tenantId) {
+              return getTenantId(req.user)
             }
-
-            console.log('[RentalItems] Returning existing value:', value)
-            return value
+            return undefined
           },
         ],
       },
