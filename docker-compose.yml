@@ -32,21 +32,26 @@ services:
     environment:
       NODE_ENV: development
       DATABASE_URI: postgresql://bh_user:dev_password_change_in_prod@postgres:5432/bounce_house_saas
-      PAYLOAD_SECRET: dev-secret-change-in-production-use-openssl-rand
+      # CRITICAL: Use env variable to ensure secret persists across restarts
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:-dev-secret-change-in-production-use-openssl-rand}
       PORT: 3000
       # Auto-accept database migrations in development
       CI: "true"
-      # Stripe Configuration (from .env.example)
-      STRIPE_SECRET_KEY: sk_test_YOUR_STRIPE_SECRET_KEY
-      STRIPE_PUBLISHABLE_KEY: pk_test_51SZFOCARnP3WTvQh5s9ISSQJnmlrH1b1szpiyTOABnceGpHtR0kAyy6sUs06p1xTkYaSMdQImL8yaaMekxf5vgnz00rddbP3v1
-      STRIPE_WEBHOOK_SECRET: whsec_test_webhook_secret_placeholder
+      # Stripe Configuration
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_placeholder}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-pk_test_placeholder}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-whsec_placeholder}
       PAYLOAD_PUBLIC_SERVER_URL: http://localhost:3004
       # Brevo Email Configuration (same as rb-payload)
-      BREVO_API_KEY: xkeysib-YOUR_BREVO_API_KEY
+      BREVO_API_KEY: ${BREVO_API_KEY:-your_brevo_api_key}
       EMAIL_FROM_ADDRESS: reusablebooking@yahoo.com
       EMAIL_FROM_NAME: BouncePro
       # Demo mode for QA testing (bypasses Stripe)
       DEMO_MODE: ${DEMO_MODE:-false}
+      # rb-payload API configuration for inventory sync
+      RB_PAYLOAD_URL: https://reusablebook-payload-production.up.railway.app
+      RB_PAYLOAD_API_KEY: ${RB_PAYLOAD_API_KEY:-tk_placeholder}
+      RB_PAYLOAD_TENANT_ID: "6"
     volumes:
       # Hot-reload: mount source code
       - ./payload/src:/app/src
@@ -76,19 +81,23 @@ services:
       NUXT_PAYLOAD_API_URL: http://payload:3000
       NUXT_PUBLIC_PAYLOAD_URL: http://localhost:3005
       # Local Payload API key for server-to-server auth
-      PAYLOAD_API_KEY: tk_nymb8x9gib7cg27xomoxo4
+      PAYLOAD_API_KEY: ${PAYLOAD_API_KEY:-tk_placeholder}
       PAYLOAD_TENANT_ID: 1
       # rb-payload API configuration
       RB_PAYLOAD_URL: https://reusablebook-payload-production.up.railway.app
       NUXT_PUBLIC_RB_PAYLOAD_URL: https://reusablebook-payload-production.up.railway.app
-      RB_PAYLOAD_API_KEY: tk_58v2xsw911d0dy5q8mrlum3r9hah05n0
+      RB_PAYLOAD_API_KEY: ${RB_PAYLOAD_API_KEY:-tk_placeholder}
       # Bunny CDN Configuration
-      BUNNY_STORAGE_API_KEY: d73ca461-b0a3-4f8e-9d900ff46156-0bec-408b
+      BUNNY_STORAGE_API_KEY: ${BUNNY_STORAGE_API_KEY:-placeholder}
       BUNNY_STORAGE_ZONE: hastest
       BUNNY_CDN_HOSTNAME: hastets.b-cdn.net
       BUNNY_STORAGE_HOSTNAME: storage.bunnycdn.com
       # Demo mode for QA testing
       DEMO_MODE: ${DEMO_MODE:-false}
+      # Stripe Configuration for checkout
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_placeholder}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-pk_test_placeholder}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-whsec_placeholder}
     volumes:
       # Hot-reload: mount source code only
       - ./nuxt/app:/app/app
