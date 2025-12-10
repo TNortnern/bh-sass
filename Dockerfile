@@ -145,13 +145,9 @@ EOF\n\
 echo "=== PM2 Config ==="\n\
 cat /app/ecosystem.config.json\n\
 \n\
-# Run migrations only if PAYLOAD_SECRET is set\n\
-echo "=== Running database migrations ==="\n\
-if [ -n "${PAYLOAD_SECRET}" ]; then\n\
-  cd /app/payload-migrate && npx payload migrate 2>&1 || echo "Migration completed or no migrations needed"\n\
-else\n\
-  echo "WARNING: PAYLOAD_SECRET not set, skipping migrations"\n\
-fi\n\
+# Skip migrations - we use push: true in Payload config for Drizzle auto-sync\n\
+# The migrate command prompts for user input which blocks container startup\n\
+echo "=== Skipping migrations (using Drizzle push: true for auto-sync) ==="\n\
 \n\
 echo "=== Starting services with PM2 ==="\n\
 exec pm2-runtime /app/ecosystem.config.json\n\
