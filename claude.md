@@ -65,6 +65,14 @@ onBeforeRouteLeave((to) => {
 })
 ```
 
+### Git Commits
+**NEVER use `git commit --no-verify`!**
+
+Pre-commit hooks exist to catch errors before they reach the repository. If a pre-commit hook fails:
+- Fix the underlying TypeScript errors, linting issues, or test failures
+- Do NOT bypass the hooks - the errors need to be resolved
+- If the pre-commit hook is failing due to pre-existing issues in the codebase that are unrelated to your changes, notify the user and ask how to proceed
+
 ### Architecture
 - **rb-payload** is the booking engine (don't rebuild booking logic)
 - **Payload CMS** extends rb-payload with bounce house specific features
