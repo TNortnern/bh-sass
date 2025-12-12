@@ -11,6 +11,8 @@
  * allowing BH-SaaS to optionally save widget preferences per tenant.
  */
 
+import NoTenantAlert from '~/components/NoTenantAlert.vue'
+
 definePageMeta({
   layout: 'dashboard'
 })
@@ -18,10 +20,22 @@ definePageMeta({
 const toast = useToast()
 const config = useRuntimeConfig()
 const colorMode = useColorMode()
+const { currentUser } = useAuth()
 
-// For demo purposes, use a placeholder tenant ID
-// In production, this would come from the user's session
-const tenantId = ref(6) // Bounce Kingdom tenant ID
+// Check if user has tenant ID assigned
+const hasTenant = computed(() => {
+  return currentUser.value?.tenantId !== null && currentUser.value?.tenantId !== undefined
+})
+
+// Use authenticated user's rb-payload tenant ID (NO fallback - show error if not set)
+const tenantId = computed(() => {
+  if (hasTenant.value && currentUser.value?.tenantId) {
+    // tenantId could be string or number from Payload
+    const id = currentUser.value.tenantId
+    return typeof id === 'string' ? parseInt(id) : id
+  }
+  return null // No fallback - will trigger NoTenantAlert
+})
 
 // rb-payload widget base URL
 const rbPayloadUrl = computed(() => {
@@ -77,7 +91,10 @@ const viewMode = ref<'embedded' | 'simple'>('embedded')
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto">
+  <!-- Show NoTenantAlert if user doesn't have a tenant assigned -->
+  <NoTenantAlert v-if="!hasTenant" />
+
+  <div v-else class="max-w-7xl mx-auto">
     <!-- Page Header -->
     <div class="mb-6 flex items-center justify-between">
       <div>

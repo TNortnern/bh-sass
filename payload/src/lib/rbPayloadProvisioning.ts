@@ -44,6 +44,15 @@ interface RbPayloadTenant {
       autoAssignStrategy: 'first-available' | 'load-balanced'
       requireAllStaffAvailable: boolean
     }
+    terminology: {
+      businessType: 'service' | 'rental' | 'appointment' | 'custom'
+      itemLabel: string
+      itemLabelPlural: string
+      selectItemsTitle: string
+      selectItemsDescription: string
+      noItemsMessage: string
+      noItemsSelectedMessage: string
+    }
   }
 }
 
@@ -125,6 +134,16 @@ async function createRbPayloadTenant(data: {
         customerSelectsStaff: 'hidden', // Skip staff selection in widget
         autoAssignStrategy: 'first-available', // Auto-assign delivery staff
         requireAllStaffAvailable: false, // Not relevant for inventory mode
+      },
+      // CRITICAL: Use 'rental' terminology for bounce house businesses
+      terminology: {
+        businessType: 'rental' as const,
+        itemLabel: 'Rental',
+        itemLabelPlural: 'Rentals',
+        selectItemsTitle: 'Choose Your Rentals',
+        selectItemsDescription: 'Select the items you want to rent',
+        noItemsMessage: 'No rentals available',
+        noItemsSelectedMessage: 'No rentals selected',
       },
     },
   }
