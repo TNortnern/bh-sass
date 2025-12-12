@@ -187,6 +187,53 @@ export const Customers: CollectionConfig = {
         readOnly: true,
       },
     },
+    // rb-payload sync fields
+    {
+      name: 'rbPayloadCustomerId',
+      type: 'number',
+      admin: {
+        description: 'Customer ID in rb-payload booking system',
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'syncStatus',
+      type: 'select',
+      options: [
+        { label: 'Pending', value: 'pending' },
+        { label: 'Synced', value: 'synced' },
+        { label: 'Failed', value: 'failed' },
+        { label: 'Out of Sync', value: 'out_of_sync' },
+      ],
+      defaultValue: 'pending',
+      admin: {
+        description: 'Sync status with rb-payload',
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'lastSyncedAt',
+      type: 'date',
+      admin: {
+        description: 'Last successful sync timestamp',
+        readOnly: true,
+        position: 'sidebar',
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
+    {
+      name: 'syncError',
+      type: 'text',
+      admin: {
+        description: 'Last sync error message',
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
   ],
   timestamps: true,
   hooks: {
@@ -208,6 +255,28 @@ export const Customers: CollectionConfig = {
             req.payload.logger.error(`Failed to queue customer webhooks: ${error.message}`)
           }
         })
+      },
+      // Sync customer to rb-payload (background, non-blocking)
+      async ({ doc, req }) => {
+        const { queueCustomerSync } = await import('../lib/customer-sync')
+
+        // Transform to expected customer format
+        const customer = {
+          id: doc.id,
+          firstName: doc.name?.split(' ')[0] || '',
+          lastName: doc.name?.split(' ').slice(1).join(' ') || '',
+          email: doc.email,
+          phone: doc.phone,
+          address: doc.address,
+          notes: doc.notes,
+          tags: doc.tags?.map((t: { tag: string }) => t.tag) || [],
+          rbPayloadCustomerId: doc.rbPayloadCustomerId,
+          syncStatus: doc.syncStatus,
+          lastSyncedAt: doc.lastSyncedAt,
+          syncError: doc.syncError,
+        }
+
+        queueCustomerSync(req.payload, customer)
       },
     ],
     afterDelete: [auditDelete],

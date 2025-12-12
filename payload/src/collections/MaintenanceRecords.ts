@@ -296,11 +296,26 @@ export const MaintenanceRecords: CollectionConfig = {
         },
       },
     },
+    // rb-payload sync field
+    {
+      name: 'rbPayloadBlackoutId',
+      type: 'number',
+      admin: {
+        description: 'Blackout ID in rb-payload booking system',
+        readOnly: true,
+        position: 'sidebar',
+      },
+    },
   ],
   timestamps: true,
   hooks: {
     // Update the rental item's last maintenance date when a record is completed
     afterChange: [
+      // Sync maintenance to rb-payload as blackout (background, non-blocking)
+      async ({ doc, req }) => {
+        const { queueMaintenanceSync } = await import('../lib/blackout-sync')
+        queueMaintenanceSync(req.payload, doc as any)
+      },
       async ({ doc, req, operation }) => {
         if (operation === 'update' && doc.status === 'completed' && doc.completedDate) {
           try {

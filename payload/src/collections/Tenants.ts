@@ -1059,7 +1059,63 @@ export const Tenants: CollectionConfig = {
         return doc
       },
     ],
-    afterChange: [auditCreateAndUpdate],
+    afterChange: [
+      auditCreateAndUpdate,
+      // Sync business hours and timezone to rb-payload (background, non-blocking)
+      async ({ doc, req, operation }) => {
+        // Only sync on update (not create - handled by provisioning hook)
+        if (operation !== 'update') return doc
+
+        // Skip if tenant doesn't have rb-payload tenant ID
+        if (!doc.rbPayloadTenantId) return doc
+
+        const { queueBusinessHoursSync } = await import('../lib/business-hours-sync')
+
+        // Transform tenant data to expected interface
+        const businessHours: Array<{
+          enabled: boolean
+          dayOfWeek: string
+          openTime: string
+          closeTime: string
+        }> = []
+
+        // Convert businessHours group structure to array format
+        const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+        for (const day of daysOfWeek) {
+          const dayHours = doc.businessHours?.[day as keyof typeof doc.businessHours]
+          if (dayHours) {
+            businessHours.push({
+              enabled: (dayHours as any).enabled ?? true,
+              dayOfWeek: day,
+              openTime: (dayHours as any).open || '09:00',
+              closeTime: (dayHours as any).close || '18:00',
+            })
+          }
+        }
+
+        const tenantSettings = {
+          id: doc.id as number,
+          rbPayloadTenantId: doc.rbPayloadTenantId,
+          name: doc.name,
+          settings: {
+            timezone: doc.settings?.timezone,
+            currency: doc.settings?.currency,
+            locale: doc.settings?.locale,
+            bookingSettings: {
+              leadTime: doc.settings?.bookingSettings?.leadTime,
+              maxAdvanceBooking: doc.settings?.bookingSettings?.maxAdvanceBooking,
+              cancellationPolicy: doc.settings?.bookingSettings?.cancellationPolicy,
+              requireApproval: doc.settings?.bookingSettings?.requireApproval,
+            },
+            businessHours,
+          },
+        }
+
+        queueBusinessHoursSync(req.payload, tenantSettings)
+
+        return doc
+      },
+    ],
     afterDelete: [auditDelete],
   },
 }
