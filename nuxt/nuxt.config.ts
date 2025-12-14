@@ -35,7 +35,6 @@ export default defineNuxtConfig({
     public: {
       payloadUrl: process.env.NUXT_PUBLIC_PAYLOAD_URL || 'http://localhost:3004',
       rbPayloadUrl: process.env.NUXT_PUBLIC_RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app',
-      rbPayloadApiKey: process.env.NUXT_PUBLIC_RB_PAYLOAD_API_KEY || 'tk_58v2xsw911d0dy5q8mrlum3r9hah05n0',
       stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
       googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || ''
     }
