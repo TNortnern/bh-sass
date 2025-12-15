@@ -221,7 +221,7 @@
               label="Explore Dashboard"
               icon="i-lucide-bar-chart-3"
               size="xl"
-              color="orange"
+              color="warning"
               class="shadow-lg hover:shadow-xl transition-shadow"
             />
           </div>

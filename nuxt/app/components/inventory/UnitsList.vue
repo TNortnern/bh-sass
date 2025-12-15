@@ -10,18 +10,20 @@ const emit = defineEmits<{
   (e: 'edit' | 'delete', unit: InventoryUnit): void
 }>()
 
-const getStatusColor = (status: string) => {
+type NuxtUIColor = 'error' | 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'neutral'
+
+const getStatusColor = (status: string): NuxtUIColor => {
   switch (status) {
     case 'available':
-      return 'green'
+      return 'success'
     case 'rented':
-      return 'blue'
+      return 'primary'
     case 'maintenance':
-      return 'orange'
+      return 'warning'
     case 'retired':
-      return 'red'
+      return 'error'
     default:
-      return 'gray'
+      return 'neutral'
   }
 }
 

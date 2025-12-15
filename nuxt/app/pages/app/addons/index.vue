@@ -325,7 +325,7 @@ const formatPrice = (amount: number) => {
                 <UBadge
                   v-if="addon.required"
                   label="Required"
-                  color="amber"
+                  color="warning"
                   variant="subtle"
                   size="sm"
                 />

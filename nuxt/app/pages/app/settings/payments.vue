@@ -93,7 +93,7 @@
               </UButton>
               <UButton
                 variant="ghost"
-                color="red"
+                color="error"
                 size="lg"
                 @click="showDisconnectModal = true"
               >
@@ -378,7 +378,7 @@
                 Cancel
               </UButton>
               <UButton
-                color="red"
+                color="error"
                 @click="handleDisconnect"
               >
                 Disconnect Stripe

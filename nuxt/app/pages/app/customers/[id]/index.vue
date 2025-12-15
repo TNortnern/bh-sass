@@ -9,7 +9,7 @@
         color="neutral"
         variant="ghost"
         size="md"
-        :ui="{ rounded: 'rounded-lg' }"
+        class="rounded-lg"
         @click="navigateTo('/app/customers')"
       >
         <UIcon
@@ -22,13 +22,7 @@
 
     <!-- Customer Header -->
     <UCard
-      :ui="{
-        background: 'bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-800/90 dark:to-slate-900/90',
-        ring: 'ring-1 ring-gray-200 dark:ring-slate-700/50',
-        rounded: 'rounded-xl',
-        body: { padding: 'p-8' }
-      }"
-      class="mb-6"
+      class="mb-6 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-800/90 dark:to-slate-900/90 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
     >
       <div class="flex flex-col md:flex-row items-start gap-8">
         <!-- Avatar Section -->
@@ -37,9 +31,9 @@
             :src="customer.avatar"
             :alt="`${customer.firstName} ${customer.lastName}`"
             size="3xl"
+            class="bg-gradient-to-br from-amber-500 to-orange-600"
             :ui="{
-              background: 'bg-gradient-to-br from-amber-500 to-orange-600',
-              text: 'text-white font-semibold text-4xl'
+              fallback: 'text-white font-semibold text-4xl'
             }"
           >
             {{ initials }}
@@ -74,18 +68,18 @@
                   v-model="editForm.firstName"
                   placeholder="First name"
                   size="lg"
+                  class="rounded-lg"
                   :ui="{
-                    base: 'bg-white dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500 dark:focus:border-amber-500/50 text-gray-900 dark:text-slate-200',
-                    rounded: 'rounded-lg'
+                    base: 'bg-white dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500 dark:focus:border-amber-500/50 text-gray-900 dark:text-slate-200'
                   }"
                 />
                 <UInput
                   v-model="editForm.lastName"
                   placeholder="Last name"
                   size="lg"
+                  class="rounded-lg"
                   :ui="{
-                    base: 'bg-white dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500 dark:focus:border-amber-500/50 text-gray-900 dark:text-slate-200',
-                    rounded: 'rounded-lg'
+                    base: 'bg-white dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500 dark:focus:border-amber-500/50 text-gray-900 dark:text-slate-200'
                   }"
                 />
               </div>
@@ -101,9 +95,9 @@
                     type="email"
                     placeholder="Email"
                     size="md"
+                    class="rounded-lg"
                     :ui="{
-                      base: 'bg-white dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500 dark:focus:border-amber-500/50 text-gray-900 dark:text-slate-200',
-                      rounded: 'rounded-lg'
+                      base: 'bg-white dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500 dark:focus:border-amber-500/50 text-gray-900 dark:text-slate-200'
                     }"
                   >
                     <template #leading>
@@ -118,9 +112,9 @@
                     type="tel"
                     placeholder="Phone"
                     size="md"
+                    class="rounded-lg"
                     :ui="{
-                      base: 'bg-white dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500 dark:focus:border-amber-500/50 text-gray-900 dark:text-slate-200',
-                      rounded: 'rounded-lg'
+                      base: 'bg-white dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500 dark:focus:border-amber-500/50 text-gray-900 dark:text-slate-200'
                     }"
                   >
                     <template #leading>
@@ -181,7 +175,7 @@
                 <UButton
                   color="primary"
                   size="md"
-                  :ui="{ rounded: 'rounded-lg' }"
+                  class="rounded-lg"
                   @click="saveEdit"
                 >
                   <UIcon
@@ -194,7 +188,7 @@
                   color="neutral"
                   variant="ghost"
                   size="md"
-                  :ui="{ rounded: 'rounded-lg' }"
+                  class="rounded-lg"
                   @click="cancelEdit"
                 >
                   Cancel
@@ -205,7 +199,7 @@
                   color="neutral"
                   variant="outline"
                   size="md"
-                  :ui="{ rounded: 'rounded-lg' }"
+                  class="rounded-lg"
                   :to="`/app/customers/${customer.id}/edit`"
                 >
                   <UIcon
@@ -217,7 +211,7 @@
                 <UButton
                   color="primary"
                   size="md"
-                  :ui="{ rounded: 'rounded-lg' }"
+                  class="rounded-lg"
                   @click="quickBook"
                 >
                   <UIcon
@@ -237,10 +231,7 @@
               :key="tag"
               :color="getTagColor(tag)"
               variant="subtle"
-              :ui="{
-                rounded: 'rounded-full',
-                font: 'font-medium tracking-wide'
-              }"
+              class="rounded-full font-medium tracking-wide"
             >
               {{ tag }}
               <button
@@ -261,7 +252,7 @@
               color="neutral"
               variant="outline"
               size="xs"
-              :ui="{ rounded: 'rounded-full' }"
+              class="rounded-full"
               @click="showAddTag = true"
             >
               <UIcon
@@ -278,12 +269,7 @@
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
       <UCard
-        :ui="{
-          background: 'bg-white dark:bg-gradient-to-br dark:from-slate-800/60 dark:to-slate-800/40',
-          ring: 'ring-1 ring-gray-200 dark:ring-slate-700/50',
-          rounded: 'rounded-xl',
-          body: { padding: 'p-6' }
-        }"
+        class="bg-white dark:bg-gradient-to-br dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
       >
         <div class="flex items-start justify-between">
           <div>
@@ -295,7 +281,7 @@
             </div>
             <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
               <UBadge
-                color="green"
+                color="success"
                 variant="subtle"
                 size="xs"
               >
@@ -303,7 +289,7 @@
               </UBadge>
               <UBadge
                 v-if="customer.bookings.upcoming > 0"
-                color="blue"
+                color="primary"
                 variant="subtle"
                 size="xs"
               >
@@ -321,12 +307,7 @@
       </UCard>
 
       <UCard
-        :ui="{
-          background: 'bg-white dark:bg-gradient-to-br dark:from-slate-800/60 dark:to-slate-800/40',
-          ring: 'ring-1 ring-gray-200 dark:ring-slate-700/50',
-          rounded: 'rounded-xl',
-          body: { padding: 'p-6' }
-        }"
+        class="bg-white dark:bg-gradient-to-br dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
       >
         <div class="flex items-start justify-between">
           <div>
@@ -350,12 +331,7 @@
       </UCard>
 
       <UCard
-        :ui="{
-          background: 'bg-white dark:bg-gradient-to-br dark:from-slate-800/60 dark:to-slate-800/40',
-          ring: 'ring-1 ring-gray-200 dark:ring-slate-700/50',
-          rounded: 'rounded-xl',
-          body: { padding: 'p-6' }
-        }"
+        class="bg-white dark:bg-gradient-to-br dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
       >
         <div class="flex items-start justify-between">
           <div>
@@ -379,12 +355,7 @@
       </UCard>
 
       <UCard
-        :ui="{
-          background: 'bg-white dark:bg-gradient-to-br dark:from-slate-800/60 dark:to-slate-800/40',
-          ring: 'ring-1 ring-gray-200 dark:ring-slate-700/50',
-          rounded: 'rounded-xl',
-          body: { padding: 'p-6' }
-        }"
+        class="bg-white dark:bg-gradient-to-br dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
       >
         <div class="flex items-start justify-between">
           <div>
@@ -412,32 +383,12 @@
     <UTabs
       v-model="activeTab"
       :items="tabs"
-      :ui="{
-        wrapper: 'space-y-6',
-        list: {
-          background: 'bg-gray-100 dark:bg-slate-800/40',
-          rounded: 'rounded-xl',
-          padding: 'p-2',
-          marker: {
-            background: 'bg-amber-500'
-          },
-          tab: {
-            base: 'relative inline-flex items-center justify-center flex-shrink-0 font-medium rounded-lg transition-all',
-            active: 'text-white dark:text-slate-50',
-            inactive: 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-300'
-          }
-        }
-      }"
+      class="space-y-6"
     >
       <!-- Booking History Tab -->
       <template #bookings>
         <UCard
-          :ui="{
-            background: 'bg-white dark:bg-slate-800/40',
-            ring: 'ring-1 ring-gray-200 dark:ring-slate-700/50',
-            rounded: 'rounded-xl',
-            body: { padding: 'p-0' }
-          }"
+          class="bg-white dark:bg-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
         >
           <!-- Loading State -->
           <div
@@ -538,7 +489,7 @@
                     color="neutral"
                     variant="ghost"
                     size="sm"
-                    :ui="{ rounded: 'rounded-lg' }"
+                    class="rounded-lg"
                     @click="navigateTo(`/app/bookings/${booking.id}`)"
                   >
                     View Details
@@ -555,12 +506,7 @@
         <div class="space-y-6">
           <!-- Add Note Form -->
           <UCard
-            :ui="{
-              background: 'bg-white dark:bg-slate-800/40',
-              ring: 'ring-1 ring-gray-200 dark:ring-slate-700/50',
-              rounded: 'rounded-xl',
-              body: { padding: 'p-6' }
-            }"
+            class="bg-white dark:bg-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
           >
             <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-200 mb-4">
               Add New Note
@@ -570,16 +516,15 @@
                 v-model="newNote"
                 placeholder="Write a note about this customer..."
                 :rows="3"
+                class="flex-1 rounded-xl"
                 :ui="{
-                  base: 'bg-gray-50 dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500 dark:focus:border-amber-500/50 text-gray-900 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500',
-                  rounded: 'rounded-xl'
+                  base: 'bg-gray-50 dark:bg-slate-800/60 border-gray-300 dark:border-slate-700/50 focus:border-amber-500 dark:focus:border-amber-500/50 text-gray-900 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500'
                 }"
-                class="flex-1"
               />
               <UButton
                 color="primary"
                 size="lg"
-                :ui="{ rounded: 'rounded-xl' }"
+                class="rounded-xl"
                 :disabled="!newNote.trim()"
                 @click="handleAddNote"
               >
@@ -617,12 +562,7 @@
             <UCard
               v-for="note in customer.notes"
               :key="note.id"
-              :ui="{
-                background: 'bg-white dark:bg-slate-800/40',
-                ring: 'ring-1 ring-gray-200 dark:ring-slate-700/50',
-                rounded: 'rounded-xl',
-                body: { padding: 'p-5' }
-              }"
+              class="bg-white dark:bg-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
             >
               <p class="text-gray-700 dark:text-slate-300 mb-3 leading-relaxed">
                 {{ note.content }}
@@ -707,13 +647,7 @@
 
             <!-- Activity Content -->
             <UCard
-              :ui="{
-                background: 'bg-white dark:bg-slate-800/40',
-                ring: 'ring-1 ring-gray-200 dark:ring-slate-700/50',
-                rounded: 'rounded-xl',
-                body: { padding: 'p-5' }
-              }"
-              class="flex-1 mb-4"
+              class="flex-1 mb-4 bg-white dark:bg-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
             >
               <div class="flex items-start justify-between gap-4">
                 <div>
@@ -757,7 +691,7 @@
               color="neutral"
               variant="outline"
               size="sm"
-              :ui="{ rounded: 'rounded-full' }"
+              class="rounded-full"
               @click="handleAddTag(tag)"
             >
               {{ tag }}
@@ -1102,8 +1036,10 @@ function formatRelativeDate(date?: string): string {
   return `${Math.floor(diffDays / 365)} years ago`
 }
 
-function getTagColor(tag: string): string {
-  const colors: Record<string, string> = {
+type BadgeColor = 'error' | 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'neutral'
+
+function getTagColor(tag: string): BadgeColor {
+  const colors: Record<string, BadgeColor> = {
     'VIP': 'warning',
     'Birthday Party': 'error',
     'Corporate': 'info',
@@ -1117,8 +1053,8 @@ function getTagColor(tag: string): string {
   return colors[tag] || 'neutral'
 }
 
-function getBookingStatusColor(status: string): string {
-  const colors: Record<string, string> = {
+function getBookingStatusColor(status: string): BadgeColor {
+  const colors: Record<string, BadgeColor> = {
     pending: 'warning',
     confirmed: 'success',
     delivered: 'primary',

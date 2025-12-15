@@ -256,7 +256,7 @@ const featuredItems = computed(() => items.value.slice(0, 6))
               <UButton
                 :to="`/book/${tenant.slug}`"
                 size="xl"
-                color="white"
+                color="neutral"
                 label="Browse Rentals"
                 icon="i-lucide-calendar"
               />
@@ -265,7 +265,7 @@ const featuredItems = computed(() => items.value.slice(0, 6))
                 :href="`tel:${tenant.phone}`"
                 size="xl"
                 variant="outline"
-                color="white"
+                color="neutral"
                 :label="formatPhone(tenant.phone)"
                 icon="i-lucide-phone"
               />
@@ -506,7 +506,7 @@ const featuredItems = computed(() => items.value.slice(0, 6))
           <UButton
             :to="`/book/${tenant.slug}`"
             size="xl"
-            color="white"
+            color="neutral"
             label="Start Booking"
             trailing-icon="i-lucide-arrow-right"
           />

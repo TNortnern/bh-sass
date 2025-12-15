@@ -8,7 +8,7 @@ const router = useRouter()
 const itemId = computed(() => route.params.id as string)
 
 // Fetch rental item details
-const { data: item, pending: itemPending } = await useLazyFetch(
+const { data: item, pending: itemPending } = await useLazyFetch<{ name: string }>(
   `/api/rental-items/${itemId.value}`
 )
 
@@ -17,7 +17,7 @@ const {
   data: variations,
   pending: variationsPending,
   refresh: refreshVariations
-} = await useLazyFetch(() => `/api/rental-items/${itemId.value}/variations`)
+} = await useLazyFetch<{ docs: VariationRow[] }>(() => `/api/rental-items/${itemId.value}/variations`)
 
 const pending = computed(() => itemPending.value || variationsPending.value)
 
@@ -205,7 +205,7 @@ async function updateBulkStatus() {
 
         <!-- Empty state -->
         <div
-          v-else-if="!variations?.docs?.length"
+          v-else-if="!variations || !variations.docs || variations.docs.length === 0"
           class="flex flex-col items-center justify-center py-16 text-gray-500"
         >
           <UIcon
@@ -245,7 +245,7 @@ async function updateBulkStatus() {
           </div>
 
           <UTable
-            :data="variations.docs"
+            :data="variations?.docs || []"
             :columns="columns"
             :loading="pending"
           />

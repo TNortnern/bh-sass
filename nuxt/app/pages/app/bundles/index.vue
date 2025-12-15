@@ -300,13 +300,13 @@ const statusOptions = [
           size="lg"
           class="w-full lg:w-40"
         >
-          <template #label>
+          <template #leading>
             <UIcon
               name="i-lucide-filter"
               class="w-4 h-4 mr-2"
             />
-            {{ statusOptions.find((s: any) => s.value === selectedStatus)?.label }}
           </template>
+          {{ statusOptions.find((s) => s.value === selectedStatus)?.label }}
         </USelectMenu>
 
         <!-- Featured Toggle -->
@@ -419,7 +419,7 @@ const statusOptions = [
                   class="w-3.5 h-3.5 text-green-600 dark:text-green-400 flex-shrink-0"
                 />
                 <span class="truncate">
-                  {{ item.quantity }}x {{ typeof item.rentalItem === 'string' ? 'Item' : item.rentalItem.name }}
+                  {{ item.quantity }}x {{ typeof item.rentalItem === 'string' ? 'Item' : (item.rentalItem && 'name' in item.rentalItem ? item.rentalItem.name : 'Item') }}
                 </span>
               </div>
             </div>

@@ -14,61 +14,64 @@ const emit = defineEmits<{
   editImages: [item: InventoryItem]
 }>()
 
+// Valid Nuxt UI colors type
+type NuxtUIColor = 'error' | 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'neutral'
+
 // Category metadata
 const getCategoryMeta = (category: string) => {
-  const categoryMap: Record<string, { label: string, icon: string, color: string, gradient: string }> = {
+  const categoryMap: Record<string, { label: string, icon: string, color: NuxtUIColor, gradient: string }> = {
     bounce_house: {
       label: 'Bounce House',
       icon: 'i-lucide-home',
-      color: 'blue',
+      color: 'primary',
       gradient: 'from-blue-500 to-blue-600'
     },
     water_slide: {
       label: 'Water Slide',
       icon: 'i-lucide-waves',
-      color: 'cyan',
+      color: 'info',
       gradient: 'from-cyan-500 to-blue-600'
     },
     combo_unit: {
       label: 'Combo Unit',
       icon: 'i-lucide-package',
-      color: 'green',
+      color: 'success',
       gradient: 'from-green-500 to-emerald-600'
     },
     obstacle_course: {
       label: 'Obstacle Course',
       icon: 'i-lucide-trophy',
-      color: 'orange',
+      color: 'warning',
       gradient: 'from-orange-500 to-amber-600'
     },
     interactive_game: {
       label: 'Interactive Game',
       icon: 'i-lucide-gamepad-2',
-      color: 'purple',
+      color: 'secondary',
       gradient: 'from-purple-500 to-pink-600'
     },
     tent_canopy: {
       label: 'Tent/Canopy',
       icon: 'i-lucide-tent',
-      color: 'amber',
+      color: 'warning',
       gradient: 'from-amber-500 to-orange-600'
     },
     table_chair: {
       label: 'Table/Chair',
       icon: 'i-lucide-armchair',
-      color: 'stone',
+      color: 'neutral',
       gradient: 'from-stone-500 to-gray-600'
     },
     concession: {
       label: 'Concession',
       icon: 'i-lucide-ice-cream',
-      color: 'pink',
+      color: 'secondary',
       gradient: 'from-pink-500 to-rose-600'
     },
     other: {
       label: 'Other',
       icon: 'i-lucide-box',
-      color: 'slate',
+      color: 'neutral',
       gradient: 'from-slate-500 to-gray-600'
     }
   }
@@ -82,8 +85,8 @@ const categoryMeta = computed(() => getCategoryMeta(props.item.category))
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isActive = computed(() => props.item.status === 'active' || (props.item as any).isActive === true)
 
-const getStatusColor = (active: boolean) => {
-  return active ? 'green' : 'gray'
+const getStatusColor = (active: boolean): NuxtUIColor => {
+  return active ? 'success' : 'neutral'
 }
 
 const getUtilizationColor = (utilization: number) => {
@@ -159,7 +162,7 @@ const actionItems = computed(() => [
     <!-- Animated Glow Effect -->
     <div
       class="absolute inset-0 rounded-2xl bg-gradient-to-br opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500 -z-10"
-      :class="categoryMeta.gradient"
+      :class="categoryMeta?.gradient"
     />
 
     <!-- Grid View -->
@@ -185,7 +188,7 @@ const actionItems = computed(() => [
           >
             <div class="text-center">
               <UIcon
-                :name="categoryMeta.icon"
+                :name="categoryMeta?.icon"
                 class="w-16 h-16 text-gray-400 dark:text-gray-600 mb-2"
               />
               <p class="text-sm text-gray-500 dark:text-gray-400">No image</p>
@@ -213,16 +216,16 @@ const actionItems = computed(() => [
           <!-- Category Badge -->
           <div class="absolute top-3 left-3">
             <UBadge
-              :color="categoryMeta.color"
+              :color="categoryMeta?.color"
               variant="subtle"
               size="sm"
               class="backdrop-blur-sm"
             >
               <UIcon
-                :name="categoryMeta.icon"
+                :name="categoryMeta?.icon"
                 class="w-3.5 h-3.5 mr-1"
               />
-              {{ categoryMeta.label }}
+              {{ categoryMeta?.label }}
             </UBadge>
           </div>
 
@@ -381,7 +384,7 @@ const actionItems = computed(() => [
               class="w-full h-full flex items-center justify-center"
             >
               <UIcon
-                :name="categoryMeta.icon"
+                :name="categoryMeta?.icon"
                 class="w-10 h-10 text-gray-400 dark:text-gray-600"
               />
             </div>
@@ -389,16 +392,16 @@ const actionItems = computed(() => [
             <!-- Category Badge -->
             <div class="absolute bottom-2 left-2 right-2">
               <UBadge
-                :color="categoryMeta.color"
+                :color="categoryMeta?.color"
                 variant="solid"
                 size="xs"
                 class="w-full justify-center backdrop-blur-sm"
               >
                 <UIcon
-                  :name="categoryMeta.icon"
+                  :name="categoryMeta?.icon"
                   class="w-3 h-3 mr-1"
                 />
-                {{ categoryMeta.label }}
+                {{ categoryMeta?.label }}
               </UBadge>
             </div>
           </div>

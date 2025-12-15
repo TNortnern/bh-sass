@@ -3,6 +3,11 @@ import { getTenantId } from '../utilities/getTenantId'
 import { auditCreateAndUpdate, auditDelete } from '../hooks/auditHooks'
 import { provisionRbPayloadTenant, isRbPayloadProvisioningEnabled } from '../lib/rbPayloadProvisioning'
 
+// Debug log only in development
+if (process.env.NODE_ENV === 'development' && process.env.DEBUG_COLLECTIONS) {
+  console.log('[TENANTS] Tenants collection module loaded')
+}
+
 export const Tenants: CollectionConfig = {
   slug: 'tenants',
   admin: {

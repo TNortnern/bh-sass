@@ -617,10 +617,16 @@ const generateActions = [
               type="number"
               step="0.01"
               min="0"
-              icon="i-lucide-dollar-sign"
               placeholder="0.00"
               class="w-full"
-            />
+            >
+              <template #leading>
+                <UIcon
+                  name="i-lucide-dollar-sign"
+                  class="w-4 h-4"
+                />
+              </template>
+            </UInput>
           </UFormField>
 
           <UFormField
@@ -630,16 +636,22 @@ const generateActions = [
             <UInput
               v-model="invoiceForm.dueDate"
               type="date"
-              icon="i-lucide-calendar"
               class="w-full"
-            />
+            >
+              <template #leading>
+                <UIcon
+                  name="i-lucide-calendar"
+                  class="w-4 h-4"
+                />
+              </template>
+            </UInput>
           </UFormField>
 
           <UFormField label="Notes (Optional)">
             <UTextarea
               v-model="invoiceForm.notes"
               placeholder="Add any additional notes or payment instructions"
-              rows="3"
+              :rows="3"
               class="w-full"
             />
           </UFormField>

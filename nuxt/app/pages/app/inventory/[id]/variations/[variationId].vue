@@ -6,10 +6,10 @@ const itemId = computed(() => route.params.id as string)
 const variationId = computed(() => route.params.variationId as string)
 
 // Fetch rental item and variation
-const { data: item, pending: itemPending } = await useLazyFetch(
+const { data: item, pending: itemPending } = await useLazyFetch<{ name: string }>(
   `/api/rental-items/${itemId.value}`
 )
-const { data: variation, pending: variationPending } = await useLazyFetch(
+const { data: variation, pending: variationPending } = await useLazyFetch<{ name: string }>(
   `/api/variations/${variationId.value}`
 )
 

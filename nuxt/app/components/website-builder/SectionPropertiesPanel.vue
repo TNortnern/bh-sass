@@ -508,7 +508,7 @@ const sectionDisplayName = computed(() => {
               >
                 <div
                   v-for="(item, index) in (value as Record<string, unknown>[])"
-                  :key="item.id || index"
+                  :key="(item.id as string | number) || index"
                   class="array-item"
                 >
                   <div class="item-header">
@@ -563,8 +563,8 @@ const sectionDisplayName = computed(() => {
                               class="image-preview-thumb"
                             >
                               <img
-                                :src="itemValue"
-                                :alt="item.alt || item.name || 'Preview'"
+                                :src="String(itemValue)"
+                                :alt="String((item.alt || item.name) || 'Preview')"
                               >
                             </div>
                             <div
@@ -575,7 +575,7 @@ const sectionDisplayName = computed(() => {
                             </div>
                             <button
                               class="choose-image-btn"
-                              @click="openImagePicker(String(itemKey), itemValue, String(key), index)"
+                              @click="openImagePicker(String(itemKey), String(itemValue || ''), String(key), index)"
                             >
                               <UIcon name="i-lucide-image-plus" />
                               <span>{{ itemValue ? 'Change' : 'Choose Image' }}</span>
@@ -590,7 +590,7 @@ const sectionDisplayName = computed(() => {
                         >
                           <label>{{ getFieldLabel(String(itemKey)) }}</label>
                           <textarea
-                            :value="itemValue"
+                            :value="String(itemValue)"
                             rows="2"
                             @input="updateArrayItem(String(key), index, String(itemKey), ($event.target as HTMLTextAreaElement).value)"
                           />
@@ -760,7 +760,7 @@ const sectionDisplayName = computed(() => {
             >
               <label>{{ getFieldLabel(String(key)) }}</label>
               <textarea
-                :value="value"
+                :value="String(value)"
                 rows="3"
                 @input="updateField(String(key), ($event.target as HTMLTextAreaElement).value)"
               />

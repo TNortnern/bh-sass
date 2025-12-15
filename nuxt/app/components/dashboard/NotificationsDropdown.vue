@@ -27,8 +27,8 @@ onMounted(async () => {
 const isOpen = ref(false)
 
 // Mark notification as read and navigate
-const handleNotificationClick = async (notification: Record<string, unknown>) => {
-  await navigateToNotification(notification as unknown as Notification)
+const handleNotificationClick = async (notification: Notification) => {
+  await navigateToNotification(notification)
   isOpen.value = false
 }
 

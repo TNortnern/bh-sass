@@ -122,12 +122,12 @@ const activeFilterCount = computed(() => {
             <UBadge
               v-if="activeFilterCount > 0"
               :label="String(activeFilterCount)"
-              color="orange"
+              color="warning"
               class="ml-2"
             />
           </UButton>
 
-          <template #panel>
+          <template #content>
             <div class="p-4 space-y-4 w-80">
               <!-- Status Filter -->
               <div>
@@ -138,9 +138,16 @@ const activeFilterCount = computed(() => {
                   <UCheckbox
                     v-for="option in statusOptions"
                     :key="option.value"
-                    v-model="selectedStatuses"
-                    :value="option.value"
+                    :model-value="selectedStatuses.includes(option.value)"
                     :label="option.label"
+                    @update:model-value="(checked: boolean | 'indeterminate') => {
+                      if (checked === true) {
+                        selectedStatuses = [...selectedStatuses, option.value]
+                      }
+                      else {
+                        selectedStatuses = selectedStatuses.filter(s => s !== option.value)
+                      }
+                    }"
                   />
                 </div>
               </div>
@@ -156,9 +163,16 @@ const activeFilterCount = computed(() => {
                   <UCheckbox
                     v-for="option in paymentStatusOptions"
                     :key="option.value"
-                    v-model="selectedPaymentStatuses"
-                    :value="option.value"
+                    :model-value="selectedPaymentStatuses.includes(option.value)"
                     :label="option.label"
+                    @update:model-value="(checked: boolean | 'indeterminate') => {
+                      if (checked === true) {
+                        selectedPaymentStatuses = [...selectedPaymentStatuses, option.value]
+                      }
+                      else {
+                        selectedPaymentStatuses = selectedPaymentStatuses.filter(p => p !== option.value)
+                      }
+                    }"
                   />
                 </div>
               </div>
@@ -172,16 +186,22 @@ const activeFilterCount = computed(() => {
                 </label>
                 <div class="grid grid-cols-2 gap-2">
                   <UInput
-                    v-model="dateRange.start"
+                    :model-value="dateRange?.start || ''"
                     type="date"
                     placeholder="Start date"
                     size="md"
+                    @update:model-value="(val: string) => {
+                      dateRange = { ...dateRange, start: val } as { start: string; end: string }
+                    }"
                   />
                   <UInput
-                    v-model="dateRange.end"
+                    :model-value="dateRange?.end || ''"
                     type="date"
                     placeholder="End date"
                     size="md"
+                    @update:model-value="(val: string) => {
+                      dateRange = { ...dateRange, end: val } as { start: string; end: string }
+                    }"
                   />
                 </div>
               </div>
@@ -221,15 +241,15 @@ const activeFilterCount = computed(() => {
       <!-- Search Badge -->
       <UBadge
         v-if="searchQuery"
-        color="orange"
+        color="warning"
         variant="subtle"
         size="md"
       >
         Search: {{ searchQuery }}
         <UButton
-          color="orange"
+          color="warning"
           variant="ghost"
-          size="2xs"
+          size="xs"
           icon="i-lucide-x"
           class="ml-1 -mr-1"
           @click="searchQuery = ''"
@@ -240,15 +260,15 @@ const activeFilterCount = computed(() => {
       <UBadge
         v-for="status in selectedStatuses"
         :key="status"
-        color="orange"
+        color="warning"
         variant="subtle"
         size="md"
       >
         Status: {{ getStatusLabel(status) }}
         <UButton
-          color="orange"
+          color="warning"
           variant="ghost"
-          size="2xs"
+          size="xs"
           icon="i-lucide-x"
           class="ml-1 -mr-1"
           @click="selectedStatuses = selectedStatuses.filter((s: string) => s !== status)"
@@ -259,15 +279,15 @@ const activeFilterCount = computed(() => {
       <UBadge
         v-for="paymentStatus in selectedPaymentStatuses"
         :key="paymentStatus"
-        color="orange"
+        color="warning"
         variant="subtle"
         size="md"
       >
         Payment: {{ getPaymentStatusLabel(paymentStatus) }}
         <UButton
-          color="orange"
+          color="warning"
           variant="ghost"
-          size="2xs"
+          size="xs"
           icon="i-lucide-x"
           class="ml-1 -mr-1"
           @click="selectedPaymentStatuses = selectedPaymentStatuses.filter((p: string) => p !== paymentStatus)"
@@ -277,15 +297,15 @@ const activeFilterCount = computed(() => {
       <!-- Date Range Badge -->
       <UBadge
         v-if="dateRange"
-        color="orange"
+        color="warning"
         variant="subtle"
         size="md"
       >
         {{ dateRange.start }} - {{ dateRange.end }}
         <UButton
-          color="orange"
+          color="warning"
           variant="ghost"
-          size="2xs"
+          size="xs"
           icon="i-lucide-x"
           class="ml-1 -mr-1"
           @click="dateRange = undefined"

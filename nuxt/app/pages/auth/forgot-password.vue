@@ -58,10 +58,10 @@
         <!-- Error Message -->
         <UAlert
           v-if="error"
-          color="red"
+          color="error"
           variant="subtle"
           :title="error"
-          :close-button="{ icon: 'lucide:x', color: 'red', variant: 'link' }"
+          :close-button="{ icon: 'lucide:x', color: 'error', variant: 'link' }"
           @close="error = null"
         />
 
@@ -109,7 +109,7 @@
           </p>
           <UButton
             block
-            color="gray"
+            color="neutral"
             variant="outline"
             :loading="isLoading"
             @click="handleResend"

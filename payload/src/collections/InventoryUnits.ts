@@ -29,11 +29,22 @@ export const InventoryUnits: CollectionConfig = {
       return false
     }) as Access,
     create: async ({ req }) => {
-      if (req.user?.role === 'super_admin' || req.user?.role === 'tenant_admin') return true
+      if (req.user?.role === 'super_admin') return true
 
-      // API key auth can create inventory units
       const context = await getAccessContext(req)
-      return context.authMethod === 'api_key'
+
+      // API key auth can create units
+      if (context.authMethod === 'api_key' && context.tenantId) return true
+
+      // Session auth: tenant_admin, staff, and manager can create units for their tenant
+      if (context.authMethod === 'session' && context.tenantId) {
+        const role = req.user?.role
+        if (role === 'tenant_admin' || role === 'staff' || role === 'manager') {
+          return true
+        }
+      }
+
+      return false
     },
     update: async ({ req }) => {
       if (req.user?.role === 'super_admin') return true

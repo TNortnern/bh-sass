@@ -79,13 +79,13 @@ const formatDate = (dateStr: string) => {
       >
         <article class="featured-post">
           <a
-            :href="data.posts[0].link"
+            :href="data.posts[0]?.link"
             class="post-image featured-image"
           >
             <img
-              v-if="data.posts[0].image"
-              :src="data.posts[0].image"
-              :alt="data.posts[0].title"
+              v-if="data.posts[0]?.image"
+              :src="data.posts[0]?.image"
+              :alt="data.posts[0]?.title"
             >
             <div
               v-else
@@ -94,37 +94,37 @@ const formatDate = (dateStr: string) => {
           </a>
           <div class="featured-content">
             <span
-              v-if="data.showCategory && data.posts[0].category"
+              v-if="data.showCategory && data.posts[0]?.category"
               class="post-category"
-            >{{ data.posts[0].category }}</span>
+            >{{ data.posts[0]?.category }}</span>
             <h3 class="post-title featured-title">
-              <a :href="data.posts[0].link">{{ data.posts[0].title }}</a>
+              <a :href="data.posts[0]?.link">{{ data.posts[0]?.title }}</a>
             </h3>
             <p class="post-excerpt featured-excerpt">
-              {{ data.posts[0].excerpt }}
+              {{ data.posts[0]?.excerpt }}
             </p>
             <div class="post-meta">
               <div
-                v-if="data.showAuthor && data.posts[0].author"
+                v-if="data.showAuthor && data.posts[0]?.author"
                 class="post-author"
               >
                 <div class="author-avatar">
                   <img
-                    v-if="data.posts[0].author.avatar"
-                    :src="data.posts[0].author.avatar"
-                    :alt="data.posts[0].author.name"
+                    v-if="data.posts[0]?.author?.avatar"
+                    :src="data.posts[0]?.author?.avatar"
+                    :alt="data.posts[0]?.author?.name"
                   >
                 </div>
-                <span class="author-name">{{ data.posts[0].author.name }}</span>
+                <span class="author-name">{{ data.posts[0]?.author?.name }}</span>
               </div>
               <span
-                v-if="data.showDate"
+                v-if="data.showDate && data.posts[0]?.date"
                 class="post-date"
               >{{ formatDate(data.posts[0].date) }}</span>
               <span
-                v-if="data.posts[0].readTime"
+                v-if="data.posts[0]?.readTime"
                 class="read-time"
-              >{{ data.posts[0].readTime }}</span>
+              >{{ data.posts[0]?.readTime }}</span>
             </div>
           </div>
         </article>

@@ -292,7 +292,7 @@ const fieldCount = computed(() => {
           />
           <UButton
             label="Save All Changes"
-            color="orange"
+            color="warning"
             icon="i-lucide-check"
             @click="handleSave"
           />

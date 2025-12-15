@@ -7,7 +7,7 @@ const route = useRoute()
 const router = useRouter()
 const tenantSlug = route.params.tenant as string
 
-const { loadTenant, loadItems, checkAvailability, loading: _loading, error: _error } = usePublicBooking()
+const { loadTenant, loadItems, checkAvailability, loading, error } = usePublicBooking()
 
 // Load tenant and items on mount
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

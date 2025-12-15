@@ -517,7 +517,7 @@ function confirmDelete() {
           </p>
           <p class="text-amber-700 dark:text-amber-300/70 mt-1">
             Select a template to preview it, then click "Manage Template" to customize the content.
-            Use variables like <code class="bg-amber-200 dark:bg-amber-500/20 px-1 rounded text-amber-800 dark:text-amber-300">{{ customerName }}</code> to personalize emails.
+            Use variables like <code class="bg-amber-200 dark:bg-amber-500/20 px-1 rounded text-amber-800 dark:text-amber-300">&#123;&#123; customerName &#125;&#125;</code> to personalize emails.
           </p>
         </div>
       </div>
@@ -760,7 +760,7 @@ function confirmDelete() {
     <!-- Manage Template Modal -->
     <UModal
       v-model:open="showManageModal"
-      :ui="{ width: 'max-w-4xl' }"
+      class="max-w-4xl"
     >
       <template #content>
         <div class="p-6 bg-white dark:bg-gray-900">

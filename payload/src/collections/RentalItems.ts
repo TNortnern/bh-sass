@@ -5,6 +5,23 @@ import { auditCreateAndUpdate, auditDelete } from '../hooks/auditHooks'
 import { syncRentalItemToRbPayload } from '../lib/inventory-sync'
 
 /**
+ * Generate a unique serial number for rental items
+ * Format: RH-{TIMESTAMP}-{RANDOM}
+ * Example: RH-1725000000000-A7B9K
+ * This ensures uniqueness without needing database lookups
+ */
+const generateSerialNumber = (): string => {
+  const timestamp = Date.now()
+  // Generate 5 random alphanumeric characters for additional uniqueness
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  let random = ''
+  for (let i = 0; i < 5; i++) {
+    random += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return `RH-${timestamp}-${random}`
+}
+
+/**
  * Layer 3: Business Logic Validation Hook
  * Comprehensive validation of all required fields before database write
  * Prevents invalid data from reaching the database
@@ -211,6 +228,30 @@ export const RentalItems: CollectionConfig = {
             // Override client-provided value with user's tenant
             // This prevents data leakage across tenants
             return tenantId
+          },
+        ],
+      },
+    },
+    {
+      name: 'serialNumber',
+      type: 'text',
+      unique: true,
+      index: true,
+      admin: {
+        description: 'Auto-generated unique serial number for this rental item (e.g., RH-1725000000000-A7B9K)',
+        readOnly: true,
+        position: 'sidebar',
+      },
+      hooks: {
+        beforeValidate: [
+          ({ data, operation }) => {
+            // Auto-generate serial number on create only
+            // Never allow updating the serial number
+            if (operation === 'create' && !data.serialNumber) {
+              return generateSerialNumber()
+            }
+            // On update, preserve the existing serial number
+            return data.serialNumber
           },
         ],
       },

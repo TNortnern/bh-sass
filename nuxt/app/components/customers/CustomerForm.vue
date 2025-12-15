@@ -29,9 +29,9 @@
                 v-model="formState.firstName"
                 placeholder="Enter first name"
                 size="lg"
+                class="rounded-xl"
                 :ui="{
-                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500',
-                  rounded: 'rounded-xl'
+                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
                 }"
               />
             </UFormGroup>
@@ -48,9 +48,9 @@
                 v-model="formState.lastName"
                 placeholder="Enter last name"
                 size="lg"
+                class="rounded-xl"
                 :ui="{
-                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500',
-                  rounded: 'rounded-xl'
+                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
                 }"
               />
             </UFormGroup>
@@ -81,9 +81,9 @@
                 type="email"
                 placeholder="email@example.com"
                 size="lg"
+                class="rounded-xl"
                 :ui="{
-                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500',
-                  rounded: 'rounded-xl'
+                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
                 }"
               >
                 <template #leading>
@@ -108,9 +108,9 @@
                 type="tel"
                 placeholder="(555) 123-4567"
                 size="lg"
+                class="rounded-xl"
                 :ui="{
-                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500',
-                  rounded: 'rounded-xl'
+                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
                 }"
               >
                 <template #leading>
@@ -143,12 +143,12 @@
               }"
             >
               <UInput
-                v-model="formState.address.street"
+                v-model="formState.address!.street"
                 placeholder="123 Main St"
                 size="lg"
+                class="rounded-xl"
                 :ui="{
-                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500',
-                  rounded: 'rounded-xl'
+                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
                 }"
               />
             </UFormGroup>
@@ -162,12 +162,12 @@
                 }"
               >
                 <UInput
-                  v-model="formState.address.city"
+                  v-model="formState.address!.city"
                   placeholder="Austin"
                   size="lg"
+                  class="rounded-xl"
                   :ui="{
-                    base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500',
-                    rounded: 'rounded-xl'
+                    base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
                   }"
                 />
               </UFormGroup>
@@ -180,12 +180,12 @@
                 }"
               >
                 <UInput
-                  v-model="formState.address.state"
+                  v-model="formState.address!.state"
                   placeholder="TX"
                   size="lg"
+                  class="rounded-xl"
                   :ui="{
-                    base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500',
-                    rounded: 'rounded-xl'
+                    base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
                   }"
                 />
               </UFormGroup>
@@ -198,12 +198,12 @@
                 }"
               >
                 <UInput
-                  v-model="formState.address.zip"
+                  v-model="formState.address!.zip"
                   placeholder="78701"
                   size="lg"
+                  class="rounded-xl"
                   :ui="{
-                    base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500',
-                    rounded: 'rounded-xl'
+                    base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
                   }"
                 />
               </UFormGroup>
@@ -226,15 +226,15 @@
               <UButton
                 v-for="tag in availableTags"
                 :key="tag"
-                :color="formState.tags.includes(tag) ? 'primary' : 'neutral'"
-                :variant="formState.tags.includes(tag) ? 'solid' : 'outline'"
+                :color="formState.tags!.includes(tag) ? 'primary' : 'neutral'"
+                :variant="formState.tags!.includes(tag) ? 'solid' : 'outline'"
                 size="sm"
-                :ui="{ rounded: 'rounded-full' }"
+                class="rounded-full"
                 @click="toggleTag(tag)"
               >
                 {{ tag }}
                 <UIcon
-                  v-if="formState.tags.includes(tag)"
+                  v-if="formState.tags!.includes(tag)"
                   name="i-lucide-check"
                   class="w-4 h-4 ml-1"
                 />
@@ -252,9 +252,9 @@
                   v-model="customTag"
                   placeholder="Enter custom tag"
                   size="lg"
+                  class="rounded-xl"
                   :ui="{
-                    base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500',
-                    rounded: 'rounded-xl'
+                    base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
                   }"
                   @keyup.enter="addCustomTag"
                 />
@@ -262,7 +262,7 @@
                   color="neutral"
                   variant="outline"
                   size="lg"
-                  :ui="{ rounded: 'rounded-xl' }"
+                  class="rounded-xl"
                   @click="addCustomTag"
                 >
                   <UIcon
@@ -296,9 +296,9 @@
               placeholder="Add any notes about this customer..."
               :rows="4"
               size="lg"
+              class="rounded-xl"
               :ui="{
-                base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500',
-                rounded: 'rounded-xl'
+                base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
               }"
             />
           </UFormGroup>
@@ -312,7 +312,7 @@
             size="lg"
             block
             :loading="loading"
-            :ui="{ rounded: 'rounded-xl' }"
+            class="rounded-xl"
           >
             <UIcon
               name="i-lucide-check"
@@ -326,7 +326,7 @@
             color="neutral"
             variant="outline"
             size="lg"
-            :ui="{ rounded: 'rounded-xl' }"
+            class="rounded-xl"
             @click="handleCreateAnother"
           >
             <UIcon
@@ -341,7 +341,7 @@
             color="neutral"
             variant="ghost"
             size="lg"
-            :ui="{ rounded: 'rounded-xl' }"
+            class="rounded-xl"
             @click="handleCancel"
           >
             Cancel
@@ -354,7 +354,6 @@
 
 <script setup lang="ts">
 import { z } from 'zod'
-import type { FormSubmitEvent } from '#ui/types'
 import type { CustomerInput } from '~/composables/useCustomers'
 
 const props = withDefaults(
@@ -461,15 +460,15 @@ function addCustomTag() {
   }
 }
 
-async function handleSubmit(event: FormSubmitEvent<CustomerInput>) {
-  emit('submit', event.data)
+async function handleSubmit(): Promise<void> {
+  emit('submit', formState)
 }
 
-async function handleCreateAnother() {
+async function handleCreateAnother(): Promise<void> {
   emit('createAnother', formState)
 }
 
-function handleCancel() {
+function handleCancel(): void {
   emit('cancel')
 }
 </script>

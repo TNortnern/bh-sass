@@ -258,7 +258,7 @@ const handleToggleActive = async (schedule: any) => {
           label="Back"
           color="neutral"
           variant="ghost"
-          @click="router.push('/app/maintenance')"
+          to="/app/maintenance"
         />
         <UButton
           icon="i-lucide-plus"
@@ -307,7 +307,7 @@ const handleToggleActive = async (schedule: any) => {
                     <strong>Next Due:</strong> {{ formatDate(schedule.nextDueDate) }}
                     <UBadge
                       :label="getDueStatus(schedule.nextDueDate).text"
-                      :color="getDueStatus(schedule.nextDueDate).color"
+                      :color="getDueStatus(schedule.nextDueDate).color as any"
                       variant="subtle"
                       class="ml-2"
                     />
@@ -317,7 +317,7 @@ const handleToggleActive = async (schedule: any) => {
               <div class="flex items-center gap-2">
                 <UButton
                   icon="i-lucide-power"
-                  color="warning"
+                  color="neutral"
                   variant="ghost"
                   @click="handleToggleActive(schedule)"
                 />
@@ -513,7 +513,7 @@ const handleToggleActive = async (schedule: any) => {
             <UTextarea
               v-model="form.instructions"
               placeholder="Detailed instructions for performing this maintenance..."
-              rows="4"
+              :rows="4"
               class="w-full"
             />
           </UFormField>

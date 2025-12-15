@@ -90,7 +90,7 @@ const isActive = (path: string) => {
             size="sm"
             label="Exit Impersonation"
             icon="i-lucide-log-out"
-            @click="stopImpersonation"
+            @click="() => { stopImpersonation() }"
           />
         </div>
       </div>
@@ -160,7 +160,7 @@ const isActive = (path: string) => {
             color="neutral"
             variant="ghost"
             size="sm"
-            @click="logout"
+            @click="async () => { await logout() }"
           />
         </div>
       </aside>

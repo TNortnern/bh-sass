@@ -11,7 +11,7 @@ const tenantSlug = route.params.tenant as string
 const itemSlug = route.params.item as string
 
 const { addItem } = useCart()
-const { loadTenant, loadItems, loadAddOns, loading: _loading, error: _error } = usePublicBooking()
+const { loadTenant, loadItems, loadAddOns, loading, error: _error } = usePublicBooking()
 
 // Item and add-ons data
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

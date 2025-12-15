@@ -1408,7 +1408,7 @@ const getIcon = (iconName: string) => {
             />
             <div class="template-info">
               <h4>{{ template.name }}</h4>
-              <p>{{ template.codename }}</p>
+              <p>{{ 'codename' in template ? template.codename : template.description }}</p>
             </div>
             <div class="template-actions">
               <UButton

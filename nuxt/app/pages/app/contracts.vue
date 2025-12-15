@@ -377,7 +377,7 @@ const bookingOptions = computed(() => {
         >
           <USelect
             v-model="generateForm.templateId"
-            :items="templateOptions"
+            :items="templateOptions as Array<{ label: string; value: string }>"
             placeholder="Choose a contract template"
             class="w-full"
           />

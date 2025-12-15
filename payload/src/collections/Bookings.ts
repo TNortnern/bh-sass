@@ -332,6 +332,24 @@ export const Bookings: CollectionConfig = {
         description: 'Internal staff notes (not visible to customer)',
       },
     },
+    {
+      name: 'reminderSent',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Whether a 24-hour booking reminder has been sent',
+        hidden: true,
+      },
+    },
+    {
+      name: 'reminderSentAt',
+      type: 'date',
+      admin: {
+        description: 'Timestamp when reminder was sent',
+        hidden: true,
+        readOnly: true,
+      },
+    },
   ],
   timestamps: true,
   hooks: {

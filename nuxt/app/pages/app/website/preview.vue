@@ -79,6 +79,12 @@ const sections = ref<any[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 
+const closeWindow = () => {
+  if (typeof window !== 'undefined') {
+    window.close()
+  }
+}
+
 onMounted(() => {
   try {
     // Try to load from localStorage (where builder saves data)
@@ -160,7 +166,7 @@ useHead({
         <UButton
           icon="i-lucide-arrow-left"
           label="Back to Builder"
-          @click="window.close()"
+          @click="closeWindow"
         />
       </div>
     </div>

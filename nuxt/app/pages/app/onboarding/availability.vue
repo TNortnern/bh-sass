@@ -26,7 +26,7 @@
           <!-- Quick Actions -->
           <div class="flex flex-wrap gap-3">
             <UButton
-              color="gray"
+              color="neutral"
               variant="soft"
               size="sm"
               @click="copyToWeekdays"
@@ -40,7 +40,7 @@
               Copy Monday to all weekdays
             </UButton>
             <UButton
-              color="gray"
+              color="neutral"
               variant="soft"
               size="sm"
               @click="enableAll"
@@ -62,13 +62,16 @@
               :key="day"
               class="flex items-center gap-4 p-4 rounded-xl transition-all"
               :class="[
-                availability[day].enabled
+                availability[day]?.enabled
                   ? 'bg-gray-800/50 border border-gray-700/50'
                   : 'bg-gray-800/20 border border-gray-700/20 opacity-60'
               ]"
             >
               <!-- Day Toggle -->
-              <div class="flex items-center gap-3 min-w-[140px]">
+              <div
+                v-if="availability[day]"
+                class="flex items-center gap-3 min-w-[140px]"
+              >
                 <UToggle
                   v-model="availability[day].enabled"
                   size="lg"
@@ -84,7 +87,7 @@
 
               <!-- Time Inputs -->
               <div
-                v-if="availability[day].enabled"
+                v-if="availability[day] && availability[day]?.enabled"
                 class="flex items-center gap-3 flex-1"
               >
                 <div class="flex-1">
@@ -183,7 +186,7 @@
     <!-- Navigation -->
     <div class="flex items-center justify-between mt-8">
       <UButton
-        color="gray"
+        color="neutral"
         variant="ghost"
         size="lg"
         class="text-gray-400 hover:text-white"
@@ -239,7 +242,9 @@ const isSaving = ref(false)
 const savedRecently = ref(false)
 
 const copyToWeekdays = () => {
-  const mondaySchedule = availability.monday as { open: string, close: string, enabled: boolean }
+  const mondaySchedule = availability.monday as { open: string, close: string, enabled: boolean } | undefined
+  if (!mondaySchedule) return
+
   const weekdays = ['tuesday', 'wednesday', 'thursday', 'friday'] as const
 
   weekdays.forEach((day) => {

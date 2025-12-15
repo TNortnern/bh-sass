@@ -26,6 +26,7 @@ const form = ref({
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const error = ref<string | null>(null)
+const isLoading = ref(false)
 
 // Fetch invite details on mount
 onMounted(async () => {
@@ -55,38 +56,43 @@ onMounted(async () => {
 
 const handleAcceptInvite = async () => {
   error.value = null
+  isLoading.value = true
 
-  // If new user, validate password
-  if (!inviteDetails.value?.existingUser) {
-    if (form.value.password !== form.value.confirmPassword) {
-      error.value = 'Passwords do not match'
-      return
+  try {
+    // If new user, validate password
+    if (!inviteDetails.value?.existingUser) {
+      if (form.value.password !== form.value.confirmPassword) {
+        error.value = 'Passwords do not match'
+        return
+      }
+
+      if (form.value.password.length < 8) {
+        error.value = 'Password must be at least 8 characters'
+        return
+      }
     }
 
-    if (form.value.password.length < 8) {
-      error.value = 'Password must be at least 8 characters'
-      return
-    }
-  }
-
-  const result = await acceptInvite({
-    token: token.value,
-    password: inviteDetails.value?.existingUser ? undefined : form.value.password
-  })
-
-  if (result.success) {
-    status.value = 'success'
-    toast.add({
-      title: 'Invite accepted!',
-      description: `Welcome to ${inviteDetails.value?.tenantName}`,
-      color: 'success'
+    const result = await acceptInvite({
+      token: token.value,
+      password: inviteDetails.value?.existingUser ? undefined : form.value.password
     })
 
-    setTimeout(() => {
-      navigateTo('/app')
-    }, 2000)
-  } else {
-    error.value = result.error || 'Failed to accept invite'
+    if (result.success) {
+      status.value = 'success'
+      toast.add({
+        title: 'Invite accepted!',
+        description: `Welcome to ${inviteDetails.value?.tenantName}`,
+        color: 'success'
+      })
+
+      setTimeout(() => {
+        navigateTo('/app')
+      }, 2000)
+    } else {
+      error.value = result.error || 'Failed to accept invite'
+    }
+  } finally {
+    isLoading.value = false
   }
 }
 

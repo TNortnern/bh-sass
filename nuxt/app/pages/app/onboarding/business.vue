@@ -39,8 +39,7 @@
               size="xl"
               icon="lucide:building"
               :ui="{
-                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500',
-                icon: { trailing: { pointer: '' } }
+                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500'
               }"
               @input="debouncedSave"
             />
@@ -96,8 +95,7 @@
               size="xl"
               icon="lucide:map-pin"
               :ui="{
-                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500',
-                icon: { trailing: { pointer: '' } }
+                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500'
               }"
               @input="debouncedSave"
             />
@@ -131,7 +129,7 @@
     <!-- Navigation -->
     <div class="flex items-center justify-between mt-8">
       <UButton
-        color="gray"
+        color="neutral"
         variant="ghost"
         size="lg"
         class="text-gray-400 hover:text-white"

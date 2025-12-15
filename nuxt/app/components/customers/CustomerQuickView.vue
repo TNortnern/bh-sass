@@ -1,13 +1,7 @@
 <template>
   <USlideover
     v-model:open="isOpen"
-    :ui="{
-      width: 'max-w-2xl',
-      background: 'bg-slate-900',
-      overlay: {
-        background: 'bg-slate-950/80 backdrop-blur-sm'
-      }
-    }"
+    class="bg-slate-900 max-w-2xl"
   >
     <template #content>
       <div class="h-full flex flex-col">
@@ -19,9 +13,9 @@
                 :src="customer?.avatar"
                 :alt="`${customer?.firstName} ${customer?.lastName}`"
                 size="2xl"
+                class="bg-gradient-to-br from-amber-500 to-orange-600"
                 :ui="{
-                  background: 'bg-gradient-to-br from-amber-500 to-orange-600',
-                  text: 'text-white font-semibold text-2xl'
+                  fallback: 'text-white font-semibold text-2xl'
                 }"
               >
                 {{ initials }}
@@ -77,10 +71,7 @@
               :key="tag"
               :color="getTagColor(tag)"
               variant="subtle"
-              :ui="{
-                rounded: 'rounded-full',
-                font: 'font-medium tracking-wide'
-              }"
+              class="rounded-full font-medium tracking-wide"
             >
               {{ tag }}
             </UBadge>
@@ -92,11 +83,8 @@
           <!-- Stats Cards -->
           <div class="grid grid-cols-2 gap-4 mb-8">
             <UCard
+              class="bg-gradient-to-br from-slate-800/60 to-slate-800/40 ring-1 ring-slate-700/50 rounded-xl"
               :ui="{
-                background: 'bg-gradient-to-br from-slate-800/60 to-slate-800/40',
-                ring: 'ring-1 ring-slate-700/50',
-                rounded: 'rounded-xl',
-                body: { padding: 'p-5' }
               }"
             >
               <div class="flex items-start justify-between">
@@ -118,11 +106,8 @@
             </UCard>
 
             <UCard
+              class="bg-gradient-to-br from-slate-800/60 to-slate-800/40 ring-1 ring-slate-700/50 rounded-xl"
               :ui="{
-                background: 'bg-gradient-to-br from-slate-800/60 to-slate-800/40',
-                ring: 'ring-1 ring-slate-700/50',
-                rounded: 'rounded-xl',
-                body: { padding: 'p-5' }
               }"
             >
               <div class="flex items-start justify-between">
@@ -144,11 +129,8 @@
             </UCard>
 
             <UCard
+              class="bg-gradient-to-br from-slate-800/60 to-slate-800/40 ring-1 ring-slate-700/50 rounded-xl"
               :ui="{
-                background: 'bg-gradient-to-br from-slate-800/60 to-slate-800/40',
-                ring: 'ring-1 ring-slate-700/50',
-                rounded: 'rounded-xl',
-                body: { padding: 'p-5' }
               }"
             >
               <div class="flex items-start justify-between">
@@ -170,11 +152,8 @@
             </UCard>
 
             <UCard
+              class="bg-gradient-to-br from-slate-800/60 to-slate-800/40 ring-1 ring-slate-700/50 rounded-xl"
               :ui="{
-                background: 'bg-gradient-to-br from-slate-800/60 to-slate-800/40',
-                ring: 'ring-1 ring-slate-700/50',
-                rounded: 'rounded-xl',
-                body: { padding: 'p-5' }
               }"
             >
               <div class="flex items-start justify-between">
@@ -207,11 +186,8 @@
             </h3>
 
             <UCard
+              class="bg-slate-800/40 ring-1 ring-slate-700/50 rounded-xl"
               :ui="{
-                background: 'bg-slate-800/40',
-                ring: 'ring-1 ring-slate-700/50',
-                rounded: 'rounded-xl',
-                body: { padding: 'p-0' }
               }"
             >
               <div class="divide-y divide-slate-700/50">
@@ -227,7 +203,7 @@
                           Birthday Party - Premium Bounce House
                         </h4>
                         <UBadge
-                          color="green"
+                          color="success"
                           variant="subtle"
                           size="xs"
                         >
@@ -266,11 +242,8 @@
               <UCard
                 v-for="note in customer.notes.slice(0, 3)"
                 :key="note.id"
+                class="bg-slate-800/40 ring-1 ring-slate-700/50 rounded-xl"
                 :ui="{
-                  background: 'bg-slate-800/40',
-                  ring: 'ring-1 ring-slate-700/50',
-                  rounded: 'rounded-xl',
-                  body: { padding: 'p-4' }
                 }"
               >
                 <p class="text-sm text-slate-300 mb-2">
@@ -293,7 +266,7 @@
               color="primary"
               size="lg"
               block
-              :ui="{ rounded: 'rounded-xl' }"
+              class="rounded-xl"
               @click="navigateToDetail"
             >
               <UIcon
@@ -307,7 +280,7 @@
               color="neutral"
               variant="outline"
               size="lg"
-              :ui="{ rounded: 'rounded-xl' }"
+              class="rounded-xl"
               @click="handleEdit"
             >
               <UIcon
@@ -320,7 +293,7 @@
               color="neutral"
               variant="outline"
               size="lg"
-              :ui="{ rounded: 'rounded-xl' }"
+              class="rounded-xl"
               @click="handleEmail"
             >
               <UIcon
@@ -415,8 +388,10 @@ function formatRelativeDate(date?: string): string {
   return `${Math.floor(diffDays / 365)} years ago`
 }
 
-function getTagColor(tag: string): string {
-  const colors: Record<string, string> = {
+type BadgeColor = 'error' | 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'neutral'
+
+function getTagColor(tag: string): BadgeColor {
+  const colors: Record<string, BadgeColor> = {
     'VIP': 'warning',
     'Birthday Party': 'error',
     'Corporate': 'info',

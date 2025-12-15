@@ -75,6 +75,7 @@ import {
   sendContractForSignature,
 } from './endpoints/contracts'
 import { startWebhookRetryJob } from './jobs/webhook-retry'
+import { startBookingReminderJob, stopBookingReminderJob } from './jobs/bookingReminders'
 import { adminEndpoints } from './endpoints/admin'
 import { emailEndpoints } from './endpoints/email'
 import { registerHandler } from './endpoints/register'
@@ -85,6 +86,8 @@ const dirname = path.dirname(filename)
 
 // Store webhook retry job interval
 let webhookRetryInterval: NodeJS.Timeout | null = null
+// Store booking reminder job interval
+let bookingReminderInterval: NodeJS.Timeout | null = null
 
 /**
  * Get database connection string with fallback to individual PG* variables.
@@ -313,5 +316,8 @@ export default buildConfig({
 
     // Start webhook retry job
     webhookRetryInterval = await startWebhookRetryJob(payload)
+
+    // Start booking reminder job
+    bookingReminderInterval = await startBookingReminderJob(payload)
   },
 })

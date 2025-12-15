@@ -1,4 +1,23 @@
 <script setup lang="ts">
+interface TenantDetails {
+  id: string
+  name: string
+  slug: string
+  plan: string
+  status: 'active' | 'suspended' | 'deleted'
+  createdAt: string
+  stripeConnected: boolean
+  businessInfo?: {
+    email?: string
+    phone?: string
+    website?: string
+  }
+  totalBookings?: number
+  monthlyRevenue?: number
+  totalUsers?: number
+  totalInventory?: number
+}
+
 definePageMeta({
   layout: 'admin',
   middleware: 'admin'
@@ -9,7 +28,7 @@ const tenantId = route.params.id as string
 const { startImpersonation } = useImpersonation()
 const toast = useToast()
 
-const { data: tenant, pending } = useLazyFetch(`/v1/admin/tenants/${tenantId}`, {
+const { data: tenant, pending } = useLazyFetch<TenantDetails>(`/v1/admin/tenants/${tenantId}`, {
   credentials: 'include'
 })
 
@@ -128,7 +147,7 @@ const handleSuspend = async () => {
             <span class="detail-label">Plan</span>
             <UBadge
               :label="tenant.plan"
-              :color="tenant.plan === 'scale' ? 'warning' : tenant.plan === 'pro' ? 'purple' : 'primary'"
+              :color="tenant.plan === 'scale' ? 'warning' : tenant.plan === 'pro' ? 'secondary' : 'primary'"
               variant="subtle"
             />
           </div>

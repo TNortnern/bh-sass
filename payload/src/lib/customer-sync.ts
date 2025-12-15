@@ -28,6 +28,7 @@ const logSyncDisabled = () => {
 
 interface Customer {
   id: number
+  tenantId?: number // BH-SaaS tenant ID
   firstName: string
   lastName: string
   email: string

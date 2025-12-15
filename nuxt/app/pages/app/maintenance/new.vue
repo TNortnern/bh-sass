@@ -57,6 +57,8 @@ const rentalItemsSelect = computed(() => {
 })
 
 // Submit handler
+const isSaving = ref(false)
+
 const handleSubmit = async () => {
   if (!form.rentalItem || !form.description || !form.performedBy) {
     toast.add({
@@ -77,6 +79,7 @@ const handleSubmit = async () => {
     return
   }
 
+  isSaving.value = true
   const result = await createRecord({
     tenantId: String(tenantId),
     rentalItem: String(form.rentalItem),
@@ -105,6 +108,7 @@ const handleSubmit = async () => {
       color: 'error'
     })
   }
+  isSaving.value = false
 }
 </script>
 
@@ -160,7 +164,7 @@ const handleSubmit = async () => {
               <UTextarea
                 v-model="form.description"
                 placeholder="Describe the maintenance work performed..."
-                rows="3"
+                :rows="3"
                 class="w-full"
               />
             </UFormField>
@@ -213,7 +217,7 @@ const handleSubmit = async () => {
               <UTextarea
                 v-model="form.notes"
                 placeholder="Any additional notes..."
-                rows="4"
+                :rows="4"
                 class="w-full"
               />
             </UFormField>
@@ -228,7 +232,7 @@ const handleSubmit = async () => {
               <UButton
                 label="Save Maintenance Record"
                 type="submit"
-                :loading="isLoading"
+                :loading="isSaving"
               />
             </div>
           </form>

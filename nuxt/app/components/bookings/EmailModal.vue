@@ -169,9 +169,9 @@ const openEmailClient = () => {
 <template>
   <UModal
     v-model:open="isOpen"
-    :ui="{ width: 'sm:max-w-2xl' }"
     title="Send Email"
     :description="`Booking ${booking.bookingNumber}`"
+    class="sm:max-w-2xl"
   >
     <template #header>
       <div class="flex items-center gap-3">

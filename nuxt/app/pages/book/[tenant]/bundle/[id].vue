@@ -209,7 +209,7 @@ const getItemDetails = (bundleItem: any) => {
         <p>{{ error }}</p>
         <UButton
           size="lg"
-          @click="() => router.push(`/book/${tenantSlug}`)"
+          @click="() => void router.push(`/book/${tenantSlug}`)"
         >
           Back to Rentals
         </UButton>
@@ -300,7 +300,7 @@ const getItemDetails = (bundleItem: any) => {
             <div class="included-grid">
               <div
                 v-for="bundleItem in bundleWithPricing.items"
-                :key="bundleItem.rentalItem?.id || bundleItem.rentalItem"
+                :key="typeof bundleItem.rentalItem === 'object' ? bundleItem.rentalItem.id : bundleItem.rentalItem"
                 class="included-card"
               >
                 <div class="included-image">

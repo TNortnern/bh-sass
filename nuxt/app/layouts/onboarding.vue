@@ -50,7 +50,7 @@
             </div>
 
             <UButton
-              color="gray"
+              color="neutral"
               variant="ghost"
               size="sm"
               class="text-gray-400 hover:text-white"

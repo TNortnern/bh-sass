@@ -239,7 +239,7 @@ const printBooking = () => {
       <p class="text-gray-600 dark:text-gray-400 mb-6">
         {{ error }}
       </p>
-      <UButton @click="() => router.push(`/book/${tenantSlug}`)">
+      <UButton @click="() => void router.push(`/book/${tenantSlug}`)">
         Back to Rentals
       </UButton>
     </div>
@@ -516,6 +516,7 @@ const printBooking = () => {
           </p>
           <div class="flex flex-col sm:flex-row gap-3">
             <a
+              v-if="tenant"
               :href="`tel:${tenant.phone}`"
               class="flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
             >
@@ -526,6 +527,7 @@ const printBooking = () => {
               {{ tenant.phone }}
             </a>
             <a
+              v-if="tenant"
               :href="`mailto:${tenant.email}`"
               class="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >

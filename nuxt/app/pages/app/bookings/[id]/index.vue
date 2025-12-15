@@ -39,33 +39,35 @@ const _formatDateTime = (date: string) => {
 }
 
 // Get status color - includes driver-friendly statuses
-const getStatusColor = (status: string) => {
+const getStatusColor = (status: string): 'error' | 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'neutral' => {
   switch (status) {
-    case 'pending': return 'yellow'
-    case 'confirmed': return 'green'
-    case 'preparing': return 'cyan'
-    case 'in_route': return 'blue'
-    case 'delivered': return 'purple'
-    case 'picked_up': return 'indigo'
-    case 'completed': return 'gray'
-    case 'cancelled': return 'red'
+    case 'pending': return 'warning'
+    case 'confirmed': return 'success'
+    case 'preparing': return 'info'
+    case 'in_route': return 'primary'
+    case 'delivered': return 'success'
+    case 'picked_up': return 'primary'
+    case 'completed': return 'neutral'
+    case 'cancelled': return 'error'
     default: return 'neutral'
   }
 }
 
 // Get payment status color
-const getPaymentColor = (status: string) => {
+const getPaymentColor = (status: string): 'error' | 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'neutral' => {
   switch (status) {
-    case 'paid': return 'green'
-    case 'deposit': return 'blue'
-    case 'unpaid': return 'red'
-    case 'refunded': return 'orange'
+    case 'paid': return 'success'
+    case 'deposit': return 'warning'
+    case 'unpaid': return 'error'
+    case 'refunded': return 'warning'
     default: return 'neutral'
   }
 }
 
+type ButtonColor = 'error' | 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'neutral'
+
 // All available statuses for flexible status changes
-const allStatuses = [
+const allStatuses: Array<{ value: string, label: string, icon: string, color: ButtonColor }> = [
   { value: 'pending', label: 'Pending', icon: 'i-lucide-clock', color: 'warning' },
   { value: 'confirmed', label: 'Confirmed', icon: 'i-lucide-check-circle', color: 'success' },
   { value: 'preparing', label: 'Preparing', icon: 'i-lucide-loader', color: 'info' },
@@ -77,11 +79,11 @@ const allStatuses = [
 ]
 
 // Quick action - next logical status (for convenience)
-const nextStatusAction = computed(() => {
+const nextStatusAction = computed<{ value: string, label: string, icon: string, color: ButtonColor } | null>(() => {
   if (!currentBooking.value) return null
   const status = currentBooking.value.status
 
-  const nextMap: Record<string, { value: string, label: string, icon: string, color: string }> = {
+  const nextMap: Record<string, { value: string, label: string, icon: string, color: ButtonColor }> = {
     pending: { value: 'confirmed', label: 'Confirm Booking', icon: 'i-lucide-check-circle', color: 'success' },
     confirmed: { value: 'preparing', label: 'Start Preparing', icon: 'i-lucide-loader', color: 'primary' },
     preparing: { value: 'in_route', label: 'Mark In Route', icon: 'i-lucide-navigation', color: 'info' },
@@ -679,7 +681,7 @@ onMounted(async () => {
           <div class="space-y-2">
             <UButton
               v-if="currentBooking.status !== 'cancelled'"
-              color="red"
+              color="error"
               variant="outline"
               block
               icon="i-lucide-x-circle"
@@ -689,7 +691,7 @@ onMounted(async () => {
             </UButton>
             <UButton
               v-if="currentBooking.paymentStatus === 'paid'"
-              color="orange"
+              color="warning"
               variant="outline"
               block
               icon="i-lucide-rotate-ccw"
@@ -710,7 +712,7 @@ onMounted(async () => {
       @sent="toast.add({
         title: 'Email Sent',
         description: 'Email sent successfully to customer',
-        color: 'green',
+        color: 'success',
         icon: 'i-lucide-check-circle'
       })"
     />

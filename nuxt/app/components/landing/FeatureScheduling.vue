@@ -63,7 +63,7 @@
               label="See Calendar Demo"
               icon="i-lucide-calendar-days"
               size="xl"
-              color="orange"
+              color="warning"
               class="shadow-lg hover:shadow-xl transition-shadow"
             />
           </div>

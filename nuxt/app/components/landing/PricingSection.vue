@@ -183,7 +183,7 @@ function getCurrentPrice(plan: PricingPlan): string {
             <!-- CTA Button -->
             <UButton
               :label="plan.cta"
-              :color="plan.ctaColor || 'neutral'"
+              :color="(plan.ctaColor as 'error' | 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'neutral' | undefined) || 'neutral'"
               :variant="plan.ctaVariant"
               size="lg"
               block

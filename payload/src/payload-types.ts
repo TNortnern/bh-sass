@@ -95,6 +95,7 @@ export interface Config {
     'email-templates': EmailTemplate;
     documents: Document;
     'signed-documents': SignedDocument;
+    'stripe-webhook-events': StripeWebhookEvent;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -130,6 +131,7 @@ export interface Config {
     'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
     documents: DocumentsSelect<false> | DocumentsSelect<true>;
     'signed-documents': SignedDocumentsSelect<false> | SignedDocumentsSelect<true>;
+    'stripe-webhook-events': StripeWebhookEventsSelect<false> | StripeWebhookEventsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -666,6 +668,10 @@ export interface RentalItem {
    */
   tenantId: number | Tenant;
   /**
+   * Auto-generated unique serial number for this rental item (e.g., RH-1725000000000-A7B9K)
+   */
+  serialNumber?: string | null;
+  /**
    * Rental item name (e.g., "Princess Castle Bounce House", "Water Slide Deluxe")
    */
   name: string;
@@ -1047,6 +1053,14 @@ export interface Booking {
    * Internal staff notes (not visible to customer)
    */
   internalNotes?: string | null;
+  /**
+   * Whether a 24-hour booking reminder has been sent
+   */
+  reminderSent?: boolean | null;
+  /**
+   * Timestamp when reminder was sent
+   */
+  reminderSentAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1104,6 +1118,22 @@ export interface Customer {
    * Total number of bookings
    */
   totalBookings?: number | null;
+  /**
+   * Customer ID in rb-payload booking system
+   */
+  rbPayloadCustomerId?: number | null;
+  /**
+   * Sync status with rb-payload
+   */
+  syncStatus?: ('pending' | 'synced' | 'failed' | 'out_of_sync') | null;
+  /**
+   * Last successful sync timestamp
+   */
+  lastSyncedAt?: string | null;
+  /**
+   * Last sync error message
+   */
+  syncError?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2164,6 +2194,10 @@ export interface MaintenanceRecord {
    * When the next maintenance is recommended
    */
   nextMaintenanceDate?: string | null;
+  /**
+   * Blackout ID in rb-payload booking system
+   */
+  rbPayloadBlackoutId?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2483,6 +2517,45 @@ export interface SignedDocument {
   createdAt: string;
 }
 /**
+ * Processed Stripe webhook events for replay attack prevention
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stripe-webhook-events".
+ */
+export interface StripeWebhookEvent {
+  id: number;
+  /**
+   * Unique Stripe event ID (evt_xxx)
+   */
+  stripeEventId: string;
+  /**
+   * Stripe event type (e.g., checkout.session.completed)
+   */
+  eventType: string;
+  /**
+   * When this event was successfully processed
+   */
+  processedAt: string;
+  /**
+   * When Stripe created this event (used for timestamp validation)
+   */
+  eventCreatedAt: string;
+  /**
+   * Optional metadata about the event processing
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -2617,6 +2690,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'signed-documents';
         value: number | SignedDocument;
+      } | null)
+    | ({
+        relationTo: 'stripe-webhook-events';
+        value: number | StripeWebhookEvent;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -2944,6 +3021,7 @@ export interface CategoriesSelect<T extends boolean = true> {
  */
 export interface RentalItemsSelect<T extends boolean = true> {
   tenantId?: T;
+  serialNumber?: T;
   name?: T;
   description?: T;
   category?: T;
@@ -3086,6 +3164,8 @@ export interface BookingsSelect<T extends boolean = true> {
   paymentStatus?: T;
   notes?: T;
   internalNotes?: T;
+  reminderSent?: T;
+  reminderSentAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3114,6 +3194,10 @@ export interface CustomersSelect<T extends boolean = true> {
         id?: T;
       };
   totalBookings?: T;
+  rbPayloadCustomerId?: T;
+  syncStatus?: T;
+  lastSyncedAt?: T;
+  syncError?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3483,6 +3567,7 @@ export interface MaintenanceRecordsSelect<T extends boolean = true> {
         id?: T;
       };
   nextMaintenanceDate?: T;
+  rbPayloadBlackoutId?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3585,6 +3670,19 @@ export interface SignedDocumentsSelect<T extends boolean = true> {
   signedAt?: T;
   status?: T;
   tenantId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stripe-webhook-events_select".
+ */
+export interface StripeWebhookEventsSelect<T extends boolean = true> {
+  stripeEventId?: T;
+  eventType?: T;
+  processedAt?: T;
+  eventCreatedAt?: T;
+  metadata?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -39,11 +39,11 @@ const filteredBlocks = computed(() => {
   if (!searchQuery.value.trim()) return currentBlocks.value
 
   const query = searchQuery.value.toLowerCase()
-  return currentBlocks.value.filter(block =>
-    block.name.toLowerCase().includes(query)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    || (block as any).type?.toLowerCase().includes(query)
-  )
+  return currentBlocks.value.filter((block) => {
+    const blockWithType = block as HyperUIBlock & { type?: string }
+    return block.name.toLowerCase().includes(query)
+      || blockWithType.type?.toLowerCase().includes(query)
+  })
 })
 
 // All blocks for global search
@@ -62,13 +62,12 @@ const searchResults = computed(() => {
   if (!searchQuery.value.trim()) return []
 
   const query = searchQuery.value.toLowerCase()
-  return allBlocks.value.filter(block =>
-    block.name.toLowerCase().includes(query)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    || (block as any).type?.toLowerCase().includes(query)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    || (block as any).category?.toLowerCase().includes(query)
-  ).slice(0, 20) // Limit results
+  return allBlocks.value.filter((block) => {
+    const blockWithMeta = block as HyperUIBlock & { type?: string, category?: string }
+    return block.name.toLowerCase().includes(query)
+      || blockWithMeta.type?.toLowerCase().includes(query)
+      || blockWithMeta.category?.toLowerCase().includes(query)
+  }).slice(0, 20) // Limit results
 })
 
 // Select category
@@ -118,7 +117,7 @@ watch(() => _props.open, (isOpen) => {
 <template>
   <UModal
     v-model:open="_props.open"
-    :ui="{ width: 'max-w-6xl' }"
+    class="max-w-6xl"
     @update:open="$emit('update:open', $event)"
   >
     <template #content>
@@ -183,7 +182,8 @@ watch(() => _props.open, (isOpen) => {
               <div class="block-info">
                 <span class="block-name">{{ block.name }}</span>
                 <UBadge
-                  :label="block.type"
+                  v-if="(block as any).type"
+                  :label="(block as any).type"
                   size="xs"
                   color="neutral"
                   variant="subtle"
@@ -208,7 +208,7 @@ watch(() => _props.open, (isOpen) => {
             >
               <UIcon :name="cat.icon" />
               <span>{{ cat.label }}</span>
-              <span class="count">{{ cat.types.reduce((sum: number, t: any) => sum + t.blocks.length, 0) }}</span>
+              <span class="count">{{ cat.types.reduce((sum: number, t) => sum + t.blocks.length, 0) }}</span>
             </button>
           </div>
 
@@ -222,7 +222,8 @@ watch(() => _props.open, (isOpen) => {
                 @click="selectedType = type.key"
               >
                 <UIcon
-                  :name="type.icon"
+                  v-if="(type as any).icon"
+                  :name="(type as any).icon"
                   class="type-icon"
                 />
                 <span class="type-label">{{ type.label }}</span>
@@ -234,7 +235,7 @@ watch(() => _props.open, (isOpen) => {
             <div class="blocks-area">
               <div class="blocks-header">
                 <h3 class="text-lg font-semibold">
-                  {{ currentCategory?.types.find((t: any) => t.key === selectedType)?.label || 'Blocks' }}
+                  {{ currentCategory?.types.find((t) => t.key === selectedType)?.label || 'Blocks' }}
                 </h3>
                 <span class="text-sm text-muted">{{ filteredBlocks.length }} variants</span>
               </div>
@@ -278,7 +279,7 @@ watch(() => _props.open, (isOpen) => {
         <!-- Preview Modal -->
         <UModal
           v-model:open="showPreviewModal"
-          :ui="{ width: 'max-w-5xl' }"
+          class="max-w-5xl"
         >
           <template #content>
             <div class="preview-modal">

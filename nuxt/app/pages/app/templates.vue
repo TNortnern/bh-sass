@@ -761,7 +761,7 @@ function insertVariable(variable: string) {
           </div>
           <div>
             <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Type</label>
-            <p>{{ templateTypeOptions.find((t: any) => t.value === selectedTemplate.templateType)?.label || selectedTemplate.templateType }}</p>
+            <p>{{ selectedTemplate ? (templateTypeOptions.find((t: any) => t.value === selectedTemplate!.templateType)?.label || selectedTemplate!.templateType) : '' }}</p>
           </div>
         </div>
 

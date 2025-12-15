@@ -288,7 +288,7 @@ const formatDate = (date: string) => {
                 </div>
                 <div class="flex-1">
                   <p class="text-sm font-medium text-gray-900 dark:text-white">
-                    {{ typeof item.rentalItem === 'string' ? 'Item' : item.rentalItem.name }}
+                    {{ typeof item.rentalItem === 'string' ? 'Item' : (item.rentalItem && 'name' in item.rentalItem ? item.rentalItem.name : 'Item') }}
                   </p>
                   <p class="text-xs text-gray-500 dark:text-gray-400">
                     Quantity: {{ item.quantity }}

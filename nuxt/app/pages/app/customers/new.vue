@@ -97,7 +97,7 @@
             <div class="space-y-4">
               <UFormField label="Street Address">
                 <UInput
-                  v-model="formData.address.street"
+                  v-model="formData.address!.street"
                   placeholder="123 Main St"
                   size="lg"
                   class="w-full"
@@ -107,7 +107,7 @@
               <div class="grid grid-cols-2 gap-4">
                 <UFormField label="City">
                   <UInput
-                    v-model="formData.address.city"
+                    v-model="formData.address!.city"
                     placeholder="San Antonio"
                     size="lg"
                     class="w-full"
@@ -116,7 +116,7 @@
 
                 <UFormField label="State">
                   <USelect
-                    v-model="formData.address.state"
+                    v-model="formData.address!.state"
                     :items="states"
                     placeholder="Select state"
                     size="lg"
@@ -127,7 +127,7 @@
 
               <UFormField label="ZIP Code">
                 <UInput
-                  v-model="formData.address.zip"
+                  v-model="formData.address!.zip"
                   placeholder="78201"
                   size="lg"
                   class="w-full"

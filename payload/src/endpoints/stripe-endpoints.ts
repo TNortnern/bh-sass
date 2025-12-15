@@ -16,21 +16,27 @@ import {
   cancelSubscription,
   getCustomerPortal,
 } from './stripe/subscription'
-import {
-  checkoutLimiter,
-  refundLimiter,
-  webhookLimiter,
-  connectLimiter,
-  subscriptionLimiter,
-  generalStripeLimiter,
-} from '../lib/stripe/rateLimiter'
+
+// Import rate limiters from server module - lazy-loaded internally to avoid build issues
+import * as rateLimiters from '../lib/stripe/rateLimiter.server'
+
+// Type-safe limiter key mapping
+type LimiterKey = 'checkoutLimiter' | 'refundLimiter' | 'webhookLimiter' | 'connectLimiter' | 'subscriptionLimiter' | 'generalStripeLimiter'
 
 /**
  * Wrapper to apply Express rate limiter middleware to Payload handlers
  * Converts PayloadRequest to Express req/res for rate limiting
+ * Rate limiters are lazy-loaded internally to avoid Next.js bundling issues
  */
-const withRateLimit = (limiter: any, handler: (req: PayloadRequest) => Promise<Response>) => {
+const withRateLimit = (limiterKey: LimiterKey, handler: (req: PayloadRequest) => Promise<Response>) => {
   return async (req: PayloadRequest): Promise<Response> => {
+    // Access the limiter directly from the imported module
+    const limiter = rateLimiters[limiterKey]
+
+    if (!limiter) {
+      throw new Error(`Rate limiter '${limiterKey}' not found`)
+    }
+
     // Create a promise to handle rate limiting
     return new Promise((resolve, reject) => {
       // Create minimal Express-compatible req/res objects
@@ -64,8 +70,8 @@ const withRateLimit = (limiter: any, handler: (req: PayloadRequest) => Promise<R
         }
       }
 
-      // Call the rate limiter
-      limiter(expressReq, expressRes, next)
+      // Call the rate limiter using the .use() method
+      limiter.use(expressReq, expressRes, next)
     })
   }
 }
@@ -78,7 +84,7 @@ const withRateLimit = (limiter: any, handler: (req: PayloadRequest) => Promise<R
 export const stripeConnectOnboardEndpoint: Endpoint = {
   path: '/stripe/connect/onboard',
   method: 'post',
-  handler: withRateLimit(connectLimiter, onboardStripeConnect),
+  handler: withRateLimit('connectLimiter', onboardStripeConnect),
 }
 
 /**
@@ -89,7 +95,7 @@ export const stripeConnectOnboardEndpoint: Endpoint = {
 export const stripeConnectRefreshEndpoint: Endpoint = {
   path: '/stripe/connect/refresh',
   method: 'post',
-  handler: withRateLimit(connectLimiter, refreshOnboardingLink),
+  handler: withRateLimit('connectLimiter', refreshOnboardingLink),
 }
 
 /**
@@ -100,7 +106,7 @@ export const stripeConnectRefreshEndpoint: Endpoint = {
 export const stripeAccountStatusEndpoint: Endpoint = {
   path: '/stripe/connect/status',
   method: 'get',
-  handler: withRateLimit(generalStripeLimiter, getAccountStatus),
+  handler: withRateLimit('generalStripeLimiter', getAccountStatus),
 }
 
 /**
@@ -111,7 +117,7 @@ export const stripeAccountStatusEndpoint: Endpoint = {
 export const stripeDisconnectEndpoint: Endpoint = {
   path: '/stripe/connect/disconnect',
   method: 'post',
-  handler: withRateLimit(connectLimiter, disconnectAccount),
+  handler: withRateLimit('connectLimiter', disconnectAccount),
 }
 
 /**
@@ -122,7 +128,7 @@ export const stripeDisconnectEndpoint: Endpoint = {
 export const stripeCheckoutCreateEndpoint: Endpoint = {
   path: '/stripe/checkout/create-session',
   method: 'post',
-  handler: withRateLimit(checkoutLimiter, createCheckoutSession),
+  handler: withRateLimit('checkoutLimiter', createCheckoutSession),
 }
 
 /**
@@ -133,7 +139,7 @@ export const stripeCheckoutCreateEndpoint: Endpoint = {
 export const stripeCheckoutGetEndpoint: Endpoint = {
   path: '/stripe/checkout/session/:sessionId',
   method: 'get',
-  handler: withRateLimit(generalStripeLimiter, getCheckoutSession),
+  handler: withRateLimit('generalStripeLimiter', getCheckoutSession),
 }
 
 /**
@@ -147,7 +153,7 @@ export const stripeCheckoutGetEndpoint: Endpoint = {
 export const stripeWebhookEndpoint: Endpoint = {
   path: '/stripe/webhook',
   method: 'post',
-  handler: withRateLimit(webhookLimiter, handleWebhook),
+  handler: withRateLimit('webhookLimiter', handleWebhook),
 }
 
 /**
@@ -158,7 +164,7 @@ export const stripeWebhookEndpoint: Endpoint = {
 export const stripeRefundEndpoint: Endpoint = {
   path: '/stripe/payments/:id/refund',
   method: 'post',
-  handler: withRateLimit(refundLimiter, refundPayment),
+  handler: withRateLimit('refundLimiter', refundPayment),
 }
 
 /**
@@ -169,7 +175,7 @@ export const stripeRefundEndpoint: Endpoint = {
 export const stripePaymentGetEndpoint: Endpoint = {
   path: '/stripe/payments/:id',
   method: 'get',
-  handler: withRateLimit(generalStripeLimiter, getPayment),
+  handler: withRateLimit('generalStripeLimiter', getPayment),
 }
 
 /**
@@ -180,7 +186,7 @@ export const stripePaymentGetEndpoint: Endpoint = {
 export const stripeSubscriptionGetEndpoint: Endpoint = {
   path: '/stripe/subscription',
   method: 'get',
-  handler: withRateLimit(subscriptionLimiter, getSubscription),
+  handler: withRateLimit('subscriptionLimiter', getSubscription),
 }
 
 /**
@@ -191,7 +197,7 @@ export const stripeSubscriptionGetEndpoint: Endpoint = {
 export const stripeSubscriptionCreateEndpoint: Endpoint = {
   path: '/stripe/subscription/create',
   method: 'post',
-  handler: withRateLimit(subscriptionLimiter, createSubscriptionCheckout),
+  handler: withRateLimit('subscriptionLimiter', createSubscriptionCheckout),
 }
 
 /**
@@ -202,7 +208,7 @@ export const stripeSubscriptionCreateEndpoint: Endpoint = {
 export const stripeSubscriptionCancelEndpoint: Endpoint = {
   path: '/stripe/subscription/cancel',
   method: 'post',
-  handler: withRateLimit(subscriptionLimiter, cancelSubscription),
+  handler: withRateLimit('subscriptionLimiter', cancelSubscription),
 }
 
 /**
@@ -213,5 +219,5 @@ export const stripeSubscriptionCancelEndpoint: Endpoint = {
 export const stripePortalEndpoint: Endpoint = {
   path: '/stripe/portal',
   method: 'get',
-  handler: withRateLimit(subscriptionLimiter, getCustomerPortal),
+  handler: withRateLimit('subscriptionLimiter', getCustomerPortal),
 }

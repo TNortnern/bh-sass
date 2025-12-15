@@ -85,7 +85,7 @@
           <div class="grid sm:grid-cols-3 gap-4 mb-8">
             <UButton
               size="lg"
-              color="white"
+              color="primary"
               variant="solid"
               to="/app"
               class="justify-center"
@@ -101,7 +101,7 @@
 
             <UButton
               size="lg"
-              color="gray"
+              color="neutral"
               variant="soft"
               to="/app/inventory"
               class="justify-center"
@@ -117,7 +117,7 @@
 
             <UButton
               size="lg"
-              color="gray"
+              color="neutral"
               variant="soft"
               class="justify-center"
               @click="viewBookingPage"
@@ -153,7 +153,7 @@
                   </p>
                   <div class="flex flex-wrap gap-3">
                     <UButton
-                      color="white"
+                      color="neutral"
                       size="sm"
                       to="/app/settings/billing"
                     >

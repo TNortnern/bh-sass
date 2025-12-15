@@ -78,13 +78,18 @@
               type="text"
               placeholder="e.g., Castle Bounce House, Water Slide, etc."
               size="xl"
-              icon="lucide:castle"
               :ui="{
-                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500',
-                icon: { trailing: { pointer: '' } }
+                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500'
               }"
               @input="debouncedSave"
-            />
+            >
+              <template #leading>
+                <Icon
+                  name="lucide:castle"
+                  class="w-5 h-5"
+                />
+              </template>
+            </UInput>
           </UFormGroup>
 
           <!-- Description -->
@@ -118,8 +123,7 @@
               placeholder="0.00"
               size="xl"
               :ui="{
-                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500',
-                icon: { trailing: { pointer: '' } }
+                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500'
               }"
               @input="debouncedSave"
             >
@@ -191,7 +195,7 @@
     <!-- Navigation -->
     <div class="flex items-center justify-between mt-8">
       <UButton
-        color="gray"
+        color="neutral"
         variant="ghost"
         size="lg"
         class="text-gray-400 hover:text-white"
@@ -208,7 +212,7 @@
 
       <div class="flex items-center gap-3">
         <UButton
-          color="gray"
+          color="neutral"
           variant="ghost"
           size="lg"
           class="text-gray-400 hover:text-white"

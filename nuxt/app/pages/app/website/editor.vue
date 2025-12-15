@@ -1123,7 +1123,7 @@ const openCustomHtmlEditor = () => {
     <!-- Block Explorer Modal -->
     <UModal
       v-model:open="showBlockExplorer"
-      :ui="{ width: 'max-w-4xl' }"
+      :ui="{ wrapper: 'max-w-4xl' }"
     >
       <template #content>
         <div class="bg-gray-900 text-white rounded-xl overflow-hidden max-h-[85vh] flex flex-col">

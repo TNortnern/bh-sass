@@ -1,24 +1,18 @@
 <template>
   <UCard
-    :ui="{
-      base: 'customer-card group cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-amber-500/10',
-      background: 'bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm',
-      ring: 'ring-1 ring-slate-700/50 hover:ring-amber-500/50',
-      rounded: 'rounded-xl',
-      body: { padding: 'p-6 sm:p-7' }
-    }"
+    class="customer-card group cursor-pointer transition-all duration-300 hover:shadow-2xl hover:shadow-amber-500/10 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm ring-1 ring-slate-700/50 hover:ring-amber-500/50 rounded-xl"
     @click="handleClick"
   >
-    <div class="flex items-start gap-5">
+    <div class="flex items-start gap-5 p-6 sm:p-7">
       <!-- Avatar -->
       <div class="relative shrink-0">
         <UAvatar
           :src="customer.avatar"
           :alt="`${customer.firstName} ${customer.lastName}`"
           size="xl"
+          class="bg-gradient-to-br from-amber-500 to-orange-600"
           :ui="{
-            background: 'bg-gradient-to-br from-amber-500 to-orange-600',
-            text: 'text-white font-semibold text-lg'
+            fallback: 'text-white font-semibold text-lg'
           }"
         >
           {{ initials }}
@@ -83,10 +77,7 @@
             :color="getTagColor(tag)"
             variant="subtle"
             size="xs"
-            :ui="{
-              rounded: 'rounded-full',
-              font: 'font-medium tracking-wide'
-            }"
+            class="rounded-full font-medium tracking-wide"
           >
             {{ tag }}
           </UBadge>
@@ -95,7 +86,7 @@
             color="neutral"
             variant="subtle"
             size="xs"
-            :ui="{ rounded: 'rounded-full' }"
+            class="rounded-full"
           >
             +{{ customer.tags.length - 3 }}
           </UBadge>
@@ -187,8 +178,10 @@ function formatRelativeDate(date?: string): string {
   return `${Math.floor(diffDays / 365)} years ago`
 }
 
-function getTagColor(tag: string): string {
-  const colors: Record<string, string> = {
+type BadgeColor = 'error' | 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'neutral'
+
+function getTagColor(tag: string): BadgeColor {
+  const colors: Record<string, BadgeColor> = {
     'VIP': 'warning',
     'Birthday Party': 'error',
     'Corporate': 'info',

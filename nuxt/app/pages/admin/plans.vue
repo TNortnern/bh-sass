@@ -92,11 +92,11 @@ const formatCurrency = (value: number) => {
   }).format(value)
 }
 
-const getPlanColor = (slug: string) => {
-  const colors: Record<string, string> = {
+const getPlanColor = (slug: string): 'neutral' | 'primary' | 'warning' => {
+  const colors: Record<string, 'neutral' | 'primary' | 'warning'> = {
     free: 'neutral',
     growth: 'primary',
-    pro: 'purple',
+    pro: 'primary',
     scale: 'warning'
   }
   return colors[slug] || 'neutral'

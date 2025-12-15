@@ -146,7 +146,7 @@ const getTypeLabel = (type: string) => {
       <UBadge
         v-if="unreadCount > 0"
         :label="`${unreadCount} unread`"
-        color="orange"
+        color="warning"
         variant="subtle"
         size="sm"
         class="ml-2"

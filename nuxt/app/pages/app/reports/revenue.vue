@@ -87,7 +87,7 @@ onMounted(() => {
     <!-- Date Range Picker -->
     <UCard
       class="bg-black border-2 border-gray-800"
-      :ui="{ body: { padding: 'p-6' } }"
+      :ui="{ body: 'p-6' }"
     >
       <ReportsDateRangePicker
         v-model="dateRange"
@@ -134,7 +134,7 @@ onMounted(() => {
     <!-- Revenue Trend Chart -->
     <UCard
       class="bg-black border-2 border-cyan-500/30"
-      :ui="{ body: { padding: 'p-6' } }"
+      :ui="{ body: 'p-6' }"
     >
       <template #header>
         <div class="flex items-center gap-3">
@@ -166,7 +166,7 @@ onMounted(() => {
       <!-- By Item Category -->
       <UCard
         class="bg-black border-2 border-pink-500/30"
-        :ui="{ body: { padding: 'p-6' } }"
+        :ui="{ body: 'p-6' }"
       >
         <template #header>
           <div class="flex items-center gap-3">
@@ -211,7 +211,7 @@ onMounted(() => {
       <!-- By Payment Method -->
       <UCard
         class="bg-black border-2 border-yellow-500/30"
-        :ui="{ body: { padding: 'p-6' } }"
+        :ui="{ body: 'p-6' }"
       >
         <template #header>
           <div class="flex items-center gap-3">
@@ -257,7 +257,7 @@ onMounted(() => {
     <!-- Top Customers -->
     <UCard
       class="bg-black border-2 border-cyan-500/30"
-      :ui="{ body: { padding: 'p-6' } }"
+      :ui="{ body: 'p-6' }"
     >
       <template #header>
         <div class="flex items-center gap-3">
@@ -324,7 +324,7 @@ onMounted(() => {
     <!-- Refunds Breakdown -->
     <UCard
       class="bg-black border-2 border-red-500/30"
-      :ui="{ body: { padding: 'p-6' } }"
+      :ui="{ body: 'p-6' }"
     >
       <template #header>
         <div class="flex items-center gap-3">

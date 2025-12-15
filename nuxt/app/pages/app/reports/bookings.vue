@@ -167,7 +167,7 @@ const busiestHoursChartOptions: ChartOptions<'bar'> = {
     <!-- Date Range Picker -->
     <UCard
       class="bg-black border-2 border-gray-800"
-      :ui="{ body: { padding: 'p-6' } }"
+      :ui="{ body: 'p-6' }"
     >
       <ReportsDateRangePicker
         v-model="dateRange"
@@ -216,7 +216,7 @@ const busiestHoursChartOptions: ChartOptions<'bar'> = {
       <!-- Bookings by Status -->
       <UCard
         class="bg-black border-2 border-pink-500/30"
-        :ui="{ body: { padding: 'p-6' } }"
+        :ui="{ body: 'p-6' }"
       >
         <template #header>
           <div class="flex items-center gap-3">
@@ -246,7 +246,7 @@ const busiestHoursChartOptions: ChartOptions<'bar'> = {
       <!-- Busiest Hours -->
       <UCard
         class="bg-black border-2 border-yellow-500/30"
-        :ui="{ body: { padding: 'p-6' } }"
+        :ui="{ body: 'p-6' }"
       >
         <template #header>
           <div class="flex items-center gap-3">
@@ -293,7 +293,7 @@ const busiestHoursChartOptions: ChartOptions<'bar'> = {
     <!-- Bookings by Item -->
     <UCard
       class="bg-black border-2 border-cyan-500/30"
-      :ui="{ body: { padding: 'p-6' } }"
+      :ui="{ body: 'p-6' }"
     >
       <template #header>
         <div class="flex items-center gap-3">
@@ -362,7 +362,7 @@ const busiestHoursChartOptions: ChartOptions<'bar'> = {
       <!-- Busiest Days -->
       <UCard
         class="bg-black border-2 border-yellow-500/30"
-        :ui="{ body: { padding: 'p-6' } }"
+        :ui="{ body: 'p-6' }"
       >
         <template #header>
           <div class="flex items-center gap-3">
@@ -407,7 +407,7 @@ const busiestHoursChartOptions: ChartOptions<'bar'> = {
       <!-- Cancellation Analysis -->
       <UCard
         class="bg-black border-2 border-red-500/30"
-        :ui="{ body: { padding: 'p-6' } }"
+        :ui="{ body: 'p-6' }"
       >
         <template #header>
           <div class="flex items-center gap-3">

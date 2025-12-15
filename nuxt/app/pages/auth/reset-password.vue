@@ -17,6 +17,7 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const error = ref<string | null>(null)
 const success = ref(false)
+const isLoading = ref(false)
 
 // Validate token on mount
 const tokenValid = ref<boolean | null>(null)
@@ -44,31 +45,36 @@ onMounted(async () => {
 
 const handleResetPassword = async () => {
   error.value = null
+  isLoading.value = true
 
-  // Validate passwords match
-  if (form.value.password !== form.value.confirmPassword) {
-    error.value = 'Passwords do not match'
-    return
-  }
+  try {
+    // Validate passwords match
+    if (form.value.password !== form.value.confirmPassword) {
+      error.value = 'Passwords do not match'
+      return
+    }
 
-  // Validate password strength
-  if (form.value.password.length < 8) {
-    error.value = 'Password must be at least 8 characters'
-    return
-  }
+    // Validate password strength
+    if (form.value.password.length < 8) {
+      error.value = 'Password must be at least 8 characters'
+      return
+    }
 
-  const result = await resetPassword({
-    token: token.value,
-    password: form.value.password
-  })
+    const result = await resetPassword({
+      token: token.value,
+      password: form.value.password
+    })
 
-  if (result.success) {
-    success.value = true
-    setTimeout(() => {
-      navigateTo('/auth/login')
-    }, 2000)
-  } else {
-    error.value = result.error || 'Failed to reset password'
+    if (result.success) {
+      success.value = true
+      setTimeout(() => {
+        navigateTo('/auth/login')
+      }, 2000)
+    } else {
+      error.value = result.error || 'Failed to reset password'
+    }
+  } finally {
+    isLoading.value = false
   }
 }
 

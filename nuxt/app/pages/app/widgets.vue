@@ -59,14 +59,22 @@ const directWidgetLink = computed(() => {
 const latestConfig = ref<any>(null)
 const latestEmbedCode = ref<string>('')
 
-if (import.meta.client) {
-  window.addEventListener('message', (event) => {
+// Set up message listener with proper cleanup to avoid memory leaks
+onMounted(() => {
+  const handleMessage = (event: MessageEvent) => {
     if (event.data?.type === 'rb-widget-config-update') {
       latestConfig.value = event.data.config
       latestEmbedCode.value = event.data.embedCode
     }
+  }
+
+  window.addEventListener('message', handleMessage)
+
+  // Clean up listener when component unmounts
+  onUnmounted(() => {
+    window.removeEventListener('message', handleMessage)
   })
-}
+})
 
 // Copy to clipboard
 const copyToClipboard = async (text: string, label: string) => {
@@ -94,7 +102,10 @@ const viewMode = ref<'embedded' | 'simple'>('embedded')
   <!-- Show NoTenantAlert if user doesn't have a tenant assigned -->
   <NoTenantAlert v-if="!hasTenant" />
 
-  <div v-else class="max-w-7xl mx-auto">
+  <div
+    v-else
+    class="max-w-7xl mx-auto"
+  >
     <!-- Page Header -->
     <div class="mb-6 flex items-center justify-between">
       <div>

@@ -292,7 +292,7 @@ const canSubmit = computed(() => {
         color="primary"
         size="lg"
         icon="i-lucide-plus"
-        :ui="{ rounded: 'rounded-xl' }"
+        class="rounded-xl"
         @click="openAddModal"
       >
         Add Blackout
@@ -302,12 +302,8 @@ const canSubmit = computed(() => {
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <UCard
-        :ui="{
-          background: 'bg-gradient-to-br from-gray-100 to-gray-50 dark:from-slate-800/60 dark:to-slate-800/40',
-          ring: 'ring-1 ring-gray-200 dark:ring-slate-700/50',
-          rounded: 'rounded-xl',
-          body: { padding: 'p-5' }
-        }"
+        class="bg-gradient-to-br from-gray-100 to-gray-50 dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
+        :ui="{ body: 'p-5' }"
       >
         <div class="flex items-start justify-between">
           <div>
@@ -328,12 +324,8 @@ const canSubmit = computed(() => {
       </UCard>
 
       <UCard
-        :ui="{
-          background: 'bg-gradient-to-br from-gray-100 to-gray-50 dark:from-slate-800/60 dark:to-slate-800/40',
-          ring: 'ring-1 ring-gray-200 dark:ring-slate-700/50',
-          rounded: 'rounded-xl',
-          body: { padding: 'p-5' }
-        }"
+        class="bg-gradient-to-br from-gray-100 to-gray-50 dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
+        :ui="{ body: 'p-5' }"
       >
         <div class="flex items-start justify-between">
           <div>
@@ -354,12 +346,8 @@ const canSubmit = computed(() => {
       </UCard>
 
       <UCard
-        :ui="{
-          background: 'bg-gradient-to-br from-gray-100 to-gray-50 dark:from-slate-800/60 dark:to-slate-800/40',
-          ring: 'ring-1 ring-gray-200 dark:ring-slate-700/50',
-          rounded: 'rounded-xl',
-          body: { padding: 'p-5' }
-        }"
+        class="bg-gradient-to-br from-gray-100 to-gray-50 dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
+        :ui="{ body: 'p-5' }"
       >
         <div class="flex items-start justify-between">
           <div>
@@ -432,12 +420,8 @@ const canSubmit = computed(() => {
     <!-- Calendar View -->
     <UCard
       v-if="viewMode === 'calendar'"
-      :ui="{
-        background: 'bg-white dark:bg-slate-800/40',
-        ring: 'ring-1 ring-gray-200 dark:ring-slate-700/50',
-        rounded: 'rounded-xl',
-        body: { padding: 'p-0' }
-      }"
+      class="bg-white dark:bg-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
+      :ui="{ body: 'p-0' }"
     >
       <!-- Calendar Navigation -->
       <div class="px-6 py-4 border-b border-gray-200 dark:border-slate-700/50">
@@ -558,12 +542,8 @@ const canSubmit = computed(() => {
     <!-- List View -->
     <UCard
       v-else
-      :ui="{
-        background: 'bg-white dark:bg-slate-800/40',
-        ring: 'ring-1 ring-gray-200 dark:ring-slate-700/50',
-        rounded: 'rounded-xl',
-        body: { padding: 'p-0' }
-      }"
+      class="bg-white dark:bg-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
+      :ui="{ body: 'p-0' }"
     >
       <div class="overflow-x-auto">
         <table class="min-w-full">
@@ -663,7 +643,7 @@ const canSubmit = computed(() => {
           <UButton
             color="primary"
             size="lg"
-            :ui="{ rounded: 'rounded-xl' }"
+            class="rounded-xl"
             @click="openAddModal"
           >
             <UIcon
@@ -690,7 +670,7 @@ const canSubmit = computed(() => {
     <!-- Add Blackout Modal -->
     <UModal
       v-model:open="showAddModal"
-      :ui="{ width: 'sm:max-w-2xl' }"
+      :ui="{ wrapper: 'sm:max-w-2xl' }"
     >
       <template #content>
         <div class="p-6">
@@ -831,7 +811,7 @@ const canSubmit = computed(() => {
     <!-- Edit Blackout Modal -->
     <UModal
       v-model:open="showEditModal"
-      :ui="{ width: 'sm:max-w-2xl' }"
+      :ui="{ wrapper: 'sm:max-w-2xl' }"
     >
       <template #content>
         <div class="p-6">

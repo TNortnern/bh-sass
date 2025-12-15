@@ -80,16 +80,18 @@ const elementIcon = computed(() => {
   return icons[props.element.type] || 'i-lucide-type'
 })
 
+type NuxtUIColor = 'error' | 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'neutral'
+
 /**
  * Get color based on element type
  */
-const elementColor = computed(() => {
+const elementColor = computed((): NuxtUIColor => {
   if (!props.element) return 'primary'
 
-  const colors: Record<string, string> = {
-    heading: 'blue',
+  const colors: Record<string, NuxtUIColor> = {
+    heading: 'primary',
     text: 'neutral',
-    button: 'amber'
+    button: 'warning'
   }
   return colors[props.element.type] || 'primary'
 })

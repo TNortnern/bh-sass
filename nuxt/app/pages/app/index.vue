@@ -1,10 +1,17 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { getStatusLabel, formatEnumValue } from '~/utils/formatters'
+import NoTenantAlert from '~/components/NoTenantAlert.vue'
 // import { format, parseISO, isToday, isFuture } from 'date-fns'
 
 definePageMeta({
   layout: 'dashboard'
+})
+
+// Check if user has tenant ID assigned
+const { currentUser } = useAuth()
+const hasTenant = computed(() => {
+  return currentUser.value?.tenantId !== null && currentUser.value?.tenantId !== undefined
 })
 
 // Current date info
@@ -78,7 +85,7 @@ const kpiData = computed(() => {
       change: revenueToday > 0 ? `+$${revenueToday}` : '$0',
       trend: 'up',
       icon: 'i-lucide-dollar-sign',
-      color: 'green'
+      color: 'success'
     },
     {
       label: 'Active Bookings',
@@ -86,7 +93,7 @@ const kpiData = computed(() => {
       change: `${stats.value.pending} pending`,
       trend: 'up',
       icon: 'i-lucide-calendar-check',
-      color: 'blue'
+      color: 'primary'
     },
     {
       label: 'Total Bookings',
@@ -94,7 +101,7 @@ const kpiData = computed(() => {
       change: `${stats.value.completed} completed`,
       trend: 'up',
       icon: 'i-lucide-activity',
-      color: 'orange'
+      color: 'warning'
     },
     {
       label: 'Total Customers',
@@ -127,15 +134,15 @@ const recentBookings = computed(() => {
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'confirmed':
-      return 'green'
+      return 'success'
     case 'pending':
-      return 'yellow'
+      return 'warning'
     case 'completed':
-      return 'blue'
+      return 'primary'
     case 'scheduled':
-      return 'blue'
+      return 'primary'
     case 'in-progress':
-      return 'orange'
+      return 'warning'
     default:
       return 'neutral'
   }
@@ -148,7 +155,11 @@ const getScheduleIcon = (type: string) => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <NoTenantAlert v-if="!hasTenant" />
+  <div
+    v-else
+    class="space-y-6"
+  >
     <!-- Page Header -->
     <div>
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
@@ -161,7 +172,7 @@ const getScheduleIcon = (type: string) => {
 
     <!-- Loading State -->
     <div
-      v-if="isLoading"
+      v-if="bookings.length === 0 && totalCustomers === 0"
       class="flex items-center justify-center py-12"
     >
       <UIcon
@@ -208,9 +219,9 @@ const getScheduleIcon = (type: string) => {
             <div
               class="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
               :class="{
-                'bg-green-100 dark:bg-green-900/20': kpi.color === 'green',
-                'bg-blue-100 dark:bg-blue-900/20': kpi.color === 'blue',
-                'bg-orange-100 dark:bg-orange-900/20': kpi.color === 'orange',
+                'bg-green-100 dark:bg-green-900/20': kpi.color === 'success',
+                'bg-blue-100 dark:bg-blue-900/20': kpi.color === 'primary',
+                'bg-orange-100 dark:bg-orange-900/20': kpi.color === 'warning',
                 'bg-purple-100 dark:bg-purple-900/20': kpi.color === 'purple'
               }"
             >
@@ -218,9 +229,9 @@ const getScheduleIcon = (type: string) => {
                 :name="kpi.icon"
                 class="w-6 h-6"
                 :class="{
-                  'text-green-600 dark:text-green-400': kpi.color === 'green',
-                  'text-blue-600 dark:text-blue-400': kpi.color === 'blue',
-                  'text-orange-600 dark:text-orange-400': kpi.color === 'orange',
+                  'text-green-600 dark:text-green-400': kpi.color === 'success',
+                  'text-blue-600 dark:text-blue-400': kpi.color === 'primary',
+                  'text-orange-600 dark:text-orange-400': kpi.color === 'warning',
                   'text-purple-600 dark:text-purple-400': kpi.color === 'purple'
                 }"
               />
@@ -300,7 +311,7 @@ const getScheduleIcon = (type: string) => {
                   <div class="flex items-start justify-between gap-2 mb-1">
                     <div class="flex items-center gap-2">
                       <UBadge
-                        :color="schedule.type === 'delivery' ? 'blue' : 'green'"
+                        :color="schedule.type === 'delivery' ? 'primary' : 'success'"
                         variant="subtle"
                         size="sm"
                       >

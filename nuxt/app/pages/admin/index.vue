@@ -70,7 +70,7 @@ const statusColor = computed(() => {
         label="Refresh"
         variant="outline"
         :loading="pending"
-        @click="refresh"
+        @click="() => refresh()"
       />
     </div>
 

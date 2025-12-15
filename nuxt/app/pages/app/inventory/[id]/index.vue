@@ -2,9 +2,16 @@
 import type { InventoryItem, InventoryUnit } from '~/composables/useInventory'
 import { getStatusLabel } from '~/utils/formatters'
 import { format } from 'date-fns'
+import NoTenantAlert from '~/components/NoTenantAlert.vue'
 
 definePageMeta({
   layout: 'dashboard'
+})
+
+const { currentUser } = useAuth()
+
+const hasTenant = computed(() => {
+  return currentUser.value?.tenantId !== null && currentUser.value?.tenantId !== undefined
 })
 
 const route = useRoute()
@@ -47,39 +54,57 @@ onMounted(async () => {
   }
 })
 
-const getCategoryColor = (category: string) => {
+type NuxtUIColor = 'error' | 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'neutral'
+
+const getCategoryColor = (category: string): NuxtUIColor => {
   switch (category) {
     case 'bounce-house':
-      return 'blue'
+      return 'primary'
     case 'water-slide':
-      return 'cyan'
+      return 'info'
     case 'obstacle-course':
-      return 'orange'
+      return 'warning'
     case 'game':
-      return 'purple'
+      return 'secondary'
     case 'combo':
-      return 'green'
+      return 'success'
     default:
-      return 'gray'
+      return 'neutral'
   }
 }
 
 const getCategoryLabel = (category: string) => {
-  return category.split('-').map(word =>
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ')
+  return category
+    .split(/[-_]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
 }
 
-const getStatusColor = (status: string) => {
+const getStatusIcon = (status: string) => {
   switch (status) {
     case 'active':
-      return 'green'
+      return 'i-lucide-check-circle-2'
     case 'inactive':
-      return 'gray'
+      return 'i-lucide-circle'
+    case 'maintenance':
+      return 'i-lucide-wrench'
     case 'discontinued':
-      return 'red'
+      return 'i-lucide-archive'
     default:
-      return 'gray'
+      return 'i-lucide-circle'
+  }
+}
+
+const getStatusColor = (status: string): NuxtUIColor => {
+  switch (status) {
+    case 'active':
+      return 'success'
+    case 'inactive':
+      return 'neutral'
+    case 'discontinued':
+      return 'error'
+    default:
+      return 'neutral'
   }
 }
 
@@ -115,20 +140,20 @@ const itemBookings = computed(() => {
   })
 })
 
-const getBookingStatusColor = (status: string) => {
+const getBookingStatusColor = (status: string): NuxtUIColor => {
   switch (status) {
     case 'pending':
-      return 'orange'
+      return 'warning'
     case 'confirmed':
-      return 'green'
+      return 'success'
     case 'delivered':
-      return 'blue'
+      return 'primary'
     case 'completed':
-      return 'blue'
+      return 'primary'
     case 'cancelled':
-      return 'red'
+      return 'error'
     default:
-      return 'gray'
+      return 'neutral'
   }
 }
 
@@ -442,10 +467,14 @@ const deleteUnit = async () => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <NoTenantAlert v-if="!hasTenant" />
+  <div
+    v-else
+    class="space-y-6"
+  >
     <!-- Loading State -->
     <div
-      v-if="isLoading"
+      v-if="!item"
       class="space-y-6"
     >
       <USkeleton class="h-12 w-96" />
@@ -454,7 +483,7 @@ const deleteUnit = async () => {
 
     <!-- Content -->
     <div
-      v-else-if="item"
+      v-else
       class="space-y-6"
     >
       <!-- Header with Back Button -->
@@ -480,7 +509,8 @@ const deleteUnit = async () => {
             </UBadge>
             <UBadge
               :color="getStatusColor(item.status)"
-              variant="subtle"
+              :icon="getStatusIcon(item.status)"
+              variant="soft"
               size="lg"
             >
               {{ getStatusLabel(item.status) }}
@@ -771,7 +801,7 @@ const deleteUnit = async () => {
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-700 dark:text-gray-300">Power Outlet</span>
                 <UBadge
-                  :color="item.setupRequirements.powerOutlet ? 'green' : 'gray'"
+                  :color="item.setupRequirements.powerOutlet ? 'success' : 'neutral'"
                   variant="subtle"
                 >
                   {{ item.setupRequirements.powerOutlet ? 'Required' : 'Not Required' }}
@@ -780,7 +810,7 @@ const deleteUnit = async () => {
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-700 dark:text-gray-300">Water Source</span>
                 <UBadge
-                  :color="item.setupRequirements.waterSource ? 'blue' : 'gray'"
+                  :color="item.setupRequirements.waterSource ? 'primary' : 'neutral'"
                   variant="subtle"
                 >
                   {{ item.setupRequirements.waterSource ? 'Required' : 'Not Required' }}
@@ -789,7 +819,7 @@ const deleteUnit = async () => {
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-700 dark:text-gray-300">Anchoring Method</span>
                 <UBadge
-                  color="orange"
+                  color="warning"
                   variant="subtle"
                 >
                   {{ item.setupRequirements.anchoringMethod }}
@@ -1054,7 +1084,7 @@ const deleteUnit = async () => {
                 >
                   <span class="text-sm text-gray-700 dark:text-gray-300 capitalize">{{ status }}</span>
                   <UBadge
-                    :color="status === 'available' ? 'green' : status === 'rented' ? 'blue' : status === 'maintenance' ? 'orange' : 'red'"
+                    :color="status === 'available' ? 'success' : status === 'rented' ? 'primary' : status === 'maintenance' ? 'warning' : 'error'"
                     variant="subtle"
                   >
                     {{ item.units.filter((u: InventoryUnit) => u.status === status).length }}
@@ -1073,31 +1103,6 @@ const deleteUnit = async () => {
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Error State -->
-    <div
-      v-else
-      class="text-center py-16"
-    >
-      <div class="w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mx-auto mb-4">
-        <UIcon
-          name="i-lucide-alert-circle"
-          class="w-10 h-10 text-red-600 dark:text-red-400"
-        />
-      </div>
-      <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-        Item not found
-      </h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">
-        The inventory item you're looking for doesn't exist.
-      </p>
-      <UButton
-        color="primary"
-        to="/app/inventory"
-      >
-        Back to Inventory
-      </UButton>
     </div>
 
     <!-- Add Unit Modal -->

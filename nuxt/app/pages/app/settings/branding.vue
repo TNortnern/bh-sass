@@ -506,7 +506,7 @@
             >
               <UTextarea
                 v-model="brandSettings.emailFooter"
-                rows="3"
+                :rows="3"
                 placeholder="© 2025 Your Business Name. All rights reserved."
                 class="w-full"
               />
@@ -567,7 +567,7 @@
             >
               <UTextarea
                 v-model="brandSettings.termsAndConditions"
-                rows="6"
+                :rows="6"
                 placeholder="1. Payment is due at time of booking...&#10;2. Cancellations must be made 48 hours in advance...&#10;3. Setup area must be clear and accessible..."
                 class="w-full"
               />
@@ -579,7 +579,7 @@
             >
               <UTextarea
                 v-model="brandSettings.safetyGuidelines"
-                rows="4"
+                :rows="4"
                 placeholder="Adult supervision required at all times...&#10;Remove shoes before entering...&#10;No food or drinks inside..."
                 class="w-full"
               />

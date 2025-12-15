@@ -250,12 +250,11 @@ const sortOptions = [
           size="lg"
           class="w-full lg:w-48"
         >
-          <template #label>
+          <template #leading>
             <UIcon
               name="i-lucide-tag"
-              class="w-4 h-4 mr-2"
+              class="w-4 h-4"
             />
-            {{ categories.find((c: { value: string; label: string }) => c.value === selectedCategory)?.label }}
           </template>
         </USelectMenu>
 
@@ -266,12 +265,11 @@ const sortOptions = [
           size="lg"
           class="w-full lg:w-40"
         >
-          <template #label>
+          <template #leading>
             <UIcon
               name="i-lucide-filter"
-              class="w-4 h-4 mr-2"
+              class="w-4 h-4"
             />
-            {{ statusOptions.find((s: { value: string; label: string }) => s.value === selectedStatus)?.label }}
           </template>
         </USelectMenu>
 
@@ -282,12 +280,11 @@ const sortOptions = [
           size="lg"
           class="w-full lg:w-48"
         >
-          <template #label>
+          <template #leading>
             <UIcon
               name="i-lucide-arrow-up-down"
-              class="w-4 h-4 mr-2"
+              class="w-4 h-4"
             />
-            {{ sortOptions.find((s: { value: string; label: string }) => s.value === sortBy)?.label }}
           </template>
         </USelectMenu>
 

@@ -78,7 +78,7 @@
                   As a free tier user, BouncePro charges <strong class="text-amber-400">6%</strong> per transaction. Upgrade to a paid plan to reduce this to 3% or lower.
                 </p>
                 <UButton
-                  color="amber"
+                  color="warning"
                   variant="soft"
                   size="xs"
                   to="/app/settings/billing"
@@ -157,7 +157,7 @@
     <!-- Navigation -->
     <div class="flex items-center justify-between mt-8">
       <UButton
-        color="gray"
+        color="neutral"
         variant="ghost"
         size="lg"
         class="text-gray-400 hover:text-white"
@@ -175,7 +175,7 @@
       <div class="flex items-center gap-3">
         <UButton
           v-if="!isConnected"
-          color="gray"
+          color="neutral"
           variant="ghost"
           size="lg"
           class="text-gray-400 hover:text-white"

@@ -90,12 +90,33 @@ export const Customers: CollectionConfig = {
       required: true,
       hooks: {
         beforeValidate: [
-          ({ req }) => {
-            // Always use the authenticated user's tenant - never allow client-provided tenantId
+          async ({ req, data, operation, originalDoc }) => {
+            // On update, preserve existing tenantId
+            if (operation === 'update' && originalDoc?.tenantId) {
+              return typeof originalDoc.tenantId === 'object'
+                ? originalDoc.tenantId.id
+                : originalDoc.tenantId
+            }
+
+            // Try authenticated user's tenant first
             if (req.user?.tenantId) {
               return getTenantId(req.user)
             }
-            return undefined
+
+            // Try API key context
+            const context = await getAccessContext(req)
+            if (context.tenantId) {
+              return context.tenantId
+            }
+
+            // For public widget, extract from request body if provided
+            // This allows widget to create customers with proper tenant scope
+            if (data?.tenantId) {
+              return typeof data.tenantId === 'object' ? data.tenantId.id : data.tenantId
+            }
+
+            // Fail loudly - customer creation requires tenant context
+            throw new Error('Customer creation requires authenticated tenant context or tenantId in request')
           },
         ],
       },
@@ -260,9 +281,13 @@ export const Customers: CollectionConfig = {
       async ({ doc, req }) => {
         const { queueCustomerSync } = await import('../lib/customer-sync')
 
+        // Extract tenantId properly (handles both object and scalar)
+        const tenantId = typeof doc.tenantId === 'object' ? doc.tenantId.id : doc.tenantId
+
         // Transform to expected customer format
         const customer = {
           id: doc.id,
+          tenantId, // Include tenantId for proper scoping
           firstName: doc.name?.split(' ')[0] || '',
           lastName: doc.name?.split(' ').slice(1).join(' ') || '',
           email: doc.email,

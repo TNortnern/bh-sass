@@ -399,7 +399,7 @@
                   :key="role.value"
                   class="flex items-start gap-4 p-4 bg-gray-50 dark:bg-white/[0.02] border-2 rounded-xl cursor-pointer transition-all duration-200"
                   :class="inviteForm.role === role.value ? 'border-amber-400 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/5' : 'border-gray-100 dark:border-white/[0.06] hover:border-amber-200 dark:hover:border-amber-500/30'"
-                  @click="inviteForm.role = role.value"
+                  @click="inviteForm.role = role.value as TeamMember['role']"
                 >
                   <div
                     class="w-5 h-5 mt-0.5 border-2 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
@@ -489,7 +489,7 @@
                   :key="role.value"
                   class="flex items-start gap-4 p-4 bg-gray-50 dark:bg-white/[0.02] border-2 rounded-xl cursor-pointer transition-all duration-200"
                   :class="editRoleForm === role.value ? 'border-amber-400 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/5' : 'border-gray-100 dark:border-white/[0.06] hover:border-amber-200 dark:hover:border-amber-500/30'"
-                  @click="editRoleForm = role.value"
+                  @click="editRoleForm = role.value as TeamMember['role']"
                 >
                   <div
                     class="w-5 h-5 mt-0.5 border-2 rounded-full flex items-center justify-center flex-shrink-0 transition-colors"
@@ -643,9 +643,12 @@ const showDeactivateModal = ref(false)
 const selectedMember = ref<TeamMember | null>(null)
 const editRoleForm = ref<TeamMember['role']>('staff')
 
-const inviteForm = ref({
+const inviteForm = ref<{
+  email: string
+  role: TeamMember['role']
+}>({
   email: '',
-  role: 'staff' as TeamMember['role']
+  role: 'staff'
 })
 
 const roles = [

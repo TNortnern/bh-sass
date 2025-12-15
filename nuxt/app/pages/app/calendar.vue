@@ -423,18 +423,18 @@ const handleCreateBooking = async () => {
   }
 }
 
-const getStatusColor = (status: CalendarBooking['status']) => {
+const getStatusColor = (status: CalendarBooking['status']): 'error' | 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'neutral' => {
   switch (status) {
     case 'pending':
-      return 'yellow'
+      return 'warning'
     case 'confirmed':
-      return 'green'
+      return 'success'
     case 'delivered':
-      return 'blue'
+      return 'info'
     case 'completed':
-      return 'gray'
+      return 'neutral'
     case 'cancelled':
-      return 'red'
+      return 'error'
     default:
       return 'neutral'
   }
@@ -1105,7 +1105,7 @@ const statusOptions = [
     <!-- Booking Details Modal -->
     <UModal
       v-model:open="isBookingModalOpen"
-      :ui="{ width: 'sm:max-w-lg' }"
+      :ui="{ wrapper: 'sm:max-w-lg' }"
     >
       <template #content>
         <UCard
@@ -1251,7 +1251,7 @@ const statusOptions = [
     <!-- New Booking Modal -->
     <UModal
       v-model:open="isNewBookingModalOpen"
-      :ui="{ width: 'sm:max-w-3xl' }"
+      :ui="{ wrapper: 'sm:max-w-3xl' }"
     >
       <template #content>
         <UCard class="bg-white dark:bg-gray-900">
@@ -1517,7 +1517,7 @@ const statusOptions = [
     <!-- Mobile Filters Sidebar -->
     <UModal
       v-model:open="isMobileMenuOpen"
-      :ui="{ width: 'max-w-sm' }"
+      :ui="{ wrapper: 'max-w-sm' }"
     >
       <template #content>
         <UCard class="bg-white dark:bg-gray-900">

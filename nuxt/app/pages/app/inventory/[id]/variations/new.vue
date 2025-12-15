@@ -4,7 +4,7 @@ const router = useRouter()
 const itemId = computed(() => route.params.id as string)
 
 // Fetch rental item details
-const { data: item, pending: itemPending } = await useLazyFetch(
+const { data: item, pending: itemPending } = await useLazyFetch<{ name: string }>(
   `/api/rental-items/${itemId.value}`
 )
 

@@ -269,7 +269,7 @@ const handleCancel = () => {
         <!-- Element info -->
         <div class="flex items-center gap-2">
           <UBadge
-            color="purple"
+            color="secondary"
             variant="subtle"
           >
             <UIcon
@@ -505,7 +505,7 @@ const handleCancel = () => {
           />
           <UButton
             label="Apply Image"
-            color="purple"
+            color="secondary"
             :loading="isUploading"
             :disabled="!selectedImage"
             @click="handleSave"

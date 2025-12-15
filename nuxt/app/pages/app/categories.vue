@@ -230,10 +230,10 @@
           </div>
           <p class="text-gray-600 dark:text-gray-400">
             Are you sure you want to delete
-            <strong>{{ categoryToDelete?.name }}</strong>?
+            <strong>{{ categoryToDelete ? categoryToDelete.name : '' }}</strong>?
           </p>
           <p
-            v-if="categoryToDelete?.itemCount > 0"
+            v-if="categoryToDelete && categoryToDelete.itemCount && categoryToDelete.itemCount > 0"
             class="text-sm text-amber-600 dark:text-amber-400"
           >
             Warning: This category has {{ categoryToDelete.itemCount }} item(s). They will need to be

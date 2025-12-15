@@ -148,7 +148,7 @@ const customerSegmentChartOptions: ChartOptions<'doughnut'> = {
     <!-- Date Range Picker -->
     <UCard
       class="bg-black border-2 border-gray-800"
-      :ui="{ body: { padding: 'p-6' } }"
+      :ui="{ body: 'p-6' }"
     >
       <ReportsDateRangePicker
         v-model="dateRange"
@@ -197,7 +197,7 @@ const customerSegmentChartOptions: ChartOptions<'doughnut'> = {
       <!-- Customer Segment -->
       <UCard
         class="bg-black border-2 border-purple-500/30"
-        :ui="{ body: { padding: 'p-6' } }"
+        :ui="{ body: 'p-6' }"
       >
         <template #header>
           <div class="flex items-center gap-3">
@@ -243,7 +243,7 @@ const customerSegmentChartOptions: ChartOptions<'doughnut'> = {
       <!-- Acquisition Sources -->
       <UCard
         class="bg-black border-2 border-cyan-500/30"
-        :ui="{ body: { padding: 'p-6' } }"
+        :ui="{ body: 'p-6' }"
       >
         <template #header>
           <div class="flex items-center gap-3">
@@ -289,7 +289,7 @@ const customerSegmentChartOptions: ChartOptions<'doughnut'> = {
     <!-- Top Customers Table -->
     <UCard
       class="bg-black border-2 border-purple-500/30"
-      :ui="{ body: { padding: 'p-6' } }"
+      :ui="{ body: 'p-6' }"
     >
       <template #header>
         <div class="flex items-center gap-3">
@@ -358,7 +358,7 @@ const customerSegmentChartOptions: ChartOptions<'doughnut'> = {
       <!-- Booking Frequency -->
       <UCard
         class="bg-black border-2 border-yellow-500/30"
-        :ui="{ body: { padding: 'p-6' } }"
+        :ui="{ body: 'p-6' }"
       >
         <template #header>
           <div class="flex items-center gap-3">
@@ -397,7 +397,7 @@ const customerSegmentChartOptions: ChartOptions<'doughnut'> = {
       <!-- Geographic Distribution -->
       <UCard
         class="bg-black border-2 border-green-500/30"
-        :ui="{ body: { padding: 'p-6' } }"
+        :ui="{ body: 'p-6' }"
       >
         <template #header>
           <div class="flex items-center gap-3">

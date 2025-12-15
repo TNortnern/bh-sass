@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import NoTenantAlert from '~/components/NoTenantAlert.vue'
+
 definePageMeta({
   layout: 'dashboard'
 })
@@ -7,6 +9,12 @@ const { createItem } = useInventory()
 // const router = useRouter()
 const toast = useToast()
 const { setBreadcrumbs } = useBreadcrumbs()
+const { currentUser } = useAuth()
+
+// Check if user has tenant ID assigned
+const hasTenant = computed(() => {
+  return currentUser.value?.tenantId !== null && currentUser.value?.tenantId !== undefined
+})
 
 // Set breadcrumbs for new inventory page
 onMounted(() => {
@@ -189,7 +197,11 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <NoTenantAlert v-if="!hasTenant" />
+  <div
+    v-else
+    class="space-y-6"
+  >
     <!-- Header -->
     <div class="flex items-center gap-4">
       <UButton
@@ -674,7 +686,6 @@ const handleSubmit = async () => {
             type="submit"
             color="primary"
             size="lg"
-            :loading="isLoading"
           >
             <UIcon
               name="i-lucide-check"

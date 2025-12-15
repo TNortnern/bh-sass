@@ -483,21 +483,7 @@
                   value-attribute="value"
                   size="lg"
                   class="w-full"
-                >
-                  <template #label>
-                    <span>{{ scopeTypeOptions.find((o: typeof scopeTypeOptions[0]) => o.value === newKeyScopeType)?.label }}</span>
-                  </template>
-                  <template #option="{ option }">
-                    <div class="py-2">
-                      <div class="font-semibold text-gray-900 dark:text-white mb-1">
-                        {{ option.label }}
-                      </div>
-                      <div class="text-[0.8125rem] text-gray-600 dark:text-[#888] leading-snug">
-                        {{ option.description }}
-                      </div>
-                    </div>
-                  </template>
-                </USelect>
+                />
               </UFormField>
 
               <div class="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-500/15 rounded-lg">
