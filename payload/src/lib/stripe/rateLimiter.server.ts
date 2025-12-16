@@ -14,6 +14,26 @@ function getRateLimitModule() {
 }
 
 /**
+ * Normalize IPv6 addresses to handle IPv6 rate limiting properly
+ * Converts IPv4-mapped IPv6 addresses back to IPv4 format
+ */
+function normalizeIP(ip: string | undefined): string {
+  if (!ip) return 'unknown'
+
+  // Handle IPv4-mapped IPv6 addresses (e.g., ::ffff:127.0.0.1)
+  if (ip.startsWith('::ffff:')) {
+    return ip.slice(7)
+  }
+
+  // Handle localhost
+  if (ip === '::1') {
+    return '127.0.0.1'
+  }
+
+  return ip
+}
+
+/**
  * Extract tenant ID from request for per-tenant rate limiting
  * Supports both authenticated users and API keys
  */
@@ -31,8 +51,9 @@ function getTenantKeyGenerator(req: any): string {
     return `apikey_${key.substring(0, 20)}`
   }
 
-  // Fallback to IP for public endpoints
-  return `ip_${req.ip || req.socket?.remoteAddress || 'unknown'}`
+  // Fallback to IP for public endpoints, properly normalized
+  const ip = normalizeIP(req.ip || req.socket?.remoteAddress)
+  return `ip_${ip}`
 }
 
 /**
@@ -61,6 +82,7 @@ export const checkoutLimiter = {
         standardHeaders: true,
         legacyHeaders: false,
         message: 'Too many checkout attempts, please try again later',
+        validate: { xForwardedForHeader: false }, // We handle IP normalization ourselves
       })
     }
     return _checkoutLimiter(req, res, next)
@@ -82,6 +104,7 @@ export const refundLimiter = {
         standardHeaders: true,
         legacyHeaders: false,
         message: 'Too many refund attempts, please try again later',
+        validate: { xForwardedForHeader: false }, // We handle IP normalization ourselves
       })
     }
     return _refundLimiter(req, res, next)
@@ -103,6 +126,7 @@ export const webhookLimiter = {
         standardHeaders: true,
         legacyHeaders: false,
         message: 'Too many webhook requests, please try again later',
+        validate: { xForwardedForHeader: false }, // We handle IP normalization ourselves
       })
     }
     return _webhookLimiter(req, res, next)
@@ -124,6 +148,7 @@ export const connectLimiter = {
         standardHeaders: true,
         legacyHeaders: false,
         message: 'Too many Stripe Connect attempts, please try again later',
+        validate: { xForwardedForHeader: false }, // We handle IP normalization ourselves
       })
     }
     return _connectLimiter(req, res, next)
@@ -145,6 +170,7 @@ export const subscriptionLimiter = {
         standardHeaders: true,
         legacyHeaders: false,
         message: 'Too many subscription attempts, please try again later',
+        validate: { xForwardedForHeader: false }, // We handle IP normalization ourselves
       })
     }
     return _subscriptionLimiter(req, res, next)
@@ -166,6 +192,7 @@ export const generalStripeLimiter = {
         standardHeaders: true,
         legacyHeaders: false,
         message: 'Too many requests, please try again later',
+        validate: { xForwardedForHeader: false }, // We handle IP normalization ourselves
       })
     }
     return _generalStripeLimiter(req, res, next)

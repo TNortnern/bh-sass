@@ -1,16 +1,40 @@
 services:
-  # Payload CMS Backend (Next.js) - Using Neon PostgreSQL
+  # PostgreSQL Database (Local Development)
+  postgres:
+    image: postgres:16-alpine
+    container_name: bh_postgres
+    restart: unless-stopped
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bh_payload
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bh_network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Payload CMS Backend (Next.js) - Using Local PostgreSQL
   payload:
     build:
       context: ./payload
       dockerfile: Dockerfile.dev
     container_name: bh_payload
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - '3004:3000'
     environment:
       NODE_ENV: development
-      DATABASE_URI: postgresql://neondb_owner:npg_xjR9K0TdpOyI@ep-wandering-breeze-a4yv4lui-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+      DATABASE_URI: postgresql://postgres:postgres@postgres:5432/bh_payload
       # CRITICAL: Use env variable to ensure secret persists across restarts
       PAYLOAD_SECRET: ${PAYLOAD_SECRET:-dev-secret-change-in-production-use-openssl-rand}
       PORT: 3000
@@ -89,6 +113,8 @@ services:
       - bh_network
 
 volumes:
+  postgres_data:
+    driver: local
   payload_node_modules:
     driver: local
   nuxt_node_modules:
