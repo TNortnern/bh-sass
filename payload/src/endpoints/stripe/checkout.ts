@@ -51,6 +51,7 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
       )
     }
 
+    console.log('[Checkout] Checking demo mode...')
     // Check for demo mode - bypass Stripe entirely
     if (isDemoMode()) {
       console.log('[DEMO MODE] Creating demo checkout session for booking:', bookingId)
@@ -73,11 +74,13 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
       })
     }
 
+    console.log('[Checkout] Fetching tenant:', tenantId)
     // Fetch tenant
     const tenant = await payload.findByID({
       collection: 'tenants',
       id: tenantId,
     })
+    console.log('[Checkout] Tenant found:', tenant?.id, tenant?.name)
 
     if (!tenant) {
       return Response.json(
@@ -90,7 +93,9 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
     }
 
     // Verify Stripe account is connected and active
+    console.log('[Checkout] Checking Stripe account:', tenant.stripeAccountId, tenant.stripeChargesEnabled)
     if (!tenant.stripeAccountId) {
+      console.log('[Checkout] ERROR: No Stripe account connected')
       return Response.json(
         {
           error: 'Bad Request',
@@ -101,6 +106,7 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
     }
 
     if (!tenant.stripeChargesEnabled) {
+      console.log('[Checkout] ERROR: Stripe charges not enabled')
       return Response.json(
         {
           error: 'Bad Request',
