@@ -34,44 +34,52 @@ const withRateLimit = (limiterKey: LimiterKey, handler: (req: PayloadRequest) =>
     const limiter = rateLimiters[limiterKey]
 
     if (!limiter) {
+      console.error(`[RateLimit] Rate limiter '${limiterKey}' not found`)
       throw new Error(`Rate limiter '${limiterKey}' not found`)
     }
 
     // Create a promise to handle rate limiting
     return new Promise((resolve, reject) => {
-      // Create minimal Express-compatible req/res objects
-      const expressReq = {
-        ip: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
-        headers: Object.fromEntries(req.headers.entries()),
-      }
+      try {
+        // Create minimal Express-compatible req/res objects
+        const expressReq = {
+          ip: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
+          headers: Object.fromEntries(req.headers.entries()),
+        }
 
-      const expressRes = {
-        status: (code: number) => ({
-          json: (data: any) => {
-            resolve(Response.json(data, { status: code }))
-          },
-          send: (data: any) => {
-            resolve(new Response(data, { status: code }))
-          },
-        }),
-        setHeader: () => {},
-      }
+        const expressRes = {
+          status: (code: number) => ({
+            json: (data: any) => {
+              resolve(Response.json(data, { status: code }))
+            },
+            send: (data: any) => {
+              resolve(new Response(data, { status: code }))
+            },
+          }),
+          setHeader: () => {},
+        }
 
-      const next = async (err?: any) => {
-        if (err) {
-          reject(err)
-        } else {
-          try {
-            const result = await handler(req)
-            resolve(result)
-          } catch (error) {
-            reject(error)
+        const next = async (err?: any) => {
+          if (err) {
+            console.error(`[RateLimit] Error in next callback:`, err)
+            reject(err)
+          } else {
+            try {
+              const result = await handler(req)
+              resolve(result)
+            } catch (error) {
+              console.error(`[RateLimit] Handler error:`, error)
+              reject(error)
+            }
           }
         }
-      }
 
-      // Call the rate limiter using the .use() method
-      limiter.use(expressReq, expressRes, next)
+        // Call the rate limiter using the .use() method
+        limiter.use(expressReq, expressRes, next)
+      } catch (error) {
+        console.error(`[RateLimit] Rate limiter initialization error:`, error)
+        reject(error)
+      }
     })
   }
 }

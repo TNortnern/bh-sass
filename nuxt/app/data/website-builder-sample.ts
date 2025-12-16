@@ -318,6 +318,12 @@ export const sectionTypes = [
     ]
   },
   {
+    category: 'Forms',
+    items: [
+      { type: 'WaiverSignature', label: 'Waiver Signature', icon: 'shield-check', description: 'Embeddable liability waiver with e-signature' }
+    ]
+  },
+  {
     category: 'Custom',
     items: [
       { type: 'CustomHTML', label: 'Custom HTML', icon: 'code', description: 'Paste code from Tailwind UI, Shuffle.dev, or write your own' }
@@ -552,5 +558,13 @@ export const sectionDefaults: Record<string, Record<string, unknown>> = {
     showAuthor: false,
     showDate: true,
     showCategory: true
+  },
+  WaiverSignature: {
+    title: 'Liability Waiver & Release',
+    subtitle: 'Please read and sign the waiver below',
+    businessName: '',
+    showBookingLookup: true,
+    waiverText: '',
+    backgroundColor: '#f9fafb'
   }
 }

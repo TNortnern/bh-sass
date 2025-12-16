@@ -686,6 +686,14 @@ export const Tenants: CollectionConfig = {
       ],
     },
     {
+      name: 'websiteBuilder',
+      type: 'json',
+      admin: {
+        description: 'Website builder data (pages, sections, theme)',
+        hidden: true, // Hidden from admin UI - managed by the builder
+      },
+    },
+    {
       name: 'settings',
       type: 'group',
       fields: [

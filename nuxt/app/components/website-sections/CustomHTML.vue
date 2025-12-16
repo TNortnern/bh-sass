@@ -93,10 +93,24 @@ const scopeId = `custom-${Math.random().toString(36).substr(2, 9)}`
 const toast = useToast()
 
 // Intercept link clicks in preview mode to prevent 404s
+// Also handle interactive elements like mobile menu toggle
 const handleContentClick = (event: MouseEvent) => {
   const target = event.target as HTMLElement
-  const link = target.closest('a')
 
+  // Handle mobile menu toggle button
+  const mobileToggle = target.closest('[data-mobile-toggle]')
+  if (mobileToggle) {
+    event.preventDefault()
+    event.stopPropagation()
+    const nav = mobileToggle.closest('.navigation-bar')
+    if (nav) {
+      nav.classList.toggle('menu-open')
+    }
+    return
+  }
+
+  // Handle links
+  const link = target.closest('a')
   if (link) {
     const href = link.getAttribute('href')
 

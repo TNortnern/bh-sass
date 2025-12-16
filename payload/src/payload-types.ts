@@ -509,6 +509,18 @@ export interface Tenant {
       keywords?: string | null;
     };
   };
+  /**
+   * Website builder data (pages, sections, theme)
+   */
+  websiteBuilder?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   settings?: {
     timezone?: ('America/New_York' | 'America/Chicago' | 'America/Denver' | 'America/Los_Angeles' | 'UTC') | null;
     currency?: ('USD' | 'EUR' | 'GBP' | 'CAD') | null;
@@ -3009,6 +3021,7 @@ export interface TenantsSelect<T extends boolean = true> {
               keywords?: T;
             };
       };
+  websiteBuilder?: T;
   settings?:
     | T
     | {

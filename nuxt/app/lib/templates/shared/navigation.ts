@@ -3,6 +3,7 @@
  *
  * A reusable navigation bar section that can be included in all templates.
  * Uses variable placeholders that get replaced with actual tenant data.
+ * Includes cart icon with badge for item count.
  */
 
 import type { TemplatePageSection } from '../types'
@@ -11,14 +12,15 @@ export const createNavigationSection = (options?: {
   transparent?: boolean
   sticky?: boolean
   logoUrl?: string
+  theme?: 'light' | 'dark'
 }): TemplatePageSection => {
-  const { transparent = false, sticky = true, logoUrl } = options || {}
+  const { transparent = false, sticky = true, logoUrl, theme = 'light' } = options || {}
 
   return {
     id: 'navigation',
     name: 'Navigation',
     html: `
-<nav class="navigation-bar ${transparent ? 'transparent' : ''} ${sticky ? 'sticky top-0 z-50' : ''}">
+<nav class="navigation-bar ${transparent ? 'transparent' : ''} ${sticky ? 'sticky top-0 z-50' : ''} theme-${theme}">
   <div class="nav-container">
     <!-- Logo / Business Name -->
     <a href="/" class="nav-brand">
@@ -45,14 +47,24 @@ export const createNavigationSection = (options?: {
       <a href="#contact" class="nav-link">Contact</a>
     </div>
 
-    <!-- CTA Button -->
+    <!-- Actions: Cart + CTA Button -->
     <div class="nav-actions">
-      <a href="/booking" class="nav-cta">
+      <!-- Cart Icon -->
+      <a href="{{booking.url}}/checkout" class="nav-cart" title="View Cart">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="21" r="1"/>
+          <circle cx="19" cy="21" r="1"/>
+          <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
+        </svg>
+        <span class="cart-badge" data-cart-count style="display: none;">0</span>
+      </a>
+
+      <a href="{{booking.url}}" class="nav-cta">
         Book Now
       </a>
 
       <!-- Mobile Menu Button -->
-      <button class="mobile-menu-btn" onclick="this.closest('.navigation-bar').classList.toggle('menu-open')">
+      <button class="mobile-menu-btn" data-mobile-toggle>
         <svg class="hamburger-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="4" x2="20" y1="12" y2="12"/>
           <line x1="4" x2="20" y1="6" y2="6"/>
@@ -73,9 +85,12 @@ export const createNavigationSection = (options?: {
     <a href="#about" class="mobile-link">About</a>
     <a href="#testimonials" class="mobile-link">Reviews</a>
     <a href="#contact" class="mobile-link">Contact</a>
-    <a href="/booking" class="mobile-cta">Book Now</a>
+    <a href="{{booking.url}}/checkout" class="mobile-link">Cart</a>
+    <a href="{{booking.url}}" class="mobile-cta">Book Now</a>
   </div>
 </nav>
+<!-- Note: Mobile menu toggle is handled by CustomHTML component via data-mobile-toggle attribute -->
+<!-- Cart badge updates are handled by the published site's JavaScript -->
     `.trim(),
     css: `
 /* Navigation Bar Styles */
@@ -103,8 +118,21 @@ export const createNavigationSection = (options?: {
   color: white;
 }
 
-.navigation-bar.transparent .mobile-menu-btn {
+.navigation-bar.transparent .mobile-menu-btn,
+.navigation-bar.transparent .nav-cart {
   color: white;
+}
+
+/* Dark Theme */
+.navigation-bar.theme-dark {
+  --color-surface: rgba(17, 17, 17, 0.95);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-text: #ffffff;
+  --color-text-muted: #a1a1aa;
+}
+
+.navigation-bar.theme-dark .nav-cart:hover {
+  color: #ffffff;
 }
 
 .nav-container {
@@ -169,6 +197,40 @@ export const createNavigationSection = (options?: {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+/* Cart Icon */
+.nav-cart {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--color-text-muted, #6b7280);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.nav-cart:hover {
+  color: var(--color-text, #111);
+}
+
+.cart-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: var(--color-primary, #f59e0b);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .nav-cta {
@@ -273,3 +335,5 @@ export const createNavigationSection = (options?: {
 export const navigationSection = createNavigationSection()
 export const transparentNavigationSection = createNavigationSection({ transparent: true })
 export const stickyNavigationSection = createNavigationSection({ sticky: true })
+export const darkNavigationSection = createNavigationSection({ theme: 'dark' })
+export const darkTransparentNavigationSection = createNavigationSection({ transparent: true, theme: 'dark' })

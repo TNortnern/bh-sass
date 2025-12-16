@@ -4,6 +4,7 @@ import { defaultSections, sectionTypes, sectionDefaults, allBlocks, type Website
 import { loadTemplate, getTemplateList, isWebsiteTemplate, isContentBasedPage, type UnifiedTemplate } from '~/lib/templates'
 import type { TemplateDefinition, WebsiteTemplate, TemplatePage } from '~/lib/templates/types'
 import { generateItemCard, generateFeaturedItemsGrid, generateInventoryGrid } from '~/lib/templates/smart-block-renderer'
+import { generateThemeCssVars } from '~/lib/templates/theme-presets'
 import type { InventoryItem } from '~/composables/useInventory'
 
 // Import all section components explicitly for dynamic rendering
@@ -29,14 +30,25 @@ import WebsiteSectionsBentoGrid from '~/components/website-sections/BentoGrid.vu
 import WebsiteSectionsTeamSection from '~/components/website-sections/TeamSection.vue'
 import WebsiteSectionsNewsletterSection from '~/components/website-sections/NewsletterSection.vue'
 import WebsiteSectionsBlogCards from '~/components/website-sections/BlogCards.vue'
+import WebsiteSectionsWaiverSignature from '~/components/website-sections/WaiverSignature.vue'
 import SectionPropertiesPanel from '~/components/website-builder/SectionPropertiesPanel.vue'
 import HyperUIBlockBrowser from '~/components/website-builder/HyperUIBlockBrowser.vue'
 import ElementStylePanel from '~/components/website-builder/ElementStylePanel.vue'
 import LayersPanel from '~/components/website-builder/LayersPanel.vue'
+import ThemePanel from '~/components/website-builder/ThemePanel.vue'
+import PageManagerPanel from '~/components/website-builder/PageManagerPanel.vue'
 import type { HyperUIBlock } from '~/data/hyperui-blocks'
 
 // Saved blocks composable
 const { savedBlocks, saveBlock, deleteBlock } = useSavedBlocks()
+
+// Website builder data persistence
+const {
+  isSaving,
+  save: saveWebsiteData,
+  load: loadWebsiteData,
+  scheduleAutoSave
+} = useWebsiteBuilder()
 
 // Website variables composable (for template variable replacement)
 const { replaceVariables, getVariablesList, variables } = useWebsiteVariables()
@@ -59,8 +71,33 @@ const gjsTemplates = ref<UnifiedTemplate[]>([])
 const loadingTemplates = ref(false)
 
 // Sidebar tabs
-type SidebarTab = 'sections' | 'blocks' | 'templates' | 'layers'
+type SidebarTab = 'sections' | 'blocks' | 'templates' | 'layers' | 'pages' | 'theme'
 const activeTab = ref<SidebarTab>('sections')
+
+// Theme settings
+interface ThemeSettings {
+  primaryColor: string
+  secondaryColor: string
+  accentColor: string
+  backgroundColor: string
+  textColor: string
+  fontFamily: string
+  customCss: string
+}
+
+const themeSettings = ref<ThemeSettings>({
+  primaryColor: '#f59e0b',
+  secondaryColor: '#3b82f6',
+  accentColor: '#10b981',
+  backgroundColor: '#ffffff',
+  textColor: '#111111',
+  fontFamily: 'system-ui, -apple-system, sans-serif',
+  customCss: ''
+})
+
+const updateTheme = (field: keyof ThemeSettings, value: string) => {
+  themeSettings.value[field] = value
+}
 
 // Load GrapesJS templates on mount
 const loadGjsTemplates = async () => {
@@ -112,7 +149,17 @@ const applyGjsTemplate = async (template: UnifiedTemplate) => {
 
   // Get booking URL for item links
   const bookingUrl = `/book/${tenantSlug.value}`
-  const templateStyle = template.id as 'starter' | 'bounce' | 'luxe' | 'energy' | 'trust'
+  const templateStyle = template.id as 'starter' | 'bounce' | 'luxe' | 'energy' | 'trust' | 'neon' | 'garden' | 'minimal' | 'funhouse'
+
+  // Generate theme CSS variables from template's defaultTheme
+  // This ensures all CSS variable references like var(--color-primary) work correctly
+  let themeCss = ''
+  if ('defaultTheme' in template && template.defaultTheme) {
+    themeCss = generateThemeCssVars(template.defaultTheme)
+  }
+
+  // Combine theme CSS with template's globalCss
+  const fullGlobalCss = [themeCss, template.globalCss || ''].filter(Boolean).join('\n\n')
 
   // Helper to replace smart block placeholders with real inventory data
   const replaceSmartBlocks = (html: string): string => {
@@ -196,7 +243,7 @@ const applyGjsTemplate = async (template: UnifiedTemplate) => {
         type: 'CustomHTML' as const,
         data: {
           html: processedHtml,
-          css: template.globalCss || '',
+          css: fullGlobalCss,
           label: `${pageName} (${template.name})`
         }
       }]
@@ -206,12 +253,18 @@ const applyGjsTemplate = async (template: UnifiedTemplate) => {
         let processedHtml = replaceVariables(section.html)
         processedHtml = replaceSmartBlocks(processedHtml)
 
+        // Combine theme CSS + global CSS with section-specific CSS
+        const combinedCss = [
+          fullGlobalCss,
+          section.css || ''
+        ].filter(Boolean).join('\n\n')
+
         return {
           id: `customhtml-${Date.now()}-${pageId}-${idx}`,
           type: 'CustomHTML' as const,
           data: {
             html: processedHtml,
-            css: template.globalCss || '',
+            css: combinedCss,
             label: `${section.name} (${template.name})`
           }
         }
@@ -324,7 +377,8 @@ const componentMap: Record<string, any> = {
   BentoGrid: WebsiteSectionsBentoGrid,
   TeamSection: WebsiteSectionsTeamSection,
   NewsletterSection: WebsiteSectionsNewsletterSection,
-  BlogCards: WebsiteSectionsBlogCards
+  BlogCards: WebsiteSectionsBlogCards,
+  WaiverSignature: WebsiteSectionsWaiverSignature
 }
 
 definePageMeta({
@@ -398,6 +452,11 @@ interface WebsitePage {
   slug: string
   sections: WebsiteSection[]
   isHome?: boolean
+  seo?: {
+    title?: string
+    description?: string
+    keywords?: string
+  }
 }
 
 // Editor state
@@ -1074,6 +1133,22 @@ const addSectionFromMenu = (type: string) => {
   showAddSectionMenu.value = false
 }
 
+// Save website to server
+const saveWebsite = async () => {
+  await saveWebsiteData({
+    pages: pages.value,
+    theme: themeSettings.value
+  })
+}
+
+// Auto-save when content changes
+watch([pages, themeSettings], () => {
+  scheduleAutoSave({
+    pages: pages.value,
+    theme: themeSettings.value
+  })
+}, { deep: true })
+
 // Icon helper
 const getIcon = (iconName: string) => {
   const icons: Record<string, string> = {
@@ -1100,7 +1175,8 @@ const getIcon = (iconName: string) => {
     'layout-grid': 'i-lucide-layout-grid',
     'users': 'i-lucide-users',
     'send': 'i-lucide-send',
-    'newspaper': 'i-lucide-newspaper'
+    'newspaper': 'i-lucide-newspaper',
+    'shield-check': 'i-lucide-shield-check'
   }
   return icons[iconName] || 'i-lucide-square'
 }
@@ -1236,6 +1312,22 @@ const getIcon = (iconName: string) => {
         >
           <UIcon name="i-lucide-layers" />
           <span>Layers</span>
+        </button>
+        <button
+          class="sidebar-tab"
+          :class="{ active: activeTab === 'pages' }"
+          @click="activeTab = 'pages'"
+        >
+          <UIcon name="i-lucide-files" />
+          <span>Pages</span>
+        </button>
+        <button
+          class="sidebar-tab"
+          :class="{ active: activeTab === 'theme' }"
+          @click="activeTab = 'theme'"
+        >
+          <UIcon name="i-lucide-paintbrush" />
+          <span>Theme</span>
         </button>
       </div>
 
@@ -1452,6 +1544,32 @@ const getIcon = (iconName: string) => {
           @duplicate="duplicateSection"
         />
       </div>
+
+      <!-- Pages Tab Content -->
+      <div
+        v-if="activeTab === 'pages'"
+        class="tab-content pages-tab"
+      >
+        <PageManagerPanel
+          :pages="pages"
+          :current-page-id="currentPageId"
+          @switch-page="switchPage"
+          @add-page="(page) => { pages.push({ ...page, sections: [] } as WebsitePage); currentPageId = page.id as string; showTemplateSelector = true }"
+          @delete-page="deletePage"
+          @update-page="(pageId, updates) => { const page = pages.find(p => p.id === pageId); if (page) Object.assign(page, updates) }"
+        />
+      </div>
+
+      <!-- Theme Tab Content -->
+      <div
+        v-if="activeTab === 'theme'"
+        class="tab-content theme-tab"
+      >
+        <ThemePanel
+          :theme="themeSettings"
+          @update="updateTheme"
+        />
+      </div>
     </aside>
 
     <!-- Canvas -->
@@ -1635,9 +1753,16 @@ const getIcon = (iconName: string) => {
             <UIcon name="i-lucide-maximize" />
             Full Preview
           </button>
-          <button class="toolbar-btn primary">
-            <UIcon name="i-lucide-save" />
-            Save
+          <button
+            class="toolbar-btn primary"
+            :disabled="isSaving"
+            @click="saveWebsite"
+          >
+            <UIcon
+              :name="isSaving ? 'i-lucide-loader-circle' : 'i-lucide-save'"
+              :class="{ 'animate-spin': isSaving }"
+            />
+            {{ isSaving ? 'Saving...' : 'Save' }}
           </button>
         </div>
       </div>

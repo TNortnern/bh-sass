@@ -5,7 +5,7 @@
  */
 
 import type { TemplatePage } from '../../types'
-import { navigationSection } from '../../shared/navigation'
+import { darkNavigationSection } from '../../shared/navigation'
 
 const homePage: TemplatePage = {
   id: 'home',
@@ -13,8 +13,8 @@ const homePage: TemplatePage = {
   slug: '/',
   title: 'Home',
   sections: [
-    // Navigation Bar
-    navigationSection,
+    // Navigation Bar (Dark theme for Neon)
+    darkNavigationSection,
     {
       id: 'hero',
       name: 'Hero Section',

@@ -294,28 +294,30 @@ async function submitCheckout() {
     }
 
     // Create Stripe checkout session
-    const stripeResponse = await $fetch<{ url?: string }>('/public/booking/stripe-checkout', {
+    const stripeResponse = await $fetch<{ success: boolean, session?: { id: string, url: string | null } }>('/stripe/checkout/create-session', {
       method: 'POST',
       body: {
         bookingId: bookingResponse.booking.id,
-        tenantId: tenantData.value?.id,
-        amount: depositAmount.value,
+        amount: Math.round(depositAmount.value * 100), // Convert to cents
         customerEmail: customer.value.email,
         successUrl: successUrl.value || `${window.location.origin}/book/${tenantSlug}/success?booking=${bookingResponse.booking.id}`,
-        cancelUrl: cancelUrl.value || window.location.href
+        cancelUrl: cancelUrl.value || window.location.href,
+        paymentType: 'deposit'
       }
     })
 
     // Redirect to Stripe
-    if (stripeResponse?.url) {
+    if (stripeResponse?.session?.url) {
       // Notify parent before redirect
       if (isEmbedded.value) {
         sendToParent('bh:checkout:started', {
           bookingId: bookingResponse.booking.id,
-          stripeUrl: stripeResponse.url
+          stripeUrl: stripeResponse.session.url
         })
       }
-      window.location.href = stripeResponse.url
+      window.location.href = stripeResponse.session.url
+    } else {
+      throw new Error('Failed to create payment session')
     }
   } catch (err: unknown) {
     console.error('Checkout failed:', err)

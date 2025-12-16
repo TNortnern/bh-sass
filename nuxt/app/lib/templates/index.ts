@@ -40,21 +40,14 @@ export const isContentBasedPage = (page: TemplatePage): boolean => {
 // ============================================================================
 
 const templateLoaders: Record<string, () => Promise<{ default: UnifiedTemplate }>> = {
-  starter: () => import('./starter') as any,
-  bounce: () => import('./bounce') as any,
-  luxe: () => import('./luxe') as any,
-  energy: () => import('./energy') as any,
-  trust: () => import('./trust') as any,
-  sugarrush: () => import('./sugarrush') as any,
-  springboard: () => import('./springboard') as any,
-  coastal: () => import('./coastal') as any,
-  fiesta: () => import('./fiesta') as any,
-  neon: () => import('./neon') as any,
-  garden: () => import('./garden') as any,
+  // 7 curated templates - keeping the best variety
   minimal: () => import('./minimal') as any,
-  carnival: () => import('./carnival') as any,
-  funhouse: () => import('./funhouse') as any,
-  industrial: () => import('./industrial') as any
+  garden: () => import('./garden') as any,
+  neon: () => import('./neon') as any,
+  energy: () => import('./energy') as any,
+  luxe: () => import('./luxe') as any,
+  trust: () => import('./trust') as any,
+  funhouse: () => import('./funhouse') as any
 }
 
 // ============================================================================
@@ -83,97 +76,65 @@ export const getTemplateList = (): {
   name: string
   codename: string
   description: string
+  category: 'light' | 'dark' | 'playful'
+  previewColor: string
 }[] => {
   return [
     {
-      id: 'funhouse',
-      name: 'Funhouse',
-      codename: 'Funhouse',
-      description: 'Playful and energetic design with bold red, purple, and orange colors. Chunky typography and amusement park vibe - perfect for family-friendly bounce house rentals.'
-    },
-    {
-      id: 'sugarrush',
-      name: 'Sugar Rush',
-      codename: 'SugarRush',
-      description: 'Clean, bright, modern design with coral accents. Perfect for family party rentals.'
-    },
-    {
-      id: 'springboard',
-      name: 'Springboard',
-      codename: 'Springboard',
-      description: 'Modern gradient design with real-time booking focus - orange to teal palette, clean and trustworthy'
-    },
-    {
-      id: 'carnival',
-      name: 'Carnival',
-      codename: 'Carnival',
-      description: 'Colorful, family-friendly design with sky blue backgrounds and bright red accents. Traditional bounce house company aesthetic.'
-    },
-    {
-      id: 'industrial',
-      name: 'Industrial',
-      codename: 'Industrial',
-      description: 'Professional equipment rental theme with dark slate, orange accents, and clean lines. Inspired by construction rental sites - trustworthy and equipment-focused.'
-    },
-    {
-      id: 'coastal',
-      name: 'Coastal',
-      codename: 'Coastal',
-      description: 'Beach-inspired design with ocean blues. Perfect for water slides and summer parties.'
-    },
-    {
-      id: 'fiesta',
-      name: 'Fiesta',
-      codename: 'Fiesta',
-      description: 'Warm, festive design with vibrant accents. Perfect for cultural celebrations and community events.'
-    },
-    {
-      id: 'bounce',
-      name: 'Family Party',
-      codename: 'Bounce',
-      description: 'Modern, clean design with warm gradients. Great for birthday parties and family events.'
-    },
-    {
-      id: 'trust',
-      name: 'Clean Professional',
-      codename: 'Trust',
-      description: 'Professional design for corporate clients, schools, and churches.'
-    },
-    {
-      id: 'luxe',
-      name: 'Elegant Premium',
-      codename: 'Luxe',
-      description: 'Sophisticated dark theme for high-end events and upscale celebrations.'
-    },
-    {
-      id: 'energy',
-      name: 'Energy',
-      codename: 'Energy',
-      description: 'Bold dark theme with emerald accents. Perfect for sports events and active entertainment.'
-    },
-    {
-      id: 'neon',
-      name: 'Neon',
-      codename: 'Neon',
-      description: 'Vibrant dark theme with neon accents. Perfect for teen parties and evening events.'
+      id: 'minimal',
+      name: 'Minimal',
+      codename: 'Minimal',
+      description: 'Ultra-clean Swiss design with confident neutrals. Perfect for modern, professional businesses.',
+      category: 'light',
+      previewColor: '#f59e0b'
     },
     {
       id: 'garden',
       name: 'Garden',
       codename: 'Garden',
-      description: 'Natural, earthy design with lush greens. Perfect for eco-friendly and outdoor events.'
+      description: 'Natural, earthy design with lush greens. Perfect for eco-friendly and outdoor events.',
+      category: 'light',
+      previewColor: '#22c55e'
     },
     {
-      id: 'minimal',
-      name: 'Minimal',
-      codename: 'Minimal',
-      description: 'Ultra-clean Swiss design with confident neutrals. Perfect for modern, professional businesses.'
+      id: 'trust',
+      name: 'Clean Professional',
+      codename: 'Trust',
+      description: 'Professional design for corporate clients, schools, and churches.',
+      category: 'light',
+      previewColor: '#3b82f6'
     },
     {
-      id: 'starter',
-      name: 'Starter',
-      codename: 'Starter',
-      description: 'Simple starter template for first-time users to customize.'
+      id: 'neon',
+      name: 'Neon',
+      codename: 'Neon',
+      description: 'Vibrant dark theme with neon accents. Perfect for teen parties and evening events.',
+      category: 'dark',
+      previewColor: '#a855f7'
+    },
+    {
+      id: 'energy',
+      name: 'Energy',
+      codename: 'Energy',
+      description: 'Bold dark theme with emerald accents. Perfect for sports events and active entertainment.',
+      category: 'dark',
+      previewColor: '#10b981'
+    },
+    {
+      id: 'luxe',
+      name: 'Elegant Premium',
+      codename: 'Luxe',
+      description: 'Sophisticated dark theme for high-end events and upscale celebrations.',
+      category: 'dark',
+      previewColor: '#d4af37'
+    },
+    {
+      id: 'funhouse',
+      name: 'Funhouse',
+      codename: 'Funhouse',
+      description: 'Playful and energetic design with bold colors. Chunky typography and amusement park vibe - perfect for family-friendly rentals.',
+      category: 'playful',
+      previewColor: '#ef4444'
     }
   ]
 }

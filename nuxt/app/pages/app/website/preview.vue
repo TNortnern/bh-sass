@@ -28,6 +28,7 @@ import WebsiteSectionsBentoGrid from '~/components/website-sections/BentoGrid.vu
 import WebsiteSectionsTeamSection from '~/components/website-sections/TeamSection.vue'
 import WebsiteSectionsNewsletterSection from '~/components/website-sections/NewsletterSection.vue'
 import WebsiteSectionsBlogCards from '~/components/website-sections/BlogCards.vue'
+import WebsiteSectionsWaiverSignature from '~/components/website-sections/WaiverSignature.vue'
 
 definePageMeta({
   layout: false // No layout - full screen
@@ -57,7 +58,8 @@ const componentMap: Record<string, any> = {
   BentoGrid: WebsiteSectionsBentoGrid,
   TeamSection: WebsiteSectionsTeamSection,
   NewsletterSection: WebsiteSectionsNewsletterSection,
-  BlogCards: WebsiteSectionsBlogCards
+  BlogCards: WebsiteSectionsBlogCards,
+  WaiverSignature: WebsiteSectionsWaiverSignature
 }
 
 // Get component for section type

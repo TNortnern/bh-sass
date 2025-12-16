@@ -12,7 +12,7 @@ export interface SmartBlockContext {
   items: InventoryItem[]
   featuredItems: InventoryItem[]
   tenantSlug: string
-  templateStyle: 'starter' | 'bounce' | 'luxe' | 'energy' | 'trust'
+  templateStyle: 'starter' | 'bounce' | 'luxe' | 'energy' | 'trust' | 'neon' | 'garden' | 'minimal' | 'funhouse'
 }
 
 /**
@@ -155,6 +155,82 @@ export function generateItemCard(item: InventoryItem, style: string, bookingUrl:
         </div>
       `
 
+    case 'neon':
+      return `
+        <div class="group bg-slate-900/50 rounded-xl overflow-hidden border border-slate-800 hover:border-purple-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(168,85,247,0.2)]">
+          <div class="relative aspect-[4/3] overflow-hidden">
+            <img src="${imageUrl}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent"></div>
+            <span class="absolute top-4 right-4 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full">
+              ${category}
+            </span>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-bold text-white mb-3">${item.name}</h3>
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-2xl font-bold text-purple-400">$${price}</span>
+                <span class="text-slate-500 text-sm">/day</span>
+              </div>
+              <a href="${itemUrl}" class="px-5 py-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold rounded-lg hover:from-purple-500 hover:to-pink-400 transition-all">
+                Book Now
+              </a>
+            </div>
+          </div>
+        </div>
+      `
+
+    case 'garden':
+      return `
+        <div class="group bg-white rounded-2xl overflow-hidden shadow-sm border border-green-100 hover:shadow-lg hover:border-green-300 transition-all duration-300">
+          <div class="relative aspect-[4/3] overflow-hidden">
+            <img src="${imageUrl}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-green-900/30 via-transparent to-transparent"></div>
+            <span class="absolute top-4 right-4 px-3 py-1 bg-green-600 text-white text-xs font-medium rounded-full">
+              ${category}
+            </span>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">${item.name}</h3>
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-2xl font-bold text-green-600">$${price}</span>
+                <span class="text-gray-500 text-sm">/day</span>
+              </div>
+              <a href="${itemUrl}" class="px-5 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors">
+                Reserve
+              </a>
+            </div>
+          </div>
+        </div>
+      `
+
+    case 'funhouse':
+      return `
+        <div class="group bg-gradient-to-br from-yellow-50 to-pink-50 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:rotate-1 border-4 border-dashed border-yellow-400">
+          <div class="relative aspect-[4/3] overflow-hidden">
+            <img src="${imageUrl}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-pink-500/40 via-transparent to-transparent"></div>
+            <span class="absolute top-4 right-4 px-4 py-1.5 bg-gradient-to-r from-yellow-400 to-pink-400 text-white text-xs font-extrabold rounded-full shadow-lg transform rotate-2">
+              ${category} 🎈
+            </span>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-extrabold text-gray-800 mb-2">${item.name}</h3>
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-3xl font-black text-pink-500">$${price}</span>
+                <span class="text-gray-500 text-sm">/day</span>
+              </div>
+              <a href="${itemUrl}" class="px-5 py-2.5 bg-gradient-to-r from-yellow-400 to-pink-500 text-white font-bold rounded-full hover:from-yellow-300 hover:to-pink-400 transition-all shadow-lg">
+                Book It! 🎉
+              </a>
+            </div>
+          </div>
+        </div>
+      `
+
+    case 'minimal':
     case 'starter':
     default:
       return `
