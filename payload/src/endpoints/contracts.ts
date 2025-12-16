@@ -165,9 +165,9 @@ export const generateFromTemplate = async (req: PayloadRequest) => {
     })
 
     const tenantId =
-      typeof booking.tenantId === 'string' ? booking.tenantId : booking.tenantId.id
+      typeof booking.tenantId === 'object' ? booking.tenantId.id : booking.tenantId
     const customerId =
-      typeof booking.customerId === 'string' ? booking.customerId : booking.customerId.id
+      typeof booking.customerId === 'object' ? booking.customerId.id : booking.customerId
 
     // Create or update contract
     const existingContracts = await req.payload.find({
@@ -211,7 +211,7 @@ export const generateFromTemplate = async (req: PayloadRequest) => {
           type: template.templateType,
           content: interpolatedContent,
           status: 'draft',
-        },
+        } as any,  // Payload 3.x type workaround
       })
     }
 

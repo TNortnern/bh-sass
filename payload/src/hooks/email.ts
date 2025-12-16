@@ -24,10 +24,9 @@ export const sendBookingEmails: CollectionAfterChangeHook = async ({
       return doc
     }
 
-    // Fetch related data (customer, tenant, item)
+    // Fetch related data (customer, tenant, items)
     const customerId = typeof doc.customerId === 'object' ? doc.customerId.id : doc.customerId
     const tenantId = typeof doc.tenantId === 'object' ? doc.tenantId.id : doc.tenantId
-    const itemId = typeof doc.rentalItemId === 'object' ? doc.rentalItemId.id : doc.rentalItemId
 
     // Fetch customer data
     const customer = await req.payload.findByID({
@@ -41,29 +40,34 @@ export const sendBookingEmails: CollectionAfterChangeHook = async ({
       id: tenantId,
     })
 
-    // Fetch rental item data
-    const item = await req.payload.findByID({
-      collection: 'rental-items',
-      id: itemId,
-    })
+    // Fetch rental item data - supports new rentalItems array format
+    let item: any = null
+    if (Array.isArray(doc.rentalItems) && doc.rentalItems.length > 0) {
+      const firstItem = doc.rentalItems[0]
+      const itemId = typeof firstItem.rentalItemId === 'object' ? firstItem.rentalItemId.id : firstItem.rentalItemId
+      item = await req.payload.findByID({
+        collection: 'rental-items',
+        id: itemId,
+      })
+    }
 
     // Transform to email service types
     const customerData: CustomerData = {
-      id: customer.id,
+      id: String(customer.id),
       name: customer.name,
       email: customer.email,
-      phone: customer.phone,
+      phone: customer.phone || undefined,
     }
 
     const tenantData: TenantData = {
-      id: tenant.id,
+      id: String(tenant.id),
       name: tenant.name,
-      email: tenant.email,
-      domain: tenant.domain,
+      email: tenant.email || undefined,
+      domain: tenant.domain || undefined,
     }
 
     const bookingData: BookingData = {
-      id: doc.id,
+      id: String(doc.id),
       eventDate: doc.startDate,
       eventTime: formatTime(doc.startDate),
       location: formatAddress(doc.deliveryAddress),
@@ -71,9 +75,9 @@ export const sendBookingEmails: CollectionAfterChangeHook = async ({
       status: doc.status,
       customer: customerData,
       item: {
-        id: item.id,
+        id: String(item.id),
         name: item.name,
-        description: item.description,
+        description: typeof item.description === 'string' ? item.description : undefined,
       },
     }
 
@@ -169,30 +173,34 @@ export const sendPaymentEmails: CollectionAfterChangeHook = async ({
       id: tenantId,
     })
 
-    // Fetch rental item
-    const itemId = typeof booking.rentalItemId === 'object' ? booking.rentalItemId.id : booking.rentalItemId
-    const item = await req.payload.findByID({
-      collection: 'rental-items',
-      id: itemId,
-    })
+    // Fetch rental item - supports new rentalItems array format
+    let item: any = null
+    if (Array.isArray(booking.rentalItems) && booking.rentalItems.length > 0) {
+      const firstItem = booking.rentalItems[0]
+      const itemId = typeof firstItem.rentalItemId === 'object' ? firstItem.rentalItemId.id : firstItem.rentalItemId
+      item = await req.payload.findByID({
+        collection: 'rental-items',
+        id: itemId,
+      })
+    }
 
     // Transform to email service types
     const customerData: CustomerData = {
-      id: customer.id,
+      id: String(customer.id),
       name: customer.name,
       email: customer.email,
-      phone: customer.phone,
+      phone: customer.phone || undefined,
     }
 
     const tenantData: TenantData = {
-      id: tenant.id,
+      id: String(tenant.id),
       name: tenant.name,
-      email: tenant.email,
-      domain: tenant.domain,
+      email: tenant.email || undefined,
+      domain: tenant.domain || undefined,
     }
 
     const bookingData: BookingData = {
-      id: booking.id,
+      id: String(booking.id),
       eventDate: booking.startDate,
       eventTime: formatTime(booking.startDate),
       location: formatAddress(booking.deliveryAddress),
@@ -200,14 +208,14 @@ export const sendPaymentEmails: CollectionAfterChangeHook = async ({
       status: booking.status,
       customer: customerData,
       item: {
-        id: item.id,
+        id: String(item.id),
         name: item.name,
-        description: item.description,
+        description: typeof item.description === 'string' ? item.description : undefined,
       },
     }
 
     const paymentData: PaymentData = {
-      id: doc.id,
+      id: String(doc.id),
       amount: doc.amount / 100, // Convert cents to dollars
       paymentDate: doc.createdAt,
       paymentMethod: getPaymentMethodName(doc),
@@ -320,16 +328,16 @@ export const sendUserWelcomeEmail: CollectionAfterChangeHook = async ({
 
     // Transform to email service types
     const userData = {
-      id: doc.id,
+      id: String(doc.id),
       name: doc.name || doc.email,
       email: doc.email,
     }
 
     const tenantData: TenantData = {
-      id: tenant.id,
+      id: String(tenant.id),
       name: tenant.name,
-      email: tenant.email,
-      domain: tenant.domain,
+      email: tenant.email || undefined,
+      domain: tenant.domain || undefined,
     }
 
     // Send welcome email

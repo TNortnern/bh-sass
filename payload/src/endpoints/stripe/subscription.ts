@@ -114,7 +114,7 @@ export const createSubscriptionCheckout = async (req: PayloadRequest): Promise<R
     }
 
     // Parse request body
-    const body = await req.json()
+    const body = (await req.json?.()) || {}
     const { priceId, planId, successUrl, cancelUrl } = body
 
     // Determine the Stripe price ID - either directly provided or looked up from Plans
@@ -284,7 +284,7 @@ export const cancelSubscription = async (req: PayloadRequest): Promise<Response>
     }
 
     // Parse request body for cancel options
-    const body = await req.json().catch(() => ({}))
+    const body = await req.json?.().catch(() => ({})) ?? {}
     const { cancelAtPeriodEnd = true } = body
 
     // Cancel subscription in Stripe
@@ -310,12 +310,21 @@ export const cancelSubscription = async (req: PayloadRequest): Promise<Response>
       })
     }
 
+    // Map Stripe status to our valid status values
+    const mapStripeStatus = (stripeStatus: string): 'active' | 'canceled' | 'past_due' | 'trialing' | 'incomplete' | 'incomplete_expired' | 'unpaid' => {
+      const validStatuses = ['active', 'canceled', 'past_due', 'trialing', 'incomplete', 'incomplete_expired', 'unpaid'] as const
+      if (validStatuses.includes(stripeStatus as any)) {
+        return stripeStatus as typeof validStatuses[number]
+      }
+      return 'canceled' // Default to canceled for unknown statuses during cancellation
+    }
+
     // Update local subscription record
     await payload.update({
       collection: 'subscriptions',
       id: subscription.id,
       data: {
-        status: updatedSubscription.status,
+        status: mapStripeStatus(updatedSubscription.status),
         cancelAtPeriodEnd: updatedSubscription.cancel_at_period_end,
         canceledAt: updatedSubscription.canceled_at
           ? new Date(updatedSubscription.canceled_at * 1000).toISOString()

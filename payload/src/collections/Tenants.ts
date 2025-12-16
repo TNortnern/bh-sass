@@ -839,9 +839,11 @@ export const Tenants: CollectionConfig = {
   ],
   timestamps: true,
   hooks: {
-    afterCreate: [
-      // Create default waiver template for new tenants
-      async ({ doc, req }) => {
+    afterChange: [
+      // Create default waiver template for new tenants (only on create, not update)
+      async ({ doc, req, operation }: { doc: any; req: any; operation: 'create' | 'update' }) => {
+        // Only run on create, not update
+        if (operation !== 'create') return doc
         try {
           console.log(`Creating default waiver template for tenant "${doc.name}"...`)
 
@@ -850,7 +852,7 @@ export const Tenants: CollectionConfig = {
             data: {
               tenantId: doc.id,
               name: 'Equipment Rental Waiver & Agreement',
-              templateType: 'waiver',
+              templateType: 'liability-waiver',
               description: 'Standard liability waiver and rental agreement for equipment rentals. Covers safety rules, liability release, and rental terms.',
               isDefault: false, // Tenant can delete this
               requiresSignature: true,
@@ -987,8 +989,11 @@ export const Tenants: CollectionConfig = {
 
         return doc
       },
-      // Provision rb-payload tenant
-      async ({ doc, req }) => {
+      // Provision rb-payload tenant (only on create, not update)
+      async ({ doc, req, operation }: { doc: any; req: any; operation: 'create' | 'update' }) => {
+        // Only run on create, not update
+        if (operation !== 'create') return doc
+
         // Only provision if rb-payload is configured
         if (!isRbPayloadProvisioningEnabled()) {
           console.log('rb-payload provisioning skipped (not configured)')
@@ -1005,6 +1010,7 @@ export const Tenants: CollectionConfig = {
 
         try {
           const result = await provisionRbPayloadTenant({
+            id: doc.id,
             name: doc.name,
             slug: doc.slug,
             plan: doc.plan,
@@ -1021,50 +1027,60 @@ export const Tenants: CollectionConfig = {
           })
 
           if (result.success && result.rbPayloadTenantId) {
-            // Update the tenant with rb-payload data
-            await req.payload.update({
-              collection: 'tenants',
-              id: doc.id,
-              data: {
-                rbPayloadTenantId: result.rbPayloadTenantId,
-                rbPayloadApiKey: result.rbPayloadApiKey,
-                rbPayloadSyncStatus: 'provisioned',
-                rbPayloadSyncError: result.error || null, // Store warning if API key failed
-              },
-            })
-
-            console.log(`✓ Successfully provisioned rb-payload tenant ${result.rbPayloadTenantId} for "${doc.name}"`)
+            // Try to update the tenant with rb-payload data
+            try {
+              await req.payload.update({
+                collection: 'tenants',
+                id: doc.id,
+                data: {
+                  rbPayloadTenantId: result.rbPayloadTenantId,
+                  rbPayloadApiKey: result.rbPayloadApiKey,
+                  rbPayloadSyncStatus: 'provisioned',
+                  rbPayloadSyncError: result.error || null, // Store warning if API key failed
+                },
+              })
+              console.log(`✓ Successfully provisioned rb-payload tenant ${result.rbPayloadTenantId} for "${doc.name}"`)
+            } catch (updateError) {
+              console.error('Failed to update tenant with rb-payload data:', updateError)
+            }
           } else {
-            // Update status to failed
-            await req.payload.update({
-              collection: 'tenants',
-              id: doc.id,
-              data: {
-                rbPayloadSyncStatus: 'failed',
-                rbPayloadSyncError: result.error || 'Unknown error during provisioning',
-              },
-            })
+            // Try to update status to failed, but don't fail if this also errors
+            try {
+              await req.payload.update({
+                collection: 'tenants',
+                id: doc.id,
+                data: {
+                  rbPayloadSyncStatus: 'failed',
+                  rbPayloadSyncError: result.error || 'Unknown error during provisioning',
+                },
+              })
+            } catch (updateError) {
+              console.error('Failed to update tenant sync status:', updateError)
+            }
 
             console.error(`✗ Failed to provision rb-payload tenant for "${doc.name}":`, result.error)
           }
         } catch (error) {
           console.error('Error in rb-payload provisioning hook:', error)
 
-          // Update status to failed
-          await req.payload.update({
-            collection: 'tenants',
-            id: doc.id,
-            data: {
-              rbPayloadSyncStatus: 'failed',
-              rbPayloadSyncError: error instanceof Error ? error.message : 'Unknown error',
-            },
-          })
+          // Try to update status to failed, but don't fail if this also errors
+          try {
+            await req.payload.update({
+              collection: 'tenants',
+              id: doc.id,
+              data: {
+                rbPayloadSyncStatus: 'failed',
+                rbPayloadSyncError: error instanceof Error ? error.message : 'Unknown error',
+              },
+            })
+          } catch (updateError) {
+            console.error('Failed to update tenant sync status:', updateError)
+            // Don't re-throw - we want the tenant creation to succeed
+          }
         }
 
         return doc
       },
-    ],
-    afterChange: [
       auditCreateAndUpdate,
       // Sync business hours and timezone to rb-payload (background, non-blocking)
       async ({ doc, req, operation }) => {

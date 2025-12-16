@@ -168,22 +168,50 @@ async function processBookingReminders(payload: Payload): Promise<void> {
             continue
           }
 
-          // Get rental item data
-          const rentalItemId = typeof booking.rentalItemId === 'object' ? booking.rentalItemId.id : booking.rentalItemId
-          const rentalItem = typeof booking.rentalItemId === 'object'
-            ? booking.rentalItemId
-            : await payload.findByID({ collection: 'rental-items', id: rentalItemId })
+          // Get rental item data - supports new rentalItems array format
+          let rentalItem: any = null
+          if (Array.isArray(booking.rentalItems) && booking.rentalItems.length > 0) {
+            const firstItem = booking.rentalItems[0]
+            const rentalItemId = typeof firstItem.rentalItemId === 'object' ? firstItem.rentalItemId.id : firstItem.rentalItemId
+            rentalItem = typeof firstItem.rentalItemId === 'object'
+              ? firstItem.rentalItemId
+              : await payload.findByID({ collection: 'rental-items', id: rentalItemId })
+          }
 
           // Format location
           const location = booking.deliveryAddress
             ? `${booking.deliveryAddress.street}, ${booking.deliveryAddress.city}, ${booking.deliveryAddress.state} ${booking.deliveryAddress.zipCode}`
             : 'TBD'
 
+          // Build complete tenant data for emails (includes phone, email, address, logo)
+          // Logo can be number (ID) or Media object - extract URL if it's a Media object
+          const logoUrl = tenant.logo && typeof tenant.logo === 'object' && 'url' in tenant.logo
+            ? tenant.logo.url
+            : undefined
+
+          const tenantEmailData = {
+            id: String(tenant.id),
+            name: tenant.name,
+            email: tenant.email || undefined,
+            phone: tenant.phone || undefined,
+            domain: tenant.slug,
+            logo: logoUrl || undefined,
+            address: tenant.address ? {
+              street: tenant.address.street || undefined,
+              city: tenant.address.city || undefined,
+              state: tenant.address.state || undefined,
+              zip: tenant.address.zip || undefined,
+            } : undefined,
+            branding: tenant.branding ? {
+              businessName: tenant.branding.businessName || undefined,
+            } : undefined,
+          }
+
           // Send reminder email (may throw if email service fails)
           try {
             await emailService.sendBookingReminder(
               {
-                id: booking.id,
+                id: String(booking.id),
                 eventDate: booking.startDate,
                 eventTime: new Date(booking.startDate).toLocaleTimeString('en-US', {
                   hour: 'numeric',
@@ -193,19 +221,15 @@ async function processBookingReminders(payload: Payload): Promise<void> {
                 location,
                 totalAmount: booking.totalPrice || 0,
                 status: booking.status,
-                item: rentalItem ? { id: rentalItem.id, name: rentalItem.name } : undefined,
+                item: rentalItem ? { id: String(rentalItem.id), name: rentalItem.name } : undefined,
               },
               {
-                id: customer.id,
-                name: `${customer.firstName} ${customer.lastName}`,
+                id: String(customer.id),
+                name: customer.name,
                 email: customer.email,
                 phone: customer.phone,
               },
-              {
-                id: tenant.id,
-                name: tenant.name,
-                domain: tenant.slug,
-              },
+              tenantEmailData,
             )
 
             // Mark booking as reminded ONLY after email is successfully sent

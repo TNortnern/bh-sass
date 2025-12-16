@@ -139,6 +139,10 @@ watch(() => route.path, () => {
   <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
     <!-- Toast notifications -->
     <UToaster />
+
+    <!-- Impersonation Banner - Fixed at top -->
+    <DashboardImpersonationBanner />
+
     <!-- Mobile sidebar overlay -->
     <div
       v-if="isMobileSidebarOpen"

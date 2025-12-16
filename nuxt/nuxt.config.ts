@@ -20,6 +20,7 @@ export default defineNuxtConfig({
     payloadTenantId: process.env.PAYLOAD_TENANT_ID || '',
     rbPayloadUrl: process.env.RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app',
     rbPayloadApiKey: process.env.RB_PAYLOAD_API_KEY || '',
+    rbPayloadAdminApiKey: process.env.RB_PAYLOAD_ADMIN_API_KEY || '',
 
     // Stripe Configuration (server-side only)
     stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
@@ -53,15 +54,13 @@ export default defineNuxtConfig({
       proxy: {
         to: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3004'}/admin/**`
       }
-    },
+    }
 
     // NOTE: /api/** is NOT proxied via routeRules - handled by server/api/[...].ts catch-all
     // This allows specific server routes (rental-items, upload, widget) to take priority
 
-    // Alternative REST API namespace (for external/widget use)
-    '/v1/**': {
-      proxy: `${process.env.NUXT_PAYLOAD_API_URL || 'http://payload:3004'}/api/**`
-    }
+    // NOTE: /v1/admin/** routes are handled by custom server routes (not proxied)
+    // These routes handle cross-tenant admin operations using rb-payload admin API key
   },
 
   future: {
@@ -132,6 +131,7 @@ export default defineNuxtConfig({
         'lucide:search',
         'lucide:filter',
         'lucide:ellipsis-vertical',
+        'lucide:more-vertical',
         'lucide:inbox',
         'lucide:mail',
         'lucide:lock',

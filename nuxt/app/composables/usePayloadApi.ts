@@ -114,7 +114,8 @@ export const usePayloadApi = () => {
     collection: string,
     id: string
   ): Promise<void> {
-    await $fetch(`/v1/${collection}/${id}`, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await ($fetch as any)(`/v1/${collection}/${id}`, {
       method: 'DELETE',
       credentials: 'include'
     })

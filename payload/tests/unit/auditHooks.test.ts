@@ -189,7 +189,9 @@ describe('Audit Hooks', () => {
         collection: {
           slug: 'bookings',
         },
-      }
+        id: 'booking_123',
+        context: {} as any,
+      } as any
 
       // Act
       const result = await auditDelete(args)
@@ -209,7 +211,9 @@ describe('Audit Hooks', () => {
         doc,
         req: mockReq,
         collection: { slug: 'customers' },
-      }
+        id: doc.id,
+        context: {} as any,
+      } as any
 
       // Act
       const result = await auditDelete(args)

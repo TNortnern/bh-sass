@@ -120,10 +120,11 @@ export const adminUserStatusEndpoint: Endpoint = {
         id: String(userId),
         data: {
           isActive
-        }
+        } as any  // isActive field added to Users collection
       })
 
       // Log action
+      const userEmail = 'email' in updatedUser ? updatedUser.email : 'unknown'
       await payload.create({
         collection: 'audit-logs',
         data: {
@@ -132,7 +133,7 @@ export const adminUserStatusEndpoint: Endpoint = {
           documentId: String(userId),
           userId: user.id,
           metadata: {
-            details: `Super admin ${user.email} ${isActive ? 'activated' : 'deactivated'} user ${updatedUser.email}`,
+            details: `Super admin ${user.email} ${isActive ? 'activated' : 'deactivated'} user ${userEmail}`,
             ipAddress: req.headers.get('x-forwarded-for') || 'unknown',
             userAgent: req.headers.get('user-agent') || 'unknown'
           },

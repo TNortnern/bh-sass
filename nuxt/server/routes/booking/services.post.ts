@@ -2,13 +2,13 @@
  * POST /booking/services
  * Create a new service in rb-payload
  * Requires API key for authentication
+ *
+ * Tenant ID is passed from client via body.tenantId (from useTenant composable)
  */
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const rbPayloadUrl = config.rbPayloadUrl || 'https://reusablebook-payload-production.up.railway.app'
   const apiKey = config.rbPayloadApiKey
-
-  const TENANT_ID = 6 // Bounce Kingdom (API key: tk_58v2xsw911d0dy5q8mrlum3r9hah05n0)
 
   // Check for API key - required for service operations
   if (!apiKey) {
@@ -19,6 +19,15 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event)
+
+  // Get tenant ID from request body (passed from client's useTenant composable)
+  const tenantId = body.tenantId
+  if (!tenantId) {
+    throw createError({
+      statusCode: 400,
+      message: 'tenantId is required - rb-payload tenant not configured for this account'
+    })
+  }
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -31,8 +40,8 @@ export default defineEventHandler(async (event) => {
       method: 'POST',
       headers,
       body: {
-        tenantId: TENANT_ID,
-        ...body
+        ...body,
+        tenantId // Override with validated tenantId
       }
     })
 

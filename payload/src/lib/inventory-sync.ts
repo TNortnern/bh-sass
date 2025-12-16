@@ -47,6 +47,7 @@ interface RentalItem {
   isActive?: boolean
   images?: Array<{ url?: string }>
   rbPayloadServiceId?: number | null
+  tenantId?: number | { id: number; rbPayloadTenantId?: number | null } | null
 }
 
 interface SyncResult {
@@ -57,13 +58,15 @@ interface SyncResult {
 
 /**
  * Transform a BH-SaaS rental item to rb-payload service format
+ * @param item - The rental item to transform
+ * @param rbPayloadTenantId - The rb-payload tenant ID to use (required for multi-tenant support)
  */
-export function transformRentalItemToService(item: RentalItem) {
+export function transformRentalItemToService(item: RentalItem, rbPayloadTenantId: number) {
   // Use daily rate as base price, fallback to hourly * 8
   const basePrice = item.pricing?.dailyRate || (item.pricing?.hourlyRate ? item.pricing.hourlyRate * 8 : 0)
 
   return {
-    tenantId: parseInt(RB_PAYLOAD_TENANT_ID),
+    tenantId: rbPayloadTenantId,
     name: item.name,
     description: item.description || '',
     price: basePrice,
@@ -89,14 +92,20 @@ export function transformRentalItemToService(item: RentalItem) {
 
 /**
  * Call rb-payload API
+ * @param method HTTP method
+ * @param endpoint API endpoint
+ * @param data Request body data
+ * @param apiKey Optional tenant-specific API key (uses global key if not provided)
  */
 async function callRbPayloadApi(
   method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
   endpoint: string,
-  data?: Record<string, unknown>
+  data?: Record<string, unknown>,
+  apiKey?: string
 ): Promise<{ ok: boolean; data?: unknown; error?: string }> {
-  if (!RB_PAYLOAD_API_KEY) {
-    return { ok: false, error: 'RB_PAYLOAD_API_KEY not configured' }
+  const keyToUse = apiKey || RB_PAYLOAD_API_KEY
+  if (!keyToUse) {
+    return { ok: false, error: 'No API key available for rb-payload' }
   }
 
   const url = `${RB_PAYLOAD_URL}${endpoint}`
@@ -106,7 +115,7 @@ async function callRbPayloadApi(
       method,
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': RB_PAYLOAD_API_KEY,
+        'X-API-Key': keyToUse,
       },
       ...(data && method !== 'GET' && method !== 'DELETE' && { body: JSON.stringify(data) }),
     })
@@ -139,21 +148,56 @@ export async function syncRentalItemToRbPayload(
     return { success: true } // Return success so item creation doesn't fail
   }
 
-  const serviceData = transformRentalItemToService(item)
+  // Get the tenant's rbPayloadTenantId and API key
+  let rbPayloadTenantId: number | null = null
+  let rbPayloadApiKey: string | null = null
 
-  console.log(`[Inventory Sync] Syncing item ${item.id} (${item.name}) to rb-payload...`)
+  // Check if tenantId is populated (object) or just an ID
+  if (item.tenantId && typeof item.tenantId === 'object' && 'rbPayloadTenantId' in item.tenantId) {
+    rbPayloadTenantId = item.tenantId.rbPayloadTenantId || null
+    rbPayloadApiKey = (item.tenantId as { rbPayloadApiKey?: string | null }).rbPayloadApiKey || null
+  } else if (item.tenantId) {
+    // Need to look up the tenant
+    const tenantIdNum = typeof item.tenantId === 'object' ? item.tenantId.id : item.tenantId
+    try {
+      const tenant = await payload.findByID({
+        collection: 'tenants',
+        id: tenantIdNum,
+      })
+      rbPayloadTenantId = tenant?.rbPayloadTenantId || null
+      rbPayloadApiKey = tenant?.rbPayloadApiKey || null
+    } catch (error) {
+      console.error(`[Inventory Sync] Failed to look up tenant ${tenantIdNum}:`, error)
+    }
+  }
+
+  // Skip if tenant is not provisioned in rb-payload
+  if (!rbPayloadTenantId) {
+    console.log(`[Inventory Sync] Skipping item ${item.id} - tenant not provisioned in rb-payload`)
+    return { success: false, error: 'Tenant not provisioned in rb-payload' }
+  }
+
+  // Skip if no API key available
+  if (!rbPayloadApiKey) {
+    console.log(`[Inventory Sync] Skipping item ${item.id} - no rb-payload API key for tenant`)
+    return { success: false, error: 'No rb-payload API key for tenant' }
+  }
+
+  const serviceData = transformRentalItemToService(item, rbPayloadTenantId)
+
+  console.log(`[Inventory Sync] Syncing item ${item.id} (${item.name}) to rb-payload tenant ${rbPayloadTenantId}...`)
 
   try {
     let result: { ok: boolean; data?: unknown; error?: string }
     let serviceId: number | undefined
 
     if (item.rbPayloadServiceId) {
-      // Update existing service
-      result = await callRbPayloadApi('PATCH', `/api/services/${item.rbPayloadServiceId}`, serviceData)
+      // Update existing service using tenant's API key
+      result = await callRbPayloadApi('PATCH', `/api/services/${item.rbPayloadServiceId}`, serviceData, rbPayloadApiKey)
       serviceId = item.rbPayloadServiceId
     } else {
-      // Create new service
-      result = await callRbPayloadApi('POST', '/api/services', serviceData)
+      // Create new service using tenant's API key
+      result = await callRbPayloadApi('POST', '/api/services', serviceData, rbPayloadApiKey)
       if (result.ok && result.data) {
         serviceId = (result.data as { doc?: { id: number } }).doc?.id
       }
@@ -235,6 +279,7 @@ export async function syncPendingItems(payload: Payload): Promise<{ synced: numb
   console.log('[Inventory Sync] Starting sync of pending items...')
 
   // Find items with pending or failed sync status
+  // Depth 1 to populate tenantId with rbPayloadTenantId
   const pendingItems = await payload.find({
     collection: 'rental-items',
     where: {
@@ -246,6 +291,7 @@ export async function syncPendingItems(payload: Payload): Promise<{ synced: numb
       isActive: { equals: true },
     },
     limit: 100, // Process in batches
+    depth: 1, // Populate tenantId relationship to get rbPayloadTenantId
   })
 
   let synced = 0
@@ -265,4 +311,58 @@ export async function syncPendingItems(payload: Payload): Promise<{ synced: numb
 
   console.log(`[Inventory Sync] Completed: ${synced} synced, ${failed} failed`)
   return { synced, failed }
+}
+
+/**
+ * Force resync ALL inventory items for a specific tenant
+ * This resyncs even items that are already marked as synced
+ */
+export async function forceResyncAllInventory(
+  payload: Payload,
+  tenantId: number
+): Promise<{ synced: number; failed: number; skipped: number }> {
+  console.log(`[Inventory Sync] Starting FORCE resync of ALL items for tenant ${tenantId}...`)
+
+  // Find ALL active rental items for this tenant
+  // Depth 1 to populate tenantId with rbPayloadTenantId
+  const items = await payload.find({
+    collection: 'rental-items',
+    where: {
+      tenantId: { equals: tenantId },
+      isActive: { equals: true },
+    },
+    limit: 1000, // Get all items
+    depth: 1,
+  })
+
+  let synced = 0
+  let failed = 0
+  let skipped = 0
+
+  for (const item of items.docs) {
+    // First, reset the sync status to pending to trigger a fresh sync
+    await payload.update({
+      collection: 'rental-items',
+      id: item.id,
+      data: {
+        syncStatus: 'pending',
+      },
+    })
+
+    // Now sync the item
+    const result = await syncRentalItemToRbPayload(payload, item as unknown as RentalItem)
+    if (result.success) {
+      synced++
+    } else if (result.error?.includes('not provisioned')) {
+      skipped++
+    } else {
+      failed++
+    }
+
+    // Small delay to avoid rate limiting
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+
+  console.log(`[Inventory Sync] Force resync completed: ${synced} synced, ${failed} failed, ${skipped} skipped`)
+  return { synced, failed, skipped }
 }

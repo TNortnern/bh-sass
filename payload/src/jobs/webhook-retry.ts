@@ -18,8 +18,9 @@ export async function startWebhookRetryJob(payload: Payload): Promise<NodeJS.Tim
     async () => {
       try {
         await processWebhookRetries(payload)
-      } catch (error) {
-        payload.logger.error(`Error in webhook retry job: ${error.message}`)
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error'
+        payload.logger.error(`Error in webhook retry job: ${message}`)
       }
     },
     60 * 1000, // 60 seconds

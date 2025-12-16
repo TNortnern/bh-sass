@@ -30,6 +30,7 @@ services:
       # rb-payload API configuration for inventory sync
       RB_PAYLOAD_URL: https://reusablebook-payload-production.up.railway.app
       RB_PAYLOAD_API_KEY: ${RB_PAYLOAD_API_KEY:-tk_placeholder}
+      RB_PAYLOAD_ADMIN_API_KEY: ${RB_PAYLOAD_ADMIN_API_KEY:-tk_placeholder}
       RB_PAYLOAD_TENANT_ID: "6"
     volumes:
       # Hot-reload: mount source code
@@ -63,6 +64,9 @@ services:
       RB_PAYLOAD_URL: https://reusablebook-payload-production.up.railway.app
       NUXT_PUBLIC_RB_PAYLOAD_URL: https://reusablebook-payload-production.up.railway.app
       RB_PAYLOAD_API_KEY: ${RB_PAYLOAD_API_KEY:-tk_placeholder}
+      RB_PAYLOAD_ADMIN_API_KEY: ${RB_PAYLOAD_ADMIN_API_KEY:-tk_placeholder}
+      # SSO Secret for auto-login to rb-payload (must match rb-payload's RB_PAYLOAD_SSO_SECRET)
+      RB_PAYLOAD_SSO_SECRET: ${RB_PAYLOAD_SSO_SECRET:-sso-dev-secret-change-in-production}
       # Bunny CDN Configuration
       BUNNY_STORAGE_API_KEY: ${BUNNY_STORAGE_API_KEY:-placeholder}
       BUNNY_STORAGE_ZONE: hastest

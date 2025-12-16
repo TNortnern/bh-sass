@@ -272,8 +272,9 @@ export const Customers: CollectionConfig = {
             } else if (operation === 'update') {
               await queueWebhook(req.payload, tenantId, 'customer.updated', doc)
             }
-          } catch (error) {
-            req.payload.logger.error(`Failed to queue customer webhooks: ${error.message}`)
+          } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Unknown error'
+            req.payload.logger.error(`Failed to queue customer webhooks: ${message}`)
           }
         })
       },

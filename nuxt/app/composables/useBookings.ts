@@ -1,5 +1,15 @@
 import { format, parseISO, addDays, differenceInDays } from 'date-fns'
 
+export interface BookingItem {
+  id: string
+  name: string
+  category: string
+  image?: string
+  dailyRate: number
+  quantity: number
+  price: number
+}
+
 export interface Booking {
   id: string
   bookingNumber: string
@@ -10,6 +20,7 @@ export interface Booking {
     phone: string
     avatar?: string
   }
+  // Primary item (first item) for backwards compatibility
   item: {
     id: string
     name: string
@@ -17,6 +28,8 @@ export interface Booking {
     image?: string
     dailyRate: number
   }
+  // All items in this booking
+  items: BookingItem[]
   dates: {
     start: string
     end: string
@@ -170,6 +183,18 @@ export const useBookings = () => {
     }
   }
 
+  interface PayloadRentalItemEntry {
+    rentalItemId: string | number | PayloadRentalItem
+    quantity?: number
+    price?: number
+  }
+
+  interface PayloadAddOn {
+    name: string
+    price: number
+    quantity?: number
+  }
+
   interface PayloadAddress {
     street?: string
     city?: string
@@ -211,10 +236,60 @@ export const useBookings = () => {
         ? booking.customerId as PayloadCustomer
         : null
 
-    const rentalItem: PayloadRentalItem | null
-      = booking.rentalItemId && typeof booking.rentalItemId === 'object'
+    // Handle new rentalItems array format or legacy single rentalItemId
+    const rentalItemsRaw = Array.isArray(booking.rentalItems) ? booking.rentalItems : []
+    const hasNewFormat = rentalItemsRaw.length > 0
+
+    // Legacy: single rentalItemId field
+    const legacyRentalItem: PayloadRentalItem | null
+      = !hasNewFormat && booking.rentalItemId && typeof booking.rentalItemId === 'object'
         ? booking.rentalItemId as PayloadRentalItem
         : null
+
+    // Transform rentalItems array to BookingItem[]
+    const transformedItems: BookingItem[] = hasNewFormat
+      ? rentalItemsRaw.map((entry: PayloadRentalItemEntry) => {
+          const item = typeof entry.rentalItemId === 'object'
+            ? entry.rentalItemId as PayloadRentalItem
+            : null
+          return {
+            id: item?.id?.toString() || entry.rentalItemId?.toString() || '',
+            name: item?.name || 'Rental Item',
+            category: item?.category || 'Bounce Houses',
+            dailyRate: item?.pricing?.dailyRate || entry.price || 0,
+            quantity: entry.quantity || 1,
+            price: entry.price || 0
+          }
+        })
+      : legacyRentalItem
+        ? [{
+            id: legacyRentalItem.id?.toString() || '',
+            name: legacyRentalItem.name || 'Rental Item',
+            category: legacyRentalItem.category || 'Bounce Houses',
+            dailyRate: legacyRentalItem.pricing?.dailyRate || 0,
+            quantity: 1,
+            price: legacyRentalItem.pricing?.dailyRate || 0
+          }]
+        : []
+
+    // Primary item for backwards compatibility (first item)
+    const primaryItem = transformedItems[0] || {
+      id: '',
+      name: 'Rental Item',
+      category: 'Bounce Houses',
+      dailyRate: 0,
+      quantity: 1,
+      price: 0
+    }
+
+    // Transform addOns array
+    const addOnsRaw = Array.isArray(booking.addOns) ? booking.addOns : []
+    const transformedAddOns = addOnsRaw.map((addon: PayloadAddOn, index: number) => ({
+      id: `addon-${index}`,
+      name: addon.name || 'Add-on',
+      price: addon.price || 0,
+      quantity: addon.quantity || 1
+    }))
 
     // Map local payment status to Booking format
     const mapLocalPaymentStatus = (status: string): Booking['paymentStatus'] => {
@@ -244,12 +319,15 @@ export const useBookings = () => {
         email: customer?.email || '',
         phone: customer?.phone || ''
       },
+      // Primary item for backwards compatibility
       item: {
-        id: rentalItem?.id?.toString() || (typeof booking.rentalItemId === 'string' || typeof booking.rentalItemId === 'number' ? booking.rentalItemId.toString() : ''),
-        name: rentalItem?.name || 'Rental Item',
-        category: rentalItem?.category || 'Bounce Houses',
-        dailyRate: rentalItem?.pricing?.dailyRate || totalPrice
+        id: primaryItem.id,
+        name: primaryItem.name,
+        category: primaryItem.category,
+        dailyRate: primaryItem.dailyRate
       },
+      // All items in this booking
+      items: transformedItems,
       dates: {
         start: typeof booking.startDate === 'string' ? format(new Date(booking.startDate), 'yyyy-MM-dd') : '',
         end: typeof booking.endDate === 'string' ? format(new Date(booking.endDate), 'yyyy-MM-dd') : '',
@@ -274,7 +352,7 @@ export const useBookings = () => {
         zip: deliveryAddress.zipCode || 'N/A',
         instructions: deliveryAddress.specialInstructions
       },
-      addons: [],
+      addons: transformedAddOns,
       notes: {
         customer: typeof booking.notes === 'string' ? booking.notes : undefined,
         internal: typeof booking.internalNotes === 'string' ? booking.internalNotes : undefined
@@ -329,6 +407,14 @@ export const useBookings = () => {
         category: (typeof metadata.category === 'string' ? metadata.category : undefined) || 'Bounce Houses',
         dailyRate: typeof firstItem?.price === 'number' ? firstItem.price : 0
       },
+      items: items.map((it: Record<string, unknown>) => ({
+        id: it?.serviceId?.toString() || '',
+        name: (typeof it?.label === 'string' ? it.label : undefined) || 'Service',
+        category: 'Bounce Houses',
+        dailyRate: typeof it?.price === 'number' ? it.price : 0,
+        quantity: 1,
+        price: typeof it?.price === 'number' ? it.price : 0
+      })),
       dates: {
         start: typeof rbBooking.startTime === 'string' ? format(new Date(rbBooking.startTime), 'yyyy-MM-dd') : '',
         end: typeof rbBooking.endTime === 'string' ? format(new Date(rbBooking.endTime), 'yyyy-MM-dd') : '',
@@ -505,9 +591,13 @@ export const useBookings = () => {
         customerId = customerResponse.doc?.id?.toString() || ''
       }
 
-      // Prepare booking data for local Payload
+      // Prepare booking data for local Payload using new rentalItems array format
       const bookingPayload = {
-        rentalItemId: parseInt(data.itemId),
+        rentalItems: [{
+          rentalItemId: parseInt(data.itemId),
+          quantity: 1,
+          price: dailyRate * days
+        }],
         customerId: parseInt(customerId),
         startDate: new Date(data.startDate).toISOString(),
         endDate: new Date(data.endDate).toISOString(),
@@ -518,6 +608,12 @@ export const useBookings = () => {
           zipCode: data.deliveryAddress.zip,
           specialInstructions: data.deliveryAddress.instructions || ''
         },
+        // Include add-ons if provided
+        addOns: data.addons?.map(addon => ({
+          name: addon.id, // We'll need the name from the rental item
+          price: 0, // Price should come from the item
+          quantity: addon.quantity
+        })) || [],
         status: 'pending',
         totalPrice: total,
         depositPaid: data.paymentType === 'full' ? total : deposit,
@@ -552,6 +648,14 @@ export const useBookings = () => {
           category: 'Bounce Houses',
           dailyRate
         },
+        items: [{
+          id: data.itemId,
+          name: data.itemName || 'Rental Item',
+          category: 'Bounce Houses',
+          dailyRate,
+          quantity: 1,
+          price: dailyRate * days
+        }],
         dates: {
           start: data.startDate,
           end: data.endDate,

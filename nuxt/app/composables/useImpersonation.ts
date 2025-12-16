@@ -15,6 +15,46 @@ export const useImpersonation = () => {
   const impersonatedTenantId = useState<string | null>('impersonation:tenantId', () => null)
   const impersonatedTenant = useState<ImpersonationState['impersonatedTenant']>('impersonation:tenant', () => null)
   const toast = useToast()
+  const isInitialized = useState<boolean>('impersonation:initialized', () => false)
+
+  /**
+   * Initialize impersonation state from server
+   */
+  const initializeState = async () => {
+    if (isInitialized.value) return
+
+    try {
+      const headers: Record<string, string> = {}
+      if (import.meta.server) {
+        const requestHeaders = useRequestHeaders(['cookie'])
+        if (requestHeaders.cookie) {
+          headers.cookie = requestHeaders.cookie
+        }
+      }
+
+      const response = await $fetch<ImpersonationState>('/v1/admin/impersonate/status', {
+        credentials: 'include',
+        headers
+      })
+
+      if (response.isImpersonating && response.impersonatedTenant) {
+        isImpersonating.value = true
+        impersonatedTenantId.value = response.impersonatedTenantId
+        impersonatedTenant.value = response.impersonatedTenant
+        originalUserId.value = response.originalUserId
+      }
+
+      isInitialized.value = true
+    } catch {
+      // Silently fail - user is not impersonating
+      isInitialized.value = true
+    }
+  }
+
+  // Initialize on first use
+  if (import.meta.client && !isInitialized.value) {
+    initializeState()
+  }
 
   /**
    * Start impersonating a tenant
@@ -89,7 +129,7 @@ export const useImpersonation = () => {
       })
 
       // Navigate back to admin
-      await navigateTo('/admin')
+      await navigateTo('/app/admin')
 
       return { success: true }
     } catch (err: unknown) {
@@ -113,6 +153,7 @@ export const useImpersonation = () => {
 
     // Actions
     startImpersonation,
-    stopImpersonation
+    stopImpersonation,
+    initializeState
   }
 }

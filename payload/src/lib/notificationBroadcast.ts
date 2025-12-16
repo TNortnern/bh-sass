@@ -9,9 +9,9 @@ import { Payload } from 'payload'
 
 interface NotificationData {
   tenantId: number
-  type: 'booking_created' | 'booking_updated' | 'booking_cancelled' | 'payment_received' | 'reminder' | 'customer_created'
+  type: 'booking_created' | 'booking_confirmed' | 'booking_cancelled' | 'payment_received' | 'payment_failed' | 'reminder' | 'system'
   title: string
-  body: string
+  message: string
   link?: string
   relatedBookingId?: number
   relatedCustomerId?: number
@@ -36,12 +36,14 @@ export async function createAndBroadcastNotification(
         tenantId: data.tenantId,
         type: data.type,
         title: data.title,
-        body: data.body,
-        link: data.link,
+        message: data.message,
         read: false,
-        relatedBookingId: data.relatedBookingId,
-        relatedCustomerId: data.relatedCustomerId,
-        metadata: data.metadata,
+        data: {
+          link: data.link,
+          relatedBookingId: data.relatedBookingId,
+          relatedCustomerId: data.relatedCustomerId,
+          ...data.metadata,
+        },
       },
     })
 
@@ -77,7 +79,7 @@ async function broadcastToNuxtSSE(notificationId: number, data: NotificationData
           id: notificationId,
           type: data.type,
           title: data.title,
-          body: data.body,
+          message: data.message,
           link: data.link,
           read: false,
           relatedBookingId: data.relatedBookingId,
@@ -113,7 +115,7 @@ export async function notifyBookingCreated(
     tenantId,
     type: 'booking_created',
     title: 'New Booking Received',
-    body: `${customerName} booked ${serviceName}`,
+    message: `${customerName} booked ${serviceName}`,
     link: `/app/bookings?id=${bookingId}`,
     relatedBookingId: bookingId,
   })
@@ -131,9 +133,9 @@ export async function notifyBookingUpdated(
 ): Promise<void> {
   await createAndBroadcastNotification(payload, {
     tenantId,
-    type: 'booking_updated',
+    type: 'system',
     title: 'Booking Updated',
-    body: `${customerName}'s booking is now ${status}`,
+    message: `${customerName}'s booking is now ${status}`,
     link: `/app/bookings?id=${bookingId}`,
     relatedBookingId: bookingId,
   })
@@ -152,7 +154,7 @@ export async function notifyBookingCancelled(
     tenantId,
     type: 'booking_cancelled',
     title: 'Booking Cancelled',
-    body: `${customerName} cancelled their booking`,
+    message: `${customerName} cancelled their booking`,
     link: `/app/bookings?id=${bookingId}`,
     relatedBookingId: bookingId,
   })
@@ -172,7 +174,7 @@ export async function notifyPaymentReceived(
     tenantId,
     type: 'payment_received',
     title: 'Payment Received',
-    body: `Received $${amount.toFixed(2)} from ${customerName}`,
+    message: `Received $${amount.toFixed(2)} from ${customerName}`,
     link: `/app/bookings?id=${bookingId}`,
     relatedBookingId: bookingId,
     metadata: { amount },
@@ -190,9 +192,9 @@ export async function notifyCustomerCreated(
 ): Promise<void> {
   await createAndBroadcastNotification(payload, {
     tenantId,
-    type: 'customer_created',
+    type: 'system',
     title: 'New Customer',
-    body: `${customerName} joined as a new customer`,
+    message: `${customerName} joined as a new customer`,
     link: `/app/customers?id=${customerId}`,
     relatedCustomerId: customerId,
   })

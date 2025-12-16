@@ -187,6 +187,10 @@ export interface User {
    * User role and permissions level
    */
   role: 'super_admin' | 'tenant_admin' | 'staff' | 'customer';
+  /**
+   * Whether this user account is active
+   */
+  isActive?: boolean | null;
   profile?: {
     /**
      * Full name
@@ -980,9 +984,43 @@ export interface Booking {
   id: number;
   tenantId: number | Tenant;
   /**
-   * The rental item being booked
+   * Items included in this booking
    */
-  rentalItemId: number | RentalItem;
+  rentalItems: {
+    /**
+     * The rental item
+     */
+    rentalItemId: number | RentalItem;
+    /**
+     * Number of this item
+     */
+    quantity: number;
+    /**
+     * Price for this item
+     */
+    price: number;
+    id?: string | null;
+  }[];
+  /**
+   * Add-on items included in this booking
+   */
+  addOns?:
+    | {
+        /**
+         * Add-on name
+         */
+        name: string;
+        /**
+         * Add-on price
+         */
+        price: number;
+        /**
+         * Quantity of this add-on
+         */
+        quantity: number;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Customer who made the booking
    */
@@ -2744,6 +2782,7 @@ export interface PayloadMigration {
 export interface UsersSelect<T extends boolean = true> {
   tenantId?: T;
   role?: T;
+  isActive?: T;
   profile?:
     | T
     | {
@@ -3142,7 +3181,22 @@ export interface VariationsSelect<T extends boolean = true> {
  */
 export interface BookingsSelect<T extends boolean = true> {
   tenantId?: T;
-  rentalItemId?: T;
+  rentalItems?:
+    | T
+    | {
+        rentalItemId?: T;
+        quantity?: T;
+        price?: T;
+        id?: T;
+      };
+  addOns?:
+    | T
+    | {
+        name?: T;
+        price?: T;
+        quantity?: T;
+        id?: T;
+      };
   customerId?: T;
   startDate?: T;
   endDate?: T;

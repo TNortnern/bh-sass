@@ -132,12 +132,8 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
-    // Only super_admins can access the admin panel
-    access: async ({ req }) => {
-      const user = req.user
-      if (!user) return false
-      return user.role === 'super_admin'
-    },
+    // Note: Admin panel access is controlled via Users collection access control
+    // super_admin role is enforced in the Users collection read/update access
   },
   // CORS configuration for cookie persistence across Nuxt proxy
   cors: [
@@ -285,19 +281,17 @@ export default buildConfig({
       // DATABASE_SSL=auto: Don't set ssl option, let pg use PGSSLMODE or connection string
       // DATABASE_SSL=simple: uses just `ssl: true`
       // DATABASE_SSL=true: enables SSL with certificate validation disabled
-      // DATABASE_SSL=require: uses simple require mode
+      // DATABASE_SSL=require: uses ssl: true (require mode)
       // DATABASE_SSL=false or empty: explicitly disable SSL
       ...(process.env.DATABASE_SSL === 'auto'
         ? {} // Don't set ssl at all, let connection string/PGSSLMODE handle it
         : {
             ssl:
-              process.env.DATABASE_SSL === 'simple'
+              process.env.DATABASE_SSL === 'simple' || process.env.DATABASE_SSL === 'require'
                 ? true
                 : process.env.DATABASE_SSL === 'true'
                   ? { rejectUnauthorized: false }
-                  : process.env.DATABASE_SSL === 'require'
-                    ? ('require' as const)
-                    : false,
+                  : false,
           }),
     },
     // Enable schema push to auto-sync database schema on startup

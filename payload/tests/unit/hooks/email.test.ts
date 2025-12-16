@@ -148,7 +148,7 @@ describe('Email Hooks', () => {
 
     it('should handle primitive relationship IDs', () => {
       // Arrange
-      const doc = {
+      const doc: { customerId: string | { id: string }; tenantId: string; rentalItemId: string } = {
         customerId: 'customer_456',
         tenantId: 'tenant_789',
         rentalItemId: 'item_999'
@@ -377,7 +377,7 @@ describe('Email Hooks', () => {
 
     it('should skip if user has no tenantId', () => {
       // Arrange
-      const doc = {
+      const doc: { id: string; email: string; role: string; tenantId?: string } = {
         id: 'user_123',
         email: 'user@example.com',
         role: 'staff'
@@ -398,7 +398,7 @@ describe('Email Hooks', () => {
         email: 'john@example.com'
       }
 
-      const user2 = {
+      const user2: { name?: string; email: string } = {
         email: 'jane@example.com'
       }
 

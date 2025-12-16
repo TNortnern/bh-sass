@@ -101,7 +101,7 @@ export async function seedTenantTemplates(payload: Payload, tenantId: string) {
             requiresSignature: template.requiresSignature,
             isActive: template.isActive,
             isDefault: false, // Tenant copies are NOT defaults
-          },
+          } as any,  // Payload 3.x type workaround
         })
         created++
       } catch (error) {

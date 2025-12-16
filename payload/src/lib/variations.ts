@@ -215,15 +215,23 @@ export async function getVariationImages(
   payload: Payload,
   variation: Variation
 ): Promise<Array<{ url: string; alt?: string }>> {
+  // Helper to normalize images (convert null alt to undefined)
+  const normalizeImages = (images: any[]): Array<{ url: string; alt?: string }> => {
+    return images.map((img) => ({
+      url: img.url,
+      alt: img.alt ?? undefined,
+    }))
+  }
+
   // If variation has its own images, use those
   if (variation.images && variation.images.length > 0) {
-    return variation.images
+    return normalizeImages(variation.images)
   }
 
   // Otherwise, fall back to parent item images
   if (typeof variation.rentalItemId === 'object' && variation.rentalItemId !== null) {
     const parentItem = variation.rentalItemId as RentalItem
-    return parentItem.images || []
+    return normalizeImages(parentItem.images || [])
   }
 
   // If rentalItemId is just an ID, fetch the parent item
@@ -232,7 +240,7 @@ export async function getVariationImages(
     id: variation.rentalItemId as string | number,
   })
 
-  return parentItem.images || []
+  return normalizeImages(parentItem.images || [])
 }
 
 /**
@@ -250,14 +258,16 @@ export function validateVariationAttributes(
   }
 
   for (const attr of variationAttributes) {
-    const parentAttr = parentItem.variationAttributes.find((pa) => pa.name === attr.name)
+    const parentAttr = parentItem.variationAttributes.find(
+      (pa: { name: string; values?: Array<{ value: string }> }) => pa.name === attr.name
+    )
 
     if (!parentAttr) {
       errors.push(`Attribute "${attr.name}" is not defined in parent item`)
       continue
     }
 
-    const validValues = parentAttr.values?.map((v) => v.value) || []
+    const validValues = parentAttr.values?.map((v: { value: string }) => v.value) || []
     if (!validValues.includes(attr.value)) {
       errors.push(
         `Value "${attr.value}" is not valid for attribute "${attr.name}". Valid values: ${validValues.join(', ')}`

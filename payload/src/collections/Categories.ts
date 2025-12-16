@@ -45,10 +45,10 @@ export const Categories: CollectionConfig = {
       // API key auth can create categories
       if (context.authMethod === 'api_key' && context.tenantId) return true
 
-      // Session auth: tenant_admin, manager, and staff can create categories
+      // Session auth: tenant_admin and staff can create categories
       if (context.authMethod === 'session' && context.tenantId) {
         const role = req.user?.role
-        if (role === 'tenant_admin' || role === 'manager' || role === 'staff') {
+        if (role === 'tenant_admin' || role === 'staff') {
           return true
         }
       }
@@ -63,11 +63,10 @@ export const Categories: CollectionConfig = {
       // Both API key and session auth can update categories within their tenant
       if (context.tenantId) {
         const role = req.user?.role
-        // Allow tenant_admin, manager, and staff to update
+        // Allow tenant_admin and staff to update
         if (
           context.authMethod === 'api_key' ||
           role === 'tenant_admin' ||
-          role === 'manager' ||
           role === 'staff'
         ) {
           return {
@@ -217,7 +216,7 @@ export const Categories: CollectionConfig = {
         beforeChange: [
           async ({ req, data }) => {
             // Count rental items in this category
-            if (data.id) {
+            if (data?.id) {
               try {
                 const count = await req.payload.count({
                   collection: 'rental-items',
@@ -228,7 +227,7 @@ export const Categories: CollectionConfig = {
                   },
                 })
                 return count.totalDocs
-              } catch (error) {
+              } catch (_error) {
                 // If error, return 0
                 return 0
               }

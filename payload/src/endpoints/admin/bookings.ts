@@ -54,18 +54,29 @@ export const adminBookingsListEndpoint: Endpoint = {
 
       // Enrich with tenant and customer info
       const enrichedBookings = bookingsResult.docs.map(booking => {
-        const tenant = typeof booking.tenant === 'object' ? booking.tenant : null
-        const customer = typeof booking.customer === 'object' ? booking.customer : null
-        const service = typeof booking.service === 'object' ? booking.service : null
+        const tenant = typeof booking.tenantId === 'object' ? booking.tenantId : null
+        const customer = typeof booking.customerId === 'object' ? booking.customerId : null
+
+        // Handle both new rentalItems array format and legacy rentalItemId
+        let itemName = 'Unknown'
+        if (Array.isArray(booking.rentalItems) && booking.rentalItems.length > 0) {
+          // New format: array of rental items
+          const firstItem = booking.rentalItems[0]
+          const rentalItem = typeof firstItem.rentalItemId === 'object' ? firstItem.rentalItemId : null
+          itemName = rentalItem?.name || 'Unknown'
+          if (booking.rentalItems.length > 1) {
+            itemName += ` (+${booking.rentalItems.length - 1} more)`
+          }
+        }
 
         return {
           id: String(booking.id),
-          bookingNumber: booking.bookingNumber || `BK-${String(booking.id).slice(0, 8)}`,
+          bookingNumber: `BK-${String(booking.id).slice(0, 8)}`,
           tenantId: tenant?.id ? String(tenant.id) : '',
           tenantName: tenant?.name || 'Unknown',
-          customerName: customer ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim() : 'Unknown',
+          customerName: customer?.name || 'Unknown',
           customerEmail: customer?.email || '',
-          itemName: service?.name || 'Unknown',
+          itemName,
           startDate: booking.startDate,
           endDate: booking.endDate,
           status: booking.status,

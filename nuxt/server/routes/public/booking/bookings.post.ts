@@ -1,6 +1,7 @@
 /**
  * POST /public/booking/bookings
  * Create a new booking for public booking flow
+ * Supports multiple items and add-ons per booking
  */
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -43,7 +44,7 @@ export default defineEventHandler(async (event) => {
     // Generate booking number
     const bookingNumber = `BH-${Date.now().toString(36).toUpperCase()}`
 
-    // Calculate dates from items
+    // Calculate dates from items (use first item's dates as booking dates)
     const startDate = body.items[0]?.startDate
     const endDate = body.items[0]?.endDate
 
@@ -57,13 +58,37 @@ export default defineEventHandler(async (event) => {
     // Get delivery address from eventDetails or deliveryAddress
     const address = body.eventDetails?.address || body.deliveryAddress || {}
 
-    // Create booking in Payload
-    // Note: Current schema supports single item bookings - use first item
+    // Transform all items to the new rentalItems array format
+    const rentalItems = body.items.map((item: {
+      itemId: number
+      quantity?: number
+      price?: number
+      startDate?: string
+      endDate?: string
+    }) => ({
+      rentalItemId: item.itemId,
+      quantity: item.quantity || 1,
+      price: item.price || 0
+    }))
+
+    // Transform add-ons if present
+    const addOns = body.addOns?.map((addOn: {
+      name: string
+      price: number
+      quantity?: number
+    }) => ({
+      name: addOn.name,
+      price: addOn.price || 0,
+      quantity: addOn.quantity || 1
+    })) || []
+
+    // Create booking in Payload with multi-item support
     const bookingData = {
       tenantId: body.tenantId,
       bookingNumber,
       customerId: body.customerId,
-      rentalItemId: body.items[0]?.itemId, // Single item for now
+      rentalItems, // Array of items
+      addOns, // Array of add-ons
       startDate,
       endDate,
       status: 'pending',
@@ -79,7 +104,7 @@ export default defineEventHandler(async (event) => {
       specialInstructions: body.eventDetails?.specialInstructions || body.notes || ''
     }
 
-    const createResponse = await $fetch<any>(`${payloadUrl}/api/bookings`, {
+    const createResponse = await $fetch<{ doc: Record<string, unknown> }>(`${payloadUrl}/api/bookings`, {
       method: 'POST',
       headers,
       body: bookingData
@@ -90,12 +115,14 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       booking: {
-        id: (booking as any)?.id,
-        bookingNumber: (booking as any)?.bookingNumber || bookingNumber,
-        status: (booking as any)?.status || 'pending',
+        id: booking?.id,
+        bookingNumber: booking?.bookingNumber || bookingNumber,
+        status: booking?.status || 'pending',
         totalPrice: body.totalPrice,
         startDate,
-        endDate
+        endDate,
+        itemCount: rentalItems.length,
+        addOnCount: addOns.length
       }
     }
   } catch (error: unknown) {

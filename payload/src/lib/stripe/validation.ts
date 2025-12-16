@@ -213,7 +213,7 @@ export async function validateStripeOperation(
 
   try {
     // Layer 1: Entry Point Validation
-    const body = await req.json()
+    const body = (await req.json?.()) || {}
 
     const inputValidation = validateRequestInput(body, requiredFields, fieldValidators)
     if (!inputValidation.valid) {

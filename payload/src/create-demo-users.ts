@@ -22,7 +22,7 @@ async function createDemoUsers() {
           currency: 'USD',
           locale: 'en-US'
         }
-      }
+      } as any,  // Payload 3.x type workaround
     })
     tenantId = tenant.id
     console.log('Created tenant:', tenantId)

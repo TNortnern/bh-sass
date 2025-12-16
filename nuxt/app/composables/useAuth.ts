@@ -104,8 +104,9 @@ export const useAuth = () => {
         color: 'success'
       })
 
-      // Redirect to dashboard
-      await navigateTo('/app')
+      // Redirect based on role - super admins go to admin panel, others to app
+      const redirectTo = response.user.role === 'super_admin' ? '/app/admin' : '/app'
+      await navigateTo(redirectTo)
 
       return { success: true }
     } catch (err: unknown) {

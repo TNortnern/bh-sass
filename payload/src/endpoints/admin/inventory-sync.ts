@@ -3,15 +3,17 @@
  *
  * POST /api/admin/inventory-sync - Sync all pending items
  * POST /api/admin/inventory-sync/:id - Sync specific item
+ * POST /api/admin/inventory-sync/force/:tenantId - Force resync ALL items for a tenant
  * GET /api/admin/inventory-sync/status - Get sync status summary
  */
 
 import type { Endpoint, Payload } from 'payload'
-import { syncRentalItemToRbPayload, syncPendingItems } from '../../lib/inventory-sync'
+import { syncRentalItemToRbPayload, syncPendingItems, forceResyncAllInventory } from '../../lib/inventory-sync'
+import { forceResyncAllCustomers } from '../../lib/customer-sync'
 
 // Sync all pending items
 const syncAllPending: Endpoint = {
-  path: '/inventory-sync',
+  path: '/admin/inventory-sync',
   method: 'post',
   handler: async (req) => {
     const payload = req.payload as Payload
@@ -41,11 +43,11 @@ const syncAllPending: Endpoint = {
 
 // Sync a specific item
 const syncSingleItem: Endpoint = {
-  path: '/inventory-sync/:id',
+  path: '/admin/inventory-sync/:id',
   method: 'post',
   handler: async (req) => {
     const payload = req.payload as Payload
-    const { id } = req.routeParams || {}
+    const id = req.routeParams?.id as string | undefined
 
     // Check admin access
     if (!req.user || (req.user.role !== 'super_admin' && req.user.role !== 'tenant_admin')) {
@@ -59,7 +61,7 @@ const syncSingleItem: Endpoint = {
     try {
       const item = await payload.findByID({
         collection: 'rental-items',
-        id: parseInt(id),
+        id: parseInt(id, 10),
       })
 
       if (!item) {
@@ -85,7 +87,7 @@ const syncSingleItem: Endpoint = {
 
 // Get sync status summary
 const getSyncStatus: Endpoint = {
-  path: '/inventory-sync/status',
+  path: '/admin/inventory-sync/status',
   method: 'get',
   handler: async (req) => {
     const payload = req.payload as Payload
@@ -120,4 +122,95 @@ const getSyncStatus: Endpoint = {
   },
 }
 
-export const inventorySyncEndpoints = [syncAllPending, syncSingleItem, getSyncStatus]
+// Force resync ALL inventory for a specific tenant (even already synced items)
+const forceResyncInventory: Endpoint = {
+  path: '/admin/inventory-sync/force/:tenantId',
+  method: 'post',
+  handler: async (req) => {
+    const payload = req.payload as Payload
+    const tenantId = req.routeParams?.tenantId as string | undefined
+
+    // Check admin access
+    if (!req.user || (req.user.role !== 'super_admin' && req.user.role !== 'tenant_admin')) {
+      return Response.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    if (!tenantId) {
+      return Response.json({ error: 'Tenant ID required' }, { status: 400 })
+    }
+
+    try {
+      const result = await forceResyncAllInventory(payload, parseInt(tenantId, 10))
+
+      return Response.json({
+        success: true,
+        message: `Force resync completed: ${result.synced} synced, ${result.failed} failed, ${result.skipped} skipped`,
+        ...result,
+      })
+    } catch (error) {
+      console.error(`[Admin] Force resync failed for tenant ${tenantId}:`, error)
+      return Response.json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }, { status: 500 })
+    }
+  },
+}
+
+// Force resync ALL (inventory + customers) for a specific tenant
+const forceResyncAll: Endpoint = {
+  path: '/admin/force-resync-all/:tenantId',
+  method: 'post',
+  handler: async (req) => {
+    const payload = req.payload as Payload
+    const tenantId = req.routeParams?.tenantId as string | undefined
+
+    // Check admin access
+    if (!req.user || (req.user.role !== 'super_admin' && req.user.role !== 'tenant_admin')) {
+      return Response.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    if (!tenantId) {
+      return Response.json({ error: 'Tenant ID required' }, { status: 400 })
+    }
+
+    const parsedTenantId = parseInt(tenantId, 10)
+
+    try {
+      // Run inventory and customer sync in parallel
+      const [inventoryResult, customerResult] = await Promise.all([
+        forceResyncAllInventory(payload, parsedTenantId),
+        forceResyncAllCustomers(payload, parsedTenantId),
+      ])
+
+      return Response.json({
+        success: true,
+        message: 'Force resync completed',
+        inventory: {
+          synced: inventoryResult.synced,
+          failed: inventoryResult.failed,
+          skipped: inventoryResult.skipped,
+        },
+        customers: {
+          synced: customerResult.synced,
+          failed: customerResult.failed,
+          skipped: customerResult.skipped,
+        },
+      })
+    } catch (error) {
+      console.error(`[Admin] Force resync all failed for tenant ${tenantId}:`, error)
+      return Response.json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }, { status: 500 })
+    }
+  },
+}
+
+export const inventorySyncEndpoints = [
+  syncAllPending,
+  syncSingleItem,
+  getSyncStatus,
+  forceResyncInventory,
+  forceResyncAll,
+]

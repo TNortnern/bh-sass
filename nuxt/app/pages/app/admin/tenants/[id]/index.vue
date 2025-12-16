@@ -7,6 +7,9 @@ interface TenantDetails {
   status: 'active' | 'suspended' | 'deleted'
   createdAt: string
   stripeConnected: boolean
+  rbPayloadTenantId: number | null
+  rbPayloadSyncStatus: 'pending' | 'provisioned' | 'failed'
+  rbPayloadSyncError: string | null
   businessInfo?: {
     email?: string
     phone?: string
@@ -28,8 +31,16 @@ const tenantId = route.params.id as string
 const { startImpersonation } = useImpersonation()
 const toast = useToast()
 
-const { data: tenant, pending } = useLazyFetch<TenantDetails>(`/v1/admin/tenants/${tenantId}`, {
+const syncing = ref(false)
+
+const { data: tenant, pending, refresh } = useLazyFetch<TenantDetails>(`/v1/admin/tenants/${tenantId}`, {
   credentials: 'include'
+})
+
+// Computed property to check if tenant needs sync
+const needsSync = computed(() => {
+  if (!tenant.value) return false
+  return tenant.value.rbPayloadSyncStatus !== 'provisioned' || !tenant.value.rbPayloadTenantId
 })
 
 const formatCurrency = (value: number) => {
@@ -55,7 +66,8 @@ const handleImpersonate = async () => {
 
 const handleSuspend = async () => {
   try {
-    await $fetch(`/v1/admin/tenants/${tenantId}/suspend`, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await ($fetch as any)(`/v1/admin/tenants/${tenantId}/suspend`, {
       method: 'POST',
       body: { status: 'suspended' },
       credentials: 'include'
@@ -67,7 +79,7 @@ const handleSuspend = async () => {
       color: 'success'
     })
 
-    navigateTo('/admin/tenants')
+    navigateTo('/app/admin/tenants')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     toast.add({
@@ -75,6 +87,42 @@ const handleSuspend = async () => {
       description: err?.data?.message || 'Failed to suspend tenant',
       color: 'error'
     })
+  }
+}
+
+// Sync tenant to rb-payload
+const handleSyncTenant = async () => {
+  syncing.value = true
+  try {
+    const result = await $fetch<{ success: boolean, message?: string, error?: string }>(`/v1/admin/tenants/${tenantId}/sync-rb-payload`, {
+      method: 'POST',
+      credentials: 'include'
+    })
+
+    if (result.success) {
+      toast.add({
+        title: 'Sync successful',
+        description: result.message || 'Tenant synced to rb-payload',
+        color: 'success'
+      })
+    } else {
+      toast.add({
+        title: 'Sync failed',
+        description: result.error || 'Failed to sync tenant',
+        color: 'error'
+      })
+    }
+
+    refresh()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (err: any) {
+    toast.add({
+      title: 'Sync error',
+      description: err?.data?.error || err?.message || 'Failed to sync tenant to rb-payload',
+      color: 'error'
+    })
+  } finally {
+    syncing.value = false
   }
 }
 </script>
@@ -88,7 +136,7 @@ const handleSuspend = async () => {
           icon="i-lucide-arrow-left"
           label="Back to Tenants"
           variant="ghost"
-          to="/admin/tenants"
+          to="/app/admin/tenants"
           class="mb-4"
         />
         <h1
@@ -105,6 +153,14 @@ const handleSuspend = async () => {
         </p>
       </div>
       <div class="header-actions">
+        <UButton
+          v-if="needsSync"
+          :icon="syncing ? 'i-lucide-loader-2' : 'i-lucide-refresh-cw'"
+          :label="syncing ? 'Syncing...' : 'Sync to rb-payload'"
+          color="primary"
+          :loading="syncing"
+          @click="handleSyncTenant"
+        />
         <UButton
           icon="i-lucide-user-cog"
           label="Impersonate"
@@ -171,6 +227,23 @@ const handleSuspend = async () => {
               :color="tenant.stripeConnected ? 'success' : 'neutral'"
               variant="subtle"
             />
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Booking Sync</span>
+            <div class="flex flex-col gap-1">
+              <UBadge
+                :icon="tenant.rbPayloadSyncStatus === 'provisioned' ? 'i-lucide-check-circle' : tenant.rbPayloadSyncStatus === 'pending' ? 'i-lucide-clock' : 'i-lucide-x-circle'"
+                :label="tenant.rbPayloadSyncStatus === 'provisioned' && tenant.rbPayloadTenantId ? `Synced (#${tenant.rbPayloadTenantId})` : tenant.rbPayloadSyncStatus === 'pending' ? 'Pending' : 'Failed'"
+                :color="tenant.rbPayloadSyncStatus === 'provisioned' ? 'success' : tenant.rbPayloadSyncStatus === 'pending' ? 'warning' : 'error'"
+                variant="subtle"
+              />
+              <span
+                v-if="tenant.rbPayloadSyncError"
+                class="text-xs text-red-500 dark:text-red-400"
+              >
+                {{ tenant.rbPayloadSyncError }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -251,131 +324,109 @@ const handleSuspend = async () => {
   </div>
 </template>
 
-<style scoped>
+<style>
+/* Unscoped styles for proper dark mode support in Tailwind v4 */
+@reference "tailwindcss";
+
+/* Page-specific styles extending global admin styles */
 .admin-page {
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  @apply max-w-6xl;
 }
 
 .page-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 2rem;
   gap: 1.5rem;
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.03em;
-  margin: 0;
-}
-
-.page-description {
-  font-size: 0.9375rem;
-  color: #737373;
-  margin: 0.5rem 0 0;
 }
 
 .header-actions {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.loading-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
+  @apply flex gap-3;
 }
 
 .tenant-details {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  @apply flex flex-col gap-6;
 }
 
 .detail-section {
-  background: linear-gradient(180deg, #161616 0%, #0f0f0f 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 1.75rem;
+  @apply rounded-2xl p-7;
+  background-color: white;
+  border: 1px solid rgb(229 231 235);
+}
+.dark .detail-section {
+  background-color: #161616;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .section-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0 0 1.5rem;
-  letter-spacing: -0.02em;
+  @apply text-xl font-bold m-0 mb-6 tracking-tight;
+  color: rgb(17 24 39);
+}
+.dark .section-title {
+  color: white;
 }
 
 .detail-grid {
-  display: grid;
+  @apply grid gap-6;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
 }
 
 .detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  @apply flex flex-col gap-2;
 }
 
 .detail-label {
-  font-size: 0.875rem;
-  color: #737373;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  @apply text-sm font-medium uppercase tracking-wider;
+  color: rgb(107 114 128);
+}
+.dark .detail-label {
+  color: rgb(156 163 175);
 }
 
 .detail-value {
-  font-size: 1rem;
-  color: #e5e5e5;
-  font-weight: 500;
+  @apply text-base font-medium;
+  color: rgb(55 65 81);
+}
+.dark .detail-value {
+  color: rgb(229 231 235);
 }
 
 .detail-link {
-  font-size: 1rem;
-  color: #3b82f6;
-  font-weight: 500;
-  text-decoration: none;
+  @apply text-base font-medium no-underline hover:underline;
+  color: rgb(37 99 235);
 }
-
-.detail-link:hover {
-  text-decoration: underline;
+.dark .detail-link {
+  color: rgb(96 165 250);
 }
 
 .metrics-grid {
-  display: grid;
+  @apply grid gap-5;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.25rem;
 }
 
 .metric-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  padding: 1.25rem;
+  @apply rounded-xl p-5;
+  background-color: rgb(249 250 251);
+  border: 1px solid rgb(229 231 235);
+}
+.dark .metric-card {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .metric-label {
-  font-size: 0.8125rem;
-  color: #737373;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.75rem;
+  @apply text-sm font-medium uppercase tracking-wider mb-3;
+  color: rgb(107 114 128);
+}
+.dark .metric-label {
+  color: rgb(156 163 175);
 }
 
 .metric-value {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.02em;
+  @apply text-3xl font-bold tracking-tight;
+  color: rgb(17 24 39);
+}
+.dark .metric-value {
+  color: white;
 }
 </style>

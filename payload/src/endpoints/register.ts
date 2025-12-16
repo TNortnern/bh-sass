@@ -60,27 +60,24 @@ export const registerHandler: Endpoint['handler'] = async (req) => {
         slug: finalSlug,
         plan: 'free',
         status: 'active',
-        businessInfo: {
-          email: email.toLowerCase().trim()
-        },
+        email: email.toLowerCase().trim(),
         settings: {
           timezone: 'America/New_York',
           currency: 'USD',
           bookingSettings: {
-            minimumLeadTime: 48,
+            leadTime: 48,
             cancellationPolicy: 'Free cancellation up to 48 hours before the event',
             depositPercentage: 50,
-            requireApproval: false
+            requireApproval: false,
           },
           deliverySettings: {
-            deliveryFee: 50,
-            freeDeliveryRadius: 10,
-            maxDeliveryRadius: 50,
+            baseDeliveryFee: 50,
+            deliveryRadius: 50,
             setupTime: 30,
-            pickupTime: 30
-          }
+            pickupTime: 30,
+          },
         }
-      }
+      } as any  // Payload 3.x type workaround
     })
 
     // Create user with tenant relationship
@@ -92,7 +89,7 @@ export const registerHandler: Endpoint['handler'] = async (req) => {
         role: 'tenant_admin',
         tenantId: tenant.id,
         profile: {
-          businessName
+          name: businessName,
         }
       }
     })

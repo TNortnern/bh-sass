@@ -220,6 +220,19 @@
                   />
                   Quick Book
                 </UButton>
+                <UButton
+                  color="neutral"
+                  variant="outline"
+                  size="md"
+                  class="rounded-lg"
+                  @click="copyBookingLink"
+                >
+                  <UIcon
+                    name="i-lucide-link"
+                    class="w-5 h-5 mr-2"
+                  />
+                  Copy Booking Link
+                </UButton>
               </template>
             </div>
           </div>
@@ -742,6 +755,7 @@ const route = useRoute()
 const toast = useToast()
 const { fetchCustomer, updateCustomer, addTag, removeTag: removeTagFromCustomer, addNote, getAllTags } = useCustomers()
 const { fetchCustomerBookings } = useBookings()
+const { generateCustomerWidgetUrl } = useWidgetUrl()
 
 const customer = ref<Customer | null>(null)
 const customerBookings = ref<Booking[]>([])
@@ -999,6 +1013,41 @@ function quickBook() {
         customerEmail: customer.value.email,
         customerPhone: customer.value.phone
       }
+    })
+  }
+}
+
+async function copyBookingLink() {
+  if (!customer.value) return
+
+  const url = generateCustomerWidgetUrl({
+    firstName: customer.value.firstName,
+    lastName: customer.value.lastName,
+    email: customer.value.email,
+    phone: customer.value.phone
+  }, { theme: 'auto' })
+
+  if (!url) {
+    toast.add({
+      title: 'Link Not Available',
+      description: 'The booking widget is not configured for this tenant.',
+      color: 'warning'
+    })
+    return
+  }
+
+  try {
+    await navigator.clipboard.writeText(url)
+    toast.add({
+      title: 'Booking Link Copied',
+      description: `Personalized booking link for ${customer.value.firstName} copied to clipboard.`,
+      color: 'success'
+    })
+  } catch {
+    toast.add({
+      title: 'Copy Failed',
+      description: 'Unable to copy to clipboard. Please try again.',
+      color: 'error'
     })
   }
 }

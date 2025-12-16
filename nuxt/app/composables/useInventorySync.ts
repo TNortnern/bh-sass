@@ -51,7 +51,7 @@ interface RbPayloadService {
 }
 
 export function useInventorySync() {
-  // const config = useRuntimeConfig()
+  const { rbPayloadTenantId: rbTenantId } = useTenant()
 
   /**
    * Transform RentalItem to rb-payload Service format
@@ -109,7 +109,14 @@ export function useInventorySync() {
   }> {
     try {
       const serviceData = rentalItemToService(item)
-      const tenantId = 6 // TODO: Get from config or context
+      const tenantId = rbTenantId.value
+
+      if (!tenantId) {
+        return {
+          success: false,
+          error: 'rb-payload tenant not configured. Please complete tenant setup first.'
+        }
+      }
 
       if (item.rbPayloadServiceId) {
         // UPDATE existing service
@@ -181,8 +188,13 @@ export function useInventorySync() {
    */
   async function fetchRbPayloadServices(): Promise<RbPayloadService[]> {
     try {
+      const tenantId = rbTenantId.value
+      if (!tenantId) {
+        console.warn('Cannot fetch rb-payload services: tenant not configured')
+        return []
+      }
       const response = await $fetch<{ success: boolean, services: RbPayloadService[] }>(
-        '/booking/services'
+        `/booking/services?tenantId=${tenantId}`
       )
       return response.services || []
     } catch (error) {

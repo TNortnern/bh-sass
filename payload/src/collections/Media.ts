@@ -94,8 +94,6 @@ export const Media: CollectionConfig = {
         position: 'centre',
       },
     ],
-    // Set max file size to 5MB
-    maxSize: 5 * 1024 * 1024, // 5MB in bytes
   },
   timestamps: true,
 }

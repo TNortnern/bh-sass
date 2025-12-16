@@ -10,7 +10,7 @@ export const rotateApiKeyEndpoint: Endpoint = {
   path: '/api-keys/:id/rotate',
   method: 'post',
   handler: async (req) => {
-    const { id } = req.routeParams || {}
+    const id = req.routeParams?.id as string | undefined
 
     if (!id) {
       return Response.json({ error: 'API key ID required' }, { status: 400 })
@@ -20,7 +20,7 @@ export const rotateApiKeyEndpoint: Endpoint = {
       // Fetch the existing API key
       const existingKey = await req.payload.findByID({
         collection: 'api-keys',
-        id,
+        id: id,
       })
 
       if (!existingKey) {
@@ -35,7 +35,7 @@ export const rotateApiKeyEndpoint: Endpoint = {
 
         // For API key auth
         if (context.authMethod === 'api_key' && context.tenantId) {
-          if (context.tenantId !== keyTenantId) {
+          if (String(context.tenantId) !== String(keyTenantId)) {
             return Response.json({ error: 'Unauthorized' }, { status: 403 })
           }
         }

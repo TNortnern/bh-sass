@@ -212,7 +212,7 @@ export async function seedDatabase() {
           },
           quantity: 2,
           isActive: true,
-        },
+        } as any,  // Payload 3.x type workaround for richText
       }),
       payload.create({
         collection: 'rental-items',
@@ -246,7 +246,7 @@ export async function seedDatabase() {
           },
           quantity: 2,
           isActive: true,
-        },
+        } as any,  // Payload 3.x type workaround for richText
       }),
       payload.create({
         collection: 'rental-items',
@@ -280,7 +280,7 @@ export async function seedDatabase() {
           },
           quantity: 1,
           isActive: true,
-        },
+        } as any,  // Payload 3.x type workaround for richText
       }),
       payload.create({
         collection: 'rental-items',
@@ -314,7 +314,7 @@ export async function seedDatabase() {
           },
           quantity: 1,
           isActive: true,
-        },
+        } as any,  // Payload 3.x type workaround for richText
       }),
       payload.create({
         collection: 'rental-items',
@@ -349,7 +349,7 @@ export async function seedDatabase() {
           quantity: 3,
           isActive: true,
           featured: true,
-        },
+        } as any,  // Payload 3.x type workaround for richText
       }),
     ])
 

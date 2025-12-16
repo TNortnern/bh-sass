@@ -8,7 +8,7 @@ export const Bookings: CollectionConfig = {
   slug: 'bookings',
   admin: {
     useAsTitle: 'customerId',
-    defaultColumns: ['customerId', 'rentalItemId', 'startDate', 'endDate', 'status', 'totalPrice'],
+    defaultColumns: ['customerId', 'rentalItems', 'startDate', 'endDate', 'status', 'totalPrice'],
     group: 'Rental Management',
   },
   access: {
@@ -112,13 +112,79 @@ export const Bookings: CollectionConfig = {
       },
     },
     {
-      name: 'rentalItemId',
-      type: 'relationship',
-      relationTo: 'rental-items',
+      name: 'rentalItems',
+      type: 'array',
       required: true,
+      minRows: 1,
       admin: {
-        description: 'The rental item being booked',
+        description: 'Items included in this booking',
       },
+      fields: [
+        {
+          name: 'rentalItemId',
+          type: 'relationship',
+          relationTo: 'rental-items',
+          required: true,
+          admin: {
+            description: 'The rental item',
+          },
+        },
+        {
+          name: 'quantity',
+          type: 'number',
+          required: true,
+          defaultValue: 1,
+          min: 1,
+          admin: {
+            description: 'Number of this item',
+          },
+        },
+        {
+          name: 'price',
+          type: 'number',
+          required: true,
+          admin: {
+            description: 'Price for this item',
+            step: 0.01,
+          },
+        },
+      ],
+    },
+    {
+      name: 'addOns',
+      type: 'array',
+      admin: {
+        description: 'Add-on items included in this booking',
+      },
+      fields: [
+        {
+          name: 'name',
+          type: 'text',
+          required: true,
+          admin: {
+            description: 'Add-on name',
+          },
+        },
+        {
+          name: 'price',
+          type: 'number',
+          required: true,
+          admin: {
+            description: 'Add-on price',
+            step: 0.01,
+          },
+        },
+        {
+          name: 'quantity',
+          type: 'number',
+          required: true,
+          defaultValue: 1,
+          min: 1,
+          admin: {
+            description: 'Quantity of this add-on',
+          },
+        },
+      ],
     },
     {
       name: 'customerId',
@@ -408,8 +474,9 @@ export const Bookings: CollectionConfig = {
                 }
               }
             }
-          } catch (error) {
-            req.payload.logger.error(`Failed to queue booking webhooks: ${error.message}`)
+          } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Unknown error'
+            req.payload.logger.error(`Failed to queue booking webhooks: ${message}`)
           }
         })
       },
@@ -433,16 +500,74 @@ export const Bookings: CollectionConfig = {
 
             if (!tenant) return
 
-            // Get rental item data
-            const rentalItemId = typeof doc.rentalItemId === 'object' ? doc.rentalItemId.id : doc.rentalItemId
-            const rentalItem = typeof doc.rentalItemId === 'object'
-              ? doc.rentalItemId
-              : await req.payload.findByID({ collection: 'rental-items', id: rentalItemId })
+            // Get rental items data (now an array)
+            const rentalItems: Array<{ id: string; name: string; price: number }> = []
+            if (doc.rentalItems && Array.isArray(doc.rentalItems)) {
+              for (const item of doc.rentalItems) {
+                const itemId = typeof item.rentalItemId === 'object' ? item.rentalItemId.id : item.rentalItemId
+                const rentalItem = typeof item.rentalItemId === 'object'
+                  ? item.rentalItemId
+                  : await req.payload.findByID({ collection: 'rental-items', id: itemId })
+                if (rentalItem) {
+                  rentalItems.push({
+                    id: String(rentalItem.id),
+                    name: rentalItem.name,
+                    price: item.price || 0
+                  })
+                }
+              }
+            }
+            // For backwards compatibility, get first item as primary
+            const primaryItem = rentalItems[0]
 
             // Format location
             const location = doc.deliveryAddress
               ? `${doc.deliveryAddress.street}, ${doc.deliveryAddress.city}, ${doc.deliveryAddress.state} ${doc.deliveryAddress.zipCode}`
               : 'TBD'
+
+            // Build complete tenant data for emails (includes phone, email, address, logo)
+            // Logo can be number (ID) or Media object - extract URL if it's a Media object
+            const logoUrl = tenant.logo && typeof tenant.logo === 'object' && 'url' in tenant.logo
+              ? tenant.logo.url
+              : undefined
+
+            const tenantEmailData = {
+              id: String(tenant.id),
+              name: tenant.name,
+              email: tenant.email || undefined,
+              phone: tenant.phone || undefined,
+              domain: tenant.slug,
+              logo: logoUrl || undefined,
+              address: tenant.address ? {
+                street: tenant.address.street || undefined,
+                city: tenant.address.city || undefined,
+                state: tenant.address.state || undefined,
+                zip: tenant.address.zip || undefined,
+              } : undefined,
+              branding: tenant.branding ? {
+                businessName: tenant.branding.businessName || undefined,
+              } : undefined,
+            }
+
+            // Build booking data for emails
+            const bookingEmailData = {
+              id: String(doc.id),
+              eventDate: doc.startDate,
+              eventTime: new Date(doc.startDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+              location,
+              totalAmount: doc.totalPrice || 0,
+              status: doc.status,
+              item: primaryItem ? { id: primaryItem.id, name: primaryItem.name } : undefined,
+              items: rentalItems
+            }
+
+            // Build customer data for emails
+            const customerEmailData = {
+              id: String(customer.id),
+              name: customer.name, // Customer uses 'name' field (full name)
+              email: customer.email,
+              phone: customer.phone
+            }
 
             // Send booking confirmation on create (if confirmed) or when status changes to confirmed
             if (
@@ -450,26 +575,9 @@ export const Bookings: CollectionConfig = {
               (operation === 'update' && previousDoc?.status !== 'confirmed' && doc.status === 'confirmed')
             ) {
               await emailService.sendBookingConfirmation(
-                {
-                  id: doc.id,
-                  eventDate: doc.startDate,
-                  eventTime: new Date(doc.startDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
-                  location,
-                  totalAmount: doc.totalPrice || 0,
-                  status: doc.status,
-                  item: rentalItem ? { id: rentalItem.id, name: rentalItem.name } : undefined
-                },
-                {
-                  id: customer.id,
-                  name: `${customer.firstName} ${customer.lastName}`,
-                  email: customer.email,
-                  phone: customer.phone
-                },
-                {
-                  id: tenant.id,
-                  name: tenant.name,
-                  domain: tenant.slug
-                }
+                bookingEmailData,
+                customerEmailData,
+                tenantEmailData
               )
               req.payload.logger.info(`Booking confirmation email sent to ${customer.email}`)
             }
@@ -477,24 +585,9 @@ export const Bookings: CollectionConfig = {
             // Send cancellation email when status changes to cancelled
             if (operation === 'update' && previousDoc?.status !== 'cancelled' && doc.status === 'cancelled') {
               await emailService.sendBookingCancellation(
-                {
-                  id: doc.id,
-                  eventDate: doc.startDate,
-                  eventTime: '',
-                  location,
-                  totalAmount: doc.totalPrice || 0,
-                  status: doc.status,
-                  item: rentalItem ? { id: rentalItem.id, name: rentalItem.name } : undefined
-                },
-                {
-                  id: customer.id,
-                  name: `${customer.firstName} ${customer.lastName}`,
-                  email: customer.email
-                },
-                {
-                  id: tenant.id,
-                  name: tenant.name
-                },
+                bookingEmailData,
+                customerEmailData,
+                tenantEmailData,
                 doc.depositPaid // refund amount
               )
               req.payload.logger.info(`Booking cancellation email sent to ${customer.email}`)

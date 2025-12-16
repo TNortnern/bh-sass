@@ -284,7 +284,7 @@ describe('Availability Check Endpoint', () => {
 
     it('should default quantity to 1 if not specified', () => {
       // Arrange
-      const item = {
+      const item: { id: string; name: string; quantity?: number } = {
         id: 'item_123',
         name: 'Castle Bounce House'
         // quantity not specified

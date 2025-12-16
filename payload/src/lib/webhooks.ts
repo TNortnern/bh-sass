@@ -115,9 +115,9 @@ export async function queueWebhook(
         collection: 'webhook-deliveries',
         data: {
           endpointId: endpoint.id,
-          tenantId,
+          tenantId: Number(tenantId),
           event,
-          payload: data,
+          payload: data as Record<string, unknown>,
           status: 'pending',
           attempts: 0,
           maxAttempts: 5,
@@ -126,7 +126,7 @@ export async function queueWebhook(
 
       // Trigger immediate delivery attempt (fire and forget)
       setImmediate(() => {
-        deliverWebhook(payload, delivery.id as string).catch((error) => {
+        deliverWebhook(payload, String(delivery.id)).catch((error: Error) => {
           payload.logger.error(`Failed to deliver webhook ${delivery.id}: ${error.message}`)
         })
       })
@@ -135,8 +135,9 @@ export async function queueWebhook(
     })
 
     await Promise.all(deliveryPromises)
-  } catch (error) {
-    payload.logger.error(`Failed to queue webhooks for event ${event}: ${error.message}`)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    payload.logger.error(`Failed to queue webhooks for event ${event}: ${message}`)
   }
 }
 
@@ -158,7 +159,7 @@ export async function deliverWebhook(payload: Payload, deliveryId: string): Prom
     }
 
     // Check if we've exceeded max attempts
-    if (delivery.attempts >= delivery.maxAttempts) {
+    if ((delivery.attempts ?? 0) >= (delivery.maxAttempts ?? 5)) {
       await payload.update({
         collection: 'webhook-deliveries',
         id: deliveryId,
@@ -191,7 +192,8 @@ export async function deliverWebhook(payload: Payload, deliveryId: string): Prom
     }
 
     // Sign the payload
-    const signature = signPayload(delivery.payload, endpoint.secret)
+    const payloadData = delivery.payload ?? {}
+    const signature = signPayload(payloadData as object, endpoint.secret)
 
     // Prepare webhook payload
     const webhookPayload = {
@@ -224,7 +226,7 @@ export async function deliverWebhook(payload: Payload, deliveryId: string): Prom
       const responseText = await response.text()
       const truncatedBody = responseText.substring(0, 1000)
 
-      const responseHeaders = {}
+      const responseHeaders: Record<string, string> = {}
       response.headers.forEach((value, key) => {
         responseHeaders[key] = value
       })
@@ -239,7 +241,7 @@ export async function deliverWebhook(payload: Payload, deliveryId: string): Prom
           id: deliveryId,
           data: {
             status: 'delivered',
-            attempts: delivery.attempts + 1,
+            attempts: (delivery.attempts ?? 0) + 1,
             deliveredAt: new Date().toISOString(),
             response: {
               statusCode: response.status,
@@ -263,14 +265,14 @@ export async function deliverWebhook(payload: Payload, deliveryId: string): Prom
         return true
       } else {
         // Delivery failed, schedule retry
-        const nextRetry = calculateNextRetry(delivery.attempts)
+        const nextRetry = calculateNextRetry(delivery.attempts ?? 0)
 
         await payload.update({
           collection: 'webhook-deliveries',
           id: deliveryId,
           data: {
             status: 'retrying',
-            attempts: delivery.attempts + 1,
+            attempts: (delivery.attempts ?? 0) + 1,
             nextRetryAt: nextRetry.toISOString(),
             response: {
               statusCode: response.status,
@@ -294,21 +296,22 @@ export async function deliverWebhook(payload: Payload, deliveryId: string): Prom
 
         return false
       }
-    } catch (error) {
+    } catch (error: unknown) {
       clearTimeout(timeoutId)
 
       // Network error or timeout
+      const err = error as Error
       const errorMessage =
-        error.name === 'AbortError' ? 'Request timeout (5s)' : error.message || 'Network error'
+        err.name === 'AbortError' ? 'Request timeout (5s)' : err.message || 'Network error'
 
-      const nextRetry = calculateNextRetry(delivery.attempts)
+      const nextRetry = calculateNextRetry(delivery.attempts ?? 0)
 
       await payload.update({
         collection: 'webhook-deliveries',
         id: deliveryId,
         data: {
           status: 'retrying',
-          attempts: delivery.attempts + 1,
+          attempts: (delivery.attempts ?? 0) + 1,
           nextRetryAt: nextRetry.toISOString(),
           error: errorMessage,
         },
@@ -327,8 +330,9 @@ export async function deliverWebhook(payload: Payload, deliveryId: string): Prom
 
       return false
     }
-  } catch (error) {
-    payload.logger.error(`Error delivering webhook ${deliveryId}: ${error.message}`)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    payload.logger.error(`Error delivering webhook ${deliveryId}: ${message}`)
     return false
   }
 }
@@ -383,13 +387,15 @@ export async function processWebhookRetries(payload: Payload): Promise<void> {
 
     // Process each delivery
     const retryPromises = deliveries.docs.map((delivery) =>
-      deliverWebhook(payload, delivery.id as string).catch((error) => {
-        payload.logger.error(`Failed to retry webhook ${delivery.id}: ${error.message}`)
+      deliverWebhook(payload, String(delivery.id)).catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : 'Unknown error'
+        payload.logger.error(`Failed to retry webhook ${delivery.id}: ${message}`)
       }),
     )
 
     await Promise.all(retryPromises)
-  } catch (error) {
-    payload.logger.error(`Error processing webhook retries: ${error.message}`)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    payload.logger.error(`Error processing webhook retries: ${message}`)
   }
 }

@@ -79,7 +79,7 @@ export function validateCSRFToken(req: PayloadRequest, token: string | undefined
 
   // Verify token belongs to the current user
   const userId = req.user?.id
-  if (!userId || tokenData.userId !== userId) {
+  if (!userId || String(tokenData.userId) !== String(userId)) {
     console.error('[CSRF] Token does not match current user', {
       tokenUserId: tokenData.userId,
       currentUserId: userId,
@@ -105,7 +105,7 @@ export function validateCSRFToken(req: PayloadRequest, token: string | undefined
  * }
  */
 export function validateCSRFTokenForRequest(req: PayloadRequest): boolean {
-  const token = req.headers?.['x-csrf-token'] as string | undefined
+  const token = req.headers?.get?.('x-csrf-token') ?? undefined
   return validateCSRFToken(req, token)
 }
 
@@ -114,5 +114,5 @@ export function validateCSRFTokenForRequest(req: PayloadRequest): boolean {
  * Useful for endpoints that return the token to client for subsequent requests
  */
 export function getCSRFTokenFromRequest(req: PayloadRequest): string | undefined {
-  return req.headers?.['x-csrf-token'] as string | undefined
+  return req.headers?.get?.('x-csrf-token') ?? undefined
 }

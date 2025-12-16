@@ -86,7 +86,8 @@ export async function authenticateApiKey(
 
     // Get tenant info (relationship is populated with depth: 1)
     const tenant = apiKeyDoc.tenantId
-    if (!tenant || typeof tenant === 'string') {
+    // Must be an object (populated), not just an ID number
+    if (!tenant || typeof tenant === 'number') {
       return {
         authenticated: false,
         error: 'API key is not associated with a valid tenant.',
@@ -112,6 +113,11 @@ export async function authenticateApiKey(
       payload.logger.error(`Failed to update API key lastUsed: ${err}`)
     })
 
+    // Extract scopes - handle both array and other types
+    const scopes: string[] = Array.isArray(apiKeyDoc.scopes)
+      ? (apiKeyDoc.scopes as string[]).filter((s): s is string => typeof s === 'string')
+      : []
+
     return {
       authenticated: true,
       tenant: {
@@ -123,9 +129,9 @@ export async function authenticateApiKey(
       apiKey: {
         id: String(apiKeyDoc.id),
         name: apiKeyDoc.name,
-        scopes: apiKeyDoc.scopes || [],
+        scopes,
         scopeType: apiKeyDoc.scopeType || 'full_access',
-        isActive: apiKeyDoc.isActive,
+        isActive: apiKeyDoc.isActive ?? false,
       },
     }
   } catch (error) {

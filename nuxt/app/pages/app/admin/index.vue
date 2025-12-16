@@ -262,7 +262,7 @@ const statusColor = computed(() => {
         </div>
         <div class="quick-actions">
           <NuxtLink
-            to="/admin/tenants"
+            to="/app/admin/tenants"
             class="action-button"
           >
             <UIcon
@@ -272,7 +272,7 @@ const statusColor = computed(() => {
             <span>View All Tenants</span>
           </NuxtLink>
           <NuxtLink
-            to="/admin/revenue"
+            to="/app/admin/revenue"
             class="action-button"
           >
             <UIcon
@@ -282,7 +282,7 @@ const statusColor = computed(() => {
             <span>Revenue Analytics</span>
           </NuxtLink>
           <NuxtLink
-            to="/admin/system"
+            to="/app/admin/system"
             class="action-button"
           >
             <UIcon
@@ -292,7 +292,7 @@ const statusColor = computed(() => {
             <span>System Health</span>
           </NuxtLink>
           <NuxtLink
-            to="/admin/audit"
+            to="/app/admin/audit"
             class="action-button"
           >
             <UIcon
@@ -307,61 +307,22 @@ const statusColor = computed(() => {
   </div>
 </template>
 
-<style scoped>
-.admin-page {
-  padding: 2rem;
-  max-width: 1920px;
-  margin: 0 auto;
-}
+<style>
+/* Unscoped styles for proper dark mode support in Tailwind v4 */
+@reference "tailwindcss";
 
+/* Page-specific styles that extend global admin styles */
 .page-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 2rem;
   gap: 1.5rem;
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.03em;
-  margin: 0;
-}
-
-.page-description {
-  font-size: 0.9375rem;
-  color: #737373;
-  margin: 0.5rem 0 0;
-}
-
-.loading-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
-}
-
-/* Stat Cards */
-.stat-card {
-  background: linear-gradient(180deg, #161616 0%, #0f0f0f 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 1.75rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.stat-card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 .stat-header {
@@ -372,223 +333,204 @@ const statusColor = computed(() => {
 }
 
 .stat-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #3b82f6;
+  @apply w-11 h-11 rounded-xl flex items-center justify-center;
+  background-color: rgb(219 234 254);
+  border: 1px solid rgb(191 219 254);
+  color: rgb(37 99 235);
+}
+.dark .stat-icon {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.2);
+  color: rgb(96 165 250);
 }
 
 .system-icon {
-  background: rgba(34, 197, 94, 0.1);
+  background-color: rgb(220 252 231);
+  border-color: rgb(187 247 208);
+  color: rgb(22 163 74);
+}
+.dark .system-icon {
+  background-color: rgba(34, 197, 94, 0.1);
   border-color: rgba(34, 197, 94, 0.2);
-  color: #22c55e;
+  color: rgb(74 222 128);
 }
 
 .revenue-icon {
-  background: rgba(139, 92, 246, 0.1);
-  border-color: rgba(139, 92, 246, 0.2);
-  color: #8b5cf6;
+  background-color: rgb(243 232 255);
+  border-color: rgb(233 213 255);
+  color: rgb(147 51 234);
 }
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #a3a3a3;
-  font-weight: 500;
-}
-
-.stat-value {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.02em;
-  margin-bottom: 1.25rem;
-  line-height: 1;
+.dark .revenue-icon {
+  background-color: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.2);
+  color: rgb(192 132 252);
 }
 
 .stat-footer {
-  display: flex;
-  gap: 1.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  @apply flex gap-6 pt-5;
+  border-top: 1px solid rgb(229 231 235);
+}
+.dark .stat-footer {
+  border-top-color: rgba(255, 255, 255, 0.06);
 }
 
 .stat-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
+  @apply flex flex-col gap-1;
 }
 
 .detail-value {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #e5e5e5;
+  @apply text-lg font-bold;
+  color: rgb(55 65 81);
+}
+.dark .detail-value {
+  color: rgb(229 231 235);
 }
 
 .detail-value.success {
-  color: #22c55e;
+  color: rgb(22 163 74);
+}
+.dark .detail-value.success {
+  color: rgb(74 222 128);
 }
 
 .detail-value.warning {
-  color: #f59e0b;
+  color: rgb(217 119 6);
+}
+.dark .detail-value.warning {
+  color: rgb(251 191 36);
 }
 
 .detail-value.error {
-  color: #ef4444;
+  color: rgb(220 38 38);
+}
+.dark .detail-value.error {
+  color: rgb(248 113 113);
 }
 
 .detail-value.primary {
-  color: #3b82f6;
+  color: rgb(37 99 235);
+}
+.dark .detail-value.primary {
+  color: rgb(96 165 250);
 }
 
 .detail-label {
-  font-size: 0.75rem;
-  color: #737373;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 500;
+  @apply text-xs uppercase tracking-wider font-medium;
+  color: rgb(107 114 128);
+}
+.dark .detail-label {
+  color: rgb(156 163 175);
 }
 
 /* System Health Card */
-.system-health-card {
-  grid-column: span 2;
-}
+.system-health-card { grid-column: span 2; }
 
 .health-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  @apply grid grid-cols-3 gap-6 pt-5;
+  border-top: 1px solid rgb(229 231 235);
+}
+.dark .health-metrics {
+  border-top-color: rgba(255, 255, 255, 0.06);
 }
 
 .health-metric {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  @apply flex flex-col gap-2;
 }
 
 .metric-label {
-  font-size: 0.8125rem;
-  color: #737373;
-  font-weight: 500;
+  @apply text-sm font-medium;
+  color: rgb(107 114 128);
+}
+.dark .metric-label {
+  color: rgb(156 163 175);
 }
 
 .metric-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.01em;
+  @apply text-2xl font-bold tracking-tight;
+  color: rgb(17 24 39);
+}
+.dark .metric-value {
+  color: white;
 }
 
 /* Subscriptions Card */
-.subscriptions-card {
-  grid-column: span 2;
-}
+.subscriptions-card { grid-column: span 2; }
 
 .subscription-tiers {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+  @apply flex flex-col gap-5;
 }
 
 .tier-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
+  @apply flex flex-col gap-2;
 }
 
 .tier-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  @apply flex items-center justify-between;
 }
 
 .tier-name {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #e5e5e5;
+  @apply text-base font-semibold;
+  color: rgb(55 65 81);
+}
+.dark .tier-name {
+  color: rgb(229 231 235);
 }
 
 .tier-count {
-  font-size: 0.875rem;
-  color: #a3a3a3;
-  font-weight: 600;
+  @apply text-sm font-semibold;
+  color: rgb(107 114 128);
+}
+.dark .tier-count {
+  color: rgb(156 163 175);
 }
 
 .tier-bar {
-  height: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-  overflow: hidden;
+  @apply h-2 rounded overflow-hidden;
+  background-color: rgb(243 244 246);
+}
+.dark .tier-bar {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .tier-progress {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  @apply h-full rounded transition-all duration-500;
 }
 
-.tier-progress.free {
-  background: linear-gradient(90deg, #6b7280 0%, #9ca3af 100%);
-}
-
-.tier-progress.growth {
-  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
-}
-
-.tier-progress.pro {
-  background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%);
-}
-
-.tier-progress.scale {
-  background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
-}
+.tier-progress.free { background: linear-gradient(90deg, #6b7280 0%, #9ca3af 100%); }
+.tier-progress.growth { background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%); }
+.tier-progress.pro { background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%); }
+.tier-progress.scale { background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%); }
 
 /* Quick Actions */
 .quick-actions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  @apply grid grid-cols-2 gap-4;
 }
 
 .action-button {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  color: #e5e5e5;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  @apply flex items-center gap-3 p-4 rounded-lg no-underline transition-all duration-200 text-base font-medium;
+  background-color: rgb(249 250 251);
+  border: 1px solid rgb(229 231 235);
+  color: rgb(55 65 81);
+}
+.dark .action-button {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
+  color: rgb(229 231 235);
 }
 
 .action-button:hover {
-  background: rgba(255, 255, 255, 0.06);
+  @apply -translate-y-0.5;
+  background-color: rgb(243 244 246);
+  border-color: rgb(147 197 253);
+}
+.dark .action-button:hover {
+  background-color: rgba(255, 255, 255, 0.06);
   border-color: rgba(59, 130, 246, 0.3);
-  transform: translateY(-1px);
 }
 
 @media (max-width: 1024px) {
-  .system-health-card,
-  .subscriptions-card {
-    grid-column: span 1;
-  }
-
-  .health-metrics {
-    grid-template-columns: 1fr;
-  }
-
-  .quick-actions {
-    grid-template-columns: 1fr;
-  }
+  .system-health-card, .subscriptions-card { grid-column: span 1; }
+  .health-metrics { @apply grid-cols-1; }
+  .quick-actions { @apply grid-cols-1; }
 }
 </style>

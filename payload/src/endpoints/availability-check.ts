@@ -19,6 +19,9 @@ export const availabilityCheckEndpoint: Endpoint = {
   method: 'get',
   handler: async (req) => {
     try {
+      if (!req.url) {
+        return Response.json({ error: 'Invalid request' }, { status: 400 })
+      }
       const url = new URL(req.url)
       const rentalItemId = url.searchParams.get('rentalItemId')
       const startDate = url.searchParams.get('startDate')

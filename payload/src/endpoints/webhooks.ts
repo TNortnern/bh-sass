@@ -86,7 +86,7 @@ export const regenerateWebhookSecretEndpoint: Endpoint = {
   path: '/webhooks/:id/regenerate-secret',
   method: 'post',
   handler: async (req) => {
-    const { id } = req.routeParams || {}
+    const id = req.routeParams?.id as string | undefined
 
     if (!id) {
       return Response.json({ error: 'Webhook ID required' }, { status: 400 })
@@ -96,7 +96,7 @@ export const regenerateWebhookSecretEndpoint: Endpoint = {
       // Verify access
       const endpoint = await req.payload.findByID({
         collection: 'webhook-endpoints',
-        id,
+        id: id,
       })
 
       if (!endpoint) {
@@ -120,7 +120,7 @@ export const regenerateWebhookSecretEndpoint: Endpoint = {
       // Update endpoint
       const updated = await req.payload.update({
         collection: 'webhook-endpoints',
-        id,
+        id: id,
         data: {
           secret: newSecret,
         },
@@ -131,8 +131,9 @@ export const regenerateWebhookSecretEndpoint: Endpoint = {
         secret: newSecret, // Only shown once!
         message: 'Secret regenerated successfully',
       })
-    } catch (error) {
-      req.payload.logger.error(`Failed to regenerate webhook secret: ${error.message}`)
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      req.payload.logger.error(`Failed to regenerate webhook secret: ${message}`)
       return Response.json({ error: 'Failed to regenerate secret' }, { status: 500 })
     }
   },
@@ -221,8 +222,9 @@ export const testWebhookEndpoint: Endpoint = {
           error: updatedDelivery.error,
         },
       })
-    } catch (error) {
-      req.payload.logger.error(`Failed to send test webhook: ${error.message}`)
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      req.payload.logger.error(`Failed to send test webhook: ${message}`)
       return Response.json({ error: 'Failed to send test webhook' }, { status: 500 })
     }
   },
@@ -236,7 +238,7 @@ export const listWebhookDeliveriesEndpoint: Endpoint = {
   path: '/webhooks/:id/deliveries',
   method: 'get',
   handler: async (req) => {
-    const { id } = req.routeParams || {}
+    const id = req.routeParams?.id as string | undefined
 
     if (!id) {
       return Response.json({ error: 'Webhook ID required' }, { status: 400 })
@@ -246,7 +248,7 @@ export const listWebhookDeliveriesEndpoint: Endpoint = {
       // Verify access
       const endpoint = await req.payload.findByID({
         collection: 'webhook-endpoints',
-        id,
+        id: id,
       })
 
       if (!endpoint) {
@@ -265,6 +267,9 @@ export const listWebhookDeliveriesEndpoint: Endpoint = {
       }
 
       // Parse query params
+      if (!req.url) {
+        return Response.json({ error: 'Invalid request' }, { status: 400 })
+      }
       const url = new URL(req.url)
       const page = parseInt(url.searchParams.get('page') || '1')
       const limit = parseInt(url.searchParams.get('limit') || '50')
@@ -299,8 +304,9 @@ export const listWebhookDeliveriesEndpoint: Endpoint = {
         hasNextPage: deliveries.hasNextPage,
         hasPrevPage: deliveries.hasPrevPage,
       })
-    } catch (error) {
-      req.payload.logger.error(`Failed to list webhook deliveries: ${error.message}`)
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      req.payload.logger.error(`Failed to list webhook deliveries: ${message}`)
       return Response.json({ error: 'Failed to list deliveries' }, { status: 500 })
     }
   },
@@ -314,7 +320,8 @@ export const retryWebhookDeliveryEndpoint: Endpoint = {
   path: '/webhooks/:endpointId/deliveries/:deliveryId/retry',
   method: 'post',
   handler: async (req) => {
-    const { endpointId, deliveryId } = req.routeParams || {}
+    const endpointId = req.routeParams?.endpointId as string | undefined
+    const deliveryId = req.routeParams?.deliveryId as string | undefined
 
     if (!endpointId || !deliveryId) {
       return Response.json({ error: 'Endpoint ID and Delivery ID required' }, { status: 400 })
@@ -355,7 +362,7 @@ export const retryWebhookDeliveryEndpoint: Endpoint = {
       // Verify delivery belongs to this endpoint
       const deliveryEndpointId =
         typeof delivery.endpointId === 'object' ? delivery.endpointId.id : delivery.endpointId
-      if (deliveryEndpointId !== endpointId) {
+      if (String(deliveryEndpointId) !== String(endpointId)) {
         return Response.json({ error: 'Delivery does not belong to this endpoint' }, { status: 400 })
       }
 
@@ -378,8 +385,9 @@ export const retryWebhookDeliveryEndpoint: Endpoint = {
           error: updatedDelivery.error,
         },
       })
-    } catch (error) {
-      req.payload.logger.error(`Failed to retry webhook delivery: ${error.message}`)
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      req.payload.logger.error(`Failed to retry webhook delivery: ${message}`)
       return Response.json({ error: 'Failed to retry delivery' }, { status: 500 })
     }
   },

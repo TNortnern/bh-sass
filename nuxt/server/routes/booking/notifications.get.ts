@@ -75,16 +75,18 @@ export default defineEventHandler(async (event) => {
     // Transform response to flatten nested objects for easier client-side consumption
     const notifications = response.docs.map(notification => ({
       id: notification.id,
-      tenantId: typeof notification.tenantId === 'object' && notification.tenantId !== null ? notification.tenantId.id : notification.tenantId,
+      tenantId: typeof notification.tenantId === 'object' && notification.tenantId !== null
+        ? notification.tenantId.id
+        : notification.tenantId,
       type: notification.type,
       title: notification.title,
       body: notification.body,
       link: notification.link,
       read: notification.read,
-      relatedBookingId: typeof notification.relatedBookingId === 'object'
+      relatedBookingId: typeof notification.relatedBookingId === 'object' && notification.relatedBookingId !== null
         ? (notification.relatedBookingId as { id: string }).id
         : notification.relatedBookingId,
-      relatedCustomerId: typeof notification.relatedCustomerId === 'object'
+      relatedCustomerId: typeof notification.relatedCustomerId === 'object' && notification.relatedCustomerId !== null
         ? (notification.relatedCustomerId as { id: string }).id
         : notification.relatedCustomerId,
       metadata: notification.metadata,

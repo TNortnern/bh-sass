@@ -1,87 +1,101 @@
 <script setup lang="ts">
+const colorMode = useColorMode()
 const { currentUser, logout } = useAuth()
 const { isImpersonating, impersonatedTenant, stopImpersonation } = useImpersonation()
 
 const route = useRoute()
 
+// Set dark mode as default
+onMounted(() => {
+  if (!colorMode.preference) {
+    colorMode.preference = 'dark'
+  }
+})
+
+// Toggle color mode
+const toggleColorMode = () => {
+  colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+}
+
 const navigation = [
   {
     label: 'Platform Overview',
     icon: 'i-lucide-layout-dashboard',
-    to: '/admin'
+    to: '/app/admin'
   },
   {
     label: 'Tenants',
     icon: 'i-lucide-building-2',
-    to: '/admin/tenants'
+    to: '/app/admin/tenants'
   },
   {
     label: 'Bookings',
     icon: 'i-lucide-calendar',
-    to: '/admin/bookings'
+    to: '/app/admin/bookings'
   },
   {
     label: 'Users',
     icon: 'i-lucide-users',
-    to: '/admin/users'
+    to: '/app/admin/users'
   },
   {
     label: 'API Keys',
     icon: 'i-lucide-key',
-    to: '/admin/api-keys'
+    to: '/app/admin/api-keys'
   },
   {
     label: 'Plans',
     icon: 'i-lucide-package',
-    to: '/admin/plans'
+    to: '/app/admin/plans'
   },
   {
     label: 'Subscriptions',
     icon: 'i-lucide-credit-card',
-    to: '/admin/subscriptions'
+    to: '/app/admin/subscriptions'
   },
   {
     label: 'Revenue',
     icon: 'i-lucide-trending-up',
-    to: '/admin/revenue'
+    to: '/app/admin/revenue'
   },
   {
     label: 'System Settings',
     icon: 'i-lucide-settings',
-    to: '/admin/system'
+    to: '/app/admin/system'
   },
   {
     label: 'Audit Log',
     icon: 'i-lucide-file-text',
-    to: '/admin/audit'
+    to: '/app/admin/audit'
   }
 ]
 
 const isActive = (path: string) => {
-  if (path === '/admin') {
-    return route.path === '/admin'
+  if (path === '/app/admin') {
+    return route.path === '/app/admin'
   }
   return route.path.startsWith(path)
 }
 </script>
 
 <template>
-  <div class="admin-layout">
+  <div class="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] font-sans text-gray-900 dark:text-gray-100">
     <UToaster />
+
     <!-- Impersonation Banner -->
     <div
       v-if="isImpersonating"
-      class="impersonation-banner"
+      class="bg-gradient-to-r from-amber-500 to-red-600 border-b-2 border-white/20 backdrop-blur-sm sticky top-0 z-[100] animate-slideDown"
     >
-      <div class="container">
-        <div class="banner-content">
-          <div class="banner-info">
+      <div class="max-w-[1920px] mx-auto px-6">
+        <div class="flex items-center justify-between py-3.5">
+          <div class="flex items-center gap-3 text-white text-sm font-medium">
             <UIcon
               name="i-lucide-eye"
               class="size-5"
             />
-            <span class="banner-text">
-              Viewing as: <strong>{{ impersonatedTenant?.name }}</strong>
+            <span>
+              Viewing as: <strong class="font-bold">{{ impersonatedTenant?.name }}</strong>
             </span>
           </div>
           <UButton
@@ -97,23 +111,23 @@ const isActive = (path: string) => {
     </div>
 
     <!-- Main Layout -->
-    <div class="admin-container">
+    <div class="grid grid-cols-[280px_1fr] min-h-screen">
       <!-- Sidebar -->
-      <aside class="admin-sidebar">
+      <aside class="bg-white dark:bg-[#111111] border-r border-gray-200 dark:border-white/[0.08] flex flex-col sticky top-0 h-screen overflow-y-auto">
         <!-- Platform Branding -->
-        <div class="sidebar-header">
-          <div class="platform-logo">
-            <div class="logo-icon">
+        <div class="p-6 pb-4 border-b border-gray-200 dark:border-white/[0.06]">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/25">
               <UIcon
                 name="i-lucide-shield-check"
                 class="size-6"
               />
             </div>
-            <div class="logo-text">
-              <div class="platform-name">
+            <div class="flex-1">
+              <div class="text-xl font-bold tracking-tight bg-gradient-to-br from-gray-900 to-gray-500 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
                 BouncePro
               </div>
-              <div class="platform-label">
+              <div class="text-xs text-gray-400 dark:text-gray-500 font-medium uppercase tracking-wider mt-0.5">
                 Platform Admin
               </div>
             </div>
@@ -121,79 +135,74 @@ const isActive = (path: string) => {
         </div>
 
         <!-- Navigation -->
-        <nav class="sidebar-nav">
+        <nav class="flex-1 p-4 flex flex-col gap-1">
           <NuxtLink
             v-for="item in navigation"
             :key="item.to"
             :to="item.to"
-            class="nav-item"
-            :class="{ active: isActive(item.to) }"
+            class="flex items-center gap-3.5 px-4 py-3 rounded-lg text-gray-500 dark:text-gray-400 text-sm font-medium transition-all duration-200 relative overflow-hidden hover:bg-gray-100 dark:hover:bg-white/[0.04] hover:text-gray-900 dark:hover:text-gray-100 hover:translate-x-0.5"
+            :class="{
+              'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-white ring-1 ring-blue-500/30': isActive(item.to)
+            }"
           >
+            <span
+              v-if="isActive(item.to)"
+              class="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-blue-500 to-purple-600 rounded-r"
+            />
             <UIcon
               :name="item.icon"
-              class="nav-icon"
+              class="size-5 flex-shrink-0"
             />
-            <span class="nav-label">{{ item.label }}</span>
+            <span class="flex-1">{{ item.label }}</span>
           </NuxtLink>
         </nav>
 
         <!-- Sidebar Footer -->
-        <div class="sidebar-footer">
-          <div class="admin-user">
-            <div class="user-avatar">
+        <div class="p-4 border-t border-gray-200 dark:border-white/[0.06] flex items-center gap-3">
+          <div class="flex items-center gap-3 flex-1 min-w-0">
+            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-red-600 flex items-center justify-center text-white flex-shrink-0 shadow-lg shadow-amber-500/25">
               <UIcon
                 name="i-lucide-shield"
                 class="size-4"
               />
             </div>
-            <div class="user-info">
-              <div class="user-name">
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                 {{ currentUser?.email }}
               </div>
-              <div class="user-role">
+              <div class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide font-medium">
                 Super Admin
               </div>
             </div>
           </div>
-          <UButton
-            icon="i-lucide-log-out"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            @click="async () => { await logout() }"
-          />
+          <div class="flex items-center gap-2">
+            <UButton
+              :icon="colorMode.value === 'dark' ? 'i-lucide-sun' : 'i-lucide-moon'"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              @click="toggleColorMode"
+            />
+            <UButton
+              icon="i-lucide-log-out"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              @click="async () => { await logout() }"
+            />
+          </div>
         </div>
       </aside>
 
       <!-- Main Content -->
-      <main class="admin-main">
+      <main class="bg-gray-50 dark:bg-[#0a0a0a] min-h-screen">
         <slot />
       </main>
     </div>
   </div>
 </template>
 
-<style scoped>
-/* Modern Admin Layout - Platform Command Center Aesthetic */
-
-.admin-layout {
-  min-height: 100vh;
-  background: #0a0a0a;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #e5e5e5;
-}
-
-/* Impersonation Banner */
-.impersonation-banner {
-  background: linear-gradient(135deg, #f59e0b 0%, #dc2626 100%);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  animation: slideDown 0.3s ease-out;
-}
-
+<style>
 @keyframes slideDown {
   from {
     transform: translateY(-100%);
@@ -205,253 +214,14 @@ const isActive = (path: string) => {
   }
 }
 
-.container {
-  max-width: 1920px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-}
-
-.banner-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.875rem 0;
-}
-
-.banner-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: #ffffff;
-  font-size: 0.9375rem;
-  font-weight: 500;
-}
-
-.banner-text strong {
-  font-weight: 700;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* Admin Container */
-.admin-container {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  min-height: 100vh;
-}
-
-/* Sidebar */
-.admin-sidebar {
-  background: linear-gradient(180deg, #111111 0%, #0d0d0d 100%);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-}
-
-.sidebar-header {
-  padding: 2rem 1.5rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.platform-logo {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.logo-icon {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
-}
-
-.logo-text {
-  flex: 1;
-}
-
-.platform-name {
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #ffffff 0%, #a3a3a3 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.platform-label {
-  font-size: 0.75rem;
-  color: #737373;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 0.125rem;
-}
-
-/* Navigation */
-.sidebar-nav {
-  flex: 1;
-  padding: 1.5rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  color: #a3a3a3;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.nav-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  transform: translateX(-100%);
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 0 2px 2px 0;
-}
-
-.nav-item:hover {
-  background: rgba(255, 255, 255, 0.04);
-  color: #e5e5e5;
-  transform: translateX(2px);
-}
-
-.nav-item.active {
-  background: rgba(59, 130, 246, 0.12);
-  color: #ffffff;
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
-}
-
-.nav-item.active::before {
-  transform: translateX(0);
-}
-
-.nav-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  flex-shrink: 0;
-}
-
-.nav-label {
-  flex: 1;
-}
-
-/* Sidebar Footer */
-.sidebar-footer {
-  padding: 1.5rem 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.admin-user {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex: 1;
-  min-width: 0;
-}
-
-.user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #f59e0b 0%, #dc2626 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
-}
-
-.user-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.user-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #e5e5e5;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.user-role {
-  font-size: 0.75rem;
-  color: #737373;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  font-weight: 500;
-}
-
-/* Main Content */
-.admin-main {
-  background: #0a0a0a;
-  min-height: 100vh;
-  position: relative;
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out;
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .admin-container {
+  .grid-cols-\[280px_1fr\] {
     grid-template-columns: 1fr;
   }
-
-  .admin-sidebar {
-    position: fixed;
-    left: -280px;
-    transition: left 0.3s ease;
-    z-index: 50;
-  }
-
-  .admin-sidebar.open {
-    left: 0;
-  }
-}
-
-/* Smooth scrollbar */
-.admin-sidebar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.admin-sidebar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.admin-sidebar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
-
-.admin-sidebar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.15);
 }
 </style>

@@ -267,8 +267,9 @@ export const Payments: CollectionConfig = {
                 await queueWebhook(req.payload, tenantId, 'payment.refunded', doc)
               }
             }
-          } catch (error) {
-            req.payload.logger.error(`Failed to queue payment webhooks: ${error.message}`)
+          } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Unknown error'
+            req.payload.logger.error(`Failed to queue payment webhooks: ${message}`)
           }
         })
       },

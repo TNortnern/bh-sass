@@ -4,7 +4,7 @@
  *
  * Field mapping from Bookings collection:
  * - customerId (relationship to customers)
- * - rentalItemId (relationship to rental-items)
+ * - rentalItems (array of {rentalItemId, quantity, price}) - NEW multi-item format
  * - tenantId (relationship to tenants)
  * - startDate, endDate (dates)
  * - totalPrice (number)
@@ -22,7 +22,7 @@ export const sendBookingEmail = async (req: PayloadRequest) => {
     const { emailType, subject, customMessage, recipientEmail, recipientName } = body
 
     // Get booking ID from URL params
-    const bookingId = req.routeParams?.id
+    const bookingId = req.routeParams?.id as string | number | undefined
 
     if (!bookingId) {
       return Response.json(
@@ -75,8 +75,13 @@ export const sendBookingEmail = async (req: PayloadRequest) => {
       )
     }
 
-    // Get item data - field is rentalItemId in our schema
-    const item = typeof booking.rentalItemId === 'object' ? booking.rentalItemId : null
+    // Get item data - supports both new rentalItems array and legacy rentalItemId
+    let item: any = null
+    if (Array.isArray(booking.rentalItems) && booking.rentalItems.length > 0) {
+      // New format: array of rental items - get the first one
+      const firstItem = booking.rentalItems[0]
+      item = typeof firstItem.rentalItemId === 'object' ? firstItem.rentalItemId : null
+    }
 
     // Format dates - field is startDate in our schema
     const eventDate = booking.startDate ? format(parseISO(booking.startDate), 'MMMM d, yyyy') : 'TBD'
@@ -93,21 +98,21 @@ export const sendBookingEmail = async (req: PayloadRequest) => {
 
     // Prepare booking data for email templates
     const bookingData = {
-      id: booking.id,
+      id: String(booking.id),
       eventDate,
       eventTime,
       location,
       totalAmount: booking.totalPrice || 0,
       status: booking.status,
       item: item ? {
-        id: item.id,
+        id: String(item.id),
         name: item.name,
       } : undefined,
     }
 
     const customerData = {
-      id: customer.id,
-      name: recipientName || `${customer.firstName} ${customer.lastName}`,
+      id: String(customer.id),
+      name: recipientName || customer.name || 'Customer',
       email: recipientEmail || customer.email,
       phone: customer.phone,
     }
@@ -121,14 +126,21 @@ export const sendBookingEmail = async (req: PayloadRequest) => {
     }
 
     const tenantData = {
-      id: tenant.id,
+      id: String(tenant.id),
       name: tenant.name,
-      email: tenant.email,
-      phone: tenant.phone,
+      email: tenant.email || undefined,
+      phone: tenant.phone || undefined,
       domain: tenant.slug,
       logo: logoUrl,
-      address: tenant.address,
-      branding: tenant.branding,
+      address: tenant.address ? {
+        street: tenant.address.street || undefined,
+        city: tenant.address.city || undefined,
+        state: tenant.address.state || undefined,
+        zip: tenant.address.zip || undefined,
+      } : undefined,
+      branding: tenant.branding ? {
+        businessName: tenant.branding.businessName || undefined,
+      } : undefined,
     }
 
     // Send email based on type

@@ -36,10 +36,10 @@ export const InventoryUnits: CollectionConfig = {
       // API key auth can create units
       if (context.authMethod === 'api_key' && context.tenantId) return true
 
-      // Session auth: tenant_admin, staff, and manager can create units for their tenant
+      // Session auth: tenant_admin and staff can create units for their tenant
       if (context.authMethod === 'session' && context.tenantId) {
         const role = req.user?.role
-        if (role === 'tenant_admin' || role === 'staff' || role === 'manager') {
+        if (role === 'tenant_admin' || role === 'staff') {
           return true
         }
       }

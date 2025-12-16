@@ -204,7 +204,9 @@ export const Subscriptions: CollectionConfig = {
         // Non-admins must have their subscription belong to their authenticated tenant
         if (req.user?.role !== 'super_admin') {
           // For non-super-admins, always enforce their tenant
-          data.tenantId = tenantId
+          if (data) {
+            data.tenantId = tenantId
+          }
         }
 
         return data

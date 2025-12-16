@@ -47,7 +47,7 @@ export const adminApiKeysListEndpoint: Endpoint = {
 
       // Enrich with tenant info
       const enrichedApiKeys = apiKeysResult.docs.map(apiKey => {
-        const tenant = typeof apiKey.tenant === 'object' ? apiKey.tenant : null
+        const tenant = typeof apiKey.tenantId === 'object' ? apiKey.tenantId : null
 
         return {
           id: String(apiKey.id),
@@ -56,7 +56,7 @@ export const adminApiKeysListEndpoint: Endpoint = {
           tenantId: tenant?.id ? String(tenant.id) : '',
           tenantName: tenant?.name || 'Unknown',
           scopes: apiKey.scopes || [],
-          lastUsedAt: apiKey.lastUsedAt || null,
+          lastUsedAt: apiKey.lastUsed || null,
           expiresAt: apiKey.expiresAt || null,
           isActive: apiKey.isActive !== false,
           createdAt: apiKey.createdAt
@@ -107,10 +107,11 @@ export const adminRevokeApiKeyEndpoint: Endpoint = {
         id: String(keyId),
         data: {
           isActive: false,
-          revokedAt: new Date().toISOString(),
-          revokedBy: user.id
         }
       })
+
+      // Get tenant ID from the apiKey relationship
+      const tenantId = typeof apiKey.tenantId === 'object' ? apiKey.tenantId.id : apiKey.tenantId
 
       // Log revocation in audit log
       await payload.create({
@@ -120,7 +121,7 @@ export const adminRevokeApiKeyEndpoint: Endpoint = {
           collection: 'api-keys',
           documentId: String(keyId),
           userId: user.id,
-          tenantId: typeof apiKey.tenant === 'object' ? apiKey.tenant.id : apiKey.tenant,
+          tenantId: tenantId,
           metadata: {
             details: `Super admin ${user.email} revoked API key: ${apiKey.name}`,
             ipAddress: req.headers.get('x-forwarded-for') || 'unknown',

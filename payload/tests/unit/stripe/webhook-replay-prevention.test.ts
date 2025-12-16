@@ -37,7 +37,7 @@ function createMockEvent(overrides?: Partial<Stripe.Event>): Stripe.Event {
         metadata: { bookingId: 'test-booking-id' },
         payment_status: 'paid',
         amount_total: 10000,
-      } as Stripe.Checkout.Session,
+      } as unknown as Stripe.Checkout.Session,
     },
     livemode: false,
     pending_webhooks: 1,
@@ -46,7 +46,7 @@ function createMockEvent(overrides?: Partial<Stripe.Event>): Stripe.Event {
       idempotency_key: null,
     },
     ...overrides,
-  }
+  } as unknown as Stripe.Event
 }
 
 // Helper to create a mock request

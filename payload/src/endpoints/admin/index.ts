@@ -4,8 +4,11 @@ import {
   adminTenantsListEndpoint,
   adminTenantDetailEndpoint,
   adminImpersonateEndpoint,
+  adminImpersonateStatusEndpoint,
   adminStopImpersonateEndpoint,
-  adminSuspendTenantEndpoint
+  adminSuspendTenantEndpoint,
+  adminSyncTenantRbPayloadEndpoint,
+  adminSyncAllTenantsRbPayloadEndpoint
 } from './tenants'
 import {
   adminUsersListEndpoint,
@@ -28,18 +31,22 @@ import { inventorySyncEndpoints } from './inventory-sync'
  * - Booking management across all tenants
  * - API key management
  * - Impersonation for support
+ * - rb-payload sync management
  * - Audit logging
  */
 export const adminEndpoints: Endpoint[] = [
   // Stats
   adminStatsEndpoint,
 
-  // Tenants
+  // Tenants - IMPORTANT: More specific routes must come before parameterized routes
+  adminSyncAllTenantsRbPayloadEndpoint, // /admin/tenants/sync-all-rb-payload (must be before :id routes)
   adminTenantsListEndpoint,
   adminTenantDetailEndpoint,
   adminImpersonateEndpoint,
+  adminImpersonateStatusEndpoint, // /admin/impersonate/status
   adminStopImpersonateEndpoint,
   adminSuspendTenantEndpoint,
+  adminSyncTenantRbPayloadEndpoint,
 
   // Users
   adminUsersListEndpoint,

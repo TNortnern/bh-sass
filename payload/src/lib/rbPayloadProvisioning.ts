@@ -13,6 +13,10 @@
  * - unitAssignmentStrategy: 'condition' (assign best condition units first)
  * - customerSelectsStaff: 'hidden' (skip staff selection)
  * - autoAssignStrategy: 'first-available' (auto-assign delivery staff)
+ *
+ * IMPORTANT: Requires an API key with 'admin' scope in rb-payload.
+ * The API key must be created in rb-payload with scopes: ['read', 'write', 'delete', 'admin']
+ * Set RB_PAYLOAD_ADMIN_API_KEY environment variable with the admin key.
  */
 
 interface RbPayloadTenant {
@@ -77,22 +81,37 @@ interface ProvisionResult {
  */
 function getRbPayloadConfig() {
   const url = process.env.RB_PAYLOAD_URL || process.env.NUXT_PUBLIC_RB_PAYLOAD_URL
+  // Use admin API key for provisioning (requires 'admin' scope)
+  const adminApiKey = process.env.RB_PAYLOAD_ADMIN_API_KEY
+  // Regular API key for tenant-scoped operations
   const apiKey = process.env.RB_PAYLOAD_API_KEY
 
-  if (!url || !apiKey) {
-    throw new Error('rb-payload configuration missing. Set RB_PAYLOAD_URL and RB_PAYLOAD_API_KEY in environment.')
+  if (!url) {
+    throw new Error('rb-payload configuration missing. Set RB_PAYLOAD_URL in environment.')
   }
 
-  return { url, apiKey }
+  if (!adminApiKey && !apiKey) {
+    throw new Error('rb-payload API key missing. Set RB_PAYLOAD_ADMIN_API_KEY (preferred) or RB_PAYLOAD_API_KEY in environment.')
+  }
+
+  return {
+    url,
+    adminApiKey: adminApiKey || apiKey, // Prefer admin key, fall back to regular key
+    apiKey: apiKey || adminApiKey, // Regular key for tenant ops
+  }
 }
 
 /**
- * Create a tenant in rb-payload
+ * Create a tenant in rb-payload using the provisioning endpoint
+ *
+ * Uses the /api/provision/tenant endpoint which requires an API key with 'admin' scope.
+ * This endpoint bypasses normal access control to allow tenant creation.
  */
 async function createRbPayloadTenant(data: {
   name: string
   slug: string
   plan: string
+  bhSaasId: string // BH-SaaS tenant ID for linking back
   settings: {
     timezone?: string
     currency?: string
@@ -103,72 +122,68 @@ async function createRbPayloadTenant(data: {
       requireApproval?: boolean
     }
   }
-}): Promise<{ success: boolean; tenantId?: number; error?: string }> {
-  const { url, apiKey } = getRbPayloadConfig()
+}): Promise<{ success: boolean; tenantId?: number; apiKey?: string; error?: string; isExisting?: boolean }> {
+  const { url, adminApiKey } = getRbPayloadConfig()
 
   // Build tenant data with inventory-mode defaults
-  const tenantData: Partial<RbPayloadTenant> = {
+  // Note: The provisioning endpoint doesn't support full settings yet,
+  // so we'll need to update the tenant after creation for full settings
+  const provisionData = {
     name: data.name,
     slug: data.slug,
     plan: data.plan,
     status: 'active',
-    settings: {
-      timezone: data.settings?.timezone || 'America/New_York',
-      currency: data.settings?.currency || 'USD',
-      locale: data.settings?.locale || 'en-US',
-      bookingSettings: {
-        leadTime: data.settings?.bookingSettings?.leadTime || 1440, // 24 hours in minutes
-        maxAdvanceBooking: 365, // 1 year
-        slotInterval: 30, // Not used in inventory mode, but required
-        cancellationPolicy: data.settings?.bookingSettings?.cancellationPolicy || 'Free cancellation up to 48 hours before the event',
-        requireApproval: data.settings?.bookingSettings?.requireApproval || false,
-        businessHoursStart: '08:00',
-        businessHoursEnd: '20:00',
-        businessDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-      },
-      availability: {
+    externalId: `bh-saas-${data.bhSaasId}`, // Link back to BH-SaaS tenant
+    businessInfo: {
+      source: 'bh-saas',
+      bhSaasId: data.bhSaasId,
+      provisionedAt: new Date().toISOString(),
+      settings: {
+        timezone: data.settings?.timezone || 'America/New_York',
+        currency: data.settings?.currency || 'USD',
+        locale: data.settings?.locale || 'en-US',
+        bookingSettings: {
+          leadTime: data.settings?.bookingSettings?.leadTime || 1440, // 24 hours in minutes
+          maxAdvanceBooking: 365, // 1 year
+          cancellationPolicy: data.settings?.bookingSettings?.cancellationPolicy || 'Free cancellation up to 48 hours before the event',
+          requireApproval: data.settings?.bookingSettings?.requireApproval || false,
+        },
         availabilityMode: 'inventory', // CRITICAL: Use inventory mode for date-range bookings
-        unitAssignmentStrategy: 'condition', // Assign best condition units first
-      },
-      staffAssignment: {
-        customerSelectsStaff: 'hidden', // Skip staff selection in widget
-        autoAssignStrategy: 'first-available', // Auto-assign delivery staff
-        requireAllStaffAvailable: false, // Not relevant for inventory mode
-      },
-      // CRITICAL: Use 'rental' terminology for bounce house businesses
-      terminology: {
-        businessType: 'rental' as const,
-        itemLabel: 'Rental',
-        itemLabelPlural: 'Rentals',
-        selectItemsTitle: 'Choose Your Rentals',
-        selectItemsDescription: 'Select the items you want to rent',
-        noItemsMessage: 'No rentals available',
-        noItemsSelectedMessage: 'No rentals selected',
+        businessType: 'rental', // CRITICAL: Use 'rental' terminology for bounce house businesses
       },
     },
   }
 
   try {
-    const response = await fetch(`${url}/api/tenants`, {
+    // Use the new provisioning endpoint that accepts admin-scoped API keys
+    const response = await fetch(`${url}/api/provision/tenant`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': apiKey,
+        'X-API-Key': adminApiKey!,
       },
-      body: JSON.stringify(tenantData),
+      body: JSON.stringify(provisionData),
     })
 
     if (!response.ok) {
       const errorText = await response.text()
+      let errorJson: { error?: string } = {}
+      try {
+        errorJson = JSON.parse(errorText)
+      } catch {
+        // Not JSON
+      }
       console.error('Failed to create rb-payload tenant:', errorText)
       return {
         success: false,
-        error: `rb-payload API error: ${response.status} ${errorText}`,
+        error: errorJson.error || `rb-payload API error: ${response.status} ${errorText}`,
       }
     }
 
     const result = await response.json()
-    const tenantId = result.doc?.id
+    const tenantId = result.tenant?.id
+    const apiKey = result.tenant?.apiKey
+    const isExisting = result.isExisting
 
     if (!tenantId) {
       console.error('No tenant ID in response:', result)
@@ -178,10 +193,17 @@ async function createRbPayloadTenant(data: {
       }
     }
 
-    console.log(`Created rb-payload tenant ${tenantId} for "${data.name}"`)
+    if (isExisting) {
+      console.log(`rb-payload tenant ${tenantId} already exists for "${data.name}" (idempotent)`)
+    } else {
+      console.log(`Created rb-payload tenant ${tenantId} for "${data.name}"`)
+    }
+
     return {
       success: true,
       tenantId,
+      apiKey, // The tenant's auto-generated API key
+      isExisting,
     }
   } catch (error) {
     console.error('Error creating rb-payload tenant:', error)
@@ -213,7 +235,7 @@ async function createRbPayloadApiKey(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': apiKey,
+        'X-API-Key': apiKey!,
       },
       body: JSON.stringify(apiKeyData),
     })
@@ -258,13 +280,16 @@ async function createRbPayloadApiKey(
  * Call this when a new BH-SaaS tenant is created.
  * This will:
  * 1. Create the tenant in rb-payload with inventory-mode settings
- * 2. Create an API key for the tenant
- * 3. Return both IDs and the API key to store in BH-SaaS
+ * 2. Return the tenant ID and auto-generated API key to store in BH-SaaS
+ *
+ * The provisioning endpoint handles tenant creation with admin-scoped API keys,
+ * bypassing the normal access control that requires super_admin user.
  *
  * @param data - Tenant data from BH-SaaS
  * @returns Provision result with rb-payload tenant ID and API key
  */
 export async function provisionRbPayloadTenant(data: {
+  id: string | number // BH-SaaS tenant ID for linking
   name: string
   slug: string
   plan: string
@@ -279,10 +304,17 @@ export async function provisionRbPayloadTenant(data: {
     }
   }
 }): Promise<ProvisionResult> {
-  console.log(`Provisioning rb-payload tenant for "${data.name}"...`)
+  console.log(`Provisioning rb-payload tenant for "${data.name}" (BH-SaaS ID: ${data.id})...`)
 
-  // Step 1: Create tenant
-  const tenantResult = await createRbPayloadTenant(data)
+  // Create tenant using the provisioning endpoint (requires admin-scoped API key)
+  const tenantResult = await createRbPayloadTenant({
+    name: data.name,
+    slug: data.slug,
+    plan: data.plan,
+    bhSaasId: String(data.id), // Link back to BH-SaaS
+    settings: data.settings || {},
+  })
+
   if (!tenantResult.success || !tenantResult.tenantId) {
     return {
       success: false,
@@ -290,23 +322,28 @@ export async function provisionRbPayloadTenant(data: {
     }
   }
 
-  // Step 2: Create API key
-  const apiKeyResult = await createRbPayloadApiKey(tenantResult.tenantId)
-  if (!apiKeyResult.success || !apiKeyResult.apiKey) {
-    // Tenant was created but API key failed - log warning but continue
-    console.warn(`Tenant ${tenantResult.tenantId} created but API key creation failed: ${apiKeyResult.error}`)
-    return {
-      success: true,
-      rbPayloadTenantId: tenantResult.tenantId,
-      error: `Warning: API key creation failed: ${apiKeyResult.error}`,
+  // The provisioning endpoint returns the tenant's auto-generated API key
+  // If not present, create one separately (for backwards compatibility)
+  let apiKey = tenantResult.apiKey
+  if (!apiKey) {
+    const apiKeyResult = await createRbPayloadApiKey(tenantResult.tenantId)
+    if (apiKeyResult.success && apiKeyResult.apiKey) {
+      apiKey = apiKeyResult.apiKey
+    } else {
+      console.warn(`Tenant ${tenantResult.tenantId} created but API key creation failed: ${apiKeyResult.error}`)
     }
   }
 
-  console.log(`Successfully provisioned rb-payload tenant ${tenantResult.tenantId}`)
+  if (tenantResult.isExisting) {
+    console.log(`rb-payload tenant ${tenantResult.tenantId} already existed (idempotent sync)`)
+  } else {
+    console.log(`Successfully provisioned rb-payload tenant ${tenantResult.tenantId}`)
+  }
+
   return {
     success: true,
     rbPayloadTenantId: tenantResult.tenantId,
-    rbPayloadApiKey: apiKeyResult.apiKey,
+    rbPayloadApiKey: apiKey,
   }
 }
 

@@ -30,7 +30,9 @@ const generateSerialNumber = (): string => {
  * - On create: Validates all required fields exist and have valid values
  * - On update: Ensures updated values maintain data integrity (e.g., pricing can't become invalid)
  */
-const validateRequiredFieldsHook: CollectionBeforeValidateHook = async ({ data, req, operation }) => {
+const validateRequiredFieldsHook: CollectionBeforeValidateHook = async ({ data, operation }) => {
+  if (!data) return data
+
   // Validate name (required on create, validated on update if provided)
   if (data.name !== undefined) {
     if (typeof data.name !== 'string' || data.name.trim().length === 0) {
@@ -71,6 +73,7 @@ const syncToRbPayloadHook: CollectionAfterChangeHook = async ({
   doc,
   req,
   operation,
+  previousDoc,
 }) => {
   // Skip if sync is disabled or item is not active
   if (!doc.isActive) {
@@ -78,10 +81,39 @@ const syncToRbPayloadHook: CollectionAfterChangeHook = async ({
     return doc
   }
 
-  // Skip if already synced and not out of sync
+  // Skip if this is just a sync status update (prevents infinite loop)
+  // Only check specific business fields that should trigger a resync
+  if (operation === 'update' && previousDoc) {
+    // Fields that, when changed, should trigger a resync to rb-payload
+    const syncTriggerFields = [
+      'name',
+      'description',
+      'category',
+      'pricing',
+      'dimensions',
+      'capacity',
+      'quantity',
+      'isActive',
+      'images',
+    ]
+
+    // Check if any sync-triggering field actually changed
+    const needsResync = syncTriggerFields.some((key) => {
+      const docValue = JSON.stringify(doc[key])
+      const prevValue = JSON.stringify(previousDoc[key])
+      return docValue !== prevValue
+    })
+
+    // If no business fields changed, skip syncing (this is just a status update)
+    if (!needsResync) {
+      console.log(`[Inventory Sync] Skipping item ${doc.id} - no sync-relevant fields changed`)
+      return doc
+    }
+  }
+
+  // Skip if already synced and has a service ID
   if (operation === 'update' && doc.syncStatus === 'synced' && doc.rbPayloadServiceId) {
-    // Only sync if data might have changed
-    // For now, always sync on update to ensure consistency
+    console.log(`[Inventory Sync] Item ${doc.id} already synced, will update rb-payload`)
   }
 
   // Run sync in background to not block the response
@@ -141,7 +173,7 @@ export const RentalItems: CollectionConfig = {
       // Session auth: tenant_admin and staff can create items for their tenant
       if (context.authMethod === 'session' && context.tenantId) {
         const role = req.user?.role
-        if (role === 'tenant_admin' || role === 'staff' || role === 'manager') {
+        if (role === 'tenant_admin' || role === 'staff') {
           return true
         }
       }
@@ -156,9 +188,9 @@ export const RentalItems: CollectionConfig = {
       // Both API key and session auth can update items within their tenant
       if (context.tenantId) {
         const role = req.user?.role
-        // Allow tenant_admin, staff, and manager to update
+        // Allow tenant_admin and staff to update
         if (context.authMethod === 'api_key' ||
-            role === 'tenant_admin' || role === 'staff' || role === 'manager') {
+            role === 'tenant_admin' || role === 'staff') {
           return {
             tenantId: {
               equals: context.tenantId,
@@ -213,7 +245,7 @@ export const RentalItems: CollectionConfig = {
             if (operation !== 'create') {
               // On update, return the provided tenantId if updating that field
               // If not updating tenantId field, return undefined (Payload will preserve existing value)
-              return data.tenantId
+              return data?.tenantId
             }
 
             // On CREATE: Always use the authenticated user's tenant
@@ -247,11 +279,11 @@ export const RentalItems: CollectionConfig = {
           ({ data, operation }) => {
             // Auto-generate serial number on create only
             // Never allow updating the serial number
-            if (operation === 'create' && !data.serialNumber) {
+            if (operation === 'create' && !data?.serialNumber) {
               return generateSerialNumber()
             }
             // On update, preserve the existing serial number
-            return data.serialNumber
+            return data?.serialNumber
           },
         ],
       },

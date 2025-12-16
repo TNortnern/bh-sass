@@ -513,18 +513,28 @@ async function handleSubscriptionCreated(
 
     const planId = plans.docs[0]?.id
 
+    // Map Stripe status to our status (handle 'paused' as 'active')
+    const mapStripeStatus = (stripeStatus: string): 'active' | 'canceled' | 'past_due' | 'trialing' | 'incomplete' | 'incomplete_expired' | 'unpaid' => {
+      const validStatuses = ['active', 'canceled', 'past_due', 'trialing', 'incomplete', 'incomplete_expired', 'unpaid'] as const
+      if (validStatuses.includes(stripeStatus as any)) {
+        return stripeStatus as typeof validStatuses[number]
+      }
+      // Map 'paused' to 'active' (or handle as needed)
+      return 'active'
+    }
+
     // Create subscription record
     await payload.create({
       collection: 'subscriptions',
       data: {
-        tenantId,
+        tenantId: Number(tenantId),
         plan: planId,
         stripeSubscriptionId: subscription.id,
         stripeCustomerId: subscription.customer as string,
         stripePriceId: priceId,
-        status: subscription.status,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+        status: mapStripeStatus(subscription.status),
+        currentPeriodStart: new Date((subscription as any).current_period_start * 1000).toISOString(),
+        currentPeriodEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         trialStart: subscription.trial_start
           ? new Date(subscription.trial_start * 1000).toISOString()
@@ -596,6 +606,15 @@ async function handleSubscriptionUpdated(
 
     const planId = plans.docs[0]?.id
 
+    // Map Stripe status to our status (handle 'paused' as 'active')
+    const mapStatus = (stripeStatus: string): 'active' | 'canceled' | 'past_due' | 'trialing' | 'incomplete' | 'incomplete_expired' | 'unpaid' => {
+      const validStatuses = ['active', 'canceled', 'past_due', 'trialing', 'incomplete', 'incomplete_expired', 'unpaid'] as const
+      if (validStatuses.includes(stripeStatus as any)) {
+        return stripeStatus as typeof validStatuses[number]
+      }
+      return 'active'
+    }
+
     // Update subscription record
     await payload.update({
       collection: 'subscriptions',
@@ -603,9 +622,9 @@ async function handleSubscriptionUpdated(
       data: {
         plan: planId,
         stripePriceId: priceId,
-        status: subscription.status,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+        status: mapStatus(subscription.status),
+        currentPeriodStart: new Date((subscription as any).current_period_start * 1000).toISOString(),
+        currentPeriodEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         canceledAt: subscription.canceled_at
           ? new Date(subscription.canceled_at * 1000).toISOString()
@@ -711,7 +730,7 @@ async function handleInvoicePaid(
   const invoice = event.data.object as Stripe.Invoice
 
   try {
-    const subscriptionId = invoice.subscription as string
+    const subscriptionId = (invoice as any).subscription as string
 
     if (!subscriptionId) {
       console.warn('Invoice paid but no subscription ID')
@@ -775,7 +794,7 @@ async function handleInvoicePaymentFailed(
   const invoice = event.data.object as Stripe.Invoice
 
   try {
-    const subscriptionId = invoice.subscription as string
+    const subscriptionId = (invoice as any).subscription as string
 
     if (!subscriptionId) {
       console.warn('Invoice payment failed but no subscription ID')

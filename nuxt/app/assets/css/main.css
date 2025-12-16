@@ -40,3 +40,477 @@ body {
 .font-display {
   font-family: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
+
+/* ===========================================
+   Admin Pages - Light/Dark Mode Support
+   =========================================== */
+
+/* Admin page base - applies to all admin pages */
+.admin-page {
+  @apply p-8 max-w-[1920px] mx-auto;
+}
+
+/* Page headers */
+.page-header {
+  @apply mb-6;
+}
+
+.page-title {
+  @apply text-3xl font-bold tracking-tight text-gray-900 dark:text-white m-0;
+}
+
+.page-description {
+  @apply text-sm text-gray-500 dark:text-gray-400 mt-2 mb-0;
+}
+
+.page-actions {
+  @apply flex gap-3;
+}
+
+/* Stats cards */
+.stats-grid,
+.summary-stats {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6;
+}
+
+.stat-card {
+  @apply bg-white dark:bg-[#161616] border border-gray-200 dark:border-white/[0.08] rounded-xl p-5 flex items-center gap-4 transition-all duration-300;
+}
+
+.stat-card:hover {
+  @apply border-gray-300 dark:border-white/[0.12] -translate-y-0.5 shadow-lg;
+}
+
+.stat-icon-wrapper {
+  @apply w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0;
+  @apply bg-purple-100 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/20;
+}
+
+.stat-icon-wrapper.success {
+  @apply bg-green-100 dark:bg-green-500/10 border-green-200 dark:border-green-500/20;
+}
+
+.stat-icon-wrapper.warning {
+  @apply bg-amber-100 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20;
+}
+
+.stat-icon-wrapper.error {
+  @apply bg-red-100 dark:bg-red-500/10 border-red-200 dark:border-red-500/20;
+}
+
+.stat-icon-wrapper.revenue {
+  @apply bg-green-100 dark:bg-green-500/10 border-green-200 dark:border-green-500/20;
+}
+
+.stat-icon {
+  @apply w-6 h-6 text-purple-600 dark:text-purple-400;
+}
+
+.stat-icon-wrapper.success .stat-icon {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.stat-icon-wrapper.warning .stat-icon {
+  @apply text-amber-600 dark:text-amber-400;
+}
+
+.stat-icon-wrapper.error .stat-icon {
+  @apply text-red-600 dark:text-red-400;
+}
+
+.stat-icon-wrapper.revenue .stat-icon {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.stat-content {
+  @apply flex-1;
+}
+
+.stat-label {
+  @apply text-sm text-gray-500 dark:text-gray-400 mb-1 block;
+}
+
+.stat-value {
+  @apply text-2xl font-bold text-gray-900 dark:text-white tracking-tight leading-none;
+}
+
+/* Cards */
+.filters-card,
+.table-container,
+.timeline-container,
+.settings-card,
+.plans-grid .plan-card {
+  @apply bg-white dark:bg-[#161616] border border-gray-200 dark:border-white/[0.08] rounded-xl;
+}
+
+.filters-card {
+  @apply p-4 mb-6;
+}
+
+.filters {
+  @apply flex gap-4 flex-wrap;
+}
+
+.search-input {
+  @apply flex-1 min-w-[250px];
+}
+
+.filter-select {
+  @apply min-w-[180px];
+}
+
+/* Table */
+.table-container {
+  @apply p-0 mb-6 overflow-hidden;
+}
+
+/* Loading state */
+.loading-state {
+  @apply flex flex-col items-center justify-center py-16;
+}
+
+/* Error state */
+.error-state {
+  @apply flex flex-col items-center justify-center py-16 text-center;
+}
+
+.error-icon-wrapper {
+  @apply w-20 h-20 rounded-full bg-red-100 dark:bg-red-500/10 border-2 border-red-200 dark:border-red-500/20 flex items-center justify-center mb-4;
+}
+
+.error-icon {
+  @apply text-4xl text-red-500 dark:text-red-400;
+}
+
+.error-title {
+  @apply text-xl font-semibold text-gray-900 dark:text-white m-0;
+}
+
+.error-message {
+  @apply text-base text-gray-500 dark:text-gray-400 max-w-md m-0 mt-2 mb-6;
+}
+
+/* Info banner */
+.info-banner {
+  @apply flex gap-4 p-5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl text-blue-600 dark:text-blue-400;
+}
+
+.info-title {
+  @apply text-sm font-semibold text-gray-900 dark:text-white m-0 mb-1;
+}
+
+.info-text {
+  @apply text-sm text-gray-600 dark:text-gray-400 m-0 leading-relaxed;
+}
+
+/* Warning banner */
+.warning-banner {
+  @apply flex gap-4 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-amber-600 dark:text-amber-400;
+}
+
+.warning-title {
+  @apply text-sm font-semibold m-0 mb-1;
+}
+
+.warning-text {
+  @apply text-xs text-gray-600 dark:text-gray-400 m-0;
+}
+
+/* Coming soon banner */
+.coming-soon-banner {
+  @apply flex items-start gap-4 p-5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl mb-6;
+}
+
+.banner-icon-wrapper {
+  @apply w-10 h-10 bg-amber-100 dark:bg-amber-500/15 rounded-lg flex items-center justify-center flex-shrink-0;
+}
+
+.banner-icon {
+  @apply text-xl text-amber-500 dark:text-amber-400;
+}
+
+.banner-content {
+  @apply flex-1;
+}
+
+.banner-title {
+  @apply text-base font-semibold text-amber-700 dark:text-amber-400 m-0 mb-1;
+}
+
+.banner-text {
+  @apply text-sm text-gray-600 dark:text-gray-400 m-0 leading-relaxed;
+}
+
+/* Preview label */
+.preview-label {
+  @apply flex items-center gap-3 mb-4;
+}
+
+.preview-text {
+  @apply text-xs text-gray-500 dark:text-gray-400;
+}
+
+/* Settings grid */
+.settings-grid {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+}
+
+.settings-card {
+  @apply overflow-hidden backdrop-blur-lg;
+}
+
+.card-header {
+  @apply p-5 border-b border-gray-200 dark:border-white/[0.06] flex justify-between items-center;
+}
+
+.header-content {
+  @apply flex items-center gap-4;
+}
+
+.header-icon {
+  @apply w-12 h-12 rounded-lg flex items-center justify-center text-white;
+}
+
+.header-icon.maintenance {
+  @apply bg-gradient-to-br from-amber-500 to-red-600;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+}
+
+.header-icon.health {
+  @apply bg-gradient-to-br from-emerald-500 to-emerald-600;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.header-icon.announcements {
+  @apply bg-gradient-to-br from-blue-500 to-blue-600;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.card-title {
+  @apply text-lg font-semibold text-gray-900 dark:text-white m-0;
+}
+
+.card-description {
+  @apply text-sm text-gray-500 dark:text-gray-400 mt-1 mb-0;
+}
+
+.card-body {
+  @apply p-5;
+}
+
+/* Form groups */
+.form-group {
+  @apply mb-6 last:mb-0;
+}
+
+.form-label {
+  @apply block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1;
+}
+
+.form-hint {
+  @apply text-xs text-gray-500 dark:text-gray-400 mb-3;
+}
+
+/* IP list */
+.ip-list {
+  @apply flex flex-col gap-3 mb-4;
+}
+
+.ip-item {
+  @apply flex gap-3 items-center;
+}
+
+/* Placeholder */
+.placeholder {
+  @apply flex flex-col items-center justify-center py-12;
+}
+
+.placeholder-icon {
+  @apply text-5xl text-gray-300 dark:text-gray-600 mb-3;
+}
+
+.placeholder-text {
+  @apply text-base text-gray-500 dark:text-gray-400 m-0;
+}
+
+/* Announcement preview */
+.announcement-preview {
+  @apply flex items-center gap-4 p-4 rounded-lg mt-4;
+}
+
+.announcement-preview.announcement-info {
+  @apply bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400;
+}
+
+.announcement-preview.announcement-warning {
+  @apply bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-600 dark:text-amber-400;
+}
+
+.announcement-preview.announcement-success {
+  @apply bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 text-green-600 dark:text-green-400;
+}
+
+.announcement-preview.announcement-error {
+  @apply bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400;
+}
+
+.announcement-text {
+  @apply m-0 text-sm;
+}
+
+/* Plans grid */
+.plans-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6;
+}
+
+.plan-card {
+  @apply p-6 flex flex-col gap-5 transition-all duration-300;
+}
+
+.plan-card:hover {
+  @apply border-gray-300 dark:border-white/[0.12] -translate-y-0.5 shadow-xl;
+}
+
+.plan-card.featured {
+  @apply border-purple-300 dark:border-purple-500/30 bg-gradient-to-b from-purple-50 dark:from-purple-500/[0.08] to-white dark:to-[#161616];
+}
+
+.plan-header {
+  @apply flex flex-col gap-5;
+}
+
+.header-top {
+  @apply flex items-center justify-between;
+}
+
+.plan-pricing {
+  @apply flex flex-col gap-2;
+}
+
+.price-amount {
+  @apply text-4xl font-bold text-gray-900 dark:text-white tracking-tight leading-none;
+}
+
+.price-period {
+  @apply text-base text-gray-500 dark:text-gray-400 font-normal;
+}
+
+.transaction-fee {
+  @apply text-sm text-gray-600 dark:text-gray-400 font-medium;
+}
+
+/* Plan features */
+.plan-features {
+  @apply flex flex-col gap-4 pt-5 border-t border-gray-200 dark:border-white/[0.06];
+}
+
+.features-label {
+  @apply text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider;
+}
+
+.features-list {
+  @apply list-none p-0 m-0 flex flex-col gap-3;
+}
+
+.feature-item {
+  @apply flex items-start gap-3 text-sm text-gray-700 dark:text-gray-200;
+}
+
+.feature-icon {
+  @apply w-4.5 h-4.5 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5;
+}
+
+/* Plan stats */
+.plan-stats {
+  @apply flex flex-col gap-3 pt-5 border-t border-gray-200 dark:border-white/[0.06];
+}
+
+.plan-stats .stat-item {
+  @apply flex justify-between items-center;
+}
+
+.plan-stats .stat-label {
+  @apply text-sm text-gray-500 dark:text-gray-400;
+}
+
+.plan-stats .stat-value {
+  @apply text-sm font-semibold text-gray-700 dark:text-gray-200;
+}
+
+/* Plan actions */
+.plan-actions {
+  @apply mt-auto pt-5 border-t border-gray-200 dark:border-white/[0.06];
+}
+
+/* Timeline */
+.timeline {
+  @apply flex flex-col;
+}
+
+.timeline-container {
+  @apply p-5 mb-6;
+}
+
+.timeline-item {
+  @apply flex gap-4;
+}
+
+.timeline-connector {
+  @apply flex flex-col items-center w-8 flex-shrink-0;
+}
+
+.timeline-icon {
+  @apply w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0;
+}
+
+.timeline-line {
+  @apply w-0.5 flex-1 bg-gray-200 dark:bg-white/[0.08] my-2;
+}
+
+.timeline-item:last-child .timeline-line {
+  @apply hidden;
+}
+
+.timeline-content {
+  @apply flex-1 pb-5;
+}
+
+.timeline-item:last-child .timeline-content {
+  @apply pb-0;
+}
+
+.timeline-header {
+  @apply flex items-center justify-between mb-2;
+}
+
+.timeline-action {
+  @apply text-sm font-semibold text-gray-900 dark:text-white;
+}
+
+.timeline-time {
+  @apply text-xs text-gray-400 dark:text-gray-500;
+}
+
+.timeline-body {
+  @apply flex flex-col gap-2;
+}
+
+.timeline-actor {
+  @apply flex items-center gap-2 flex-wrap;
+}
+
+.timeline-verb {
+  @apply text-sm text-gray-500 dark:text-gray-400;
+}
+
+.timeline-target {
+  @apply text-sm text-gray-700 dark:text-gray-200 font-medium;
+}
+
+.timeline-details {
+  @apply mt-1;
+}
+
+.details-code {
+  @apply font-mono text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-white/5 px-2.5 py-1.5 rounded-md inline-block;
+}

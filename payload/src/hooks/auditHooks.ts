@@ -26,7 +26,7 @@ export const auditCreate: CollectionAfterChangeHook = async ({
         action: 'create',
         collection: collection.slug,
         documentId: String(doc.id),
-        userId,
+        userId: userId != null ? String(userId) : undefined,
         tenantId: tenantId ? String(tenantId) : undefined,
         changes: {
           document: doc,
@@ -69,7 +69,7 @@ export const auditUpdate: CollectionAfterChangeHook = async ({
         action: 'update',
         collection: collection.slug,
         documentId: String(doc.id),
-        userId,
+        userId: userId != null ? String(userId) : undefined,
         tenantId: tenantId ? String(tenantId) : undefined,
         changes,
         metadata,
@@ -98,7 +98,7 @@ export const auditDelete: CollectionAfterDeleteHook = async ({ doc, req, collect
         action: 'delete',
         collection: collection.slug,
         documentId: String(doc.id),
-        userId,
+        userId: userId != null ? String(userId) : undefined,
         tenantId: tenantId ? String(tenantId) : undefined,
         changes: {
           document: doc,

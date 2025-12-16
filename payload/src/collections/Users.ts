@@ -12,7 +12,7 @@ export const Users: CollectionConfig = {
   auth: {
     // Configure cookie settings for auth persistence
     cookies: {
-      sameSite: 'lax', // Allow cookies in development with different ports
+      sameSite: 'Lax', // Allow cookies in development with different ports
       secure: false, // Set to false for development (http://localhost)
       domain: undefined, // Allow cookies to work across localhost ports
     },
@@ -130,6 +130,14 @@ export const Users: CollectionConfig = {
         update: ({ req: { user } }) => {
           return user?.role === 'super_admin'
         },
+      },
+    },
+    {
+      name: 'isActive',
+      type: 'checkbox',
+      defaultValue: true,
+      admin: {
+        description: 'Whether this user account is active',
       },
     },
     {

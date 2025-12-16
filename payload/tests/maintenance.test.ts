@@ -19,7 +19,7 @@ describe('Maintenance System', () => {
         slug: 'test-rental-co',
         plan: 'free',
         status: 'active',
-      },
+      } as any,  // Payload 3.x type workaround
     })
     testTenantId = tenant.id
 

@@ -80,7 +80,7 @@ export async function seedCategories(payload: Payload, tenantId: string | number
         data: {
           ...category,
           tenantId,
-        },
+        } as any,  // Payload 3.x type workaround
       })
       console.log(`Created category: ${category.name}`)
     }

@@ -46,7 +46,7 @@ async function seedQA() {
           timezone: 'America/Chicago',
           currency: 'USD',
         },
-      },
+      } as any,  // Payload 3.x type workaround
     })
     console.log(`   ✓ Created tenant: ${tenant.name} (ID: ${tenant.id})`)
 
@@ -57,44 +57,42 @@ async function seedQA() {
       data: {
         email: 'qa@bouncepro.test',
         password: 'QATest123!',
-        firstName: 'QA',
-        lastName: 'Tester',
         role: 'tenant_admin',
         tenantId: tenant.id,
-      },
+        profile: {
+          name: 'QA Tester',
+        },
+      } as any,  // Payload 3.x type workaround
     })
     console.log(`   ✓ Created user: ${qaUser.email}`)
 
     // 3. Create Rental Items
     console.log('\n🏰 Creating rental items...')
-    const itemsData = [
+    type CategoryType = 'bounce_house' | 'water_slide' | 'combo_unit' | 'obstacle_course' | 'interactive_game' | 'tent_canopy' | 'table_chair' | 'concession' | 'other'
+    const itemsData: { name: string; category: CategoryType; description: string; dailyPrice: number }[] = [
       {
         name: 'Castle Bounce House',
         category: 'bounce_house',
         description: 'Classic castle design, perfect for birthday parties',
         dailyPrice: 199,
-        status: 'active',
       },
       {
         name: 'Water Slide Combo',
         category: 'water_slide',
         description: 'Fun water slide with splash pool',
         dailyPrice: 349,
-        status: 'active',
       },
       {
         name: 'Obstacle Course',
         category: 'obstacle_course',
         description: 'Dual-lane obstacle course for competitive fun',
         dailyPrice: 449,
-        status: 'active',
       },
       {
         name: 'Party Package Deluxe',
         category: 'combo_unit',
         description: 'Bounce house with slide combo',
         dailyPrice: 599,
-        status: 'active',
       },
     ]
 
@@ -162,8 +160,8 @@ async function seedQA() {
 
     // 5. Create Bookings
     console.log('\n📅 Creating bookings...')
-    const statuses = ['pending', 'confirmed', 'delivered', 'completed', 'cancelled']
-    const paymentStatuses = ['unpaid', 'deposit_paid', 'paid_full', 'paid_full', 'refunded']
+    const statuses: ('pending' | 'confirmed' | 'delivered' | 'completed' | 'cancelled')[] = ['pending', 'confirmed', 'delivered', 'completed', 'cancelled']
+    const paymentStatuses: ('unpaid' | 'deposit_paid' | 'paid_full' | 'refunded')[] = ['unpaid', 'deposit_paid', 'paid_full', 'paid_full', 'refunded']
     const createdBookings: any[] = []
 
     for (let i = 0; i < 20; i++) {
@@ -189,7 +187,12 @@ async function seedQA() {
         data: {
           tenantId: tenant.id,
           customerId: customer.id,
-          rentalItemId: item.id,
+          // Use new rentalItems array format
+          rentalItems: [{
+            rentalItemId: item.id,
+            quantity: 1,
+            price: item.pricing?.dailyRate || 199,
+          }],
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
           status,

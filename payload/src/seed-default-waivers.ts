@@ -171,13 +171,13 @@ async function seedDefaultWaivers() {
         data: {
           tenantId: tenant.id,
           name: 'Equipment Rental Waiver & Agreement',
-          templateType: 'waiver',
+          templateType: 'liability-waiver',  // Use valid type from schema
           description: 'Standard liability waiver and rental agreement for equipment rentals. Covers safety rules, liability release, and rental terms.',
           isDefault: false,
           requiresSignature: true,
           isActive: true,
           content: defaultWaiverContent,
-        },
+        } as any,  // Payload 3.x type workaround
       })
 
       console.log(`Created default waiver template for tenant "${tenant.name}"`)

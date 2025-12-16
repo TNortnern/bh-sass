@@ -247,7 +247,7 @@ export const emailPreviewEndpoint: Endpoint = {
     }
 
     // Start with sample data
-    let data = { ...sampleData[name] } || {}
+    let data = sampleData[name] ? { ...sampleData[name] } : {}
 
     // If user is authenticated, try to fetch their real tenant data
     const user = req.user
@@ -338,7 +338,7 @@ export const emailSendTestEndpoint: Endpoint = {
       }
 
       // Start with sample data
-      let data = { ...sampleData[templateName] } || {}
+      let data = sampleData[templateName] ? { ...sampleData[templateName] } : {}
 
       // If user is authenticated, try to fetch their real tenant data
       const user = req.user

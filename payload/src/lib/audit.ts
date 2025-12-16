@@ -4,8 +4,8 @@ export interface AuditEventParams {
   action: 'create' | 'update' | 'delete' | 'login' | 'logout' | 'api_call'
   collection: string
   documentId: string
-  userId?: string
-  tenantId?: string
+  userId?: string | number
+  tenantId?: string | number
   changes?: Record<string, unknown>
   metadata?: Record<string, unknown>
 }
@@ -19,14 +19,18 @@ export async function logAuditEvent(
   event: AuditEventParams,
 ): Promise<void> {
   try {
+    // Convert string IDs to numbers for relationship fields
+    const userId = event.userId ? Number(event.userId) : null
+    const tenantId = event.tenantId ? Number(event.tenantId) : null
+
     await payload.create({
       collection: 'audit-logs',
       data: {
         action: event.action,
         collection: event.collection,
         documentId: event.documentId,
-        userId: event.userId || null,
-        tenantId: event.tenantId || null,
+        userId: !isNaN(userId as number) ? userId : null,
+        tenantId: !isNaN(tenantId as number) ? tenantId : null,
         changes: event.changes || null,
         metadata: event.metadata || null,
         timestamp: new Date().toISOString(),

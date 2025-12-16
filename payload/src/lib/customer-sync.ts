@@ -3,6 +3,8 @@
  *
  * This library handles syncing customers from BH-SaaS to rb-payload's customers collection.
  * It can be called from Payload hooks and background jobs.
+ *
+ * Multi-tenant: Uses tenant-specific rbPayloadTenantId and rbPayloadApiKey for each sync.
  */
 
 import type { Payload } from 'payload'
@@ -10,7 +12,6 @@ import type { Payload } from 'payload'
 // rb-payload API configuration
 const RB_PAYLOAD_URL = process.env.RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app'
 const RB_PAYLOAD_API_KEY = process.env.RB_PAYLOAD_API_KEY || ''
-const RB_PAYLOAD_TENANT_ID = process.env.RB_PAYLOAD_TENANT_ID || '6'
 
 // Check if rb-payload sync is enabled (requires API key)
 const isRbPayloadSyncEnabled = (): boolean => {
@@ -28,7 +29,7 @@ const logSyncDisabled = () => {
 
 interface Customer {
   id: number
-  tenantId?: number // BH-SaaS tenant ID
+  tenantId?: number | { id: number; rbPayloadTenantId?: number | null; rbPayloadApiKey?: string | null } | null
   firstName: string
   lastName: string
   email: string
@@ -55,10 +56,12 @@ interface SyncResult {
 
 /**
  * Transform a BH-SaaS customer to rb-payload customer format
+ * @param customer - The customer to transform
+ * @param rbPayloadTenantId - The rb-payload tenant ID to use (required for multi-tenant support)
  */
-export function transformCustomerToRbPayload(customer: Customer) {
+export function transformCustomerToRbPayload(customer: Customer, rbPayloadTenantId: number) {
   return {
-    tenantId: parseInt(RB_PAYLOAD_TENANT_ID),
+    tenantId: rbPayloadTenantId,
     firstName: customer.firstName,
     lastName: customer.lastName,
     email: customer.email,
@@ -83,14 +86,20 @@ export function transformCustomerToRbPayload(customer: Customer) {
 
 /**
  * Call rb-payload API
+ * @param method HTTP method
+ * @param endpoint API endpoint
+ * @param data Request body data
+ * @param apiKey Optional tenant-specific API key (uses global key if not provided)
  */
 async function callRbPayloadApi(
   method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
   endpoint: string,
-  data?: Record<string, unknown>
+  data?: Record<string, unknown>,
+  apiKey?: string
 ): Promise<{ ok: boolean; data?: unknown; error?: string }> {
-  if (!RB_PAYLOAD_API_KEY) {
-    return { ok: false, error: 'RB_PAYLOAD_API_KEY not configured' }
+  const keyToUse = apiKey || RB_PAYLOAD_API_KEY
+  if (!keyToUse) {
+    return { ok: false, error: 'No API key available for rb-payload' }
   }
 
   const url = `${RB_PAYLOAD_URL}${endpoint}`
@@ -100,7 +109,7 @@ async function callRbPayloadApi(
       method,
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': RB_PAYLOAD_API_KEY,
+        'X-API-Key': keyToUse,
       },
       ...(data && method !== 'GET' && method !== 'DELETE' && { body: JSON.stringify(data) }),
     })
@@ -133,28 +142,63 @@ export async function syncCustomerToRbPayload(
     return { success: true } // Return success so customer creation doesn't fail
   }
 
-  const customerData = transformCustomerToRbPayload(customer)
+  // Get the tenant's rbPayloadTenantId and API key
+  let rbPayloadTenantId: number | null = null
+  let rbPayloadApiKey: string | null = null
 
-  console.log(`[Customer Sync] Syncing customer ${customer.id} (${customer.firstName} ${customer.lastName}) to rb-payload...`)
+  // Check if tenantId is populated (object) or just an ID
+  if (customer.tenantId && typeof customer.tenantId === 'object' && 'rbPayloadTenantId' in customer.tenantId) {
+    rbPayloadTenantId = customer.tenantId.rbPayloadTenantId || null
+    rbPayloadApiKey = customer.tenantId.rbPayloadApiKey || null
+  } else if (customer.tenantId) {
+    // Need to look up the tenant
+    const tenantIdNum = typeof customer.tenantId === 'object' ? customer.tenantId.id : customer.tenantId
+    try {
+      const tenant = await payload.findByID({
+        collection: 'tenants',
+        id: tenantIdNum,
+      })
+      rbPayloadTenantId = tenant?.rbPayloadTenantId || null
+      rbPayloadApiKey = tenant?.rbPayloadApiKey || null
+    } catch (error) {
+      console.error(`[Customer Sync] Failed to look up tenant ${tenantIdNum}:`, error)
+    }
+  }
+
+  // Skip if tenant is not provisioned in rb-payload
+  if (!rbPayloadTenantId) {
+    console.log(`[Customer Sync] Skipping customer ${customer.id} - tenant not provisioned in rb-payload`)
+    return { success: false, error: 'Tenant not provisioned in rb-payload' }
+  }
+
+  // Skip if no API key available
+  if (!rbPayloadApiKey) {
+    console.log(`[Customer Sync] Skipping customer ${customer.id} - no rb-payload API key for tenant`)
+    return { success: false, error: 'No rb-payload API key for tenant' }
+  }
+
+  const customerData = transformCustomerToRbPayload(customer, rbPayloadTenantId)
+
+  console.log(`[Customer Sync] Syncing customer ${customer.id} (${customer.firstName} ${customer.lastName}) to rb-payload tenant ${rbPayloadTenantId}...`)
 
   try {
     let result: { ok: boolean; data?: unknown; error?: string }
     let customerId: number | undefined
 
     if (customer.rbPayloadCustomerId) {
-      // Update existing customer
-      result = await callRbPayloadApi('PATCH', `/api/customers/${customer.rbPayloadCustomerId}`, customerData)
+      // Update existing customer using tenant's API key
+      result = await callRbPayloadApi('PATCH', `/api/customers/${customer.rbPayloadCustomerId}`, customerData, rbPayloadApiKey)
       customerId = customer.rbPayloadCustomerId
     } else {
       // Check if customer already exists by externalId
-      const existingCheck = await callRbPayloadApi('GET', `/api/customers?where[externalId][equals]=bh-saas-customer-${customer.id}`)
+      const existingCheck = await callRbPayloadApi('GET', `/api/customers?where[externalId][equals]=bh-saas-customer-${customer.id}`, undefined, rbPayloadApiKey)
       if (existingCheck.ok && (existingCheck.data as { docs?: { id: number }[] })?.docs?.length) {
         // Customer exists, update it
         customerId = (existingCheck.data as { docs: { id: number }[] }).docs[0].id
-        result = await callRbPayloadApi('PATCH', `/api/customers/${customerId}`, customerData)
+        result = await callRbPayloadApi('PATCH', `/api/customers/${customerId}`, customerData, rbPayloadApiKey)
       } else {
-        // Create new customer
-        result = await callRbPayloadApi('POST', '/api/customers', customerData)
+        // Create new customer using tenant's API key
+        result = await callRbPayloadApi('POST', '/api/customers', customerData, rbPayloadApiKey)
         if (result.ok && result.data) {
           customerId = (result.data as { doc?: { id: number } }).doc?.id
         }
@@ -242,6 +286,7 @@ export async function syncPendingCustomers(payload: Payload): Promise<{ synced: 
   console.log('[Customer Sync] Starting sync of pending customers...')
 
   // Find customers with pending or failed sync status
+  // Depth 1 to populate tenantId with rbPayloadTenantId and rbPayloadApiKey
   const pendingCustomers = await payload.find({
     collection: 'customers',
     where: {
@@ -252,6 +297,7 @@ export async function syncPendingCustomers(payload: Payload): Promise<{ synced: 
       ],
     },
     limit: 100, // Process in batches
+    depth: 1, // Populate tenantId relationship to get rbPayloadTenantId
   })
 
   let synced = 0
@@ -290,4 +336,57 @@ export function queueCustomerSync(payload: Payload, customer: Customer): void {
       console.error('[Customer Sync] Background sync failed:', error)
     }
   })
+}
+
+/**
+ * Force resync ALL customers for a specific tenant
+ * This resyncs even customers that are already marked as synced
+ */
+export async function forceResyncAllCustomers(
+  payload: Payload,
+  tenantId: number
+): Promise<{ synced: number; failed: number; skipped: number }> {
+  console.log(`[Customer Sync] Starting FORCE resync of ALL customers for tenant ${tenantId}...`)
+
+  // Find ALL customers for this tenant
+  // Depth 1 to populate tenantId with rbPayloadTenantId
+  const customers = await payload.find({
+    collection: 'customers',
+    where: {
+      tenantId: { equals: tenantId },
+    },
+    limit: 1000, // Get all customers
+    depth: 1,
+  })
+
+  let synced = 0
+  let failed = 0
+  let skipped = 0
+
+  for (const customer of customers.docs) {
+    // Reset sync status to pending
+    await payload.update({
+      collection: 'customers',
+      id: customer.id,
+      data: {
+        syncStatus: 'pending',
+      },
+    })
+
+    // Now sync the customer
+    const result = await syncCustomerToRbPayload(payload, customer as unknown as Customer)
+    if (result.success) {
+      synced++
+    } else if (result.error?.includes('not provisioned')) {
+      skipped++
+    } else {
+      failed++
+    }
+
+    // Small delay to avoid rate limiting
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+
+  console.log(`[Customer Sync] Force resync completed: ${synced} synced, ${failed} failed, ${skipped} skipped`)
+  return { synced, failed, skipped }
 }

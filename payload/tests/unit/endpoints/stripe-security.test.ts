@@ -42,15 +42,15 @@ describe('Stripe Connect Endpoint Security', () => {
     })
 
     it('rejects request without CSRF token', async () => {
-      const req = createMockRequest({ headers: {} })
+      const req = createMockRequest({ headers: {} as any })
       // When executed, should return 403 Forbidden
-      expect(req.headers?.['x-csrf-token']).toBeUndefined()
+      expect((req.headers as any)?.['x-csrf-token']).toBeUndefined()
     })
 
     it('accepts valid authentication and CSRF token', async () => {
       const req = createMockRequest()
       expect(req.user).toBeDefined()
-      expect(req.headers?.['x-csrf-token']).toBeDefined()
+      expect((req.headers as any)?.['x-csrf-token']).toBeDefined()
     })
   })
 
@@ -75,10 +75,10 @@ describe('Stripe Connect Endpoint Security', () => {
 
     it('prevents CSRF attacks with token validation', async () => {
       const req = createMockRequest({
-        headers: { 'x-csrf-token': 'invalid-token' },
+        headers: { 'x-csrf-token': 'invalid-token' } as any,
       })
       // Token exists but validation should fail against stored tokens
-      expect(req.headers?.['x-csrf-token']).toBe('invalid-token')
+      expect((req.headers as any)?.['x-csrf-token']).toBe('invalid-token')
     })
   })
 
@@ -125,8 +125,8 @@ describe('Stripe Connect Endpoint Security', () => {
 
   describe('refreshOnboardingLink - Layer 1: Input Validation', () => {
     it('requires CSRF token for refresh operation', async () => {
-      const req = createMockRequest({ headers: {} })
-      expect(req.headers?.['x-csrf-token']).toBeUndefined()
+      const req = createMockRequest({ headers: {} as any })
+      expect((req.headers as any)?.['x-csrf-token']).toBeUndefined()
     })
 
     it('validates user is authenticated for refresh', async () => {
@@ -202,8 +202,8 @@ describe('Stripe Refund Endpoint Security', () => {
     })
 
     it('denies refund without CSRF token', async () => {
-      const req = createMockRequest({ headers: {} })
-      expect(req.headers?.['x-csrf-token']).toBeUndefined()
+      const req = createMockRequest({ headers: {} as any })
+      expect((req.headers as any)?.['x-csrf-token']).toBeUndefined()
     })
 
     it('allows super_admin to refund any payment', async () => {
@@ -381,8 +381,8 @@ describe('Stripe Subscription Endpoint Security', () => {
     })
 
     it('rejects missing CSRF token', async () => {
-      const req = createMockRequest({ headers: {} })
-      expect(req.headers?.['x-csrf-token']).toBeUndefined()
+      const req = createMockRequest({ headers: {} as any })
+      expect((req.headers as any)?.['x-csrf-token']).toBeUndefined()
     })
   })
 
@@ -393,8 +393,8 @@ describe('Stripe Subscription Endpoint Security', () => {
     })
 
     it('requires CSRF token for subscription creation', async () => {
-      const req = createMockRequest({ headers: {} })
-      expect(req.headers?.['x-csrf-token']).toBeUndefined()
+      const req = createMockRequest({ headers: {} as any })
+      expect((req.headers as any)?.['x-csrf-token']).toBeUndefined()
     })
 
     it('allows authenticated user to create subscription for their tenant', async () => {
@@ -437,8 +437,8 @@ describe('Stripe Subscription Endpoint Security', () => {
 
   describe('cancelSubscription - Layer 1 & 2: Validation & Auth', () => {
     it('requires CSRF token to cancel subscription', async () => {
-      const req = createMockRequest({ headers: {} })
-      expect(req.headers?.['x-csrf-token']).toBeUndefined()
+      const req = createMockRequest({ headers: {} as any })
+      expect((req.headers as any)?.['x-csrf-token']).toBeUndefined()
     })
 
     it('requires authentication to cancel subscription', async () => {
