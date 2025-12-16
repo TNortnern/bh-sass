@@ -141,6 +141,9 @@ export default buildConfig({
     'http://localhost:3004', // Payload dev server
     'http://localhost:3001', // Nuxt internal port
     'http://localhost:3000', // Payload internal port
+    // Production domains
+    ...(process.env.PAYLOAD_PUBLIC_SERVER_URL ? [process.env.PAYLOAD_PUBLIC_SERVER_URL] : []),
+    ...(process.env.RAILWAY_PUBLIC_DOMAIN ? [`https://${process.env.RAILWAY_PUBLIC_DOMAIN}`] : []),
   ],
   // CSRF protection configuration
   csrf: [
@@ -148,6 +151,9 @@ export default buildConfig({
     'http://localhost:3004',
     'http://localhost:3001',
     'http://localhost:3000',
+    // Production domains
+    ...(process.env.PAYLOAD_PUBLIC_SERVER_URL ? [process.env.PAYLOAD_PUBLIC_SERVER_URL] : []),
+    ...(process.env.RAILWAY_PUBLIC_DOMAIN ? [`https://${process.env.RAILWAY_PUBLIC_DOMAIN}`] : []),
   ],
   collections: [
     Users,
