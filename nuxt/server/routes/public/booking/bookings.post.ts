@@ -41,9 +41,6 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Generate booking number
-    const bookingNumber = `BH-${Date.now().toString(36).toUpperCase()}`
-
     // Calculate dates from items (use first item's dates as booking dates)
     const startDate = body.items[0]?.startDate
     const endDate = body.items[0]?.endDate
@@ -84,9 +81,9 @@ export default defineEventHandler(async (event) => {
     })) || []
 
     // Create booking in Payload with multi-item support
+    // Note: Only include fields that exist in the Bookings collection schema
     const bookingData = {
       tenantId: body.tenantId,
-      bookingNumber,
       customerId: body.customerId,
       rentalItems, // Array of items
       addOns, // Array of add-ons
@@ -101,8 +98,8 @@ export default defineEventHandler(async (event) => {
         state: address.state || '',
         zipCode: address.zip || address.zipCode || ''
       },
-      eventType: body.eventDetails?.type || 'other',
-      specialInstructions: body.eventDetails?.specialInstructions || body.notes || ''
+      // Store special instructions in the notes field
+      notes: body.eventDetails?.specialInstructions || body.notes || ''
     }
 
     const createResponse = await $fetch<{ doc: Record<string, unknown> }>(`${payloadUrl}/api/bookings`, {
@@ -117,7 +114,6 @@ export default defineEventHandler(async (event) => {
       success: true,
       booking: {
         id: booking?.id,
-        bookingNumber: booking?.bookingNumber || bookingNumber,
         status: booking?.status || 'pending',
         totalPrice: body.totalPrice,
         startDate,
