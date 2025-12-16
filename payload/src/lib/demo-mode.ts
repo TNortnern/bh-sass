@@ -48,43 +48,51 @@ export function createDemoCheckoutSession(bookingId: string, amount: number): De
  */
 export async function completeDemoPayment(
   payload: any,
-  bookingId: string,
-  tenantId: string,
+  bookingId: string | number,
+  tenantId: string | number,
   amount: number
 ): Promise<any> {
   console.log(`[DEMO MODE] Completing demo payment for booking ${bookingId}`)
 
-  // Create a payment record marking it as demo/succeeded
-  const payment = await payload.create({
-    collection: 'payments',
-    data: {
-      tenantId,
-      booking: bookingId,
-      amount,
-      status: 'succeeded',
-      stripePaymentIntentId: `demo_pi_${Date.now()}`,
-      paymentMethod: 'demo_card',
-      metadata: {
-        demoMode: true,
-        completedAt: new Date().toISOString()
+  try {
+    // Parse IDs as numbers for Payload relationships
+    const bookingIdNum = typeof bookingId === 'string' ? parseInt(bookingId, 10) : bookingId
+    const tenantIdNum = typeof tenantId === 'string' ? parseInt(tenantId, 10) : tenantId
+
+    // Create a payment record marking it as demo/succeeded
+    // Use overrideAccess to bypass tenant hooks since this is a system operation
+    const payment = await payload.create({
+      collection: 'payments',
+      overrideAccess: true,
+      data: {
+        tenantId: tenantIdNum,
+        booking: bookingIdNum,
+        amount: Math.round(amount * 100), // Convert to cents
+        status: 'succeeded',
+        stripePaymentIntentId: `demo_pi_${Date.now()}`,
+        paymentMethod: 'demo_card',
       }
-    }
-  })
+    })
 
-  // Update booking status
-  await payload.update({
-    collection: 'bookings',
-    id: bookingId,
-    data: {
-      paymentStatus: 'paid_full',
-      status: 'confirmed',
-      depositPaid: amount
-    }
-  })
+    // Update booking status
+    await payload.update({
+      collection: 'bookings',
+      id: bookingIdNum,
+      overrideAccess: true,
+      data: {
+        paymentStatus: 'paid_full',
+        status: 'confirmed',
+        depositPaid: amount
+      }
+    })
 
-  console.log(`[DEMO MODE] Payment completed: ${payment.id}`)
+    console.log(`[DEMO MODE] Payment completed: ${payment.id}`)
 
-  return payment
+    return payment
+  } catch (error) {
+    console.error(`[DEMO MODE] Failed to complete payment:`, error)
+    throw error
+  }
 }
 
 /**
