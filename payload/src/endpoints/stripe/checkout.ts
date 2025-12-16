@@ -14,11 +14,11 @@ import { isDemoMode, createDemoCheckoutSession, completeDemoPayment } from '../.
 export const createCheckoutSession = async (req: PayloadRequest): Promise<Response> => {
   const { payload } = req
 
-  console.log('[Checkout] Received checkout request, demo mode:', isDemoMode())
+  console.log('[Checkout v2] Received checkout request, demo mode:', isDemoMode())
 
   try {
     const body = req.json ? await req.json() : {}
-    console.log('[Checkout] Request body:', JSON.stringify(body))
+    console.log('[Checkout v2] Request body:', JSON.stringify(body))
     const {
       tenantId,
       bookingId,
@@ -204,12 +204,13 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
       stack: errorStack,
     })
 
-    // In development/staging, return the actual error for debugging
+    // Return the actual error for debugging
     return Response.json(
       {
         error: 'Internal Server Error',
         message: `Failed to create checkout session: ${errorMessage}`,
-        debug: process.env.NODE_ENV !== 'production' ? errorStack : undefined,
+        version: 'v2',
+        debug: errorStack?.slice(0, 500),
       },
       { status: 500 },
     )
