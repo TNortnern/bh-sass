@@ -34,7 +34,7 @@
     "express-rate-limit": "^8.2.1",
     "graphql": "^16.8.1",
     "iconv-lite": "^0.6.3",
-    "next": "15.4.7",
+    "next": "15.5.9",
     "payload": "3.64.0",
     "pdfkit": "^0.15.0",
     "qrcode": "^1.5.4",
