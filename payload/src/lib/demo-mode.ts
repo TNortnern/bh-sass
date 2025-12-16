@@ -69,8 +69,12 @@ export async function completeDemoPayment(
         booking: bookingIdNum,
         amount: Math.round(amount * 100), // Convert to cents
         status: 'succeeded',
+        type: 'full', // Required field - mark as full payment
         stripePaymentIntentId: `demo_pi_${Date.now()}`,
-        paymentMethod: 'demo_card',
+        metadata: {
+          demoMode: true,
+          paymentMethod: 'demo_card',
+        },
       }
     })
 
