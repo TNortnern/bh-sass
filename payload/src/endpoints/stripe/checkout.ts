@@ -74,13 +74,26 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
       })
     }
 
-    console.log('[Checkout] Fetching tenant:', tenantId)
+    console.log('[Checkout] Fetching tenant:', tenantId, typeof tenantId)
     // Fetch tenant
-    const tenant = await payload.findByID({
-      collection: 'tenants',
-      id: tenantId,
-    })
-    console.log('[Checkout] Tenant found:', tenant?.id, tenant?.name)
+    let tenant: any
+    try {
+      tenant = await payload.findByID({
+        collection: 'tenants',
+        id: tenantId,
+      })
+      console.log('[Checkout] Tenant found:', tenant?.id, tenant?.name)
+    } catch (findError) {
+      console.error('[Checkout] Error finding tenant:', findError)
+      return Response.json(
+        {
+          error: 'Internal Server Error',
+          message: `Error finding tenant: ${findError instanceof Error ? findError.message : String(findError)}`,
+          version: 'v3',
+        },
+        { status: 500 },
+      )
+    }
 
     if (!tenant) {
       return Response.json(
