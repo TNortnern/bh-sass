@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BouncePro Widget Integration Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+      line-height: 1.6;
+    }
+    .header {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    .header p {
+      opacity: 0.9;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 2rem;
+    }
+    @media (max-width: 1024px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    .widget-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      overflow: hidden;
+    }
+    .widget-header {
+      background: #1f2937;
+      color: white;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .widget-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .widget-frame {
+      width: 100%;
+      height: 700px;
+      border: none;
+    }
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      overflow: hidden;
+    }
+    .card-header {
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 1rem 1.5rem;
+    }
+    .card-header h3 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #374151;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .card-body {
+      padding: 1.5rem;
+    }
+    .event-log {
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.75rem;
+    }
+    .event-item {
+      padding: 0.5rem;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+      background: #f3f4f6;
+    }
+    .event-item.incoming {
+      background: #dbeafe;
+      border-left: 3px solid #3b82f6;
+    }
+    .event-item.outgoing {
+      background: #dcfce7;
+      border-left: 3px solid #22c55e;
+    }
+    .event-type {
+      font-weight: 600;
+      color: #374151;
+    }
+    .event-data {
+      color: #6b7280;
+      word-break: break-all;
+    }
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-primary {
+      background: #f97316;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #ea580c;
+    }
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    .btn-secondary:hover {
+      background: #d1d5db;
+    }
+    .btn-danger {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+    .btn-danger:hover {
+      background: #fecaca;
+    }
+    .cart-summary {
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .cart-summary h4 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #92400e;
+      margin-bottom: 0.5rem;
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.875rem;
+      color: #78350f;
+      padding: 0.25rem 0;
+    }
+    .cart-total {
+      border-top: 1px solid #fcd34d;
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      font-weight: 600;
+    }
+    .theme-toggle {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .theme-btn {
+      flex: 1;
+      padding: 0.5rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.15s;
+    }
+    .theme-btn:hover {
+      border-color: #f97316;
+    }
+    .theme-btn.active {
+      border-color: #f97316;
+      background: #fff7ed;
+    }
+    .code-block {
+      background: #1f2937;
+      color: #e5e7eb;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.75rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .badge-success {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .badge-info {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>BouncePro Widget Integration Demo</h1>
+    <p>This page demonstrates how to embed the booking widget and communicate via PostMessage API</p>
+  </div>
+
+  <div class="container">
+    <div class="layout">
+      <!-- Widget Container -->
+      <div class="widget-container">
+        <div class="widget-header">
+          <h2>Embedded Widget</h2>
+          <span class="badge badge-success" id="status-badge">Connecting...</span>
+        </div>
+        <iframe
+          id="widget-frame"
+          class="widget-frame"
+          src="/embed/bouncepro-demo/products?theme=light"
+          allow="payment"
+        ></iframe>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <!-- Cart Summary -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Cart Summary</h3>
+          </div>
+          <div class="card-body">
+            <div id="cart-summary" class="cart-summary" style="display: none;">
+              <h4>Items in Cart</h4>
+              <div id="cart-items"></div>
+              <div class="cart-total">
+                <span>Total:</span>
+                <span id="cart-total">$0</span>
+              </div>
+            </div>
+            <p id="cart-empty" style="color: #6b7280; font-size: 0.875rem;">Cart is empty</p>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Send Commands</h3>
+          </div>
+          <div class="card-body">
+            <div class="controls">
+              <button class="btn btn-primary" onclick="sendCommand('bh:cart:add', { itemId: '4', quantity: 1 })">
+                Add Item to Cart
+              </button>
+              <button class="btn btn-danger" onclick="sendCommand('bh:cart:clear')">
+                Clear Cart
+              </button>
+              <button class="btn btn-secondary" onclick="sendCommand('bh:navigate', { to: 'checkout' })">
+                Trigger Checkout
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Theme Controls -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Theme Control</h3>
+          </div>
+          <div class="card-body">
+            <div class="theme-toggle">
+              <button class="theme-btn active" onclick="setTheme('light')">Light</button>
+              <button class="theme-btn" onclick="setTheme('dark')">Dark</button>
+              <button class="theme-btn" onclick="setTheme('auto')">Auto</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Event Log -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Event Log</h3>
+          </div>
+          <div class="card-body">
+            <div id="event-log" class="event-log">
+              <p style="color: #9ca3af; font-size: 0.75rem;">Waiting for events...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Code Examples -->
+    <div class="card" style="margin-top: 2rem;">
+      <div class="card-header">
+        <h3>Basic HTML Integration</h3>
+      </div>
+      <div class="card-body">
+        <div class="code-block">&lt;!-- Embed the widget --&gt;
+&lt;iframe
+  id="bh-widget"
+  src="https://your-domain.com/embed/YOUR-TENANT/products?theme=light"
+  width="100%"
+  height="700"
+  frameborder="0"
+  allow="payment"
+&gt;&lt;/iframe&gt;
+
+&lt;script&gt;
+// Listen for widget events
+window.addEventListener('message', (event) => {
+  if (!event.data?.type?.startsWith('bh:')) return;
+
+  switch (event.data.type) {
+    case 'bh:ready':
+      console.log('Widget ready:', event.data);
+      break;
+    case 'bh:cart:updated':
+      console.log('Cart:', event.data.cart, 'Total:', event.data.total);
+      break;
+    case 'bh:checkout:requested':
+      console.log('Checkout URL:', event.data.checkoutUrl);
+      break;
+  }
+});
+
+// Send commands to widget
+const widget = document.getElementById('bh-widget');
+widget.contentWindow.postMessage({ type: 'bh:cart:add', itemId: '123' }, '*');
+widget.contentWindow.postMessage({ type: 'bh:theme:set', theme: 'dark' }, '*');
+&lt;/script&gt;</div>
+      </div>
+    </div>
+
+    <!-- WordPress Example -->
+    <div class="card" style="margin-top: 1rem;">
+      <div class="card-header">
+        <h3>WordPress (Custom HTML Block)</h3>
+      </div>
+      <div class="card-body">
+        <div class="code-block">&lt;!-- Add this to a Custom HTML block in WordPress --&gt;
+&lt;div id="bouncepro-widget-container" style="width: 100%; max-width: 1200px; margin: 0 auto;"&gt;
+  &lt;iframe
+    id="bouncepro-widget"
+    src="https://your-domain.com/embed/YOUR-TENANT/products?theme=auto&amp;hideFilters=false"
+    style="width: 100%; min-height: 800px; border: none;"
+    allow="payment"
+  &gt;&lt;/iframe&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+// Auto-resize iframe based on content
+window.addEventListener('message', function(e) {
+  if (e.data?.type === 'bh:height:changed') {
+    document.getElementById('bouncepro-widget').style.height = e.data.height + 'px';
+  }
+});
+&lt;/script&gt;</div>
+      </div>
+    </div>
+
+    <!-- React Example -->
+    <div class="card" style="margin-top: 1rem;">
+      <div class="card-header">
+        <h3>React Component</h3>
+      </div>
+      <div class="card-body">
+        <div class="code-block">import { useEffect, useRef, useState } from 'react';
+
+function BounceProWidget({ tenantSlug, theme = 'light', onCartUpdate }) {
+  const iframeRef = useRef(null);
+  const [height, setHeight] = useState(700);
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (!event.data?.type?.startsWith('bh:')) return;
+
+      switch (event.data.type) {
+        case 'bh:cart:updated':
+          onCartUpdate?.(event.data.cart, event.data.total);
+          break;
+        case 'bh:height:changed':
+          setHeight(event.data.height);
+          break;
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [onCartUpdate]);
+
+  const sendCommand = (type, payload = {}) => {
+    iframeRef.current?.contentWindow?.postMessage({ type, ...payload }, '*');
+  };
+
+  return (
+    &lt;iframe
+      ref={iframeRef}
+      src={`https://your-domain.com/embed/${tenantSlug}/products?theme=${theme}`}
+      style={{ width: '100%', height, border: 'none' }}
+      allow="payment"
+    /&gt;
+  );
+}
+
+// Usage:
+// &lt;BounceProWidget
+//   tenantSlug="my-business"
+//   theme="dark"
+//   onCartUpdate={(cart, total) => console.log(cart, total)}
+// /&gt;</div>
+      </div>
+    </div>
+
+    <!-- Vue Example -->
+    <div class="card" style="margin-top: 1rem;">
+      <div class="card-header">
+        <h3>Vue 3 Component</h3>
+      </div>
+      <div class="card-body">
+        <div class="code-block">&lt;template&gt;
+  &lt;iframe
+    ref="widgetRef"
+    :src="widgetUrl"
+    :style="{ width: '100%', height: height + 'px', border: 'none' }"
+    allow="payment"
+  /&gt;
+&lt;/template&gt;
+
+&lt;script setup&gt;
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+
+const props = defineProps({
+  tenantSlug: { type: String, required: true },
+  theme: { type: String, default: 'light' }
+});
+
+const emit = defineEmits(['cart-update', 'checkout']);
+
+const widgetRef = ref(null);
+const height = ref(700);
+
+const widgetUrl = computed(() =>
+  `https://your-domain.com/embed/${props.tenantSlug}/products?theme=${props.theme}`
+);
+
+function handleMessage(event) {
+  if (!event.data?.type?.startsWith('bh:')) return;
+
+  if (event.data.type === 'bh:cart:updated') {
+    emit('cart-update', event.data.cart, event.data.total);
+  } else if (event.data.type === 'bh:height:changed') {
+    height.value = event.data.height;
+  } else if (event.data.type === 'bh:checkout:requested') {
+    emit('checkout', event.data);
+  }
+}
+
+onMounted(() => window.addEventListener('message', handleMessage));
+onUnmounted(() => window.removeEventListener('message', handleMessage));
+
+function sendCommand(type, payload = {}) {
+  widgetRef.value?.contentWindow?.postMessage({ type, ...payload }, '*');
+}
+
+defineExpose({ sendCommand });
+&lt;/script&gt;</div>
+      </div>
+    </div>
+
+    <!-- API Reference -->
+    <div class="card" style="margin-top: 1rem;">
+      <div class="card-header">
+        <h3>PostMessage API Reference</h3>
+      </div>
+      <div class="card-body">
+        <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: #374151;">Events (Widget → Parent)</h4>
+        <table style="width: 100%; font-size: 0.75rem; margin-bottom: 1rem; border-collapse: collapse;">
+          <tr style="background: #f3f4f6;"><th style="padding: 0.5rem; text-align: left;">Event</th><th style="padding: 0.5rem; text-align: left;">Data</th></tr>
+          <tr><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;"><code>bh:ready</code></td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">{ tenantSlug, widgetType, version }</td></tr>
+          <tr><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;"><code>bh:cart:updated</code></td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">{ cart, total, itemCount }</td></tr>
+          <tr><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;"><code>bh:checkout:requested</code></td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">{ tenantSlug, cart, total, checkoutUrl }</td></tr>
+          <tr><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;"><code>bh:height:changed</code></td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">{ height }</td></tr>
+          <tr><td style="padding: 0.5rem;"><code>bh:item:clicked</code></td><td style="padding: 0.5rem;">{ item: { id, name, slug } }</td></tr>
+        </table>
+
+        <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; color: #374151;">Commands (Parent → Widget)</h4>
+        <table style="width: 100%; font-size: 0.75rem; border-collapse: collapse;">
+          <tr style="background: #f3f4f6;"><th style="padding: 0.5rem; text-align: left;">Command</th><th style="padding: 0.5rem; text-align: left;">Payload</th></tr>
+          <tr><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;"><code>bh:cart:add</code></td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">{ itemId, quantity? }</td></tr>
+          <tr><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;"><code>bh:cart:remove</code></td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">{ itemId }</td></tr>
+          <tr><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;"><code>bh:cart:clear</code></td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">(none)</td></tr>
+          <tr><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;"><code>bh:navigate</code></td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">{ to: 'checkout' | 'products' }</td></tr>
+          <tr><td style="padding: 0.5rem;"><code>bh:theme:set</code></td><td style="padding: 0.5rem;">{ theme: 'light' | 'dark' | 'auto' }</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Query Parameters -->
+    <div class="card" style="margin-top: 1rem;">
+      <div class="card-header">
+        <h3>Widget URL Parameters</h3>
+      </div>
+      <div class="card-body">
+        <table style="width: 100%; font-size: 0.75rem; border-collapse: collapse;">
+          <tr style="background: #f3f4f6;"><th style="padding: 0.5rem; text-align: left;">Parameter</th><th style="padding: 0.5rem; text-align: left;">Default</th><th style="padding: 0.5rem; text-align: left;">Description</th></tr>
+          <tr><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;"><code>theme</code></td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">auto</td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">light, dark, or auto (follows system)</td></tr>
+          <tr><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;"><code>category</code></td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">-</td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Filter by category ID</td></tr>
+          <tr><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;"><code>featured</code></td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">false</td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Show only featured items</td></tr>
+          <tr><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;"><code>limit</code></td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">12</td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Items per page</td></tr>
+          <tr><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;"><code>hideFilters</code></td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">false</td><td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">Hide search/filter controls</td></tr>
+          <tr><td style="padding: 0.5rem;"><code>hideCart</code></td><td style="padding: 0.5rem;">false</td><td style="padding: 0.5rem;">Hide cart sidebar</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const widget = document.getElementById('widget-frame');
+    const eventLog = document.getElementById('event-log');
+    const statusBadge = document.getElementById('status-badge');
+    const cartSummary = document.getElementById('cart-summary');
+    const cartEmpty = document.getElementById('cart-empty');
+    const cartItems = document.getElementById('cart-items');
+    const cartTotal = document.getElementById('cart-total');
+    let isFirstEvent = true;
+
+    // Listen for messages from widget
+    window.addEventListener('message', (event) => {
+      // Only handle bh: prefixed messages
+      if (!event.data?.type?.startsWith('bh:')) return;
+
+      logEvent(event.data, 'incoming');
+
+      // Handle specific events
+      switch (event.data.type) {
+        case 'bh:ready':
+          statusBadge.textContent = 'Connected';
+          statusBadge.className = 'badge badge-success';
+          break;
+
+        case 'bh:cart:updated':
+          updateCartDisplay(event.data.cart, event.data.total);
+          break;
+
+        case 'bh:checkout:requested':
+          // In a real integration, you might redirect or show a modal
+          console.log('Checkout URL:', event.data.checkoutUrl);
+          break;
+
+        case 'bh:height:changed':
+          // Auto-resize iframe if needed
+          // widget.style.height = event.data.height + 'px';
+          break;
+      }
+    });
+
+    function logEvent(data, direction) {
+      if (isFirstEvent) {
+        eventLog.innerHTML = '';
+        isFirstEvent = false;
+      }
+
+      const item = document.createElement('div');
+      item.className = `event-item ${direction}`;
+      item.innerHTML = `
+        <div class="event-type">${direction === 'incoming' ? '← ' : '→ '}${data.type}</div>
+        <div class="event-data">${JSON.stringify(data, null, 2).substring(0, 200)}...</div>
+      `;
+      eventLog.insertBefore(item, eventLog.firstChild);
+
+      // Keep only last 20 events
+      while (eventLog.children.length > 20) {
+        eventLog.removeChild(eventLog.lastChild);
+      }
+    }
+
+    function updateCartDisplay(cart, total) {
+      if (!cart || cart.length === 0) {
+        cartSummary.style.display = 'none';
+        cartEmpty.style.display = 'block';
+        return;
+      }
+
+      cartSummary.style.display = 'block';
+      cartEmpty.style.display = 'none';
+
+      cartItems.innerHTML = cart.map(item => `
+        <div class="cart-item">
+          <span>${item.name} x${item.quantity}</span>
+          <span>$${(item.price * item.quantity).toFixed(2)}</span>
+        </div>
+      `).join('');
+
+      cartTotal.textContent = '$' + total.toFixed(2);
+    }
+
+    function sendCommand(type, payload = {}) {
+      const message = { type, ...payload };
+      widget.contentWindow.postMessage(message, '*');
+      logEvent(message, 'outgoing');
+    }
+
+    function setTheme(theme) {
+      sendCommand('bh:theme:set', { theme });
+
+      // Update button states
+      document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

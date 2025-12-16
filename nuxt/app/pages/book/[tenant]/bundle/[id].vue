@@ -52,7 +52,7 @@ onMounted(async () => {
 
     // Load items and bundle in parallel
     const config = useRuntimeConfig()
-    const [loadedItems, loadedBundle] = await Promise.all([
+    const [{ items: loadedItems }, loadedBundle] = await Promise.all([
       loadItems(loadedTenant.id),
       $fetch<Bundle>(`${config.public.payloadUrl}/api/bundles/${bundleId}`, {
         params: { depth: 2 }

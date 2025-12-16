@@ -9,14 +9,45 @@ const route = useRoute()
 const router = useRouter()
 const tenantSlug = route.params.tenant as string
 
-const { items, total, clear } = useCart()
+const { items, total, clear, addItem } = useCart()
 const { loadTenant, createBooking, createCheckoutSession, loading: _loading, error: _error } = usePublicBooking()
 const customerInfo = ref<CustomerInfo | null>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const tenantData = ref<any>(null)
 
-// Load tenant and redirect if cart is empty
+// Load tenant and handle cart data from URL (from embed widget)
 onMounted(async () => {
+  // Check if cart data is passed via URL from embed widget
+  const cartParam = route.query.cart as string
+  if (cartParam && items.value.length === 0) {
+    try {
+      const embedCart = JSON.parse(decodeURIComponent(cartParam))
+      // Convert embed cart format to useCart format
+      // Embed format: {id, name, price, image, quantity}
+      // useCart format: {id, itemId, itemName, itemSlug, itemImage, startDate, endDate, basePrice, addOns, quantity}
+      const tomorrow = new Date()
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      const dayAfter = new Date()
+      dayAfter.setDate(dayAfter.getDate() + 2)
+
+      for (const embedItem of embedCart) {
+        addItem({
+          itemId: embedItem.id,
+          itemName: embedItem.name,
+          itemSlug: embedItem.name.toLowerCase().replace(/\s+/g, '-'),
+          itemImage: embedItem.image,
+          startDate: tomorrow.toISOString().split('T')[0] as string,
+          endDate: dayAfter.toISOString().split('T')[0] as string,
+          basePrice: embedItem.price,
+          addOns: [],
+          quantity: embedItem.quantity || 1
+        })
+      }
+    } catch (e) {
+      console.error('Failed to parse cart from URL:', e)
+    }
+  }
+
   if (items.value.length === 0) {
     router.push(`/book/${tenantSlug}`)
     return

@@ -46,46 +46,19 @@ export default defineEventHandler(async (event) => {
   const customerName = `${body.firstName} ${body.lastName}`.trim()
 
   try {
-    // Check if customer already exists by email for this tenant
-    const existingUrl = `${payloadUrl}/api/customers?where[email][equals]=${encodeURIComponent(body.email)}&where[tenantId][equals]=${body.tenantId}&limit=1`
+    // For public booking, always create a new customer record
+    // The customer sync system will handle deduplication in rb-payload
+    // This avoids needing read access which requires authentication
 
-    const existingResponse = await $fetch<CustomerResponse>(existingUrl, {
-      headers
-    })
+    // Map address fields to match Payload Customers collection schema
+    // Frontend sends 'zip' but collection expects 'zipCode'
+    const mappedAddress = body.address ? {
+      street: body.address.street,
+      city: body.address.city,
+      state: body.address.state,
+      zipCode: body.address.zip || body.address.zipCode
+    } : undefined
 
-    if (existingResponse.docs && existingResponse.docs.length > 0) {
-      // Update existing customer with new info
-      const existingCustomer = existingResponse.docs[0]
-
-      if (!existingCustomer?.id) {
-        throw createError({
-          statusCode: 500,
-          message: 'Invalid customer data returned'
-        })
-      }
-
-      const updateResponse = await $fetch<CustomerResponse>(`${payloadUrl}/api/customers/${existingCustomer.id}`, {
-        method: 'PATCH',
-        headers,
-        body: {
-          name: customerName,
-          phone: body.phone,
-          address: body.address
-        }
-      })
-
-      return {
-        customer: {
-          id: updateResponse.doc?.id || existingCustomer.id,
-          firstName: body.firstName,
-          lastName: body.lastName,
-          email: body.email,
-          isNew: false
-        }
-      }
-    }
-
-    // Create new customer
     const createResponse = await $fetch<CustomerResponse>(`${payloadUrl}/api/customers`, {
       method: 'POST',
       headers,
@@ -94,8 +67,7 @@ export default defineEventHandler(async (event) => {
         name: customerName,
         email: body.email,
         phone: body.phone,
-        address: body.address,
-        source: 'website'
+        address: mappedAddress
       }
     })
 
@@ -109,7 +81,7 @@ export default defineEventHandler(async (event) => {
       }
     }
   } catch (error: unknown) {
-    console.error('Failed to create/find customer:', error)
+    console.error('Failed to create customer:', error)
 
     const message = error instanceof Error ? error.message : 'Unknown error'
     throw createError({

@@ -31,7 +31,7 @@ onMounted(async () => {
   }
 
   // Load all items for this tenant
-  const loadedItems = await loadItems(loadedTenant.id)
+  const { items: loadedItems } = await loadItems(loadedTenant.id)
 
   // Find the specific item by slug
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

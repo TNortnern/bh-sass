@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BouncePro Universal Embed Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+      line-height: 1.6;
+    }
+    .header {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    .header p {
+      opacity: 0.9;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 0;
+    }
+    .tab {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #6b7280;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.15s;
+    }
+    .tab:hover {
+      color: #374151;
+    }
+    .tab.active {
+      color: #f97316;
+      border-bottom-color: #f97316;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .card-header {
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-header h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #374151;
+    }
+    .card-body {
+      padding: 1.5rem;
+    }
+    .demo-container {
+      min-height: 600px;
+      background: #f9fafb;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .code-block {
+      background: #1f2937;
+      color: #e5e7eb;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.75rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      background: #dcfce7;
+      color: #166534;
+    }
+    .badge-info {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    .badge-warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .config-item label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #6b7280;
+      margin-bottom: 0.25rem;
+    }
+    .config-item input,
+    .config-item select {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 0.875rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-primary {
+      background: #f97316;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #ea580c;
+    }
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    .btn-secondary:hover {
+      background: #d1d5db;
+    }
+    .btn-sm {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 768px) {
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .feature-card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .feature-card h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .feature-card p {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    .api-table {
+      width: 100%;
+      font-size: 0.75rem;
+      border-collapse: collapse;
+    }
+    .api-table th,
+    .api-table td {
+      padding: 0.5rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .api-table th {
+      background: #f3f4f6;
+      font-weight: 600;
+    }
+    .api-table code {
+      background: #f3f4f6;
+      padding: 0.125rem 0.375rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+    }
+    .event-log {
+      max-height: 200px;
+      overflow-y: auto;
+      background: #f9fafb;
+      border-radius: 6px;
+      padding: 0.5rem;
+      font-family: monospace;
+      font-size: 0.7rem;
+    }
+    .event-item {
+      padding: 0.25rem 0.5rem;
+      margin-bottom: 0.25rem;
+      background: white;
+      border-radius: 4px;
+      border-left: 3px solid #3b82f6;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      padding: 0.25rem 0.5rem;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      border-radius: 4px;
+      color: #9ca3af;
+      cursor: pointer;
+      font-size: 0.7rem;
+    }
+    .copy-btn:hover {
+      background: rgba(255,255,255,0.2);
+      color: white;
+    }
+    .code-container {
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>BouncePro Universal Embed</h1>
+    <p>Embed booking widgets on any website with a single script tag</p>
+  </div>
+
+  <div class="container">
+    <!-- Feature Highlights -->
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Single Script</h4>
+        <p>One script tag, automatic mounting, zero configuration required</p>
+      </div>
+      <div class="feature-card">
+        <h4>3 Behavior Modes</h4>
+        <p>Modal (single-page), Navigate (multi-page), or Hosted checkout</p>
+      </div>
+      <div class="feature-card">
+        <h4>Deep Linking</h4>
+        <p>Shareable URLs, back button works, SEO-friendly</p>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="demo">Live Demo</button>
+      <button class="tab" data-tab="html">HTML</button>
+      <button class="tab" data-tab="wordpress">WordPress</button>
+      <button class="tab" data-tab="react">React</button>
+      <button class="tab" data-tab="vue">Vue</button>
+      <button class="tab" data-tab="api">API Reference</button>
+    </div>
+
+    <!-- Tab Content: Live Demo -->
+    <div class="tab-content active" data-tab="demo">
+      <!-- Configuration Panel -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Widget Configuration</h3>
+          <button class="btn btn-primary btn-sm" onclick="updateWidget()">Apply Changes</button>
+        </div>
+        <div class="card-body">
+          <!-- Tenant Selection Banner -->
+          <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
+            <div style="flex-shrink: 0;">
+              <svg style="width: 24px; height: 24px; color: #92400e;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+            </div>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; color: #92400e; font-size: 0.875rem;">Try Different Demo Businesses</div>
+              <div style="color: #a16207; font-size: 0.75rem;">Switch between demo tenants to see how the widget looks with different inventory</div>
+            </div>
+            <select id="config-tenant" onchange="updateWidget()" style="padding: 0.5rem 1rem; border: 2px solid #f59e0b; border-radius: 6px; font-size: 0.875rem; font-weight: 500; background: white; cursor: pointer; min-width: 200px;">
+              <option value="bouncepro-demo">BouncePro Demo Rentals (5 items)</option>
+              <option value="qa-test-company">QA Test Company (empty)</option>
+              <option value="sync-test-rentals">Sync Test Rentals (empty)</option>
+            </select>
+          </div>
+
+          <div class="config-grid">
+            <div class="config-item">
+              <label>Behavior Mode</label>
+              <select id="config-behavior">
+                <option value="modal">Modal (single-page)</option>
+                <option value="navigate">Navigate (multi-page)</option>
+                <option value="hosted">Hosted (redirect)</option>
+              </select>
+            </div>
+            <div class="config-item">
+              <label>Theme</label>
+              <select id="config-theme" onchange="updateWidgetTheme()">
+                <option value="auto">Auto (system)</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+            <div class="config-item">
+              <label>Primary Color</label>
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="color" id="config-primary-color" value="#f97316" style="width: 40px; height: 32px; padding: 0; border: 1px solid #e5e7eb; border-radius: 4px; cursor: pointer;">
+                <input type="text" id="config-primary-color-hex" value="#f97316" placeholder="#f97316" style="flex: 1;" oninput="syncColorFromHex()">
+              </div>
+            </div>
+            <div class="config-item">
+              <label>Product URL Pattern</label>
+              <input type="text" id="config-product-url" placeholder="/products/{slug}">
+            </div>
+            <div class="config-item">
+              <label>Checkout URL</label>
+              <input type="text" id="config-checkout-url" placeholder="/checkout">
+            </div>
+            <div class="config-item">
+              <label>Category Filter</label>
+              <input type="text" id="config-category" placeholder="optional">
+            </div>
+            <div class="config-item">
+              <label>Items Per Page</label>
+              <select id="config-per-page">
+                <option value="6">6</option>
+                <option value="12" selected>12</option>
+                <option value="24">24</option>
+                <option value="48">48</option>
+              </select>
+            </div>
+            <div class="config-item">
+              <label>Default Sort</label>
+              <select id="config-default-sort">
+                <option value="name">Name (A-Z)</option>
+                <option value="price">Price (Low to High)</option>
+                <option value="price-desc">Price (High to Low)</option>
+              </select>
+            </div>
+            <div class="config-item">
+              <label>Custom Tenant (optional)</label>
+              <input type="text" id="config-tenant-custom" placeholder="Enter custom tenant slug" oninput="handleCustomTenant()">
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 1rem; align-items: center;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+              <input type="checkbox" id="config-hide-filters"> Hide Filters
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+              <input type="checkbox" id="config-hide-cart"> Hide Cart
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+              <input type="checkbox" id="config-featured"> Featured Only
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Widget Type Selection -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Widget Type</h3>
+        </div>
+        <div class="card-body">
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.15s;" class="widget-type-option" data-type="products">
+              <input type="radio" name="widget-type" value="products" checked onchange="updateWidgetType()">
+              <div>
+                <div style="font-weight: 600; font-size: 0.875rem;">Products Grid</div>
+                <div style="font-size: 0.75rem; color: #6b7280;">Full catalog with search, filters, cart</div>
+              </div>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.15s;" class="widget-type-option" data-type="categories">
+              <input type="radio" name="widget-type" value="categories" onchange="updateWidgetType()">
+              <div>
+                <div style="font-weight: 600; font-size: 0.875rem;">Categories</div>
+                <div style="font-size: 0.75rem; color: #6b7280;">Visual category browser</div>
+              </div>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.15s;" class="widget-type-option" data-type="featured">
+              <input type="radio" name="widget-type" value="featured" onchange="updateWidgetType()">
+              <div>
+                <div style="font-weight: 600; font-size: 0.875rem;">Featured Items</div>
+                <div style="font-size: 0.75rem; color: #6b7280;">Showcase top rentals</div>
+              </div>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; transition: all 0.15s;" class="widget-type-option" data-type="cart">
+              <input type="radio" name="widget-type" value="cart" onchange="updateWidgetType()">
+              <div>
+                <div style="font-weight: 600; font-size: 0.875rem;">Cart Only</div>
+                <div style="font-size: 0.75rem; color: #6b7280;">Standalone cart widget</div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Widget Demo -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Live Widget Preview</h3>
+          <span class="badge" id="widget-status">Loading...</span>
+        </div>
+        <div class="card-body">
+          <div class="demo-container" id="widget-container">
+            <!-- Widget will be mounted here -->
+            <div
+              data-bh-widget="products"
+              data-tenant="bouncepro-demo"
+              data-behavior="modal"
+              data-theme="light"
+              id="demo-widget"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event Log -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Event Log</h3>
+          <button class="btn btn-secondary btn-sm" onclick="clearEventLog()">Clear</button>
+        </div>
+        <div class="card-body">
+          <div class="event-log" id="event-log">
+            <div style="color: #9ca3af;">Waiting for events...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generated Code -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Generated Embed Code</h3>
+        </div>
+        <div class="card-body">
+          <div class="code-container">
+            <pre class="code-block" id="generated-code"></pre>
+            <button class="copy-btn" onclick="copyCode()">Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content: HTML -->
+    <div class="tab-content" data-tab="html">
+      <div class="card">
+        <div class="card-header">
+          <h3>Basic HTML Integration</h3>
+          <span class="badge">Simplest</span>
+        </div>
+        <div class="card-body">
+          <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">
+            Just paste this code anywhere on your page. The widget auto-mounts and handles everything.
+          </p>
+          <div class="code-container">
+            <pre class="code-block">&lt;!-- BouncePro Booking Widget --&gt;
+&lt;div
+  data-bh-widget="products"
+  data-tenant="YOUR-TENANT-SLUG"
+  data-behavior="modal"
+  data-theme="auto"
+&gt;&lt;/div&gt;
+&lt;script async src="https://your-domain.com/embed.js"&gt;&lt;/script&gt;</pre>
+          </div>
+
+          <h4 style="margin: 1.5rem 0 0.75rem; font-size: 0.875rem; font-weight: 600;">Multi-Page Setup (Optional)</h4>
+          <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">
+            For a more "native" feel with real URLs, create separate pages:
+          </p>
+          <div class="code-container">
+            <pre class="code-block">&lt;!-- /products page --&gt;
+&lt;div
+  data-bh-widget="products"
+  data-tenant="acme-rentals"
+  data-behavior="navigate"
+  data-product-url="/products/{slug}"
+  data-checkout-url="/checkout"
+&gt;&lt;/div&gt;
+
+&lt;!-- /products/[slug] page --&gt;
+&lt;div
+  data-bh-widget="product"
+  data-tenant="acme-rentals"
+  data-product-slug="giant-bounce-house"
+&gt;&lt;/div&gt;
+
+&lt;!-- /checkout page --&gt;
+&lt;div
+  data-bh-widget="checkout"
+  data-tenant="acme-rentals"
+&gt;&lt;/div&gt;
+
+&lt;!-- Include once on all pages --&gt;
+&lt;script async src="https://your-domain.com/embed.js"&gt;&lt;/script&gt;</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content: WordPress -->
+    <div class="tab-content" data-tab="wordpress">
+      <div class="card">
+        <div class="card-header">
+          <h3>WordPress Integration</h3>
+          <span class="badge badge-info">No Plugin Needed</span>
+        </div>
+        <div class="card-body">
+          <h4 style="margin-bottom: 0.75rem; font-size: 0.875rem; font-weight: 600;">Option 1: Custom HTML Block (Easiest)</h4>
+          <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">
+            In Gutenberg editor, add a "Custom HTML" block and paste:
+          </p>
+          <div class="code-container">
+            <pre class="code-block">&lt;div id="bouncepro-booking"&gt;
+  &lt;div
+    data-bh-widget="products"
+    data-tenant="YOUR-TENANT-SLUG"
+    data-behavior="modal"
+    data-theme="auto"
+  &gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;script async src="https://your-domain.com/embed.js"&gt;&lt;/script&gt;</pre>
+          </div>
+
+          <h4 style="margin: 1.5rem 0 0.75rem; font-size: 0.875rem; font-weight: 600;">Option 2: Add to Theme (Site-wide)</h4>
+          <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">
+            Add to your theme's footer.php or use a plugin like "Insert Headers and Footers":
+          </p>
+          <div class="code-container">
+            <pre class="code-block">&lt;!-- Add to footer (before &lt;/body&gt;) --&gt;
+&lt;script async src="https://your-domain.com/embed.js"&gt;&lt;/script&gt;</pre>
+          </div>
+          <p style="margin-top: 0.5rem; color: #6b7280; font-size: 0.75rem;">
+            Then use the widget div on any page/post via Custom HTML block.
+          </p>
+
+          <h4 style="margin: 1.5rem 0 0.75rem; font-size: 0.875rem; font-weight: 600;">Option 3: Shortcode (Advanced)</h4>
+          <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.875rem;">
+            Add this to your theme's functions.php to create a [bouncepro] shortcode:
+          </p>
+          <div class="code-container">
+            <pre class="code-block">// Add to functions.php
+function bouncepro_shortcode($atts) {
+    $atts = shortcode_atts(array(
+        'tenant' => '',
+        'widget' => 'products',
+        'behavior' => 'modal',
+        'theme' => 'auto',
+    ), $atts);
+
+    $html = '&lt;div
+        data-bh-widget="' . esc_attr($atts['widget']) . '"
+        data-tenant="' . esc_attr($atts['tenant']) . '"
+        data-behavior="' . esc_attr($atts['behavior']) . '"
+        data-theme="' . esc_attr($atts['theme']) . '"
+    &gt;&lt;/div&gt;';
+
+    return $html;
+}
+add_shortcode('bouncepro', 'bouncepro_shortcode');
+
+// Enqueue the embed script
+function bouncepro_enqueue_script() {
+    wp_enqueue_script('bouncepro-embed', 'https://your-domain.com/embed.js', array(), null, true);
+}
+add_action('wp_enqueue_scripts', 'bouncepro_enqueue_script');</pre>
+          </div>
+          <p style="margin-top: 0.5rem; color: #6b7280; font-size: 0.75rem;">
+            Usage: <code>[bouncepro tenant="acme-rentals" behavior="modal"]</code>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content: React -->
+    <div class="tab-content" data-tab="react">
+      <div class="card">
+        <div class="card-header">
+          <h3>React Integration</h3>
+          <span class="badge badge-warning">TypeScript Ready</span>
+        </div>
+        <div class="card-body">
+          <h4 style="margin-bottom: 0.75rem; font-size: 0.875rem; font-weight: 600;">React Component Wrapper</h4>
+          <div class="code-container">
+            <pre class="code-block">// BounceProWidget.tsx
+import { useEffect, useRef } from 'react';
+
+interface BounceProWidgetProps {
+  tenant: string;
+  widget?: 'products' | 'product' | 'checkout' | 'cart';
+  behavior?: 'modal' | 'navigate' | 'hosted';
+  theme?: 'light' | 'dark' | 'auto';
+  productUrl?: string;
+  checkoutUrl?: string;
+  productSlug?: string;
+  category?: string;
+  hideFilters?: boolean;
+  hideCart?: boolean;
+  onCartUpdate?: (cart: any[], total: number) => void;
+  onCheckout?: (data: any) => void;
+}
+
+export function BounceProWidget({
+  tenant,
+  widget = 'products',
+  behavior = 'modal',
+  theme = 'auto',
+  productUrl,
+  checkoutUrl,
+  productSlug,
+  category,
+  hideFilters,
+  hideCart,
+  onCartUpdate,
+  onCheckout
+}: BounceProWidgetProps) {
+  const containerRef = useRef&lt;HTMLDivElement&gt;(null);
+
+  useEffect(() => {
+    // Load embed script once
+    if (!document.querySelector('script[src*="embed.js"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://your-domain.com/embed.js';
+      script.async = true;
+      document.body.appendChild(script);
+    } else if (window.BH) {
+      // Re-mount if script already loaded
+      window.BH.mountAll();
+    }
+
+    // Listen for events
+    const handleEvent = (e: CustomEvent) => {
+      if (e.type === 'bh:cart:updated' && onCartUpdate) {
+        onCartUpdate(e.detail.cart, e.detail.total);
+      }
+    };
+
+    window.addEventListener('bh:cart:updated', handleEvent as EventListener);
+    return () => window.removeEventListener('bh:cart:updated', handleEvent as EventListener);
+  }, [onCartUpdate]);
+
+  return (
+    &lt;div
+      ref={containerRef}
+      data-bh-widget={widget}
+      data-tenant={tenant}
+      data-behavior={behavior}
+      data-theme={theme}
+      data-product-url={productUrl}
+      data-checkout-url={checkoutUrl}
+      data-product-slug={productSlug}
+      data-category={category}
+      data-hide-filters={hideFilters ? 'true' : undefined}
+      data-hide-cart={hideCart ? 'true' : undefined}
+    /&gt;
+  );
+}
+
+// Usage:
+// &lt;BounceProWidget
+//   tenant="acme-rentals"
+//   behavior="modal"
+//   onCartUpdate={(cart, total) => console.log('Cart:', cart, total)}
+// /&gt;</pre>
+          </div>
+
+          <h4 style="margin: 1.5rem 0 0.75rem; font-size: 0.875rem; font-weight: 600;">Next.js App Router</h4>
+          <div class="code-container">
+            <pre class="code-block">// app/rentals/page.tsx
+'use client';
+
+import { BounceProWidget } from '@/components/BounceProWidget';
+
+export default function RentalsPage() {
+  return (
+    &lt;main&gt;
+      &lt;h1&gt;Browse Our Rentals&lt;/h1&gt;
+      &lt;BounceProWidget
+        tenant="acme-rentals"
+        behavior="navigate"
+        productUrl="/rentals/{slug}"
+        checkoutUrl="/checkout"
+      /&gt;
+    &lt;/main&gt;
+  );
+}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content: Vue -->
+    <div class="tab-content" data-tab="vue">
+      <div class="card">
+        <div class="card-header">
+          <h3>Vue 3 Integration</h3>
+          <span class="badge badge-info">Composition API</span>
+        </div>
+        <div class="card-body">
+          <div class="code-container">
+            <pre class="code-block">&lt;!-- BounceProWidget.vue --&gt;
+&lt;template&gt;
+  &lt;div
+    ref="containerRef"
+    :data-bh-widget="widget"
+    :data-tenant="tenant"
+    :data-behavior="behavior"
+    :data-theme="theme"
+    :data-product-url="productUrl"
+    :data-checkout-url="checkoutUrl"
+    :data-product-slug="productSlug"
+    :data-category="category"
+    :data-hide-filters="hideFilters ? 'true' : undefined"
+    :data-hide-cart="hideCart ? 'true' : undefined"
+  /&gt;
+&lt;/template&gt;
+
+&lt;script setup lang="ts"&gt;
+import { ref, onMounted, onUnmounted } from 'vue';
+
+interface Props {
+  tenant: string;
+  widget?: 'products' | 'product' | 'checkout' | 'cart';
+  behavior?: 'modal' | 'navigate' | 'hosted';
+  theme?: 'light' | 'dark' | 'auto';
+  productUrl?: string;
+  checkoutUrl?: string;
+  productSlug?: string;
+  category?: string;
+  hideFilters?: boolean;
+  hideCart?: boolean;
+}
+
+const props = withDefaults(defineProps&lt;Props&gt;(), {
+  widget: 'products',
+  behavior: 'modal',
+  theme: 'auto'
+});
+
+const emit = defineEmits&lt;{
+  cartUpdate: [cart: any[], total: number];
+  checkout: [data: any];
+}&gt;();
+
+const containerRef = ref&lt;HTMLDivElement | null&gt;(null);
+
+function handleCartUpdate(e: CustomEvent) {
+  emit('cartUpdate', e.detail.cart, e.detail.total);
+}
+
+onMounted(() => {
+  // Load embed script
+  if (!document.querySelector('script[src*="embed.js"]')) {
+    const script = document.createElement('script');
+    script.src = 'https://your-domain.com/embed.js';
+    script.async = true;
+    document.body.appendChild(script);
+  } else if (window.BH) {
+    window.BH.mountAll();
+  }
+
+  window.addEventListener('bh:cart:updated', handleCartUpdate as EventListener);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('bh:cart:updated', handleCartUpdate as EventListener);
+});
+&lt;/script&gt;
+
+&lt;!-- Usage in parent component --&gt;
+&lt;!--
+&lt;BounceProWidget
+  tenant="acme-rentals"
+  behavior="modal"
+  @cart-update="(cart, total) => console.log(cart, total)"
+/&gt;
+--&gt;</pre>
+          </div>
+
+          <h4 style="margin: 1.5rem 0 0.75rem; font-size: 0.875rem; font-weight: 600;">Nuxt 3</h4>
+          <div class="code-container">
+            <pre class="code-block">// nuxt.config.ts - add to head
+export default defineNuxtConfig({
+  app: {
+    head: {
+      script: [
+        { src: 'https://your-domain.com/embed.js', async: true }
+      ]
+    }
+  }
+})
+
+// pages/rentals.vue
+&lt;template&gt;
+  &lt;div&gt;
+    &lt;h1&gt;Our Rentals&lt;/h1&gt;
+    &lt;div
+      data-bh-widget="products"
+      data-tenant="acme-rentals"
+      data-behavior="modal"
+    /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content: API Reference -->
+    <div class="tab-content" data-tab="api">
+      <div class="card">
+        <div class="card-header">
+          <h3>Widget Attributes</h3>
+        </div>
+        <div class="card-body">
+          <table class="api-table">
+            <tr>
+              <th>Attribute</th>
+              <th>Required</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+            <tr>
+              <td><code>data-bh-widget</code></td>
+              <td>Yes</td>
+              <td>-</td>
+              <td>Widget type: products, product, categories, featured, checkout, cart</td>
+            </tr>
+            <tr>
+              <td><code>data-tenant</code></td>
+              <td>Yes</td>
+              <td>-</td>
+              <td>Your tenant slug</td>
+            </tr>
+            <tr>
+              <td><code>data-behavior</code></td>
+              <td>No</td>
+              <td>modal</td>
+              <td>modal, navigate, or hosted</td>
+            </tr>
+            <tr>
+              <td><code>data-theme</code></td>
+              <td>No</td>
+              <td>auto</td>
+              <td>light, dark, or auto</td>
+            </tr>
+            <tr>
+              <td><code>data-product-url</code></td>
+              <td>No</td>
+              <td>-</td>
+              <td>URL pattern for product pages. Use {slug} or {id}</td>
+            </tr>
+            <tr>
+              <td><code>data-checkout-url</code></td>
+              <td>No</td>
+              <td>-</td>
+              <td>URL for checkout page</td>
+            </tr>
+            <tr>
+              <td><code>data-product-slug</code></td>
+              <td>No*</td>
+              <td>-</td>
+              <td>For product widget: which product to show</td>
+            </tr>
+            <tr>
+              <td><code>data-category</code></td>
+              <td>No</td>
+              <td>-</td>
+              <td>Filter by category ID</td>
+            </tr>
+            <tr>
+              <td><code>data-hide-filters</code></td>
+              <td>No</td>
+              <td>false</td>
+              <td>Hide search/filter controls</td>
+            </tr>
+            <tr>
+              <td><code>data-hide-cart</code></td>
+              <td>No</td>
+              <td>false</td>
+              <td>Hide cart sidebar</td>
+            </tr>
+            <tr>
+              <td><code>data-primary-color</code></td>
+              <td>No</td>
+              <td>#f97316</td>
+              <td>Custom primary color (hex)</td>
+            </tr>
+            <tr>
+              <td><code>data-per-page</code></td>
+              <td>No</td>
+              <td>12</td>
+              <td>Number of items per page</td>
+            </tr>
+            <tr>
+              <td><code>data-default-sort</code></td>
+              <td>No</td>
+              <td>name</td>
+              <td>Default sort: name, price, price-desc</td>
+            </tr>
+            <tr>
+              <td><code>data-cart-element-id</code></td>
+              <td>No</td>
+              <td>-</td>
+              <td>ID of custom cart trigger element</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>JavaScript API</h3>
+        </div>
+        <div class="card-body">
+          <div class="code-container">
+            <pre class="code-block">// Global BH object is available after script loads
+
+// Add item to cart programmatically
+BH.addToCart('item-id', 1);
+
+// Clear cart
+BH.clearCart();
+
+// Set theme for all widgets
+BH.setTheme('dark');
+
+// Open checkout drawer/modal
+BH.openCheckout();
+
+// Close all modals/drawers
+BH.closeAllModals();
+
+// Listen for cart updates
+window.addEventListener('bh:cart:updated', (e) => {
+  console.log('Cart:', e.detail.cart);
+  console.log('Total:', e.detail.total);
+  console.log('Items:', e.detail.itemCount);
+});</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Behavior Modes Explained</h3>
+        </div>
+        <div class="card-body">
+          <table class="api-table">
+            <tr>
+              <th>Mode</th>
+              <th>Product Click</th>
+              <th>Checkout</th>
+              <th>Best For</th>
+            </tr>
+            <tr>
+              <td><code>modal</code></td>
+              <td>Opens modal on same page</td>
+              <td>Opens drawer on same page</td>
+              <td>Single-page sites, landing pages</td>
+            </tr>
+            <tr>
+              <td><code>navigate</code></td>
+              <td>Goes to product-url</td>
+              <td>Goes to checkout-url</td>
+              <td>Multi-page sites, WordPress</td>
+            </tr>
+            <tr>
+              <td><code>hosted</code></td>
+              <td>Opens modal</td>
+              <td>Redirects to hosted checkout</td>
+              <td>Minimal setup, no checkout page needed</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load the embed script -->
+  <script src="/embed.js"></script>
+
+  <script>
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+
+        // Update tab buttons
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // Update tab content
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelector(`.tab-content[data-tab="${tabName}"]`).classList.add('active');
+      });
+    });
+
+    // Event logging
+    let eventCount = 0;
+    window.addEventListener('message', (event) => {
+      if (!event.data?.type?.startsWith('bh:')) return;
+      logEvent(event.data);
+    });
+
+    window.addEventListener('bh:cart:updated', (e) => {
+      logEvent({ type: 'bh:cart:updated', ...e.detail });
+    });
+
+    function logEvent(data) {
+      const log = document.getElementById('event-log');
+      if (eventCount === 0) {
+        log.innerHTML = '';
+      }
+      eventCount++;
+
+      const item = document.createElement('div');
+      item.className = 'event-item';
+      item.innerHTML = `<strong>${data.type}</strong>: ${JSON.stringify(data).substring(0, 80)}...`;
+      log.insertBefore(item, log.firstChild);
+
+      // Update status badge
+      if (data.type === 'bh:ready') {
+        document.getElementById('widget-status').textContent = 'Connected';
+      }
+
+      // Keep only last 20
+      while (log.children.length > 20) {
+        log.removeChild(log.lastChild);
+      }
+    }
+
+    function clearEventLog() {
+      document.getElementById('event-log').innerHTML = '<div style="color: #9ca3af;">Waiting for events...</div>';
+      eventCount = 0;
+    }
+
+    // Handle custom tenant input
+    function handleCustomTenant() {
+      const customTenant = document.getElementById('config-tenant-custom').value.trim();
+      const tenantSelect = document.getElementById('config-tenant');
+
+      if (customTenant) {
+        // Check if custom option already exists
+        let customOption = tenantSelect.querySelector('option[value="__custom__"]');
+        if (!customOption) {
+          customOption = document.createElement('option');
+          customOption.value = '__custom__';
+          tenantSelect.appendChild(customOption);
+        }
+        customOption.textContent = `Custom: ${customTenant}`;
+        customOption.dataset.customValue = customTenant;
+        tenantSelect.value = '__custom__';
+      }
+    }
+
+    // Get current tenant value (handles custom input)
+    function getCurrentTenant() {
+      const tenantSelect = document.getElementById('config-tenant');
+      const customTenant = document.getElementById('config-tenant-custom').value.trim();
+
+      if (tenantSelect.value === '__custom__' && customTenant) {
+        return customTenant;
+      }
+      return tenantSelect.value;
+    }
+
+    // Color picker sync
+    document.getElementById('config-primary-color').addEventListener('input', function() {
+      document.getElementById('config-primary-color-hex').value = this.value;
+    });
+
+    function syncColorFromHex() {
+      const hex = document.getElementById('config-primary-color-hex').value;
+      if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+        document.getElementById('config-primary-color').value = hex;
+      }
+    }
+
+    // Live theme update without full reload
+    function updateWidgetTheme() {
+      const theme = document.getElementById('config-theme').value;
+      if (window.BH) {
+        window.BH.setTheme(theme);
+      }
+    }
+
+    // Update widget with new configuration
+    function updateWidget() {
+      const container = document.getElementById('widget-container');
+      const tenant = getCurrentTenant();
+      const behavior = document.getElementById('config-behavior').value;
+      const theme = document.getElementById('config-theme').value;
+      const primaryColor = document.getElementById('config-primary-color').value;
+      const productUrl = document.getElementById('config-product-url').value;
+      const checkoutUrl = document.getElementById('config-checkout-url').value;
+      const category = document.getElementById('config-category').value;
+      const perPage = document.getElementById('config-per-page').value;
+      const defaultSort = document.getElementById('config-default-sort').value;
+      const hideFilters = document.getElementById('config-hide-filters').checked;
+      const hideCart = document.getElementById('config-hide-cart').checked;
+      const featured = document.getElementById('config-featured').checked;
+
+      // Reset widget status
+      document.getElementById('widget-status').textContent = 'Loading...';
+      document.getElementById('widget-status').className = 'badge';
+
+      // Build attributes based on widget type
+      const widgetType = selectedWidgetType || 'products';
+      let attrs = `data-bh-widget="${widgetType}"\n  data-tenant="${tenant}"`;
+      if (behavior !== 'modal') attrs += `\n  data-behavior="${behavior}"`;
+      if (theme !== 'auto') attrs += `\n  data-theme="${theme}"`;
+      if (primaryColor !== '#f97316') attrs += `\n  data-primary-color="${primaryColor}"`;
+
+      // Products/Featured specific attributes
+      if (widgetType === 'products' || widgetType === 'featured') {
+        if (productUrl) attrs += `\n  data-product-url="${productUrl}"`;
+        if (checkoutUrl) attrs += `\n  data-checkout-url="${checkoutUrl}"`;
+        if (category) attrs += `\n  data-category="${category}"`;
+        if (perPage !== '12') attrs += `\n  data-per-page="${perPage}"`;
+        if (defaultSort !== 'name') attrs += `\n  data-default-sort="${defaultSort}"`;
+        if (hideFilters) attrs += `\n  data-hide-filters="true"`;
+        if (hideCart) attrs += `\n  data-hide-cart="true"`;
+        if (featured && widgetType === 'products') attrs += `\n  data-featured="true"`;
+      }
+
+      // Cart widget specific
+      if (widgetType === 'cart') {
+        if (checkoutUrl) attrs += `\n  data-checkout-url="${checkoutUrl}"`;
+      }
+
+      // Update generated code
+      document.getElementById('generated-code').textContent = `<div\n  ${attrs}\n></div>\n<script async src="https://your-domain.com/embed.js"><\/script>`;
+
+      // Recreate widget
+      container.innerHTML = `<div\n  ${attrs}\n></div>`;
+
+      // Remount
+      if (window.BH) {
+        window.BH.mountAll();
+      }
+    }
+
+    function copyCode() {
+      const code = document.getElementById('generated-code').textContent;
+      navigator.clipboard.writeText(code);
+      // Show toast notification
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position: fixed; bottom: 2rem; right: 2rem; background: #10b981; color: white; padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; z-index: 9999; animation: slideIn 0.2s ease-out;';
+      toast.textContent = 'Code copied to clipboard!';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2500);
+    }
+
+    // Track selected widget type
+    let selectedWidgetType = 'products';
+
+    function updateWidgetType() {
+      const selected = document.querySelector('input[name="widget-type"]:checked');
+      if (selected) {
+        selectedWidgetType = selected.value;
+
+        // Update visual selection
+        document.querySelectorAll('.widget-type-option').forEach(opt => {
+          opt.style.borderColor = opt.dataset.type === selectedWidgetType ? '#f97316' : '#e5e7eb';
+          opt.style.backgroundColor = opt.dataset.type === selectedWidgetType ? '#fff7ed' : 'transparent';
+        });
+
+        updateWidget();
+      }
+    }
+
+    // Initial code generation
+    updateWidget();
+
+    // Initialize widget type styling
+    updateWidgetType();
+  </script>
+</body>
+</html>

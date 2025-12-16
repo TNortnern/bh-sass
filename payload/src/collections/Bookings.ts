@@ -101,10 +101,15 @@ export const Bookings: CollectionConfig = {
       required: true,
       hooks: {
         beforeValidate: [
-          ({ req }) => {
-            // Always use the authenticated user's tenant - never allow client-provided tenantId
+          ({ req, value }) => {
+            // For authenticated users, always use their tenant (security)
             if (req.user?.tenantId) {
               return getTenantId(req.user)
+            }
+            // For public bookings (no authenticated user), allow the provided tenantId
+            // This enables the public booking widget to create bookings
+            if (value) {
+              return value
             }
             return undefined
           },

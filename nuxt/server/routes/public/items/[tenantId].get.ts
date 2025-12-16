@@ -60,7 +60,7 @@ function formatAgeRange(ageRange: { minAge?: number; maxAge?: number } | null | 
 }
 
 export default defineEventHandler(async (event) => {
-  const tenantId = getRouterParam(event, 'tenantId')
+  let tenantId = getRouterParam(event, 'tenantId')
 
   if (!tenantId) {
     throw createError({
@@ -81,11 +81,57 @@ export default defineEventHandler(async (event) => {
     headers['X-API-Key'] = apiKey
   }
 
-  try {
-    // Fetch active rental items from Payload
-    const url = `${payloadUrl}/api/rental-items?where[tenantId][equals]=${tenantId}&where[isActive][equals]=true&limit=100`
+  // If tenantId is not numeric, it's a slug - resolve to ID first
+  if (!/^\d+$/.test(tenantId)) {
+    try {
+      const tenantResponse = await $fetch<{ docs: Array<{ id: number | string }> }>(
+        `${payloadUrl}/api/tenants?where[slug][equals]=${tenantId}&limit=1`,
+        { headers }
+      )
+      const firstDoc = tenantResponse.docs?.[0]
+      if (firstDoc) {
+        tenantId = String(firstDoc.id)
+      } else {
+        throw createError({
+          statusCode: 404,
+          message: 'Tenant not found'
+        })
+      }
+    } catch (err) {
+      if ((err as { statusCode?: number }).statusCode === 404) throw err
+      console.error('Failed to resolve tenant slug:', err)
+      throw createError({
+        statusCode: 500,
+        message: 'Failed to resolve tenant'
+      })
+    }
+  }
 
-    const response = await $fetch<{ docs: RentalItemResponse[] }>(url, {
+  // Parse query params for pagination
+  const query = getQuery(event)
+  const page = parseInt(query.page as string) || 1
+  const limit = Math.min(parseInt(query.limit as string) || 100, 100) // Max 100 items per page
+  const sort = (query.sort as string) || 'name' // name, price, -price
+
+  // Map sort param to Payload CMS sort format
+  let payloadSort = 'name'
+  if (sort === 'price') payloadSort = 'pricing.dailyRate'
+  else if (sort === '-price' || sort === 'price-desc') payloadSort = '-pricing.dailyRate'
+  else if (sort === '-name') payloadSort = '-name'
+
+  try {
+    // Fetch active rental items from Payload with pagination
+    const url = `${payloadUrl}/api/rental-items?where[tenantId][equals]=${tenantId}&where[isActive][equals]=true&limit=${limit}&page=${page}&sort=${payloadSort}`
+
+    const response = await $fetch<{
+      docs: RentalItemResponse[]
+      totalDocs?: number
+      totalPages?: number
+      page?: number
+      limit?: number
+      hasNextPage?: boolean
+      hasPrevPage?: boolean
+    }>(url, {
       headers
     })
 
@@ -127,7 +173,15 @@ export default defineEventHandler(async (event) => {
     }))
 
     return {
-      items
+      items,
+      pagination: {
+        page: response.page || page,
+        limit: response.limit || limit,
+        totalDocs: response.totalDocs || items.length,
+        totalPages: response.totalPages || 1,
+        hasNextPage: response.hasNextPage || false,
+        hasPrevPage: response.hasPrevPage || false
+      }
     }
   } catch (error: unknown) {
     console.error('Failed to fetch rental items:', error)

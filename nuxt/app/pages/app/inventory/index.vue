@@ -111,6 +111,13 @@ const sortOptions = [
   { value: 'revenue', label: 'Revenue' },
   { value: 'newest', label: 'Newest First' }
 ]
+
+// Items with no units - won't be bookable
+const itemsWithoutUnits = computed(() => {
+  return filteredItems.value.filter(item =>
+    item.status === 'active' && (!item.totalUnits || item.totalUnits === 0)
+  )
+})
 </script>
 
 <template>
@@ -228,6 +235,17 @@ const sortOptions = [
         </div>
       </UCard>
     </div>
+
+    <!-- Warning for items without units -->
+    <UAlert
+      v-if="itemsWithoutUnits.length > 0"
+      icon="i-lucide-alert-triangle"
+      color="warning"
+      variant="subtle"
+      :title="`${itemsWithoutUnits.length} item${itemsWithoutUnits.length > 1 ? 's' : ''} with no units`"
+      :description="`The following items have no inventory units and won't be bookable: ${itemsWithoutUnits.map(i => i.name).join(', ')}`"
+      :close-button="{ icon: 'i-lucide-x', color: 'warning', variant: 'link', padded: false }"
+    />
 
     <!-- Filters and Search -->
     <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">

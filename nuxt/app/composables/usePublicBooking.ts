@@ -56,7 +56,10 @@ export interface PublicRentalItem {
   availability: {
     isActive: boolean
   }
+  quantity?: number // Number of units available for this item
   rbPayloadServiceId?: string
+  tags?: string[]
+  featured?: boolean
 }
 
 export interface AddOnItem {
@@ -137,19 +140,49 @@ export function usePublicBooking() {
     }
   }
 
-  async function loadItems(tenantId: string) {
+  interface LoadItemsOptions {
+    page?: number
+    limit?: number
+    sort?: string // 'name', 'price', 'price-desc', '-name'
+  }
+
+  interface PaginationInfo {
+    page: number
+    limit: number
+    totalDocs: number
+    totalPages: number
+    hasNextPage: boolean
+    hasPrevPage: boolean
+  }
+
+  async function loadItems(tenantId: string, options?: LoadItemsOptions) {
     loading.value = true
     error.value = null
 
     try {
+      // Build query params
+      const params = new URLSearchParams()
+      if (options?.page) params.set('page', String(options.page))
+      if (options?.limit) params.set('limit', String(options.limit))
+      if (options?.sort) params.set('sort', options.sort)
+
+      const queryString = params.toString()
+      const url = `/public/items/${tenantId}${queryString ? `?${queryString}` : ''}`
+
       // Use $fetch for imperative calls (works inside onMounted)
-      const data = await $fetch<{ items?: PublicRentalItem[] }>(`/public/items/${tenantId}`)
+      const data = await $fetch<{
+        items?: PublicRentalItem[]
+        pagination?: PaginationInfo
+      }>(url)
       items.value = data.items || []
-      return items.value
+      return {
+        items: items.value,
+        pagination: data.pagination
+      }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load items'
       error.value = errorMessage
-      return []
+      return { items: [], pagination: undefined }
     } finally {
       loading.value = false
     }

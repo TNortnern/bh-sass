@@ -33,7 +33,7 @@ onMounted(async () => {
   tenantData.value = loadedTenant
 
   // Load items and categories in parallel
-  const [loadedItems, loadedCategories] = await Promise.all([
+  const [{ items: loadedItems }, loadedCategories] = await Promise.all([
     loadItems(loadedTenant.id),
     fetchCategories(loadedTenant.id)
   ])

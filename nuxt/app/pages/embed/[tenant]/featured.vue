@@ -70,7 +70,7 @@ onMounted(async () => {
 
     tenantData.value = loadedTenant
 
-    const loadedItems = await loadItems(loadedTenant.id as string)
+    const { items: loadedItems } = await loadItems(loadedTenant.id as string)
 
     // Filter to featured items (for now we just take first N items since PublicRentalItem doesn't have tags)
     // and limit

@@ -1,18 +1,14 @@
 <script setup lang="ts">
 /**
- * Widgets Page
+ * Widget Studio
  *
- * This page embeds the rb-payload widget configuration editor, which provides:
- * - Live preview with customization options
- * - Auto-generated embed codes (iframe, JavaScript)
- * - Automatic updates when rb-payload improves the widget
- *
- * The config editor posts messages back to this page when config changes,
- * allowing BH-SaaS to optionally save widget preferences per tenant.
- *
- * IMPORTANT: Uses rbPayloadTenantId (from rb-payload) NOT the bh-saas tenant ID
+ * A comprehensive widget configuration experience with:
+ * - Live preview that updates in real-time
+ * - Color customization with preset palettes and custom picker
+ * - Theme toggle (light/dark/auto)
+ * - Layout options per widget type
+ * - One-click embed code generation
  */
-
 import NoTenantAlert from '~/components/NoTenantAlert.vue'
 import RbPayloadNotConfiguredAlert from '~/components/RbPayloadNotConfiguredAlert.vue'
 
@@ -21,104 +17,162 @@ definePageMeta({
 })
 
 const toast = useToast()
-const _colorMode = useColorMode()
 
-// Use tenant composable to get rb-payload integration data
+// Tenant data
 const {
   tenant,
   loading: tenantLoading,
   hasTenant,
-  rbPayloadTenantId,
   isRbPayloadConfigured,
-  rbPayloadUrl: _rbPayloadUrl,
   fetchTenant
 } = useTenant()
 
-// Use widget URL composable for generating URLs with customer pre-fill
-const {
-  baseWidgetUrl: _baseWidgetUrl,
-  configEditorUrl,
-  generateWidgetUrl,
-  generateCustomerWidgetUrl,
-  generateEmbedCode
-} = useWidgetUrl()
-
-// Use SSO composable for auto-login to rb-payload admin
-const {
-  isGeneratingSsoUrl,
-  navigateToRbPayload: _navigateToRbPayload,
-  navigateToCollection,
-  navigateToAdmin
-} = useSso()
-
-// Fetch tenant data on mount
+// Fetch tenant on mount
 onMounted(async () => {
   await fetchTenant()
 })
 
-// Widget config editor URL (uses composable)
-const widgetConfigUrl = configEditorUrl
-
-// Direct widget link (uses composable with auto theme)
-const directWidgetLink = computed(() => {
-  return generateWidgetUrl({ theme: 'auto' })
+// Widget configuration state
+const config = reactive({
+  widgetType: 'products' as 'products' | 'categories' | 'featured',
+  theme: 'dark' as 'light' | 'dark' | 'auto',
+  primaryColor: 'f97316', // Orange (without #)
+  borderRadius: 'lg' as 'none' | 'sm' | 'md' | 'lg' | 'xl',
+  columns: 3,
+  limit: 12,
+  // Products specific
+  hideFilters: false,
+  hideCart: false,
+  featuredOnly: false,
+  // Categories specific
+  layout: 'grid' as 'grid' | 'list' | 'carousel',
+  onClick: 'book' as 'embed' | 'book' | 'custom',
+  // Featured specific
+  showPrice: true,
+  showDescription: true,
+  ctaText: 'Book Now'
 })
 
-// Customer pre-fill form
-const customerPreFill = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: ''
-})
+// Color presets - beautiful, curated palette
+const colorPresets = [
+  { name: 'Sunset Orange', color: 'f97316', group: 'warm' },
+  { name: 'Coral', color: 'f43f5e', group: 'warm' },
+  { name: 'Ruby', color: 'dc2626', group: 'warm' },
+  { name: 'Amber', color: 'f59e0b', group: 'warm' },
+  { name: 'Ocean Blue', color: '3b82f6', group: 'cool' },
+  { name: 'Sky', color: '0ea5e9', group: 'cool' },
+  { name: 'Indigo', color: '6366f1', group: 'cool' },
+  { name: 'Purple', color: 'a855f7', group: 'cool' },
+  { name: 'Emerald', color: '10b981', group: 'nature' },
+  { name: 'Teal', color: '14b8a6', group: 'nature' },
+  { name: 'Lime', color: '84cc16', group: 'nature' },
+  { name: 'Pink', color: 'ec4899', group: 'accent' }
+]
 
-// Generate customer-specific widget URL
-const customerWidgetUrl = computed(() => {
-  if (!customerPreFill.value.firstName && !customerPreFill.value.email) {
-    return ''
+// Widget type definitions
+const widgetTypes = [
+  {
+    id: 'products',
+    name: 'Product Catalog',
+    description: 'Full browsing experience with filters, search, and cart',
+    icon: 'i-lucide-grid-3x3'
+  },
+  {
+    id: 'categories',
+    name: 'Category Browser',
+    description: 'Visual category cards for easy navigation',
+    icon: 'i-lucide-layout-grid'
+  },
+  {
+    id: 'featured',
+    name: 'Featured Items',
+    description: 'Showcase your best rentals',
+    icon: 'i-lucide-star'
   }
-  return generateCustomerWidgetUrl(customerPreFill.value, { theme: 'auto' })
+]
+
+// Border radius options
+const borderRadiusOptions = [
+  { label: 'None', value: 'none' },
+  { label: 'Small', value: 'sm' },
+  { label: 'Medium', value: 'md' },
+  { label: 'Large', value: 'lg' },
+  { label: 'Extra Large', value: 'xl' }
+]
+
+// Theme options
+const themeOptions = [
+  { label: 'Dark', value: 'dark', icon: 'i-lucide-moon' },
+  { label: 'Light', value: 'light', icon: 'i-lucide-sun' },
+  { label: 'Auto', value: 'auto', icon: 'i-lucide-monitor' }
+]
+
+// Layout options (for categories/featured)
+const layoutOptions = [
+  { label: 'Grid', value: 'grid', icon: 'i-lucide-grid-3x3' },
+  { label: 'List', value: 'list', icon: 'i-lucide-list' },
+  { label: 'Carousel', value: 'carousel', icon: 'i-lucide-gallery-horizontal' }
+]
+
+// Generate preview URL
+const previewUrl = computed(() => {
+  if (!tenant.value?.slug) return ''
+
+  const base = `/embed/${tenant.value.slug}/${config.widgetType}`
+  const params = new URLSearchParams()
+
+  // Theme & styling
+  if (config.theme !== 'auto') params.set('theme', config.theme)
+  if (config.primaryColor !== 'f97316') params.set('primaryColor', config.primaryColor)
+  if (config.borderRadius !== 'lg') params.set('borderRadius', config.borderRadius)
+
+  // Common params
+  if (config.columns !== 3) params.set('columns', String(config.columns))
+  if (config.limit !== 12) params.set('limit', String(config.limit))
+
+  // Products specific
+  if (config.widgetType === 'products') {
+    if (config.hideFilters) params.set('hideFilters', 'true')
+    if (config.hideCart) params.set('hideCart', 'true')
+    if (config.featuredOnly) params.set('featured', 'true')
+  }
+
+  // Categories specific
+  if (config.widgetType === 'categories') {
+    if (config.layout !== 'grid') params.set('layout', config.layout)
+    if (config.onClick !== 'book') params.set('onClick', config.onClick)
+  }
+
+  // Featured specific
+  if (config.widgetType === 'featured') {
+    if (config.layout !== 'grid') params.set('layout', config.layout)
+    if (!config.showPrice) params.set('showPrice', 'false')
+    if (!config.showDescription) params.set('showDescription', 'false')
+    if (config.ctaText !== 'Book Now') params.set('cta', config.ctaText)
+  }
+
+  const queryString = params.toString()
+  return queryString ? `${base}?${queryString}` : base
 })
 
-// Generate customer-specific embed code
-const customerEmbedCode = computed(() => {
-  if (!customerWidgetUrl.value) return ''
-  return generateEmbedCode({
-    theme: 'auto',
-    customer: customerPreFill.value
-  })
+// Full URL for embed
+const fullEmbedUrl = computed(() => {
+  if (!previewUrl.value) return ''
+  return `${window.location.origin}${previewUrl.value}`
 })
 
-// Clear pre-fill form
-const clearCustomerPreFill = () => {
-  customerPreFill.value = {
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: ''
-  }
-}
-
-// Listen for config updates from embedded iframe
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const latestConfig = ref<any>(null)
-const latestEmbedCode = ref<string>('')
-
-// Set up message listener with proper cleanup to avoid memory leaks
-onMounted(() => {
-  const handleMessage = (event: MessageEvent) => {
-    if (event.data?.type === 'rb-widget-config-update') {
-      latestConfig.value = event.data.config
-      latestEmbedCode.value = event.data.embedCode
-    }
-  }
-
-  window.addEventListener('message', handleMessage)
-
-  // Clean up listener when component unmounts
-  onUnmounted(() => {
-    window.removeEventListener('message', handleMessage)
-  })
+// Generate iframe code
+const iframeCode = computed(() => {
+  if (!fullEmbedUrl.value) return ''
+  return `<iframe
+  src="${fullEmbedUrl.value}"
+  width="100%"
+  height="600"
+  frameborder="0"
+  style="border: none; border-radius: 12px;"
+  title="${config.widgetType === 'products' ? 'Product Catalog' : config.widgetType === 'categories' ? 'Category Browser' : 'Featured Rentals'}"
+  loading="lazy"
+></iframe>`
 })
 
 // Copy to clipboard
@@ -133,148 +187,204 @@ const copyToClipboard = async (text: string, label: string) => {
   } catch {
     toast.add({
       title: 'Failed to copy',
-      description: 'Please manually select and copy the code',
+      description: 'Please select and copy manually',
       color: 'error'
     })
   }
 }
 
-// View mode: 'embedded' (full config editor), 'simple' (just links), 'embed' (embeddable widgets), or 'manage' (rb-payload admin)
-const viewMode = ref<'embedded' | 'simple' | 'embed' | 'manage'>('embedded')
-
-// Embed widget configuration
-const embedConfig = ref({
-  widgetType: 'products' as 'products' | 'categories' | 'featured',
-  theme: 'auto' as 'auto' | 'light' | 'dark',
-  layout: 'grid' as 'grid' | 'list' | 'carousel',
-  columns: 3,
-  limit: 12,
-  showFilters: true,
-  showCart: true,
-  showPrice: true,
-  showDescription: true,
-  featuredOnly: false
-})
-
-// Widget type options
-type WidgetType = 'products' | 'categories' | 'featured'
-const widgetTypeOptions: Array<{ label: string, value: WidgetType, description: string }> = [
-  { label: 'Products Grid', value: 'products', description: 'Full product catalog with filters and cart' },
-  { label: 'Categories', value: 'categories', description: 'Category tiles for navigation' },
-  { label: 'Featured Items', value: 'featured', description: 'Showcase your top rentals' }
-]
-
-// Theme options
-const themeOptions = [
-  { label: 'Auto (System)', value: 'auto' },
-  { label: 'Light', value: 'light' },
-  { label: 'Dark', value: 'dark' }
-]
-
-// Layout options for embed
-const layoutOptions = computed(() => {
-  if (embedConfig.value.widgetType === 'products') {
-    return [{ label: 'Grid', value: 'grid' }]
-  }
-  return [
-    { label: 'Grid', value: 'grid' },
-    { label: 'List', value: 'list' },
-    { label: 'Carousel', value: 'carousel' }
-  ]
-})
-
-// Generate embed URL
-const embedWidgetUrl = computed(() => {
-  if (!tenant.value?.slug) return ''
-
-  const base = `${window.location.origin}/embed/${tenant.value.slug}/${embedConfig.value.widgetType}`
-  const params = new URLSearchParams()
-
-  if (embedConfig.value.theme !== 'auto') params.set('theme', embedConfig.value.theme)
-  if (embedConfig.value.layout !== 'grid') params.set('layout', embedConfig.value.layout)
-  if (embedConfig.value.columns !== 3) params.set('columns', String(embedConfig.value.columns))
-  if (embedConfig.value.limit !== 12) params.set('limit', String(embedConfig.value.limit))
-  if (!embedConfig.value.showFilters) params.set('hideFilters', 'true')
-  if (!embedConfig.value.showCart) params.set('hideCart', 'true')
-  if (!embedConfig.value.showPrice) params.set('showPrice', 'false')
-  if (!embedConfig.value.showDescription) params.set('showDescription', 'false')
-  if (embedConfig.value.featuredOnly) params.set('featured', 'true')
-
-  const queryString = params.toString()
-  return queryString ? `${base}?${queryString}` : base
-})
-
-// Generate iframe embed code
-const embedIframeCode = computed(() => {
-  if (!embedWidgetUrl.value) return ''
-  return `<iframe
-  src="${embedWidgetUrl.value}"
-  width="100%"
-  height="600"
-  frameborder="0"
-  style="border: none; border-radius: 8px;"
-  title="Booking Widget"
-></iframe>`
-})
-
-// rb-payload collections with SSO - click handlers instead of URLs
-const rbPayloadCollections = computed(() => {
-  if (!rbPayloadTenantId.value) return []
-
-  return [
-    {
-      name: 'Services (Inventory)',
-      description: 'Manage bookable items synced from your inventory',
-      icon: 'i-lucide-package',
-      color: 'orange',
-      collection: 'services'
-    },
-    {
-      name: 'Customers',
-      description: 'View and manage customer records',
-      icon: 'i-lucide-users',
-      color: 'blue',
-      collection: 'customers'
-    },
-    {
-      name: 'Bookings',
-      description: 'View and manage all bookings',
-      icon: 'i-lucide-calendar',
-      color: 'green',
-      collection: 'bookings'
-    },
-    {
-      name: 'Staff',
-      description: 'Manage staff members and schedules',
-      icon: 'i-lucide-user-check',
-      color: 'purple',
-      collection: 'staff'
-    },
-    {
-      name: 'Blackout Dates',
-      description: 'Set unavailable dates and holidays',
-      icon: 'i-lucide-calendar-off',
-      color: 'red',
-      collection: 'blackouts'
-    },
-    {
-      name: 'Notifications',
-      description: 'View booking notifications and alerts',
-      icon: 'i-lucide-bell',
-      color: 'amber',
-      collection: 'notifications'
-    }
-  ]
-})
-
-// Handle clicking on a collection card - opens with SSO
-const handleCollectionClick = async (collection: string) => {
-  await navigateToCollection(collection, true)
+// Preview iframe key for forcing refresh
+const previewKey = ref(0)
+const refreshPreview = () => {
+  previewKey.value++
 }
+
+// Product modal state for widget preview
+const showProductModal = ref(false)
+const productModalSlug = ref('')
+
+// Handle postMessage from widget iframe for product details
+onMounted(() => {
+  const handleMessage = (event: MessageEvent) => {
+    if (!event.data?.type?.startsWith('bh:')) return
+
+    switch (event.data.type) {
+      case 'bh:item:clicked': {
+        // Open product modal when item is clicked in preview
+        const item = event.data.item
+        productModalSlug.value = item.slug || item.id
+        showProductModal.value = true
+        break
+      }
+      case 'bh:checkout:requested':
+        // Show toast for checkout (just a preview)
+        toast.add({
+          title: 'Checkout Triggered',
+          description: `Cart has ${event.data.cart?.length || 0} items. In embed mode, checkout opens in a drawer.`,
+          color: 'info'
+        })
+        break
+    }
+  }
+
+  window.addEventListener('message', handleMessage)
+  onUnmounted(() => window.removeEventListener('message', handleMessage))
+})
+
+// Product modal URL for preview
+const productModalUrl = computed(() => {
+  if (!tenant.value?.slug || !productModalSlug.value) return ''
+  const params = new URLSearchParams()
+  if (config.theme !== 'auto') params.set('theme', config.theme)
+  if (config.primaryColor !== 'f97316') params.set('primaryColor', config.primaryColor)
+  return `/embed/${tenant.value.slug}/product/${productModalSlug.value}?${params.toString()}`
+})
+
+// Custom color input
+const customColorInput = ref('')
+const applyCustomColor = () => {
+  const color = customColorInput.value.replace('#', '')
+  if (/^[0-9a-fA-F]{6}$/.test(color)) {
+    config.primaryColor = color.toLowerCase()
+    customColorInput.value = ''
+  } else {
+    toast.add({
+      title: 'Invalid color',
+      description: 'Please enter a valid hex color (e.g., #3b82f6)',
+      color: 'error'
+    })
+  }
+}
+
+// Tab state for code output
+const codeTab = ref<'iframe' | 'url'>('iframe')
+
+// API Documentation data
+const embedBasicCode = `<!-- Add the widget container -->
+<div
+  data-bh-widget="products"
+  data-tenant="your-tenant-slug"
+  data-theme="dark"
+  data-per-page="12"
+  data-default-sort="name"
+></div>
+
+<!-- Include the embed script (place before closing body tag) -->
+  <script async src="https://your-domain.com/embed.js"></` + `script>`
+
+const customCartCode = `<!-- Your custom cart button -->
+<button id="my-cart-button" class="cart-btn">
+  Cart (<span data-cart-count>0</span>)
+</button>
+
+<!-- Widget with custom cart trigger -->
+<div
+  data-bh-widget="products"
+  data-tenant="your-tenant-slug"
+  data-cart-element-id="my-cart-button"
+  data-hide-cart="true"
+></div>`
+
+const eventsCode = `// Cart updated event
+window.addEventListener('bh:cart:updated', (e) => {
+  console.log('Cart:', e.detail.cart)
+  console.log('Total:', e.detail.total)
+  console.log('Item count:', e.detail.itemCount)
+})
+
+// Item added event
+window.addEventListener('bh:item:added', (e) => {
+  console.log('Added:', e.detail)
+})`
+
+const embedAttributes = [
+  { name: 'data-bh-widget', default: '(required)', description: 'Widget type: "products", "product", "checkout", or "cart"' },
+  { name: 'data-tenant', default: '(required)', description: 'Your tenant slug (from your business URL)' },
+  { name: 'data-behavior', default: 'modal', description: 'How clicks are handled: "modal", "navigate", or "hosted"' },
+  { name: 'data-theme', default: 'auto', description: 'Color theme: "light", "dark", or "auto"' },
+  { name: 'data-primary-color', default: '#f97316', description: 'Primary brand color (hex without #)' },
+  { name: 'data-per-page', default: '12', description: 'Items per page (pagination)' },
+  { name: 'data-default-sort', default: 'name', description: 'Default sort: "name", "price", or "price-desc"' },
+  { name: 'data-hide-filters', default: 'false', description: 'Hide search and filter controls' },
+  { name: 'data-hide-cart', default: 'false', description: 'Hide the built-in cart sidebar' },
+  { name: 'data-featured', default: 'false', description: 'Show only featured items' },
+  { name: 'data-category', default: '', description: 'Filter by category ID' },
+  { name: 'data-cart-element-id', default: '', description: 'ID of custom cart trigger element' },
+  { name: 'data-product-url', default: '', description: 'URL pattern for products (use {slug} or {id})' },
+  { name: 'data-checkout-url', default: '', description: 'Custom checkout URL for "navigate" mode' }
+]
+
+const behaviorModes = [
+  { value: 'modal', description: 'Product details open in a modal overlay. Checkout opens in a slide-out drawer. Best for keeping users on your site.' },
+  { value: 'navigate', description: 'Clicking products navigates to your custom URLs (set via data-product-url). Checkout redirects to your checkout page.' },
+  { value: 'hosted', description: 'All actions redirect to the hosted BouncePro booking pages. Simplest setup, full booking flow handled for you.' }
+]
+
+const jsApiMethods = [
+  { name: 'addToCart', signature: 'BH.addToCart(itemId, quantity)', description: 'Add an item to the cart programmatically' },
+  { name: 'clearCart', signature: 'BH.clearCart()', description: 'Clear all items from the cart' },
+  { name: 'setTheme', signature: 'BH.setTheme(theme)', description: 'Change the widget theme ("light", "dark", or "auto")' },
+  { name: 'openCheckout', signature: 'BH.openCheckout()', description: 'Open the checkout drawer' },
+  { name: 'openProduct', signature: 'BH.openProduct(slugOrId)', description: 'Open product details in a modal' },
+  { name: 'getProducts', signature: 'await BH.getProducts({ category, featured, search, limit })', description: 'Fetch products with optional filters (async)' },
+  { name: 'getProductDetails', signature: 'await BH.getProductDetails(slugOrId)', description: 'Get details for a specific product (async)' },
+  { name: 'getCategories', signature: 'await BH.getCategories()', description: 'Get all available categories (async)' },
+  { name: 'getTenant', signature: 'await BH.getTenant()', description: 'Get tenant/business info (async)' },
+  { name: 'filterByCategory', signature: 'BH.filterByCategory(category)', description: 'Filter the product grid by category' },
+  { name: 'search', signature: 'BH.search(query)', description: 'Search products in the widget' },
+  { name: 'cart', signature: 'BH.cart', description: 'Access the current cart array' },
+  { name: 'cartTotal', signature: 'BH.cartTotal', description: 'Get the current cart total' }
+]
+
+// URL Parameters documentation
+const urlParams = [
+  { name: 'theme', example: 'dark', description: 'Color theme: "light", "dark", or "auto"' },
+  { name: 'primaryColor', example: '3b82f6', description: 'Primary color in hex (without #)' },
+  { name: 'category', example: 'bounce-houses', description: 'Filter by category slug - widget auto-filters to this category' },
+  { name: 'featured', example: 'true', description: 'Show only featured items' },
+  { name: 'product', example: 'rainbow-bounce', description: 'Auto-open product details for a specific product slug' },
+  { name: 'hideFilters', example: 'true', description: 'Hide the search and filter controls' },
+  { name: 'hideCart', example: 'true', description: 'Hide the cart sidebar/button' },
+  { name: 'perPage', example: '6', description: 'Items per page (default: 12)' },
+  { name: 'defaultSort', example: 'price', description: 'Default sort: "name", "price", or "price-desc"' }
+]
+
+const navigateModeCode = `<!-- Your website's product detail page -->
+<!-- URL: /rentals/rainbow-bounce-house -->
+
+<div
+  data-bh-widget="product"
+  data-tenant="your-tenant"
+  data-product-slug="rainbow-bounce-house"
+  data-behavior="navigate"
+  data-checkout-url="/checkout"
+></div>
+
+  <script async src="https://your-domain.com/embed.js"></` + `script>`
+
+const categoryPageCode = `<!-- Your website's category page -->
+<!-- URL: /rentals/category/water-slides -->
+
+<div
+  data-bh-widget="products"
+  data-tenant="your-tenant"
+  data-category="water-slides"
+  data-behavior="modal"
+></div>
+
+  <script async src="https://your-domain.com/embed.js"></` + `script>`
+
+const deepLinkCode = `<!-- Direct link to filtered widget with specific product open -->
+<!-- Share this URL to show a specific product -->
+
+https://yoursite.com/rentals?bh_product=rainbow-bounce
+
+<!-- Or filter by category -->
+https://yoursite.com/rentals?category=water-slides&featured=true`
 </script>
 
 <template>
-  <!-- Loading state -->
+  <!-- Loading -->
   <div
     v-if="tenantLoading"
     class="flex items-center justify-center min-h-[60vh]"
@@ -285,722 +395,853 @@ const handleCollectionClick = async (collection: string) => {
     />
   </div>
 
-  <!-- Show NoTenantAlert if user doesn't have a tenant assigned -->
+  <!-- No tenant -->
   <NoTenantAlert v-else-if="!hasTenant" />
 
-  <!-- Show RbPayloadNotConfiguredAlert if tenant is not linked to rb-payload -->
+  <!-- Not configured -->
   <RbPayloadNotConfiguredAlert
     v-else-if="!isRbPayloadConfigured"
     :sync-status="tenant?.rbPayloadSyncStatus"
     :sync-error="tenant?.rbPayloadSyncError"
   />
 
+  <!-- Main content -->
   <div
     v-else
-    class="max-w-7xl mx-auto"
+    class="min-h-screen"
   >
-    <!-- Page Header -->
-    <div class="mb-6 flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-          Booking Widgets
-        </h1>
-        <p class="mt-1 text-gray-500 dark:text-gray-400">
-          Customize and embed your booking widget on your website
-        </p>
+    <!-- Hero Header -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 lg:-mx-8 lg:-mt-8 px-4 sm:px-6 lg:px-8 pt-8 pb-12 mb-8">
+      <!-- Decorative elements -->
+      <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-orange-500/20 to-pink-500/20 rounded-full blur-3xl" />
+        <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-gradient-to-tr from-blue-500/20 to-purple-500/20 rounded-full blur-3xl" />
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
       </div>
-      <div class="flex items-center gap-2">
-        <UButton
-          :color="viewMode === 'embedded' ? 'primary' : 'neutral'"
-          :variant="viewMode === 'embedded' ? 'soft' : 'ghost'"
-          size="sm"
-          icon="i-lucide-sliders"
-          @click="viewMode = 'embedded'"
-        >
-          Full Editor
-        </UButton>
-        <UButton
-          :color="viewMode === 'simple' ? 'primary' : 'neutral'"
-          :variant="viewMode === 'simple' ? 'soft' : 'ghost'"
-          size="sm"
-          icon="i-lucide-link"
-          @click="viewMode = 'simple'"
-        >
-          Quick Links
-        </UButton>
-        <UButton
-          :color="viewMode === 'embed' ? 'primary' : 'neutral'"
-          :variant="viewMode === 'embed' ? 'soft' : 'ghost'"
-          size="sm"
-          icon="i-lucide-code"
-          @click="viewMode = 'embed'"
-        >
-          Embed Code
-        </UButton>
-        <UButton
-          :color="viewMode === 'manage' ? 'primary' : 'neutral'"
-          :variant="viewMode === 'manage' ? 'soft' : 'ghost'"
-          size="sm"
-          icon="i-lucide-database"
-          @click="viewMode = 'manage'"
-        >
-          Manage Data
-        </UButton>
-      </div>
-    </div>
 
-    <!-- Embedded Config Editor (Full Editor Mode) -->
-    <div
-      v-if="viewMode === 'embedded'"
-      class="space-y-4"
-    >
-      <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
-        <div class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+      <div class="relative max-w-7xl mx-auto">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center shadow-lg shadow-orange-500/25">
             <UIcon
-              name="i-lucide-external-link"
-              class="w-4 h-4"
+              name="i-lucide-puzzle"
+              class="w-7 h-7 text-white"
             />
-            <span>Powered by ReusableBook Widget Editor</span>
           </div>
-          <UButton
-            color="neutral"
-            variant="ghost"
-            size="xs"
-            icon="i-lucide-external-link"
-            :to="widgetConfigUrl"
-            target="_blank"
-          >
-            Open in New Tab
-          </UButton>
-        </div>
-        <iframe
-          :src="widgetConfigUrl"
-          class="w-full border-0"
-          style="height: calc(100vh - 200px); min-height: 700px;"
-          title="Widget Configuration Editor"
-        />
-      </div>
-      <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
-        This editor is provided by the booking system and automatically stays up-to-date with the latest features.
-      </p>
-    </div>
-
-    <!-- Simple Links Mode -->
-    <div
-      v-else-if="viewMode === 'simple'"
-      class="grid grid-cols-1 md:grid-cols-2 gap-6"
-    >
-      <!-- Direct Booking Link -->
-      <UCard>
-        <template #header>
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-              <UIcon
-                name="i-lucide-link"
-                class="w-5 h-5 text-orange-600 dark:text-orange-400"
-              />
-            </div>
-            <div>
-              <h3 class="font-semibold text-gray-900 dark:text-white">
-                Booking Page Link
-              </h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Share with customers
-              </p>
-            </div>
-          </div>
-        </template>
-
-        <div class="space-y-4">
-          <p class="text-sm text-gray-600 dark:text-gray-400">
-            Use this link in emails, social media, or anywhere you want customers to book directly.
-          </p>
-          <div class="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-            <code class="text-sm text-orange-600 dark:text-orange-400 break-all">
-              {{ directWidgetLink }}
-            </code>
-          </div>
-          <div class="flex gap-2">
-            <UButton
-              color="primary"
-              variant="soft"
-              icon="i-lucide-copy"
-              @click="copyToClipboard(directWidgetLink, 'Booking link')"
-            >
-              Copy Link
-            </UButton>
-            <UButton
-              color="neutral"
-              variant="soft"
-              icon="i-lucide-external-link"
-              :to="directWidgetLink"
-              target="_blank"
-            >
-              Preview
-            </UButton>
-          </div>
-        </div>
-      </UCard>
-
-      <!-- Widget Editor Link -->
-      <UCard>
-        <template #header>
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-              <UIcon
-                name="i-lucide-sliders"
-                class="w-5 h-5 text-purple-600 dark:text-purple-400"
-              />
-            </div>
-            <div>
-              <h3 class="font-semibold text-gray-900 dark:text-white">
-                Widget Editor
-              </h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Customize & get embed code
-              </p>
-            </div>
-          </div>
-        </template>
-
-        <div class="space-y-4">
-          <p class="text-sm text-gray-600 dark:text-gray-400">
-            Customize colors, display options, and generate embed codes for your website.
-          </p>
-          <div class="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-            <code class="text-sm text-purple-600 dark:text-purple-400 break-all">
-              {{ widgetConfigUrl }}
-            </code>
-          </div>
-          <div class="flex gap-2">
-            <UButton
-              color="primary"
-              variant="soft"
-              icon="i-lucide-sliders"
-              @click="viewMode = 'embedded'"
-            >
-              Open Editor
-            </UButton>
-            <UButton
-              color="neutral"
-              variant="soft"
-              icon="i-lucide-external-link"
-              :to="widgetConfigUrl"
-              target="_blank"
-            >
-              New Tab
-            </UButton>
-          </div>
-        </div>
-      </UCard>
-
-      <!-- Customer Pre-fill Link Generator -->
-      <UCard class="md:col-span-2">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center">
-                <UIcon
-                  name="i-lucide-user-plus"
-                  class="w-5 h-5 text-cyan-600 dark:text-cyan-400"
-                />
-              </div>
-              <div>
-                <h3 class="font-semibold text-gray-900 dark:text-white">
-                  Customer Pre-fill Link
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  Generate personalized booking links
-                </p>
-              </div>
-            </div>
-            <UButton
-              v-if="customerWidgetUrl"
-              color="neutral"
-              variant="ghost"
-              size="xs"
-              icon="i-lucide-x"
-              @click="clearCustomerPreFill"
-            >
-              Clear
-            </UButton>
-          </div>
-        </template>
-
-        <div class="space-y-4">
-          <p class="text-sm text-gray-600 dark:text-gray-400">
-            Generate a booking link with customer info pre-filled. Great for follow-up emails or personalized marketing.
-          </p>
-
-          <!-- Customer form -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <UFormField label="First Name">
-              <UInput
-                v-model="customerPreFill.firstName"
-                placeholder="John"
-                class="w-full"
-              />
-            </UFormField>
-            <UFormField label="Last Name">
-              <UInput
-                v-model="customerPreFill.lastName"
-                placeholder="Doe"
-                class="w-full"
-              />
-            </UFormField>
-            <UFormField label="Email">
-              <UInput
-                v-model="customerPreFill.email"
-                type="email"
-                placeholder="john@example.com"
-                class="w-full"
-              />
-            </UFormField>
-            <UFormField label="Phone">
-              <UInput
-                v-model="customerPreFill.phone"
-                placeholder="(555) 123-4567"
-                class="w-full"
-              />
-            </UFormField>
-          </div>
-
-          <!-- Generated URL -->
-          <div
-            v-if="customerWidgetUrl"
-            class="space-y-3"
-          >
-            <div class="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-              <code class="text-sm text-cyan-600 dark:text-cyan-400 break-all">
-                {{ customerWidgetUrl }}
-              </code>
-            </div>
-            <div class="flex gap-2">
-              <UButton
-                color="primary"
-                variant="soft"
-                icon="i-lucide-copy"
-                @click="copyToClipboard(customerWidgetUrl, 'Customer link')"
-              >
-                Copy Link
-              </UButton>
-              <UButton
-                color="neutral"
-                variant="soft"
-                icon="i-lucide-external-link"
-                :to="customerWidgetUrl"
-                target="_blank"
-              >
-                Preview
-              </UButton>
-              <UButton
-                color="neutral"
-                variant="soft"
-                icon="i-lucide-code"
-                @click="copyToClipboard(customerEmbedCode, 'Embed code')"
-              >
-                Copy Embed
-              </UButton>
-            </div>
-          </div>
-          <p
-            v-else
-            class="text-sm text-gray-500 dark:text-gray-400 italic"
-          >
-            Enter at least a first name or email to generate a personalized link.
-          </p>
-        </div>
-      </UCard>
-
-      <!-- Integration Tips -->
-      <UCard class="md:col-span-2">
-        <template #header>
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-              <UIcon
-                name="i-lucide-lightbulb"
-                class="w-5 h-5 text-green-600 dark:text-green-400"
-              />
-            </div>
-            <div>
-              <h3 class="font-semibold text-gray-900 dark:text-white">
-                Quick Tips
-              </h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Getting started with widgets
-              </p>
-            </div>
-          </div>
-        </template>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <h4 class="font-medium text-gray-900 dark:text-white mb-1">
-              Direct Link
-            </h4>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Perfect for email campaigns, social media, and direct customer communication.
+          <div>
+            <h1 class="text-3xl font-bold text-white tracking-tight">
+              Widget Studio
+            </h1>
+            <p class="text-gray-400 mt-1">
+              Create embeddable widgets that match your brand
             </p>
           </div>
-          <div class="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <h4 class="font-medium text-gray-900 dark:text-white mb-1">
-              iFrame Embed
-            </h4>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Works on WordPress, Wix, Squarespace, and any website. No coding required.
-            </p>
-          </div>
-          <div class="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <h4 class="font-medium text-gray-900 dark:text-white mb-1">
-              Customization
-            </h4>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Match your brand colors and choose what information to display.
-            </p>
-          </div>
-        </div>
-      </UCard>
-    </div>
-
-    <!-- Embed Code Generator Mode -->
-    <div
-      v-else-if="viewMode === 'embed'"
-      class="space-y-6"
-    >
-      <!-- Info Banner -->
-      <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-4 flex items-start gap-3">
-        <UIcon
-          name="i-lucide-code"
-          class="w-5 h-5 text-purple-500 dark:text-purple-400 mt-0.5 flex-shrink-0"
-        />
-        <div>
-          <h4 class="font-medium text-purple-900 dark:text-purple-100 mb-1">
-            Embeddable Widgets
-          </h4>
-          <p class="text-sm text-purple-700 dark:text-purple-300">
-            Generate embed codes for your products, categories, or featured items.
-            These widgets support multi-item selection and can be embedded on any website.
-          </p>
         </div>
       </div>
+    </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="max-w-7xl mx-auto">
+      <!-- Two Column Layout -->
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <!-- Configuration Panel -->
-        <UCard>
-          <template #header>
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                <UIcon
-                  name="i-lucide-settings"
-                  class="w-5 h-5 text-purple-600 dark:text-purple-400"
-                />
-              </div>
-              <div>
-                <h3 class="font-semibold text-gray-900 dark:text-white">
-                  Widget Configuration
+        <div class="space-y-6">
+          <!-- Widget Type Selection -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <UIcon
+                name="i-lucide-layout-template"
+                class="w-5 h-5 text-gray-400"
+              />
+              Widget Type
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <button
+                v-for="type in widgetTypes"
+                :key="type.id"
+                :class="[
+                  'relative p-4 rounded-xl border-2 text-left transition-all group',
+                  config.widgetType === type.id
+                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                ]"
+                @click="config.widgetType = type.id as 'products' | 'categories' | 'featured'"
+              >
+                <div
+                  :class="[
+                    'w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-colors',
+                    config.widgetType === type.id
+                      ? 'bg-orange-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 group-hover:bg-gray-200 dark:group-hover:bg-gray-600'
+                  ]"
+                >
+                  <UIcon
+                    :name="type.icon"
+                    class="w-5 h-5"
+                  />
+                </div>
+                <h3 class="font-medium text-gray-900 dark:text-white text-sm">
+                  {{ type.name }}
                 </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  Customize your embed widget
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                  {{ type.description }}
                 </p>
+                <div
+                  v-if="config.widgetType === type.id"
+                  class="absolute top-2 right-2"
+                >
+                  <UIcon
+                    name="i-lucide-check-circle"
+                    class="w-5 h-5 text-orange-500"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Appearance -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <UIcon
+                name="i-lucide-palette"
+                class="w-5 h-5 text-gray-400"
+              />
+              Appearance
+            </h2>
+
+            <!-- Theme Toggle -->
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Theme
+              </label>
+              <div class="flex gap-2">
+                <button
+                  v-for="option in themeOptions"
+                  :key="option.value"
+                  :class="[
+                    'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all',
+                    config.theme === option.value
+                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'
+                      : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
+                  ]"
+                  @click="config.theme = option.value as 'light' | 'dark' | 'auto'"
+                >
+                  <UIcon
+                    :name="option.icon"
+                    class="w-4 h-4"
+                  />
+                  {{ option.label }}
+                </button>
               </div>
             </div>
-          </template>
 
-          <div class="space-y-5">
-            <!-- Widget Type -->
-            <UFormField label="Widget Type">
-              <USelect
-                v-model="embedConfig.widgetType"
-                :items="widgetTypeOptions"
-                class="w-full"
+            <!-- Color Picker -->
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                Primary Color
+              </label>
+
+              <!-- Color Presets Grid -->
+              <div class="flex flex-wrap gap-2 mb-4">
+                <button
+                  v-for="preset in colorPresets"
+                  :key="preset.color"
+                  :title="preset.name"
+                  :class="[
+                    'w-8 h-8 rounded-lg transition-all relative',
+                    config.primaryColor === preset.color
+                      ? 'ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-800 scale-110'
+                      : 'hover:scale-105'
+                  ]"
+                  :style="{
+                    backgroundColor: `#${preset.color}`
+                  }"
+                  @click="config.primaryColor = preset.color"
+                >
+                  <UIcon
+                    v-if="config.primaryColor === preset.color"
+                    name="i-lucide-check"
+                    class="w-4 h-4 text-white absolute inset-0 m-auto drop-shadow"
+                  />
+                </button>
+              </div>
+
+              <!-- Custom Color Input -->
+              <div class="flex gap-2">
+                <div class="relative flex-1">
+                  <div
+                    class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded border border-gray-300 dark:border-gray-600"
+                    :style="{ backgroundColor: customColorInput ? customColorInput : `#${config.primaryColor}` }"
+                  />
+                  <UInput
+                    v-model="customColorInput"
+                    placeholder="#3b82f6"
+                    class="pl-10"
+                    @keyup.enter="applyCustomColor"
+                  />
+                </div>
+                <UButton
+                  color="neutral"
+                  variant="outline"
+                  @click="applyCustomColor"
+                >
+                  Apply
+                </UButton>
+              </div>
+            </div>
+
+            <!-- Border Radius -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Corner Radius
+              </label>
+              <div class="flex gap-2">
+                <button
+                  v-for="option in borderRadiusOptions"
+                  :key="option.value"
+                  :class="[
+                    'flex-1 px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all',
+                    config.borderRadius === option.value
+                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'
+                      : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
+                  ]"
+                  @click="config.borderRadius = option.value as 'none' | 'sm' | 'md' | 'lg' | 'xl'"
+                >
+                  {{ option.label }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Widget-Specific Options -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <UIcon
+                name="i-lucide-sliders-horizontal"
+                class="w-5 h-5 text-gray-400"
               />
-            </UFormField>
+              Display Options
+            </h2>
 
-            <!-- Theme -->
-            <UFormField label="Theme">
-              <USelect
-                v-model="embedConfig.theme"
-                :items="themeOptions"
-                class="w-full"
-              />
-            </UFormField>
+            <!-- Common: Columns -->
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Columns
+              </label>
+              <div class="flex gap-2">
+                <button
+                  v-for="col in [2, 3, 4]"
+                  :key="col"
+                  :class="[
+                    'flex-1 px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all',
+                    config.columns === col
+                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'
+                      : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
+                  ]"
+                  @click="config.columns = col"
+                >
+                  {{ col }}
+                </button>
+              </div>
+            </div>
 
-            <!-- Layout (for categories/featured) -->
-            <UFormField
-              v-if="embedConfig.widgetType !== 'products'"
-              label="Layout"
-            >
-              <USelect
-                v-model="embedConfig.layout"
-                :items="layoutOptions"
-                class="w-full"
-              />
-            </UFormField>
-
-            <!-- Columns -->
-            <UFormField label="Columns">
+            <!-- Common: Limit -->
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Items to Show
+              </label>
               <UInput
-                v-model.number="embedConfig.columns"
-                type="number"
-                :min="2"
-                :max="6"
-                class="w-full"
-              />
-            </UFormField>
-
-            <!-- Limit -->
-            <UFormField label="Items Limit">
-              <UInput
-                v-model.number="embedConfig.limit"
+                v-model.number="config.limit"
                 type="number"
                 :min="1"
                 :max="50"
                 class="w-full"
               />
-            </UFormField>
+            </div>
 
-            <!-- Product-specific options -->
+            <!-- Products Options -->
             <div
-              v-if="embedConfig.widgetType === 'products'"
-              class="space-y-3"
+              v-if="config.widgetType === 'products'"
+              class="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700"
             >
               <UCheckbox
-                v-model="embedConfig.showFilters"
-                label="Show filters"
+                v-model="config.hideFilters"
+                label="Hide search & filters"
               />
               <UCheckbox
-                v-model="embedConfig.showCart"
-                label="Show cart sidebar"
+                v-model="config.hideCart"
+                label="Hide cart sidebar"
               />
               <UCheckbox
-                v-model="embedConfig.featuredOnly"
-                label="Featured items only"
+                v-model="config.featuredOnly"
+                label="Show featured items only"
               />
             </div>
 
-            <!-- Featured-specific options -->
+            <!-- Categories Options -->
             <div
-              v-if="embedConfig.widgetType === 'featured'"
-              class="space-y-3"
+              v-if="config.widgetType === 'categories'"
+              class="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700"
             >
-              <UCheckbox
-                v-model="embedConfig.showPrice"
-                label="Show prices"
-              />
-              <UCheckbox
-                v-model="embedConfig.showDescription"
-                label="Show descriptions"
-              />
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Layout Style
+                </label>
+                <div class="flex gap-2">
+                  <button
+                    v-for="option in layoutOptions"
+                    :key="option.value"
+                    :class="[
+                      'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all',
+                      config.layout === option.value
+                        ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'
+                        : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
+                    ]"
+                    @click="config.layout = option.value as 'grid' | 'list' | 'carousel'"
+                  >
+                    <UIcon
+                      :name="option.icon"
+                      class="w-4 h-4"
+                    />
+                    {{ option.label }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Featured Options -->
+            <div
+              v-if="config.widgetType === 'featured'"
+              class="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700"
+            >
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Layout Style
+                </label>
+                <div class="flex gap-2">
+                  <button
+                    v-for="option in layoutOptions.filter(o => o.value !== 'list')"
+                    :key="option.value"
+                    :class="[
+                      'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all',
+                      config.layout === option.value
+                        ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'
+                        : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600'
+                    ]"
+                    @click="config.layout = option.value as 'grid' | 'list' | 'carousel'"
+                  >
+                    <UIcon
+                      :name="option.icon"
+                      class="w-4 h-4"
+                    />
+                    {{ option.label }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                <UCheckbox
+                  v-model="config.showPrice"
+                  label="Show prices"
+                />
+                <UCheckbox
+                  v-model="config.showDescription"
+                  label="Show descriptions"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Button Text
+                </label>
+                <UInput
+                  v-model="config.ctaText"
+                  placeholder="Book Now"
+                />
+              </div>
             </div>
           </div>
-        </UCard>
 
-        <!-- Generated Code Panel -->
-        <UCard>
-          <template #header>
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+          <!-- Embed Code -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 <UIcon
-                  name="i-lucide-copy"
-                  class="w-5 h-5 text-green-600 dark:text-green-400"
+                  name="i-lucide-code-2"
+                  class="w-5 h-5 text-gray-400"
                 />
-              </div>
-              <div>
-                <h3 class="font-semibold text-gray-900 dark:text-white">
-                  Generated Code
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  Copy and paste into your website
-                </p>
-              </div>
-            </div>
-          </template>
-
-          <div class="space-y-4">
-            <!-- Direct URL -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Direct URL
-              </label>
-              <div class="flex gap-2">
-                <UInput
-                  :model-value="embedWidgetUrl"
-                  readonly
-                  class="flex-1 font-mono text-sm"
-                />
-                <UButton
-                  color="primary"
-                  variant="soft"
-                  icon="i-lucide-copy"
-                  @click="copyToClipboard(embedWidgetUrl, 'Widget URL')"
-                />
+                Embed Code
+              </h2>
+              <div class="flex gap-1">
+                <button
+                  :class="[
+                    'px-3 py-1 rounded-md text-sm font-medium transition-all',
+                    codeTab === 'iframe'
+                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+                      : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  ]"
+                  @click="codeTab = 'iframe'"
+                >
+                  iFrame
+                </button>
+                <button
+                  :class="[
+                    'px-3 py-1 rounded-md text-sm font-medium transition-all',
+                    codeTab === 'url'
+                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+                      : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  ]"
+                  @click="codeTab = 'url'"
+                >
+                  URL
+                </button>
               </div>
             </div>
 
-            <!-- iFrame Code -->
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                iFrame Embed Code
-              </label>
-              <div class="relative">
-                <pre class="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 text-sm font-mono text-gray-700 dark:text-gray-300 overflow-x-auto whitespace-pre-wrap">{{ embedIframeCode }}</pre>
-                <UButton
-                  color="primary"
-                  variant="soft"
-                  icon="i-lucide-copy"
-                  size="sm"
-                  class="absolute top-2 right-2"
-                  @click="copyToClipboard(embedIframeCode, 'Embed code')"
-                />
-              </div>
+            <div class="relative">
+              <pre
+                class="p-4 bg-gray-900 rounded-xl text-sm font-mono text-gray-300 overflow-x-auto whitespace-pre-wrap"
+              >{{ codeTab === 'iframe' ? iframeCode : fullEmbedUrl }}</pre>
+              <UButton
+                color="primary"
+                size="sm"
+                icon="i-lucide-copy"
+                class="absolute top-3 right-3"
+                @click="copyToClipboard(codeTab === 'iframe' ? iframeCode : fullEmbedUrl, codeTab === 'iframe' ? 'Embed code' : 'Widget URL')"
+              >
+                Copy
+              </UButton>
             </div>
 
-            <!-- Preview Button -->
-            <div class="flex gap-2">
+            <div class="mt-4 flex gap-2">
               <UButton
                 color="neutral"
                 variant="outline"
                 icon="i-lucide-external-link"
-                :to="embedWidgetUrl"
+                :to="previewUrl"
                 target="_blank"
               >
-                Preview Widget
+                Open in New Tab
+              </UButton>
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-refresh-cw"
+                @click="refreshPreview"
+              >
+                Refresh Preview
               </UButton>
             </div>
           </div>
-        </UCard>
-      </div>
+        </div>
 
-      <!-- Widget Type Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <button
-          v-for="widget in widgetTypeOptions"
-          :key="widget.value"
-          :class="[
-            'p-4 rounded-xl border-2 text-left transition-all',
-            embedConfig.widgetType === widget.value
-              ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-          ]"
-          @click="embedConfig.widgetType = widget.value"
-        >
-          <h4 class="font-semibold text-gray-900 dark:text-white mb-1">
-            {{ widget.label }}
-          </h4>
-          <p class="text-sm text-gray-500 dark:text-gray-400">
-            {{ widget.description }}
-          </p>
-        </button>
-      </div>
-    </div>
+        <!-- Live Preview Panel -->
+        <div class="xl:sticky xl:top-4 h-fit">
+          <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div class="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="flex gap-1.5">
+                  <div class="w-3 h-3 rounded-full bg-red-500" />
+                  <div class="w-3 h-3 rounded-full bg-yellow-500" />
+                  <div class="w-3 h-3 rounded-full bg-green-500" />
+                </div>
+                <span class="text-sm text-gray-500 dark:text-gray-400 ml-2 font-mono truncate max-w-[300px]">
+                  {{ fullEmbedUrl || 'Configure widget to see preview' }}
+                </span>
+              </div>
+              <UButton
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                icon="i-lucide-maximize-2"
+                :to="previewUrl"
+                target="_blank"
+              />
+            </div>
 
-    <!-- Manage Data Mode - Direct rb-payload access -->
-    <div
-      v-else-if="viewMode === 'manage'"
-      class="space-y-6"
-    >
-      <!-- Info Banner -->
-      <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 flex items-start gap-3">
-        <UIcon
-          name="i-lucide-info"
-          class="w-5 h-5 text-blue-500 dark:text-blue-400 mt-0.5 flex-shrink-0"
-        />
-        <div>
-          <h4 class="font-medium text-blue-900 dark:text-blue-100 mb-1">
-            Direct Booking System Access
-          </h4>
-          <p class="text-sm text-blue-700 dark:text-blue-300">
-            Access the booking system's admin panel directly to manage customers, bookings, and inventory synced from BouncePro.
-            Changes here will be reflected in the booking widget.
-          </p>
+            <!-- Preview iframe -->
+            <div
+              :class="[
+                'relative',
+                config.theme === 'dark' ? 'bg-gray-900' : config.theme === 'light' ? 'bg-white' : 'bg-gray-100 dark:bg-gray-900'
+              ]"
+              style="height: calc(100vh - 280px); min-height: 500px;"
+            >
+              <iframe
+                v-if="previewUrl"
+                :key="previewKey"
+                :src="previewUrl"
+                class="w-full h-full border-0"
+                title="Widget Preview"
+              />
+              <div
+                v-else
+                class="flex items-center justify-center h-full"
+              >
+                <div class="text-center">
+                  <UIcon
+                    name="i-lucide-monitor"
+                    class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3"
+                  />
+                  <p class="text-gray-500 dark:text-gray-400">
+                    Widget preview will appear here
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Tips -->
+          <div class="mt-4 p-4 bg-gradient-to-r from-orange-50 to-pink-50 dark:from-orange-900/20 dark:to-pink-900/20 rounded-xl border border-orange-200 dark:border-orange-800/50">
+            <h3 class="font-medium text-orange-900 dark:text-orange-100 mb-2 flex items-center gap-2">
+              <UIcon
+                name="i-lucide-lightbulb"
+                class="w-4 h-4"
+              />
+              Integration Tips
+            </h3>
+            <ul class="text-sm text-orange-800 dark:text-orange-200 space-y-1">
+              <li>Copy the iframe code and paste it into your website's HTML</li>
+              <li>Works on WordPress, Wix, Squarespace, and any HTML site</li>
+              <li>Adjust the height attribute to fit your page layout</li>
+            </ul>
+          </div>
         </div>
       </div>
 
-      <!-- Collection Links Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <button
-          v-for="item in rbPayloadCollections"
-          :key="item.name"
-          :disabled="isGeneratingSsoUrl"
-          class="group block p-5 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md transition-all duration-200 text-left w-full disabled:opacity-50 disabled:cursor-wait"
-          @click="handleCollectionClick(item.collection)"
-        >
-          <div class="flex items-start gap-4">
+      <!-- Advanced Integration Section -->
+      <div class="mt-12 space-y-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+          <UIcon
+            name="i-lucide-code-2"
+            class="w-6 h-6 text-orange-500"
+          />
+          Advanced Integration (embed.js)
+        </h2>
+
+        <p class="text-gray-600 dark:text-gray-400">
+          For more control over the widget behavior, use our JavaScript embed script. This method provides
+          modal/drawer support, custom cart triggers, event handling, and seamless integration with your site.
+        </p>
+
+        <!-- Basic Usage -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Basic Usage
+          </h3>
+          <pre class="p-4 bg-gray-900 rounded-xl text-sm font-mono text-gray-300 overflow-x-auto">{{ embedBasicCode }}</pre>
+          <UButton
+            color="neutral"
+            variant="outline"
+            size="sm"
+            icon="i-lucide-copy"
+            class="mt-3"
+            @click="copyToClipboard(embedBasicCode, 'Basic embed code')"
+          >
+            Copy Code
+          </UButton>
+        </div>
+
+        <!-- Attributes Reference -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Available Attributes
+          </h3>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-200 dark:border-gray-700">
+                  <th class="text-left py-2 pr-4 font-semibold text-gray-900 dark:text-white">
+                    Attribute
+                  </th>
+                  <th class="text-left py-2 pr-4 font-semibold text-gray-900 dark:text-white">
+                    Default
+                  </th>
+                  <th class="text-left py-2 font-semibold text-gray-900 dark:text-white">
+                    Description
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tr
+                  v-for="attr in embedAttributes"
+                  :key="attr.name"
+                >
+                  <td class="py-2 pr-4">
+                    <code class="text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded text-xs">{{ attr.name }}</code>
+                  </td>
+                  <td class="py-2 pr-4 text-gray-500 dark:text-gray-400">
+                    {{ attr.default }}
+                  </td>
+                  <td class="py-2 text-gray-600 dark:text-gray-400">
+                    {{ attr.description }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Behavior Modes -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Behavior Modes
+          </h3>
+
+          <div class="space-y-4">
             <div
-              class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-              :class="{
-                'bg-orange-100 dark:bg-orange-900/30': item.color === 'orange',
-                'bg-blue-100 dark:bg-blue-900/30': item.color === 'blue',
-                'bg-green-100 dark:bg-green-900/30': item.color === 'green',
-                'bg-purple-100 dark:bg-purple-900/30': item.color === 'purple',
-                'bg-red-100 dark:bg-red-900/30': item.color === 'red',
-                'bg-amber-100 dark:bg-amber-900/30': item.color === 'amber'
-              }"
+              v-for="mode in behaviorModes"
+              :key="mode.value"
+              class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg"
             >
-              <UIcon
-                :name="item.icon"
-                class="w-6 h-6"
-                :class="{
-                  'text-orange-600 dark:text-orange-400': item.color === 'orange',
-                  'text-blue-600 dark:text-blue-400': item.color === 'blue',
-                  'text-green-600 dark:text-green-400': item.color === 'green',
-                  'text-purple-600 dark:text-purple-400': item.color === 'purple',
-                  'text-red-600 dark:text-red-400': item.color === 'red',
-                  'text-amber-600 dark:text-amber-400': item.color === 'amber'
-                }"
-              />
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 mb-1">
-                <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                  {{ item.name }}
-                </h3>
-                <UIcon
-                  v-if="!isGeneratingSsoUrl"
-                  name="i-lucide-external-link"
-                  class="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                />
-                <UIcon
-                  v-else
-                  name="i-lucide-loader-2"
-                  class="w-4 h-4 text-gray-400 animate-spin"
-                />
+              <div class="flex items-center gap-2 mb-2">
+                <code class="text-orange-600 dark:text-orange-400 font-semibold">{{ mode.value }}</code>
+                <UBadge
+                  v-if="mode.value === 'modal'"
+                  color="success"
+                  size="xs"
+                >
+                  Default
+                </UBadge>
               </div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                {{ item.description }}
+              <p class="text-gray-600 dark:text-gray-400 text-sm">
+                {{ mode.description }}
               </p>
             </div>
           </div>
-        </button>
-      </div>
+        </div>
 
-      <!-- Full Admin Access -->
-      <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h3 class="font-semibold text-gray-900 dark:text-white mb-1">
-              Full Admin Panel
-            </h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Access the complete booking system admin panel with all features and settings
-            </p>
-          </div>
+        <!-- Custom Cart Trigger -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Custom Cart Trigger
+          </h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">
+            Use your own cart button instead of the default one. The widget will update a <code class="text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded text-xs">data-cart-count</code> attribute on your element.
+          </p>
+          <pre class="p-4 bg-gray-900 rounded-xl text-sm font-mono text-gray-300 overflow-x-auto">{{ customCartCode }}</pre>
           <UButton
-            color="primary"
-            icon="i-lucide-external-link"
-            :loading="isGeneratingSsoUrl"
-            @click="navigateToAdmin"
+            color="neutral"
+            variant="outline"
+            size="sm"
+            icon="i-lucide-copy"
+            class="mt-3"
+            @click="copyToClipboard(customCartCode, 'Custom cart code')"
           >
-            Open Admin Panel
+            Copy Code
           </UButton>
         </div>
-      </div>
 
-      <!-- Help Text -->
-      <p class="text-sm text-center text-gray-500 dark:text-gray-400">
-        The booking system admin panel opens in a new tab. You will be automatically logged in with your BouncePro account.
-      </p>
+        <!-- JavaScript API -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            JavaScript API
+          </h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">
+            Control the widget programmatically using the global <code class="text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded text-xs">BH</code> object.
+          </p>
+
+          <div class="space-y-3">
+            <div
+              v-for="method in jsApiMethods"
+              :key="method.name"
+              class="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg"
+            >
+              <code class="text-orange-600 dark:text-orange-400 font-semibold text-sm">{{ method.signature }}</code>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                {{ method.description }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Events -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Events
+          </h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">
+            Listen for widget events on the window object.
+          </p>
+          <pre class="p-4 bg-gray-900 rounded-xl text-sm font-mono text-gray-300 overflow-x-auto">{{ eventsCode }}</pre>
+          <UButton
+            color="neutral"
+            variant="outline"
+            size="sm"
+            icon="i-lucide-copy"
+            class="mt-3"
+            @click="copyToClipboard(eventsCode, 'Events code')"
+          >
+            Copy Code
+          </UButton>
+        </div>
+
+        <!-- URL Parameters & Deep Linking -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <UIcon
+              name="i-lucide-link"
+              class="w-5 h-5 text-orange-500"
+            />
+            URL Parameters & Deep Linking
+          </h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">
+            Pass parameters via URL query strings to customize widget behavior. Perfect for category pages, product pages, or shareable links.
+          </p>
+
+          <div class="overflow-x-auto mb-6">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-200 dark:border-gray-700">
+                  <th class="text-left py-2 pr-4 font-semibold text-gray-900 dark:text-white">
+                    Parameter
+                  </th>
+                  <th class="text-left py-2 pr-4 font-semibold text-gray-900 dark:text-white">
+                    Example
+                  </th>
+                  <th class="text-left py-2 font-semibold text-gray-900 dark:text-white">
+                    Description
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tr
+                  v-for="param in urlParams"
+                  :key="param.name"
+                >
+                  <td class="py-2 pr-4">
+                    <code class="text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded text-xs">{{ param.name }}</code>
+                  </td>
+                  <td class="py-2 pr-4 text-gray-500 dark:text-gray-400">
+                    <code class="text-xs">{{ param.example }}</code>
+                  </td>
+                  <td class="py-2 text-gray-600 dark:text-gray-400">
+                    {{ param.description }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+            <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
+              <UIcon
+                name="i-lucide-info"
+                class="w-4 h-4"
+              />
+              How Deep Linking Works
+            </h4>
+            <p class="text-blue-800 dark:text-blue-200 text-sm">
+              When users click products, the URL is updated with <code class="bg-blue-100 dark:bg-blue-800 px-1 rounded">bh_product=slug</code>.
+              This enables back-button navigation and shareable links. When the page loads with this parameter, the product modal opens automatically.
+            </p>
+          </div>
+
+          <pre class="p-4 bg-gray-900 rounded-xl text-sm font-mono text-gray-300 overflow-x-auto">{{ deepLinkCode }}</pre>
+          <UButton
+            color="neutral"
+            variant="outline"
+            size="sm"
+            icon="i-lucide-copy"
+            class="mt-3"
+            @click="copyToClipboard(deepLinkCode, 'Deep link examples')"
+          >
+            Copy Examples
+          </UButton>
+        </div>
+
+        <!-- Navigate Mode: Custom Product Pages -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <UIcon
+              name="i-lucide-navigation"
+              class="w-5 h-5 text-orange-500"
+            />
+            Custom Product & Category Pages
+          </h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">
+            Use <code class="text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded text-xs">behavior="navigate"</code> to integrate widgets with your existing website structure.
+            Create dedicated pages for each product or category.
+          </p>
+
+          <div class="space-y-6">
+            <div>
+              <h4 class="font-medium text-gray-900 dark:text-white mb-2">
+                Single Product Page
+              </h4>
+              <pre class="p-4 bg-gray-900 rounded-xl text-sm font-mono text-gray-300 overflow-x-auto">{{ navigateModeCode }}</pre>
+              <UButton
+                color="neutral"
+                variant="outline"
+                size="sm"
+                icon="i-lucide-copy"
+                class="mt-3"
+                @click="copyToClipboard(navigateModeCode, 'Product page code')"
+              >
+                Copy Code
+              </UButton>
+            </div>
+
+            <div>
+              <h4 class="font-medium text-gray-900 dark:text-white mb-2">
+                Category Page
+              </h4>
+              <pre class="p-4 bg-gray-900 rounded-xl text-sm font-mono text-gray-300 overflow-x-auto">{{ categoryPageCode }}</pre>
+              <UButton
+                color="neutral"
+                variant="outline"
+                size="sm"
+                icon="i-lucide-copy"
+                class="mt-3"
+                @click="copyToClipboard(categoryPageCode, 'Category page code')"
+              >
+                Copy Code
+              </UButton>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Product Modal for Widget Preview -->
+    <UModal
+      v-model:open="showProductModal"
+      class="max-w-4xl"
+    >
+      <template #header>
+        <div class="flex items-center justify-between w-full">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Product Details Preview
+          </h3>
+        </div>
+      </template>
+      <template #body>
+        <div
+          :class="[
+            'rounded-lg overflow-hidden',
+            config.theme === 'dark' ? 'bg-gray-900' : 'bg-white'
+          ]"
+          style="height: 600px;"
+        >
+          <iframe
+            v-if="productModalUrl"
+            :src="productModalUrl"
+            class="w-full h-full border-0"
+            title="Product Details Preview"
+          />
+        </div>
+      </template>
+      <template #footer="{ close }">
+        <div class="flex justify-end">
+          <UButton
+            color="neutral"
+            variant="outline"
+            @click="close"
+          >
+            Close
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

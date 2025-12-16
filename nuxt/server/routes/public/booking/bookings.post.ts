@@ -59,14 +59,15 @@ export default defineEventHandler(async (event) => {
     const address = body.eventDetails?.address || body.deliveryAddress || {}
 
     // Transform all items to the new rentalItems array format
+    // Ensure itemId is parsed as integer (may come as string from frontend)
     const rentalItems = body.items.map((item: {
-      itemId: number
+      itemId: number | string
       quantity?: number
       price?: number
       startDate?: string
       endDate?: string
     }) => ({
-      rentalItemId: item.itemId,
+      rentalItemId: typeof item.itemId === 'string' ? parseInt(item.itemId, 10) : item.itemId,
       quantity: item.quantity || 1,
       price: item.price || 0
     }))
