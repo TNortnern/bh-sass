@@ -98,12 +98,13 @@ export async function completeDemoPayment(
 /**
  * Get demo mode status
  */
-export function getDemoModeStatus(): { enabled: boolean; message: string } {
+export function getDemoModeStatus(): { enabled: boolean; message: string; rawEnvValue: string | undefined } {
   const enabled = isDemoMode()
   return {
     enabled,
     message: enabled
       ? 'Demo mode is ENABLED - payments will be simulated (no real charges)'
-      : 'Demo mode is disabled - using real Stripe payments'
+      : 'Demo mode is disabled - using real Stripe payments',
+    rawEnvValue: process.env.DEMO_MODE,
   }
 }

@@ -3,7 +3,7 @@ import Stripe from 'stripe'
 import { getStripeClient } from '../../lib/stripe/client'
 import { calculateApplicationFee } from '../../lib/stripe/fees'
 import type { CheckoutSessionResponse, PricingTier } from '../../lib/stripe/types'
-import { isDemoMode, createDemoCheckoutSession, completeDemoPayment } from '../../lib/demo-mode'
+import { isDemoMode, createDemoCheckoutSession, completeDemoPayment, getDemoModeStatus } from '../../lib/demo-mode'
 
 /**
  * POST /api/stripe/checkout/create-session
@@ -222,7 +222,8 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
       {
         error: 'Internal Server Error',
         message: `Failed to create checkout session: ${errorMessage}`,
-        version: 'v2',
+        version: 'v4',
+        demoMode: getDemoModeStatus(),
         debug: errorStack?.slice(0, 500),
       },
       { status: 500 },
