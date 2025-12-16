@@ -11,14 +11,14 @@ export const Users: CollectionConfig = {
   },
   auth: {
     // Configure cookie settings for auth persistence
+    // In production (HTTPS), use secure cookies; in development (HTTP), allow insecure
     cookies: {
-      sameSite: 'Lax', // Allow cookies in development with different ports
-      secure: false, // Set to false for development (http://localhost)
-      domain: undefined, // Allow cookies to work across localhost ports
+      sameSite: 'Lax',
+      secure: process.env.NODE_ENV === 'production',
+      domain: undefined,
     },
     // Token expiration: 7 days (in seconds)
     tokenExpiration: 7 * 24 * 60 * 60,
-    // Session/Cookie max age: 7 days (in seconds)
     maxLoginAttempts: 5,
     lockTime: 10 * 60 * 1000, // 10 minutes in milliseconds
   },
