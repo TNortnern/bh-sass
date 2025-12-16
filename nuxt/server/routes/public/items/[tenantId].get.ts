@@ -142,7 +142,7 @@ export default defineEventHandler(async (event) => {
       slug: item.slug || generateSlug(item.name, item.id),
       description: item.description,
       category: item.category,
-      categoryId: typeof item.categoryId === 'object' ? item.categoryId.id : item.categoryId,
+      categoryId: typeof item.categoryId === 'object' && item.categoryId !== null ? item.categoryId.id : item.categoryId,
       specifications: {
         dimensions: item.dimensions,
         capacity: item.capacity,
