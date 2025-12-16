@@ -196,16 +196,20 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
 
     return Response.json(response)
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorStack = error instanceof Error ? error.stack : undefined
     console.error('Stripe checkout session error:', {
       type: error instanceof Error ? error.name : 'Unknown',
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      message: errorMessage,
+      stack: errorStack,
     })
 
+    // In development/staging, return the actual error for debugging
     return Response.json(
       {
         error: 'Internal Server Error',
-        message: 'Failed to create checkout session',
+        message: `Failed to create checkout session: ${errorMessage}`,
+        debug: process.env.NODE_ENV !== 'production' ? errorStack : undefined,
       },
       { status: 500 },
     )
