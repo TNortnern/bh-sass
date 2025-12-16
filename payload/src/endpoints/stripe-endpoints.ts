@@ -131,12 +131,12 @@ export const stripeDisconnectEndpoint: Endpoint = {
 /**
  * Stripe checkout session creation endpoint
  * POST /api/stripe/checkout/create-session
- * Rate limited: 5 requests per minute (prevents checkout spam/abuse)
+ * Temporarily bypassing rate limiter for debugging
  */
 export const stripeCheckoutCreateEndpoint: Endpoint = {
   path: '/stripe/checkout/create-session',
   method: 'post',
-  handler: withRateLimit('checkoutLimiter', createCheckoutSession),
+  handler: createCheckoutSession, // Bypassing rate limiter temporarily
 }
 
 /**
