@@ -14,8 +14,11 @@ import { isDemoMode, createDemoCheckoutSession, completeDemoPayment } from '../.
 export const createCheckoutSession = async (req: PayloadRequest): Promise<Response> => {
   const { payload } = req
 
+  console.log('[Checkout] Received checkout request, demo mode:', isDemoMode())
+
   try {
     const body = req.json ? await req.json() : {}
+    console.log('[Checkout] Request body:', JSON.stringify(body))
     const {
       tenantId,
       bookingId,
@@ -189,6 +192,8 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
   } catch (error) {
     console.error('Stripe checkout session error:', {
       type: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
     })
 
     return Response.json(
