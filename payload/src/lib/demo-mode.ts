@@ -78,11 +78,12 @@ export async function completeDemoPayment(
       }
     })
 
-    // Update booking status
+    // Update booking status - use depth: 0 to avoid populating relations
     await payload.update({
       collection: 'bookings',
       id: bookingIdNum,
       overrideAccess: true,
+      depth: 0,
       data: {
         paymentStatus: 'paid_full',
         status: 'confirmed',
