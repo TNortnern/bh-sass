@@ -1037,9 +1037,12 @@ export const Tenants: CollectionConfig = {
           if (result.success && result.rbPayloadTenantId) {
             // Try to update the tenant with rb-payload data
             try {
+              // Ensure id is a number for PostgreSQL
+              const tenantId = typeof doc.id === 'number' ? doc.id : Number(doc.id)
+              console.log(`Updating tenant ${tenantId} with rb-payload data...`)
               await req.payload.update({
                 collection: 'tenants',
-                id: doc.id,
+                id: tenantId,
                 overrideAccess: true, // Required in afterChange hook context
                 data: {
                   rbPayloadTenantId: result.rbPayloadTenantId,
@@ -1055,9 +1058,10 @@ export const Tenants: CollectionConfig = {
           } else {
             // Try to update status to failed, but don't fail if this also errors
             try {
+              const tenantId = typeof doc.id === 'number' ? doc.id : Number(doc.id)
               await req.payload.update({
                 collection: 'tenants',
-                id: doc.id,
+                id: tenantId,
                 overrideAccess: true,
                 data: {
                   rbPayloadSyncStatus: 'failed',
@@ -1075,9 +1079,10 @@ export const Tenants: CollectionConfig = {
 
           // Try to update status to failed, but don't fail if this also errors
           try {
+            const tenantId = typeof doc.id === 'number' ? doc.id : Number(doc.id)
             await req.payload.update({
               collection: 'tenants',
-              id: doc.id,
+              id: tenantId,
               overrideAccess: true,
               data: {
                 rbPayloadSyncStatus: 'failed',
