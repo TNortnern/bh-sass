@@ -3,7 +3,7 @@ import { getApiKeyFromHeaders, authenticateApiKey } from './apiKeyAuth'
 import { getTenantId } from './getTenantId'
 
 interface AccessContext {
-  tenantId: string | null
+  tenantId: number | null
   role: string | null
   authMethod: 'session' | 'api_key' | null
   userId: string | null
@@ -22,8 +22,14 @@ export async function getAccessContext(req: PayloadRequest): Promise<AccessConte
   // First check for session authentication
   if (req.user) {
     const tid = getTenantId(req.user)
+    // Parse tenantId as number for Payload relationship field comparisons
+    let tenantIdNum: number | null = null
+    if (tid !== null) {
+      tenantIdNum = typeof tid === 'number' ? tid : parseInt(String(tid), 10)
+      if (isNaN(tenantIdNum)) tenantIdNum = null
+    }
     return {
-      tenantId: tid ? String(tid) : null,
+      tenantId: tenantIdNum,
       role: req.user.role || null,
       authMethod: 'session',
       userId: String(req.user.id),
@@ -35,8 +41,10 @@ export async function getAccessContext(req: PayloadRequest): Promise<AccessConte
   if (apiKey) {
     const authResult = await authenticateApiKey(apiKey, req.payload)
     if (authResult.authenticated && authResult.tenant && authResult.apiKey) {
+      // Parse tenantId as number for Payload relationship field comparisons
+      const tenantIdNum = parseInt(authResult.tenant.id, 10)
       return {
-        tenantId: authResult.tenant.id,
+        tenantId: isNaN(tenantIdNum) ? null : tenantIdNum,
         role: 'api_key', // Special role for API key access
         authMethod: 'api_key',
         userId: null,

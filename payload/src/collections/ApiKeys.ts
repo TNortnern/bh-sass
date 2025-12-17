@@ -11,22 +11,27 @@ export const ApiKeys: CollectionConfig = {
   },
   access: {
     read: (async ({ req }) => {
-      // Super admin can read all
-      if (req.user?.role === 'super_admin') return true
+      try {
+        // Super admin can read all
+        if (req.user?.role === 'super_admin') return true
 
-      // Check for API key or session auth
-      const context = await getAccessContext(req)
+        // Check for API key or session auth
+        const context = await getAccessContext(req)
 
-      // Authenticated users (session or API key): filter by tenant
-      if (context.tenantId) {
-        return {
-          tenantId: {
-            equals: context.tenantId,
-          },
+        // Authenticated users (session or API key): filter by tenant
+        if (context.tenantId !== null) {
+          return {
+            tenantId: {
+              equals: context.tenantId,
+            },
+          }
         }
-      }
 
-      return false
+        return false
+      } catch (error) {
+        console.error('ApiKeys read access error:', error)
+        return false
+      }
     }) as Access,
     create: async ({ req }) => {
       if (req.user?.role === 'super_admin' || req.user?.role === 'tenant_admin') return true
@@ -36,54 +41,70 @@ export const ApiKeys: CollectionConfig = {
       return context.authMethod === 'api_key'
     },
     update: async ({ req }) => {
-      if (req.user?.role === 'super_admin') return true
+      try {
+        if (req.user?.role === 'super_admin') return true
 
-      const context = await getAccessContext(req)
+        const context = await getAccessContext(req)
 
-      // API key auth has full tenant access
-      if (context.authMethod === 'api_key' && context.tenantId) {
-        return {
-          tenantId: {
-            equals: context.tenantId,
-          },
+        // API key auth has full tenant access
+        if (context.authMethod === 'api_key' && context.tenantId !== null) {
+          return {
+            tenantId: {
+              equals: context.tenantId,
+            },
+          }
         }
-      }
 
-      if (req.user?.role === 'tenant_admin') {
-        const tenantId = getTenantId(req.user)
-        if (!tenantId) return false
-        return {
-          tenantId: {
-            equals: tenantId,
-          },
+        if (req.user?.role === 'tenant_admin') {
+          const tenantId = getTenantId(req.user)
+          if (!tenantId) return false
+          const tenantIdNum = typeof tenantId === 'number' ? tenantId : parseInt(String(tenantId), 10)
+          if (!isNaN(tenantIdNum)) {
+            return {
+              tenantId: {
+                equals: tenantIdNum,
+              },
+            }
+          }
         }
+        return false
+      } catch (error) {
+        console.error('ApiKeys update access error:', error)
+        return false
       }
-      return false
     },
     delete: async ({ req }) => {
-      if (req.user?.role === 'super_admin') return true
+      try {
+        if (req.user?.role === 'super_admin') return true
 
-      const context = await getAccessContext(req)
+        const context = await getAccessContext(req)
 
-      // API key auth has full tenant access
-      if (context.authMethod === 'api_key' && context.tenantId) {
-        return {
-          tenantId: {
-            equals: context.tenantId,
-          },
+        // API key auth has full tenant access
+        if (context.authMethod === 'api_key' && context.tenantId !== null) {
+          return {
+            tenantId: {
+              equals: context.tenantId,
+            },
+          }
         }
-      }
 
-      if (req.user?.role === 'tenant_admin') {
-        const tenantId = getTenantId(req.user)
-        if (!tenantId) return false
-        return {
-          tenantId: {
-            equals: tenantId,
-          },
+        if (req.user?.role === 'tenant_admin') {
+          const tenantId = getTenantId(req.user)
+          if (!tenantId) return false
+          const tenantIdNum = typeof tenantId === 'number' ? tenantId : parseInt(String(tenantId), 10)
+          if (!isNaN(tenantIdNum)) {
+            return {
+              tenantId: {
+                equals: tenantIdNum,
+              },
+            }
+          }
         }
+        return false
+      } catch (error) {
+        console.error('ApiKeys delete access error:', error)
+        return false
       }
-      return false
     },
   },
   fields: [
