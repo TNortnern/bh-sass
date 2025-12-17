@@ -8,11 +8,25 @@ export default defineEventHandler(async (event) => {
   const payloadUrl = config.payloadApiUrl || 'http://payload:3000'
   const apiKey = config.payloadApiKey
 
-  if (!apiKey) {
+  // Get the cookie header to forward to Payload for session auth
+  const cookieHeader = getHeader(event, 'cookie') || ''
+
+  // Must have either session cookie or API key
+  if (!cookieHeader.includes('payload-token') && !apiKey) {
     throw createError({
-      statusCode: 500,
-      message: 'Payload API key not configured'
+      statusCode: 401,
+      message: 'Authentication required'
     })
+  }
+
+  // Build headers - prefer session auth, fall back to API key
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+  if (cookieHeader.includes('payload-token')) {
+    headers['Cookie'] = cookieHeader
+  } else if (apiKey) {
+    headers['X-API-Key'] = apiKey
   }
 
   const id = getRouterParam(event, 'id')
@@ -27,10 +41,7 @@ export default defineEventHandler(async (event) => {
   try {
     const response = await fetch(`${payloadUrl}/api/inventory-units/${id}`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': apiKey
-      }
+      headers
     })
 
     if (!response.ok) {
