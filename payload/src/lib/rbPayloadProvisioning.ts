@@ -133,7 +133,8 @@ async function createRbPayloadTenant(data: {
     slug: data.slug,
     plan: data.plan,
     status: 'active',
-    externalId: `bh-saas-${data.bhSaasId}`, // Link back to BH-SaaS tenant
+    // Note: externalId removed - rb-payload schema doesn't support it
+    // The bhSaasId is stored in businessInfo instead for linking back
     businessInfo: {
       source: 'bh-saas',
       bhSaasId: data.bhSaasId,
