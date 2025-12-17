@@ -56,7 +56,7 @@
         </template>
 
         <div class="p-6 flex flex-col gap-6">
-          <UFormGroup
+          <UFormField
             label="Minimum Lead Time"
             help="Minimum hours before rental date"
             required
@@ -74,9 +74,9 @@
               />
               <span class="absolute right-4 text-gray-500 dark:text-[#666] text-[0.9375rem] font-medium pointer-events-none [font-variant-numeric:tabular-nums]">hours</span>
             </div>
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup
+          <UFormField
             label="Maximum Advance Booking"
             help="How far in advance customers can book"
             required
@@ -94,9 +94,9 @@
               />
               <span class="absolute right-4 text-gray-500 dark:text-[#666] text-[0.9375rem] font-medium pointer-events-none [font-variant-numeric:tabular-nums]">days</span>
             </div>
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup
+          <UFormField
             label="Buffer Time Between Rentals"
             help="Time needed between bookings for setup/cleanup"
             required
@@ -114,7 +114,7 @@
               />
               <span class="absolute right-4 text-gray-500 dark:text-[#666] text-[0.9375rem] font-medium pointer-events-none [font-variant-numeric:tabular-nums]">minutes</span>
             </div>
-          </UFormGroup>
+          </UFormField>
         </div>
       </UCard>
 
@@ -140,7 +140,7 @@
         </template>
 
         <div class="p-6 flex flex-col gap-6">
-          <UFormGroup
+          <UFormField
             label="Deposit Percentage"
             help="Percentage of total required as deposit"
             required
@@ -171,7 +171,7 @@
                 <span class="text-[0.9375rem] font-semibold text-gray-800 dark:text-[#e5e5e5] [font-variant-numeric:tabular-nums]">${{ (500 * booking.depositPercentage / 100).toFixed(2) }} deposit</span>
               </div>
             </div>
-          </UFormGroup>
+          </UFormField>
         </div>
       </UCard>
 

@@ -56,7 +56,7 @@
         </template>
 
         <div class="p-6 flex flex-col gap-6">
-          <UFormGroup
+          <UFormField
             label="Business Name"
             required
             class="flex flex-col gap-2"
@@ -68,9 +68,9 @@
               class="w-full"
               @input="markHasChanges"
             />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup
+          <UFormField
             label="Business Logo"
             class="flex flex-col gap-2"
           >
@@ -128,9 +128,9 @@
                 </UButton>
               </div>
             </div>
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup
+          <UFormField
             label="Description"
             class="flex flex-col gap-2"
           >
@@ -142,7 +142,7 @@
               class="w-full"
               @input="markHasChanges"
             />
-          </UFormGroup>
+          </UFormField>
         </div>
       </UCard>
 
@@ -169,7 +169,7 @@
 
         <div class="p-6 flex flex-col gap-6">
           <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 max-md:grid-cols-1">
-            <UFormGroup
+            <UFormField
               label="Phone Number"
               required
               class="flex flex-col gap-2"
@@ -182,9 +182,9 @@
                 class="w-full"
                 @input="markHasChanges"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup
+            <UFormField
               label="Email Address"
               required
               class="flex flex-col gap-2"
@@ -197,10 +197,10 @@
                 class="w-full"
                 @input="markHasChanges"
               />
-            </UFormGroup>
+            </UFormField>
           </div>
 
-          <UFormGroup
+          <UFormField
             label="Street Address"
             required
             class="flex flex-col gap-2"
@@ -212,10 +212,10 @@
               class="w-full"
               @input="markHasChanges"
             />
-          </UFormGroup>
+          </UFormField>
 
           <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 max-md:grid-cols-1">
-            <UFormGroup
+            <UFormField
               label="City"
               required
               class="flex flex-col gap-2"
@@ -227,9 +227,9 @@
                 class="w-full"
                 @input="markHasChanges"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup
+            <UFormField
               label="State"
               required
               class="flex flex-col gap-2"
@@ -241,9 +241,9 @@
                 class="w-full"
                 @change="markHasChanges"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup
+            <UFormField
               label="ZIP Code"
               required
               class="flex flex-col gap-2"
@@ -255,7 +255,7 @@
                 class="w-full"
                 @input="markHasChanges"
               />
-            </UFormGroup>
+            </UFormField>
           </div>
         </div>
       </UCard>
@@ -282,7 +282,7 @@
         </template>
 
         <div class="p-6 flex flex-col gap-6">
-          <UFormGroup
+          <UFormField
             label="Timezone"
             required
             class="flex flex-col gap-2"
@@ -294,7 +294,7 @@
               class="w-full"
               @change="markHasChanges"
             />
-          </UFormGroup>
+          </UFormField>
 
           <div class="mt-2 flex flex-col gap-3">
             <div class="text-sm font-semibold text-gray-800 dark:text-[#e5e5e5] uppercase tracking-widest mb-2">
@@ -361,7 +361,7 @@
 
         <div class="p-6 flex flex-col gap-6">
           <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 max-md:grid-cols-1">
-            <UFormGroup
+            <UFormField
               label="Service Radius"
               required
               class="flex flex-col gap-2"
@@ -374,9 +374,9 @@
                 class="w-full"
                 @input="markHasChanges"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup
+            <UFormField
               label="Unit"
               required
               class="flex flex-col gap-2"
@@ -388,10 +388,10 @@
                 class="w-full"
                 @change="markHasChanges"
               />
-            </UFormGroup>
+            </UFormField>
           </div>
 
-          <UFormGroup
+          <UFormField
             label="Service ZIP Codes (optional)"
             help="Add specific ZIP codes you serve"
             class="flex flex-col gap-2"
@@ -418,7 +418,7 @@
                 Add ZIP
               </button>
             </div>
-          </UFormGroup>
+          </UFormField>
         </div>
       </UCard>
 
@@ -444,7 +444,7 @@
         </template>
 
         <div class="p-6 flex flex-col gap-6">
-          <UFormGroup
+          <UFormField
             label="Current Password"
             required
             :error="passwordErrors.current"
@@ -470,9 +470,9 @@
                 />
               </button>
             </div>
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup
+          <UFormField
             label="New Password"
             required
             :error="passwordErrors.new"
@@ -504,9 +504,9 @@
             >
               Password must be at least 8 characters long
             </p>
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup
+          <UFormField
             label="Confirm New Password"
             required
             :error="passwordErrors.confirm"
@@ -538,7 +538,7 @@
             >
               Passwords do not match
             </p>
-          </UFormGroup>
+          </UFormField>
 
           <div class="flex justify-end">
             <UButton
@@ -567,7 +567,7 @@
           </template>
 
           <div class="p-6">
-            <UFormGroup
+            <UFormField
               label="ZIP Code"
               required
             >
@@ -578,7 +578,7 @@
                 maxlength="5"
                 class="w-full"
               />
-            </UFormGroup>
+            </UFormField>
           </div>
 
           <template #footer>

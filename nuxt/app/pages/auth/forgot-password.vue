@@ -39,7 +39,7 @@
         @submit.prevent="handleForgotPassword"
       >
         <!-- Email -->
-        <UFormGroup
+        <UFormField
           label="Email"
           required
         >
@@ -51,9 +51,9 @@
             :disabled="isLoading"
             required
             autocomplete="email"
-            icon="lucide:mail"
+            icon="i-lucide-mail"
           />
-        </UFormGroup>
+        </UFormField>
 
         <!-- Error Message -->
         <UAlert

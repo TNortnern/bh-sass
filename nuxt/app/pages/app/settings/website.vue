@@ -179,7 +179,7 @@
         </template>
 
         <div class="p-6 flex flex-col gap-6">
-          <UFormGroup
+          <UFormField
             label="Hero Title"
             required
             class="flex flex-col gap-2"
@@ -191,9 +191,9 @@
               class="w-full"
               @input="markHasChanges"
             />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup
+          <UFormField
             label="Hero Subtitle"
             class="flex flex-col gap-2"
           >
@@ -205,9 +205,9 @@
               class="w-full"
               @input="markHasChanges"
             />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup
+          <UFormField
             label="Call-to-Action Button Text"
             class="flex flex-col gap-2"
           >
@@ -218,9 +218,9 @@
               class="w-full"
               @input="markHasChanges"
             />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup
+          <UFormField
             label="Hero Image"
             class="flex flex-col gap-2"
           >
@@ -278,7 +278,7 @@
                 </UButton>
               </div>
             </div>
-          </UFormGroup>
+          </UFormField>
         </div>
       </UCard>
 
@@ -304,7 +304,7 @@
         </template>
 
         <div class="p-6 flex flex-col gap-6">
-          <UFormGroup
+          <UFormField
             label="About Title"
             class="flex flex-col gap-2"
           >
@@ -315,9 +315,9 @@
               class="w-full"
               @input="markHasChanges"
             />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup
+          <UFormField
             label="About Content"
             class="flex flex-col gap-2"
           >
@@ -329,7 +329,7 @@
               class="w-full"
               @input="markHasChanges"
             />
-          </UFormGroup>
+          </UFormField>
         </div>
       </UCard>
 
@@ -365,7 +365,7 @@
           v-if="websiteConfig.showServices"
           class="p-6 flex flex-col gap-6"
         >
-          <UFormGroup
+          <UFormField
             label="Services Section Title"
             class="flex flex-col gap-2"
           >
@@ -376,7 +376,7 @@
               class="w-full"
               @input="markHasChanges"
             />
-          </UFormGroup>
+          </UFormField>
         </div>
       </UCard>
 
@@ -596,7 +596,7 @@
         </template>
 
         <div class="p-6 flex flex-col gap-6">
-          <UFormGroup
+          <UFormField
             label="SEO Title"
             help="Appears in search results"
             class="flex flex-col gap-2"
@@ -608,9 +608,9 @@
               class="w-full"
               @input="markHasChanges"
             />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup
+          <UFormField
             label="SEO Description"
             help="Brief description for search results"
             class="flex flex-col gap-2"
@@ -623,9 +623,9 @@
               class="w-full"
               @input="markHasChanges"
             />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup
+          <UFormField
             label="SEO Keywords"
             help="Comma-separated keywords"
             class="flex flex-col gap-2"
@@ -637,7 +637,7 @@
               class="w-full"
               @input="markHasChanges"
             />
-          </UFormGroup>
+          </UFormField>
         </div>
       </UCard>
     </div>
@@ -653,7 +653,7 @@
           </template>
 
           <div class="p-6 flex flex-col gap-6">
-            <UFormGroup
+            <UFormField
               label="Customer Quote"
               required
             >
@@ -664,9 +664,9 @@
                 placeholder="What did the customer say about your service?"
                 class="w-full"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup
+            <UFormField
               label="Customer Name"
               required
             >
@@ -676,9 +676,9 @@
                 placeholder="John Smith"
                 class="w-full"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup
+            <UFormField
               label="Rating"
               required
             >
@@ -696,7 +696,7 @@
                   />
                 </button>
               </div>
-            </UFormGroup>
+            </UFormField>
           </div>
 
           <template #footer>

@@ -294,7 +294,7 @@
         </template>
 
         <div class="p-6">
-          <UFormGroup label="Payout Frequency">
+          <UFormField label="Payout Frequency">
             <div class="flex flex-col gap-3 mt-2">
               <div
                 v-for="schedule in payoutSchedules"
@@ -322,7 +322,7 @@
                 </div>
               </div>
             </div>
-          </UFormGroup>
+          </UFormField>
 
           <div class="flex items-start gap-3 p-4 mt-4 bg-blue-50 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-500/15 rounded-lg">
             <UIcon

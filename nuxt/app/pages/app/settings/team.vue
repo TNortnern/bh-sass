@@ -376,7 +376,7 @@
           </div>
 
           <div class="p-6 flex flex-col gap-6">
-            <UFormGroup
+            <UFormField
               label="Email Address"
               required
             >
@@ -387,9 +387,9 @@
                 placeholder="colleague@example.com"
                 class="w-full"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup
+            <UFormField
               label="Role"
               required
             >
@@ -433,7 +433,7 @@
                   </div>
                 </div>
               </div>
-            </UFormGroup>
+            </UFormField>
           </div>
 
           <div class="px-6 py-4 border-t border-gray-100 dark:border-white/[0.06] flex justify-end gap-3">
@@ -479,7 +479,7 @@
               </p>
             </div>
 
-            <UFormGroup
+            <UFormField
               label="Role"
               required
             >
@@ -523,7 +523,7 @@
                   </div>
                 </div>
               </div>
-            </UFormGroup>
+            </UFormField>
           </div>
 
           <div class="px-6 py-4 border-t border-gray-100 dark:border-white/[0.06] flex justify-end gap-3">

@@ -324,7 +324,7 @@
         </template>
 
         <div class="p-6">
-          <UFormGroup
+          <UFormField
             label="Send reminders before rental"
             help="How many hours in advance to send reminders"
             class="flex flex-col gap-2"
@@ -356,7 +356,7 @@
                 </div>
               </div>
             </div>
-          </UFormGroup>
+          </UFormField>
 
           <div class="flex items-start gap-3 p-4 mt-4 bg-blue-50 dark:bg-blue-500/[0.05] border border-blue-200 dark:border-blue-500/[0.15] rounded-lg">
             <UIcon

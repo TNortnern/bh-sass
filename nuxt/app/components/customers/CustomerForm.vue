@@ -17,43 +17,31 @@
           </h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <UFormGroup
+            <UFormField
               label="First Name"
               name="firstName"
               required
-              :ui="{
-                label: { base: 'text-sm font-medium text-slate-300' }
-              }"
             >
               <UInput
                 v-model="formState.firstName"
                 placeholder="Enter first name"
                 size="lg"
                 class="rounded-xl"
-                :ui="{
-                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
-                }"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup
+            <UFormField
               label="Last Name"
               name="lastName"
               required
-              :ui="{
-                label: { base: 'text-sm font-medium text-slate-300' }
-              }"
             >
               <UInput
                 v-model="formState.lastName"
                 placeholder="Enter last name"
                 size="lg"
                 class="rounded-xl"
-                :ui="{
-                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
-                }"
               />
-            </UFormGroup>
+            </UFormField>
           </div>
         </div>
 
@@ -68,13 +56,10 @@
           </h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <UFormGroup
+            <UFormField
               label="Email"
               name="email"
               required
-              :ui="{
-                label: { base: 'text-sm font-medium text-slate-300' }
-              }"
             >
               <UInput
                 v-model="formState.email"
@@ -82,9 +67,6 @@
                 placeholder="email@example.com"
                 size="lg"
                 class="rounded-xl"
-                :ui="{
-                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
-                }"
               >
                 <template #leading>
                   <UIcon
@@ -93,15 +75,12 @@
                   />
                 </template>
               </UInput>
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup
+            <UFormField
               label="Phone"
               name="phone"
               required
-              :ui="{
-                label: { base: 'text-sm font-medium text-slate-300' }
-              }"
             >
               <UInput
                 v-model="formState.phone"
@@ -109,9 +88,6 @@
                 placeholder="(555) 123-4567"
                 size="lg"
                 class="rounded-xl"
-                :ui="{
-                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
-                }"
               >
                 <template #leading>
                   <UIcon
@@ -120,7 +96,7 @@
                   />
                 </template>
               </UInput>
-            </UFormGroup>
+            </UFormField>
           </div>
         </div>
 
@@ -135,78 +111,54 @@
           </h3>
 
           <div class="space-y-4">
-            <UFormGroup
+            <UFormField
               label="Street Address"
               name="address.street"
-              :ui="{
-                label: { base: 'text-sm font-medium text-slate-300' }
-              }"
             >
               <UInput
                 v-model="formState.address!.street"
                 placeholder="123 Main St"
                 size="lg"
                 class="rounded-xl"
-                :ui="{
-                  base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
-                }"
               />
-            </UFormGroup>
+            </UFormField>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <UFormGroup
+              <UFormField
                 label="City"
                 name="address.city"
-                :ui="{
-                  label: { base: 'text-sm font-medium text-slate-300' }
-                }"
               >
                 <UInput
                   v-model="formState.address!.city"
                   placeholder="Austin"
                   size="lg"
                   class="rounded-xl"
-                  :ui="{
-                    base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
-                  }"
                 />
-              </UFormGroup>
+              </UFormField>
 
-              <UFormGroup
+              <UFormField
                 label="State"
                 name="address.state"
-                :ui="{
-                  label: { base: 'text-sm font-medium text-slate-300' }
-                }"
               >
                 <UInput
                   v-model="formState.address!.state"
                   placeholder="TX"
                   size="lg"
                   class="rounded-xl"
-                  :ui="{
-                    base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
-                  }"
                 />
-              </UFormGroup>
+              </UFormField>
 
-              <UFormGroup
+              <UFormField
                 label="ZIP Code"
                 name="address.zip"
-                :ui="{
-                  label: { base: 'text-sm font-medium text-slate-300' }
-                }"
               >
                 <UInput
                   v-model="formState.address!.zip"
                   placeholder="78701"
                   size="lg"
                   class="rounded-xl"
-                  :ui="{
-                    base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
-                  }"
                 />
-              </UFormGroup>
+              </UFormField>
             </div>
           </div>
         </div>
@@ -241,11 +193,8 @@
               </UButton>
             </div>
 
-            <UFormGroup
+            <UFormField
               label="Add Custom Tag"
-              :ui="{
-                label: { base: 'text-xs font-medium text-slate-400' }
-              }"
             >
               <div class="flex gap-2">
                 <UInput
@@ -253,9 +202,6 @@
                   placeholder="Enter custom tag"
                   size="lg"
                   class="rounded-xl"
-                  :ui="{
-                    base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
-                  }"
                   @keyup.enter="addCustomTag"
                 />
                 <UButton
@@ -271,7 +217,7 @@
                   />
                 </UButton>
               </div>
-            </UFormGroup>
+            </UFormField>
           </div>
         </div>
 
@@ -285,11 +231,8 @@
             Notes
           </h3>
 
-          <UFormGroup
+          <UFormField
             name="notes"
-            :ui="{
-              label: { base: 'text-sm font-medium text-slate-300' }
-            }"
           >
             <UTextarea
               v-model="formState.notes"
@@ -297,11 +240,8 @@
               :rows="4"
               size="lg"
               class="rounded-xl"
-              :ui="{
-                base: 'bg-slate-800/60 border-slate-700/50 focus:border-amber-500/50 text-slate-200 placeholder-slate-500'
-              }"
             />
-          </UFormGroup>
+          </UFormField>
         </div>
 
         <!-- Form Actions -->
@@ -474,7 +414,7 @@ function handleCancel(): void {
 </script>
 
 <style scoped>
-.customer-form :deep(.u-form-group) {
+.customer-form :deep(.u-form-field) {
   margin-bottom: 0;
 }
 </style>

@@ -273,7 +273,7 @@
               </p>
             </div>
             <div class="p-6 space-y-5">
-              <UFormGroup
+              <UFormField
                 label="Headline"
                 required
               >
@@ -284,9 +284,9 @@
                   class="w-full"
                   @input="markHasChanges"
                 />
-              </UFormGroup>
+              </UFormField>
 
-              <UFormGroup label="Tagline">
+              <UFormField label="Tagline">
                 <UTextarea
                   v-model="websiteConfig.heroSubtitle"
                   :rows="2"
@@ -294,16 +294,16 @@
                   class="w-full"
                   @input="markHasChanges"
                 />
-              </UFormGroup>
+              </UFormField>
 
-              <UFormGroup label="Button Text">
+              <UFormField label="Button Text">
                 <UInput
                   v-model="websiteConfig.heroCTA"
                   placeholder="Browse Rentals"
                   class="w-full"
                   @input="markHasChanges"
                 />
-              </UFormGroup>
+              </UFormField>
             </div>
           </div>
 
@@ -318,7 +318,7 @@
               </p>
             </div>
             <div class="p-6 space-y-5">
-              <UFormGroup label="About Content">
+              <UFormField label="About Content">
                 <UTextarea
                   v-model="websiteConfig.aboutContent"
                   :rows="4"
@@ -326,7 +326,7 @@
                   class="w-full"
                   @input="markHasChanges"
                 />
-              </UFormGroup>
+              </UFormField>
             </div>
           </div>
 
@@ -460,7 +460,7 @@
               </p>
             </div>
             <div class="p-6 space-y-4">
-              <UFormGroup
+              <UFormField
                 label="Page Title"
                 help="Shows in browser tab & search results"
               >
@@ -470,9 +470,9 @@
                   class="w-full"
                   @input="markHasChanges"
                 />
-              </UFormGroup>
+              </UFormField>
 
-              <UFormGroup
+              <UFormField
                 label="Description"
                 help="Brief description for search engines"
               >
@@ -483,7 +483,7 @@
                   class="w-full"
                   @input="markHasChanges"
                 />
-              </UFormGroup>
+              </UFormField>
             </div>
           </div>
         </div>
@@ -501,7 +501,7 @@
           </template>
 
           <div class="p-6 space-y-5">
-            <UFormGroup
+            <UFormField
               label="Customer Quote"
               required
             >
@@ -511,9 +511,9 @@
                 placeholder="What did the customer say?"
                 class="w-full"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup
+            <UFormField
               label="Customer Name"
               required
             >
@@ -522,9 +522,9 @@
                 placeholder="John Smith"
                 class="w-full"
               />
-            </UFormGroup>
+            </UFormField>
 
-            <UFormGroup label="Rating">
+            <UFormField label="Rating">
               <div class="flex gap-1">
                 <button
                   v-for="i in 5"
@@ -539,7 +539,7 @@
                   />
                 </button>
               </div>
-            </UFormGroup>
+            </UFormField>
           </div>
 
           <template #footer>
