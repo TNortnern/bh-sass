@@ -68,52 +68,45 @@
           </div>
 
           <!-- Item Name -->
-          <UFormGroup
+          <UFormField
             label="Item Name"
             required
             help="What's the name of this rental item?"
+            size="xl"
           >
             <UInput
               v-model="form.name"
               type="text"
               placeholder="e.g., Castle Bounce House, Water Slide, etc."
               size="xl"
-              :ui="{
-                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500'
-              }"
+              icon="i-lucide-castle"
+              class="w-full"
               @input="debouncedSave"
-            >
-              <template #leading>
-                <Icon
-                  name="lucide:castle"
-                  class="w-5 h-5"
-                />
-              </template>
-            </UInput>
-          </UFormGroup>
+            />
+          </UFormField>
 
           <!-- Description -->
-          <UFormGroup
+          <UFormField
             label="Short Description"
             help="A brief description for customers (2-3 sentences)"
+            size="xl"
           >
             <UTextarea
               v-model="form.description"
               placeholder="Describe your item, its features, dimensions, age group, etc."
               :rows="4"
               size="xl"
-              :ui="{
-                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500'
-              }"
+              class="w-full"
               @input="debouncedSave"
             />
-          </UFormGroup>
+          </UFormField>
 
           <!-- Price -->
-          <UFormGroup
+          <UFormField
             label="Daily Rental Price"
             required
             help="How much do you charge per day?"
+            size="xl"
           >
             <UInput
               v-model.number="form.price"
@@ -122,16 +115,14 @@
               step="0.01"
               placeholder="0.00"
               size="xl"
-              :ui="{
-                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500'
-              }"
+              class="w-full"
               @input="debouncedSave"
             >
               <template #leading>
                 <span class="text-gray-400">$</span>
               </template>
             </UInput>
-          </UFormGroup>
+          </UFormField>
 
           <!-- Preview Card -->
           <div

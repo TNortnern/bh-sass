@@ -27,79 +27,75 @@
           @submit.prevent="handleNext"
         >
           <!-- Business Name -->
-          <UFormGroup
+          <UFormField
             label="Business Name"
             required
             :help="businessNameHelp"
+            size="xl"
           >
             <UInput
               v-model="form.name"
               type="text"
               placeholder="e.g., Happy Jumpers Party Rentals"
               size="xl"
-              icon="lucide:building"
-              :ui="{
-                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500'
-              }"
+              icon="i-lucide-building"
+              class="w-full"
               @input="debouncedSave"
             />
-          </UFormGroup>
+          </UFormField>
 
           <!-- Business Type -->
-          <UFormGroup
+          <UFormField
             label="Business Type"
             required
             help="What type of rentals do you offer?"
+            size="xl"
           >
             <USelect
               v-model="form.type"
               :items="businessTypes"
               placeholder="Select your business type"
               size="xl"
-              icon="lucide:briefcase"
-              :ui="{
-                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500'
-              }"
+              icon="i-lucide-briefcase"
+              class="w-full"
               @change="debouncedSave"
             />
-          </UFormGroup>
+          </UFormField>
 
           <!-- Timezone -->
-          <UFormGroup
+          <UFormField
             label="Timezone"
             required
             help="We've detected your timezone automatically"
+            size="xl"
           >
             <USelect
               v-model="form.timezone"
               :items="timezones"
               placeholder="Select your timezone"
               size="xl"
-              icon="lucide:clock"
-              :ui="{
-                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500'
-              }"
+              icon="i-lucide-clock"
+              class="w-full"
               @change="debouncedSave"
             />
-          </UFormGroup>
+          </UFormField>
 
           <!-- Service Area -->
-          <UFormGroup
+          <UFormField
             label="Primary Service Area"
             help="City, ZIP code, or region you serve"
+            size="xl"
           >
             <UInput
               v-model="form.serviceArea"
               type="text"
               placeholder="e.g., Austin, TX or 78701"
               size="xl"
-              icon="lucide:map-pin"
-              :ui="{
-                base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500'
-              }"
+              icon="i-lucide-map-pin"
+              class="w-full"
               @input="debouncedSave"
             />
-          </UFormGroup>
+          </UFormField>
 
           <!-- Auto-save indicator -->
           <div

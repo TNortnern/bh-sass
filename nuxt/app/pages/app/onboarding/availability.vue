@@ -126,21 +126,20 @@
 
           <!-- Lead Time -->
           <div class="pt-4 border-t border-gray-700/50">
-            <UFormGroup
+            <UFormField
               label="Minimum Lead Time"
               help="How much advance notice do you need for bookings?"
+              size="xl"
             >
               <USelect
                 v-model="leadTime"
-                :options="leadTimeOptions"
+                :items="leadTimeOptions"
                 size="xl"
-                icon="lucide:clock"
-                :ui="{
-                  base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500'
-                }"
+                icon="i-lucide-clock"
+                class="w-full"
                 @change="debouncedSave"
               />
-            </UFormGroup>
+            </UFormField>
           </div>
 
           <!-- Auto-save indicator -->
