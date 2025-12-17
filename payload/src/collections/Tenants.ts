@@ -1046,33 +1046,19 @@ export const Tenants: CollectionConfig = {
             setImmediate(async () => {
               try {
                 console.log(`Updating tenant ${tenantId} with rb-payload data (deferred)...`)
-                const drizzle = (payload.db as any).drizzle
-                if (drizzle) {
-                  const { sql } = await import('drizzle-orm')
-                  await drizzle.execute(
-                    sql`UPDATE tenants SET
-                      rb_payload_tenant_id = ${rbTenantId},
-                      rb_payload_api_key = ${rbApiKey || null},
-                      rb_payload_sync_status = 'provisioned',
-                      rb_payload_sync_error = NULL
-                    WHERE id = ${tenantId}`
-                  )
-                  console.log(`✓ Successfully provisioned rb-payload tenant ${rbTenantId} for "${tenantName}"`)
-                } else {
-                  // Fallback to payload.update
-                  await payload.update({
-                    collection: 'tenants',
-                    id: tenantId,
-                    overrideAccess: true,
-                    data: {
-                      rbPayloadTenantId: rbTenantId,
-                      rbPayloadApiKey: rbApiKey,
-                      rbPayloadSyncStatus: 'provisioned',
-                      rbPayloadSyncError: null,
-                    },
-                  })
-                  console.log(`✓ Successfully provisioned rb-payload tenant ${rbTenantId} for "${tenantName}" (via payload.update)`)
-                }
+                // Use payload.update since we're outside the transaction context now
+                await payload.update({
+                  collection: 'tenants',
+                  id: tenantId,
+                  overrideAccess: true,
+                  data: {
+                    rbPayloadTenantId: rbTenantId,
+                    rbPayloadApiKey: rbApiKey,
+                    rbPayloadSyncStatus: 'provisioned',
+                    rbPayloadSyncError: null,
+                  },
+                })
+                console.log(`✓ Successfully provisioned rb-payload tenant ${rbTenantId} for "${tenantName}"`)
               } catch (updateError) {
                 console.error('Failed to update tenant with rb-payload data:', updateError)
               }
@@ -1085,16 +1071,15 @@ export const Tenants: CollectionConfig = {
 
             setImmediate(async () => {
               try {
-                const drizzle = (payload.db as any).drizzle
-                if (drizzle) {
-                  const { sql } = await import('drizzle-orm')
-                  await drizzle.execute(
-                    sql`UPDATE tenants SET
-                      rb_payload_sync_status = 'failed',
-                      rb_payload_sync_error = ${errorMsg}
-                    WHERE id = ${tenantId}`
-                  )
-                }
+                await payload.update({
+                  collection: 'tenants',
+                  id: tenantId,
+                  overrideAccess: true,
+                  data: {
+                    rbPayloadSyncStatus: 'failed',
+                    rbPayloadSyncError: errorMsg,
+                  },
+                })
               } catch (updateError) {
                 console.error('Failed to update tenant sync status:', updateError)
               }
@@ -1112,16 +1097,15 @@ export const Tenants: CollectionConfig = {
 
           setImmediate(async () => {
             try {
-              const drizzle = (payload.db as any).drizzle
-              if (drizzle) {
-                const { sql } = await import('drizzle-orm')
-                await drizzle.execute(
-                  sql`UPDATE tenants SET
-                    rb_payload_sync_status = 'failed',
-                    rb_payload_sync_error = ${errorMsg}
-                  WHERE id = ${tenantId}`
-                )
-              }
+              await payload.update({
+                collection: 'tenants',
+                id: tenantId,
+                overrideAccess: true,
+                data: {
+                  rbPayloadSyncStatus: 'failed',
+                  rbPayloadSyncError: errorMsg,
+                },
+              })
             } catch (updateError) {
               console.error('Failed to update tenant sync status:', updateError)
             }
