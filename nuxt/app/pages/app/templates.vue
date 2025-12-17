@@ -52,7 +52,7 @@ watch([templates, pending], async ([templatesData, isLoading]) => {
         method: 'POST',
         body: {
           name: 'Equipment Rental Waiver & Agreement',
-          templateType: 'waiver',
+          templateType: 'liability-waiver',
           description: 'Standard liability waiver and rental agreement for equipment rentals. Covers safety rules, liability release, and rental terms.',
           isDefault: false,
           requiresSignature: true,
