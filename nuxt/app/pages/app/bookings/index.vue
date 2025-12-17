@@ -500,7 +500,7 @@
 
           <!-- Loading State -->
           <div
-            v-if="!bookings || bookings.length === 0"
+            v-if="isLoading || !hasFetched"
             class="flex justify-center py-12"
           >
             <UIcon
@@ -509,9 +509,40 @@
             />
           </div>
 
-          <!-- Empty State -->
+          <!-- Empty State (no bookings at all) -->
           <div
-            v-if="bookings && bookings.length > 0 && paginatedBookings.length === 0"
+            v-else-if="hasFetched && bookings.length === 0"
+            class="text-center py-16"
+          >
+            <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 dark:bg-slate-800/60 flex items-center justify-center">
+              <UIcon
+                name="i-lucide-calendar-plus"
+                class="w-10 h-10 text-gray-400 dark:text-slate-600"
+              />
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-slate-300 mb-2">
+              No bookings yet
+            </h3>
+            <p class="text-gray-600 dark:text-slate-500 mb-6">
+              Get started by creating your first booking
+            </p>
+            <UButton
+              color="primary"
+              size="lg"
+              class="rounded-xl"
+              @click="navigateTo('/app/bookings/new')"
+            >
+              <UIcon
+                name="i-lucide-plus"
+                class="w-5 h-5 mr-2"
+              />
+              New Booking
+            </UButton>
+          </div>
+
+          <!-- Empty State (filtered results empty) -->
+          <div
+            v-else-if="hasFetched && bookings.length > 0 && paginatedBookings.length === 0"
             class="text-center py-16"
           >
             <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 dark:bg-slate-800/60 flex items-center justify-center">
@@ -628,9 +659,12 @@ definePageMeta({
   layout: 'dashboard'
 })
 
-const { bookings, filteredBookings, filters, stats, fetchBookings, updateStatus, bulkUpdateStatus, cancelBooking } = useBookings()
+const { bookings, filteredBookings, filters, stats, fetchBookings, updateStatus, bulkUpdateStatus, cancelBooking, isLoading } = useBookings()
 const toast = useToast()
 const { currentUser } = useAuth()
+
+// Track if initial fetch is complete
+const hasFetched = ref(false)
 
 // Check if user has tenant ID assigned
 const hasTenant = computed(() => {
@@ -733,8 +767,9 @@ const paginatedBookings = computed(() => {
 })
 
 // Load bookings on mount
-onMounted(() => {
-  fetchBookings()
+onMounted(async () => {
+  await fetchBookings()
+  hasFetched.value = true
 })
 
 // Watch search query

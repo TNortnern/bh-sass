@@ -27,12 +27,19 @@ const formattedDate = currentDate.toLocaleDateString('en-US', {
 const { fetchBookings, bookings, stats } = useBookings()
 const { fetchCustomers, total: totalCustomers } = useCustomers()
 
+// Combined loading state
+const isLoading = ref(true)
+
 // Fetch data on mount
 onMounted(async () => {
-  await Promise.all([
-    fetchBookings(),
-    fetchCustomers({ limit: 100 })
-  ])
+  try {
+    await Promise.all([
+      fetchBookings(),
+      fetchCustomers({ limit: 100 })
+    ])
+  } finally {
+    isLoading.value = false
+  }
 })
 
 // Get today's deliveries and pickups from real bookings
@@ -172,7 +179,7 @@ const getScheduleIcon = (type: string) => {
 
     <!-- Loading State -->
     <div
-      v-if="bookings.length === 0 && totalCustomers === 0"
+      v-if="isLoading"
       class="flex items-center justify-center py-12"
     >
       <UIcon
