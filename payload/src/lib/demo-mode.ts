@@ -78,18 +78,35 @@ export async function completeDemoPayment(
       }
     })
 
-    // Update booking status - use depth: 0 to avoid populating relations
-    await payload.update({
-      collection: 'bookings',
-      id: bookingIdNum,
-      overrideAccess: true,
-      depth: 0,
-      data: {
-        paymentStatus: 'paid_full',
-        status: 'confirmed',
-        depositPaid: amount
+    // Update booking status using direct SQL to bypass Payload validation
+    // This is necessary because old bookings may have invalid data that would fail validation
+    // Use payload.db.drizzle for raw database access in Payload 3.x
+    try {
+      const drizzle = (payload.db as any).drizzle
+      if (drizzle) {
+        const { sql } = await import('drizzle-orm')
+        await drizzle.execute(
+          sql`UPDATE bookings SET payment_status = 'paid_full', status = 'confirmed', deposit_paid = ${amount} WHERE id = ${bookingIdNum}`
+        )
+        console.log(`[DEMO MODE] Updated booking ${bookingIdNum} via direct SQL`)
+      } else {
+        throw new Error('Drizzle not available')
       }
-    })
+    } catch (dbError) {
+      console.log(`[DEMO MODE] Direct SQL failed, falling back to Payload update:`, dbError)
+      // Fallback to Payload update
+      await payload.update({
+        collection: 'bookings',
+        id: bookingIdNum,
+        overrideAccess: true,
+        depth: 0,
+        data: {
+          paymentStatus: 'paid_full',
+          status: 'confirmed',
+          depositPaid: amount
+        }
+      })
+    }
 
     console.log(`[DEMO MODE] Payment completed: ${payment.id}`)
 
