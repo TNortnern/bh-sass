@@ -53,7 +53,7 @@
           >
             <USelect
               v-model="form.type"
-              :options="businessTypes"
+              :items="businessTypes"
               placeholder="Select your business type"
               size="xl"
               icon="lucide:briefcase"
@@ -72,7 +72,7 @@
           >
             <USelect
               v-model="form.timezone"
-              :options="timezones"
+              :items="timezones"
               placeholder="Select your timezone"
               size="xl"
               icon="lucide:clock"
