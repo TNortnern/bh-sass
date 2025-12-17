@@ -1040,6 +1040,7 @@ export const Tenants: CollectionConfig = {
               await req.payload.update({
                 collection: 'tenants',
                 id: doc.id,
+                overrideAccess: true, // Required in afterChange hook context
                 data: {
                   rbPayloadTenantId: result.rbPayloadTenantId,
                   rbPayloadApiKey: result.rbPayloadApiKey,
@@ -1057,6 +1058,7 @@ export const Tenants: CollectionConfig = {
               await req.payload.update({
                 collection: 'tenants',
                 id: doc.id,
+                overrideAccess: true,
                 data: {
                   rbPayloadSyncStatus: 'failed',
                   rbPayloadSyncError: result.error || 'Unknown error during provisioning',
@@ -1076,6 +1078,7 @@ export const Tenants: CollectionConfig = {
             await req.payload.update({
               collection: 'tenants',
               id: doc.id,
+              overrideAccess: true,
               data: {
                 rbPayloadSyncStatus: 'failed',
                 rbPayloadSyncError: error instanceof Error ? error.message : 'Unknown error',
