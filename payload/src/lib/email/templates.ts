@@ -3644,7 +3644,7 @@ BOOKING DETAILS:
 - Event Date: {{eventDate}}
 - Time: {{eventTime}}
 - Location: {{location}}
-- Total: ${{totalAmount}}
+- Total: \${{totalAmount}}
 
 👉 VIEW BOOKING: {{dashboardUrl}}
 
