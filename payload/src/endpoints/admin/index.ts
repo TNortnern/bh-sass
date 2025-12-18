@@ -11,6 +11,7 @@ import {
   adminSyncAllTenantsRbPayloadEndpoint
 } from './tenants'
 import { adminLinkTenantRbPayloadEndpoint } from './tenant-link'
+import { directLinkRbPayloadEndpoint } from './direct-link'
 import {
   adminUsersListEndpoint,
   adminUserStatusEndpoint
@@ -49,6 +50,7 @@ export const adminEndpoints: Endpoint[] = [
   adminSuspendTenantEndpoint,
   adminSyncTenantRbPayloadEndpoint,
   adminLinkTenantRbPayloadEndpoint,
+  directLinkRbPayloadEndpoint, // Direct SQL link (protected by PAYLOAD_SECRET)
 
   // Users
   adminUsersListEndpoint,
