@@ -10,25 +10,24 @@ export const directLinkRbPayloadEndpoint: Endpoint = {
   path: '/admin/direct-link-rb-payload',
   method: 'post',
   handler: async (req) => {
-    // Verify the secret key
-    const secret = req.headers.get('x-admin-secret')
-    const expectedSecret = process.env.PAYLOAD_SECRET
-
-    // Debug logging
-    console.log('[direct-link] Received secret:', secret ? `${secret.substring(0, 10)}...` : 'null')
-    console.log('[direct-link] Expected secret:', expectedSecret ? `${expectedSecret.substring(0, 10)}...` : 'null')
-    console.log('[direct-link] Match:', secret === expectedSecret)
-
-    if (!secret || secret !== expectedSecret) {
-      return Response.json(
-        { error: 'Unauthorized. Invalid or missing x-admin-secret header.', debug: { receivedLength: secret?.length, expectedLength: expectedSecret?.length } },
-        { status: 401 }
-      )
-    }
-
     try {
       const body = req.json ? await req.json() : {}
-      const { tenantId, rbPayloadTenantId, email } = body
+      const { tenantId, rbPayloadTenantId, email, secret } = body
+
+      // Verify the secret key from body
+      const expectedSecret = process.env.PAYLOAD_SECRET
+
+      // Debug logging
+      console.log('[direct-link] Received secret:', secret ? `${secret.substring(0, 10)}...` : 'null')
+      console.log('[direct-link] Expected secret:', expectedSecret ? `${expectedSecret.substring(0, 10)}...` : 'null')
+      console.log('[direct-link] Match:', secret === expectedSecret)
+
+      if (!secret || secret !== expectedSecret) {
+        return Response.json(
+          { error: 'Unauthorized. Invalid or missing secret in body.', debug: { receivedLength: secret?.length, expectedLength: expectedSecret?.length } },
+          { status: 401 }
+        )
+      }
 
       if (!tenantId) {
         return Response.json(
