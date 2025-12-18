@@ -347,10 +347,17 @@ export const rbPayloadWebhookEndpoint: Endpoint = {
         return Response.json({ error: 'No booking data' }, { status: 400 })
       }
 
+      // Extract tenant ID - handle both number and populated object from rb-payload
+      const rbPayloadTenantId = typeof booking.tenantId === 'object' && booking.tenantId !== null
+        ? (booking.tenantId as any).id
+        : booking.tenantId
+
+      console.log(`[Webhook] Looking up tenant with rb-payload ID: ${rbPayloadTenantId}`)
+
       // Find the BH-SaaS tenant
-      const tenant = await findTenantByRbPayloadId(req, booking.tenantId)
+      const tenant = await findTenantByRbPayloadId(req, rbPayloadTenantId)
       if (!tenant) {
-        console.error(`[Webhook] No tenant found for rb-payload tenant ${booking.tenantId}`)
+        console.error(`[Webhook] No tenant found for rb-payload tenant ${rbPayloadTenantId}`)
         return Response.json({ error: 'Tenant not found' }, { status: 404 })
       }
 

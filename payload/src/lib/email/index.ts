@@ -145,7 +145,7 @@ class EmailService {
       eventDate: this.formatDate(booking.eventDate),
       eventTime: booking.eventTime,
       location: booking.location,
-      totalAmount: booking.totalAmount.toFixed(2),
+      totalAmount: (booking.totalAmount ?? 0).toFixed(2),
       bookingUrl: this.getBookingUrl(booking.id, tenant),
       ...this.getBusinessDetails(tenant),
     }
@@ -340,7 +340,7 @@ class EmailService {
       eventDate: this.formatDate(booking.eventDate),
       eventTime: booking.eventTime,
       location: booking.location,
-      totalAmount: booking.totalAmount.toFixed(2),
+      totalAmount: (booking.totalAmount ?? 0).toFixed(2),
       dashboardUrl: this.getDashboardUrl(tenant) + '/bookings',
       ...this.getBusinessDetails(tenant),
     }
