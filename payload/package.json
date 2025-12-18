@@ -16,6 +16,8 @@
     "seed": "cross-env NODE_OPTIONS=--no-deprecation tsx src/seed.ts",
     "seed:qa": "cross-env NODE_OPTIONS=--no-deprecation tsx src/seed-qa.ts",
     "seed:waivers": "cross-env NODE_OPTIONS=--no-deprecation tsx src/seed-default-waivers.ts",
+    "seed:plans": "cross-env NODE_OPTIONS=--no-deprecation tsx src/seed-plans.ts",
+    "setup:stripe": "cross-env NODE_OPTIONS=--no-deprecation tsx src/setup-stripe-products.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
