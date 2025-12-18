@@ -1,6 +1,7 @@
 import type { Access, CollectionConfig } from 'payload'
 import { getTenantId } from '../utilities/getTenantId'
 import { auditCreateAndUpdate, auditDelete } from '../hooks/auditHooks'
+import { sendUserWelcomeEmail } from '../hooks/email'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -172,7 +173,7 @@ export const Users: CollectionConfig = {
   ],
   timestamps: true,
   hooks: {
-    afterChange: [auditCreateAndUpdate],
+    afterChange: [auditCreateAndUpdate, sendUserWelcomeEmail],
     afterDelete: [auditDelete],
   },
 }

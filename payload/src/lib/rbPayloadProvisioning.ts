@@ -350,9 +350,10 @@ export async function provisionRbPayloadTenant(data: {
 
 /**
  * Check if rb-payload provisioning is enabled
+ * Requires either RB_PAYLOAD_ADMIN_API_KEY (preferred) or RB_PAYLOAD_API_KEY
  */
 export function isRbPayloadProvisioningEnabled(): boolean {
   const url = process.env.RB_PAYLOAD_URL || process.env.NUXT_PUBLIC_RB_PAYLOAD_URL
-  const apiKey = process.env.RB_PAYLOAD_API_KEY
+  const apiKey = process.env.RB_PAYLOAD_ADMIN_API_KEY || process.env.RB_PAYLOAD_API_KEY
   return !!(url && apiKey)
 }
