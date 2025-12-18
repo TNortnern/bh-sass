@@ -142,6 +142,10 @@ async function createRbPayloadTenant(data: {
 }): Promise<{ success: boolean; tenantId?: number; apiKey?: string; error?: string; isExisting?: boolean }> {
   const { url, adminApiKey } = getRbPayloadConfig()
 
+  // Get BH-SaaS base URL for webhook
+  const bhSaasUrl = process.env.PAYLOAD_PUBLIC_SERVER_URL || process.env.SERVER_URL || 'http://localhost:3004'
+  const webhookUrl = `${bhSaasUrl}/api/webhooks/rb-payload`
+
   // Build tenant data with inventory-mode defaults
   // Note: The provisioning endpoint doesn't support full settings yet,
   // so we'll need to update the tenant after creation for full settings
@@ -150,6 +154,9 @@ async function createRbPayloadTenant(data: {
     slug: data.slug,
     plan: data.plan,
     status: 'active',
+    // Webhook configuration for booking notifications
+    webhookUrl,
+    webhookSecret: process.env.RB_PAYLOAD_WEBHOOK_SECRET || '', // Optional HMAC signing
     // Note: externalId removed - rb-payload schema doesn't support it
     // The bhSaasId is stored in businessInfo instead for linking back
     businessInfo: {

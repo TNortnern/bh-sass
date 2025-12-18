@@ -82,6 +82,7 @@ import { adminEndpoints } from './endpoints/admin'
 import { emailEndpoints } from './endpoints/email'
 import { registerHandler } from './endpoints/register'
 import { rotateApiKeyEndpoint } from './endpoints/api-keys'
+import { rbPayloadWebhookEndpoint } from './endpoints/rb-payload-webhooks'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -279,6 +280,8 @@ export default buildConfig({
     },
     // Email endpoints
     ...emailEndpoints,
+    // rb-payload webhook receiver (for booking notifications)
+    rbPayloadWebhookEndpoint,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

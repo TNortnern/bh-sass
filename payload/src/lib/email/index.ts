@@ -315,6 +315,134 @@ class EmailService {
   }
 
   /**
+   * Send new booking notification to business owner
+   */
+  async sendNewBookingToOwner(
+    booking: BookingData,
+    customer: CustomerData,
+    tenant: TenantData
+  ): Promise<void> {
+    // Send to tenant's email
+    const ownerEmail = tenant.email
+    if (!ownerEmail) {
+      console.log('[Email] No tenant email configured, skipping owner notification')
+      return
+    }
+
+    const variant = this.getDefaultVariant('NEW_BOOKING_RECEIVED')
+
+    const params = {
+      customerName: customer.name,
+      customerEmail: customer.email,
+      customerPhone: customer.phone || 'N/A',
+      bookingId: booking.id,
+      itemName: booking.item?.name || 'Rental Item',
+      eventDate: this.formatDate(booking.eventDate),
+      eventTime: booking.eventTime,
+      location: booking.location,
+      totalAmount: booking.totalAmount.toFixed(2),
+      dashboardUrl: this.getDashboardUrl(tenant) + '/bookings',
+      ...this.getBusinessDetails(tenant),
+    }
+
+    await brevo.sendTransactionalEmail({
+      to: [{ email: ownerEmail, name: tenant.name }],
+      subject: interpolate(variant.subject, params),
+      htmlContent: interpolate(variant.html(params), params),
+      textContent: interpolate(variant.text(params), params),
+      tags: ['new-booking-owner', `tenant:${tenant.id}`],
+    })
+  }
+
+  /**
+   * Send booking status update to customer
+   */
+  async sendStatusUpdate(
+    booking: BookingData,
+    customer: CustomerData,
+    tenant: TenantData,
+    newStatus: string
+  ): Promise<void> {
+    if (!customer.email) {
+      throw new Error('Customer email is required to send status update')
+    }
+
+    // Status-specific content
+    const statusContent: Record<string, {
+      emoji: string
+      label: string
+      headline: string
+      message: string
+      color: string
+      text: string
+    }> = {
+      preparing: {
+        emoji: '🔧',
+        label: 'Preparing',
+        headline: 'Your Rental is Being Prepared!',
+        message: 'we\'re getting your rental ready for delivery. Sit tight!',
+        color: '#8b5cf6',
+        text: 'being prepared',
+      },
+      in_route: {
+        emoji: '🚚',
+        label: 'On The Way',
+        headline: 'Your Rental is On The Way!',
+        message: 'your rental is on its way to you! The driver will be there soon.',
+        color: '#3b82f6',
+        text: 'on the way',
+      },
+      delivered: {
+        emoji: '✅',
+        label: 'Delivered',
+        headline: 'Your Rental Has Arrived!',
+        message: 'your rental has been delivered. Have an amazing event!',
+        color: '#10b981',
+        text: 'delivered',
+      },
+      picked_up: {
+        emoji: '📦',
+        label: 'Picked Up',
+        headline: 'Your Rental Has Been Picked Up',
+        message: 'we\'ve picked up your rental. Thank you for choosing us!',
+        color: '#6366f1',
+        text: 'picked up',
+      },
+    }
+
+    const content = statusContent[newStatus]
+    if (!content) {
+      console.log(`[Email] No status update template for status: ${newStatus}`)
+      return
+    }
+
+    const variant = this.getDefaultVariant('BOOKING_STATUS_UPDATE')
+
+    const params = {
+      customerName: customer.name,
+      bookingId: booking.id,
+      itemName: booking.item?.name || 'Rental Item',
+      eventDate: this.formatDate(booking.eventDate),
+      location: booking.location,
+      statusEmoji: content.emoji,
+      statusLabel: content.label,
+      statusHeadline: content.headline,
+      statusMessage: content.message,
+      statusColor: content.color,
+      statusText: content.text,
+      ...this.getBusinessDetails(tenant),
+    }
+
+    await brevo.sendTransactionalEmail({
+      to: [{ email: customer.email, name: customer.name }],
+      subject: interpolate(variant.subject, params),
+      htmlContent: interpolate(variant.html(params), params),
+      textContent: interpolate(variant.text(params), params),
+      tags: ['status-update', `status:${newStatus}`, `tenant:${tenant.id}`],
+    })
+  }
+
+  /**
    * Send custom email (for advanced use cases)
    */
   async sendCustomEmail(
