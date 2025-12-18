@@ -290,7 +290,11 @@ function getPaymentMethodName(payment: any): string {
 
 /**
  * After Change Hook for Users Collection
- * Sends welcome emails to new users
+ * Sends welcome emails to new tenant admins (business owners)
+ *
+ * Only sends to users with role 'tenant_admin' who have:
+ * - A valid email address
+ * - An associated tenant
  */
 export const sendUserWelcomeEmail: CollectionAfterChangeHook = async ({
   doc,
@@ -309,22 +313,43 @@ export const sendUserWelcomeEmail: CollectionAfterChangeHook = async ({
       return doc
     }
 
-    // Only send to tenant admins and staff (not super admins)
-    if (doc.role === 'super_admin') {
+    // Only send welcome emails to tenant admins (business owners)
+    // Staff and customers receive different onboarding flows
+    if (doc.role !== 'tenant_admin') {
+      req.payload.logger.info(`Skipping welcome email: User role is ${doc.role} (only tenant_admin receives welcome)`)
       return doc
     }
 
-    // Fetch tenant data
+    // Validate email exists before attempting to send
+    if (!doc.email) {
+      req.payload.logger.warn(`Skipping welcome email: User ${doc.id} has no email address`)
+      return doc
+    }
+
+    // Get tenant ID from relationship
     const tenantId = typeof doc.tenantId === 'object' ? doc.tenantId.id : doc.tenantId
 
     if (!tenantId) {
+      req.payload.logger.warn(`Skipping welcome email: User ${doc.id} has no associated tenant`)
       return doc
     }
 
-    const tenant = await req.payload.findByID({
-      collection: 'tenants',
-      id: tenantId,
-    })
+    // Fetch tenant data with error handling
+    let tenant
+    try {
+      tenant = await req.payload.findByID({
+        collection: 'tenants',
+        id: tenantId,
+      })
+    } catch (fetchError) {
+      req.payload.logger.error(`Failed to fetch tenant ${tenantId} for welcome email: ${fetchError}`)
+      return doc
+    }
+
+    if (!tenant) {
+      req.payload.logger.warn(`Skipping welcome email: Tenant ${tenantId} not found`)
+      return doc
+    }
 
     // Transform to email service types
     const userData = {
@@ -342,9 +367,9 @@ export const sendUserWelcomeEmail: CollectionAfterChangeHook = async ({
 
     // Send welcome email
     await emailService.sendWelcome(userData, tenantData)
-    req.payload.logger.info(`Welcome email sent to user ${doc.id}`)
+    req.payload.logger.info(`Welcome email sent to tenant admin ${doc.id} (${doc.email})`)
   } catch (error) {
-    // Log error but don't fail the operation
+    // Log error but don't fail the user creation operation
     req.payload.logger.error(`Failed to send welcome email: ${error}`)
   }
 

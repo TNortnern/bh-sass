@@ -77,7 +77,24 @@ interface ProvisionResult {
 }
 
 /**
- * Get rb-payload configuration from environment
+ * Get rb-payload configuration from environment.
+ *
+ * Environment Variables:
+ * - RB_PAYLOAD_URL: Base URL for rb-payload API (required)
+ * - RB_PAYLOAD_ADMIN_API_KEY: Admin API key with 'admin' scope (preferred for provisioning)
+ * - RB_PAYLOAD_API_KEY: Regular API key for tenant-scoped operations (fallback)
+ *
+ * API Key Differences:
+ * - RB_PAYLOAD_ADMIN_API_KEY: Has 'admin' scope, can create/provision new tenants.
+ *   Use this for server-to-server provisioning operations.
+ * - RB_PAYLOAD_API_KEY: Has 'read', 'write', 'delete' scopes, tenant-scoped.
+ *   Use this for per-tenant operations like syncing inventory.
+ *
+ * Security: The admin key should only be used in secure server-side contexts.
+ * Never expose it to client-side code.
+ *
+ * @returns Configuration object with url and both API keys
+ * @throws Error if required environment variables are missing
  */
 function getRbPayloadConfig() {
   const url = process.env.RB_PAYLOAD_URL || process.env.NUXT_PUBLIC_RB_PAYLOAD_URL

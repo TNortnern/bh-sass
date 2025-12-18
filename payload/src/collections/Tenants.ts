@@ -853,7 +853,7 @@ export const Tenants: CollectionConfig = {
         // Only run on create, not update
         if (operation !== 'create') return doc
         try {
-          console.log(`Creating default waiver template for tenant "${doc.name}"...`)
+          req.payload.logger.info(`Creating default waiver template for tenant "${doc.name}"...`)
 
           await req.payload.create({
             collection: 'contract-templates',
@@ -989,9 +989,9 @@ export const Tenants: CollectionConfig = {
             },
           })
 
-          console.log(`✓ Created default waiver template for tenant "${doc.name}"`)
+          req.payload.logger.info(`✓ Created default waiver template for tenant "${doc.name}"`)
         } catch (error) {
-          console.error(`Failed to create default waiver template for tenant "${doc.name}":`, error)
+          req.payload.logger.error({ err: error, msg: `Failed to create default waiver template for tenant "${doc.name}"` })
           // Don't fail tenant creation if template creation fails
         }
 
@@ -1004,17 +1004,17 @@ export const Tenants: CollectionConfig = {
 
         // Only provision if rb-payload is configured
         if (!isRbPayloadProvisioningEnabled()) {
-          console.log('rb-payload provisioning skipped (not configured)')
+          req.payload.logger.info('rb-payload provisioning skipped (not configured)')
           return doc
         }
 
         // Skip if already provisioned
         if (doc.rbPayloadTenantId) {
-          console.log(`Tenant ${doc.id} already has rb-payload tenant ${doc.rbPayloadTenantId}`)
+          req.payload.logger.info(`Tenant ${doc.id} already has rb-payload tenant ${doc.rbPayloadTenantId}`)
           return doc
         }
 
-        console.log(`Auto-provisioning rb-payload tenant for "${doc.name}"...`)
+        req.payload.logger.info(`Auto-provisioning rb-payload tenant for "${doc.name}"...`)
 
         try {
           const result = await provisionRbPayloadTenant({
@@ -1043,25 +1043,31 @@ export const Tenants: CollectionConfig = {
             const tenantName = doc.name
             const payload = req.payload
 
-            setImmediate(async () => {
-              try {
-                console.log(`Updating tenant ${tenantId} with rb-payload data (deferred)...`)
-                // Use payload.update since we're outside the transaction context now
-                await payload.update({
-                  collection: 'tenants',
-                  id: tenantId,
-                  overrideAccess: true,
-                  data: {
-                    rbPayloadTenantId: rbTenantId,
-                    rbPayloadApiKey: rbApiKey,
-                    rbPayloadSyncStatus: 'provisioned',
-                    rbPayloadSyncError: null,
-                  },
-                })
-                console.log(`✓ Successfully provisioned rb-payload tenant ${rbTenantId} for "${tenantName}"`)
-              } catch (updateError) {
-                console.error('Failed to update tenant with rb-payload data:', updateError)
-              }
+            // Wrap async operation in IIFE with catch to prevent unhandled promise rejections
+            setImmediate(() => {
+              (async () => {
+                try {
+                  payload.logger.info(`Updating tenant ${tenantId} with rb-payload data (deferred)...`)
+                  // Use payload.update since we're outside the transaction context now
+                  await payload.update({
+                    collection: 'tenants',
+                    id: tenantId,
+                    overrideAccess: true,
+                    data: {
+                      rbPayloadTenantId: rbTenantId,
+                      rbPayloadApiKey: rbApiKey,
+                      rbPayloadSyncStatus: 'provisioned',
+                      rbPayloadSyncError: null,
+                    },
+                  })
+                  payload.logger.info(`✓ Successfully provisioned rb-payload tenant ${rbTenantId} for "${tenantName}"`)
+                } catch (updateError) {
+                  payload.logger.error({ err: updateError, msg: 'Failed to update tenant with rb-payload data' })
+                }
+              })().catch((error) => {
+                // Safety net for any unhandled rejections
+                payload.logger.error({ err: error, msg: 'Unhandled error in rb-payload provisioning update' })
+              })
             })
           } else {
             // Defer the failure update as well
@@ -1069,7 +1075,40 @@ export const Tenants: CollectionConfig = {
             const errorMsg = result.error || 'Unknown error during provisioning'
             const payload = req.payload
 
-            setImmediate(async () => {
+            // Wrap async operation in IIFE with catch to prevent unhandled promise rejections
+            setImmediate(() => {
+              (async () => {
+                try {
+                  await payload.update({
+                    collection: 'tenants',
+                    id: tenantId,
+                    overrideAccess: true,
+                    data: {
+                      rbPayloadSyncStatus: 'failed',
+                      rbPayloadSyncError: errorMsg,
+                    },
+                  })
+                } catch (updateError) {
+                  payload.logger.error({ err: updateError, msg: 'Failed to update tenant sync status' })
+                }
+              })().catch((error) => {
+                payload.logger.error({ err: error, msg: 'Unhandled error updating tenant sync status' })
+              })
+            })
+
+            payload.logger.error(`✗ Failed to provision rb-payload tenant for "${doc.name}": ${result.error}`)
+          }
+        } catch (error) {
+          req.payload.logger.error({ err: error, msg: 'Error in rb-payload provisioning hook' })
+
+          // Defer the failure update to run after transaction commits
+          const tenantId = typeof doc.id === 'number' ? doc.id : Number(doc.id)
+          const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+          const payload = req.payload
+
+          // Wrap async operation in IIFE with catch to prevent unhandled promise rejections
+          setImmediate(() => {
+            (async () => {
               try {
                 await payload.update({
                   collection: 'tenants',
@@ -1081,34 +1120,11 @@ export const Tenants: CollectionConfig = {
                   },
                 })
               } catch (updateError) {
-                console.error('Failed to update tenant sync status:', updateError)
+                payload.logger.error({ err: updateError, msg: 'Failed to update tenant sync status' })
               }
+            })().catch((unexpectedError) => {
+              payload.logger.error({ err: unexpectedError, msg: 'Unhandled error updating tenant sync status' })
             })
-
-            console.error(`✗ Failed to provision rb-payload tenant for "${doc.name}":`, result.error)
-          }
-        } catch (error) {
-          console.error('Error in rb-payload provisioning hook:', error)
-
-          // Defer the failure update to run after transaction commits
-          const tenantId = typeof doc.id === 'number' ? doc.id : Number(doc.id)
-          const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-          const payload = req.payload
-
-          setImmediate(async () => {
-            try {
-              await payload.update({
-                collection: 'tenants',
-                id: tenantId,
-                overrideAccess: true,
-                data: {
-                  rbPayloadSyncStatus: 'failed',
-                  rbPayloadSyncError: errorMsg,
-                },
-              })
-            } catch (updateError) {
-              console.error('Failed to update tenant sync status:', updateError)
-            }
           })
         }
 
