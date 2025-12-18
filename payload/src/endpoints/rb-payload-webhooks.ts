@@ -329,9 +329,11 @@ export const rbPayloadWebhookEndpoint: Endpoint = {
       console.log(`[Webhook] Received ${payload.event} event`)
 
       // Verify signature if configured
+      // rb-payload sends signature in X-Webhook-Signature header
       const webhookSecret = process.env.RB_PAYLOAD_WEBHOOK_SECRET
-      if (webhookSecret && payload.signature) {
-        const isValid = verifySignature(rawBody, payload.signature, webhookSecret)
+      const signatureHeader = req.headers?.get?.('x-webhook-signature') || ''
+      if (webhookSecret && signatureHeader) {
+        const isValid = verifySignature(rawBody, signatureHeader, webhookSecret)
         if (!isValid) {
           console.error('[Webhook] Invalid signature')
           return Response.json({ error: 'Invalid signature' }, { status: 401 })
