@@ -178,6 +178,12 @@ export const createSubscriptionCheckout = async (req: PayloadRequest): Promise<R
     // Use deterministic value, not timestamp - Stripe caches based on exact key
     const idempotencyKey = `tenant_${tenantId}_subscription_checkout_v1`
 
+    // Determine the base URL for redirects
+    // Priority: provided URL > NUXT_PUBLIC_APP_URL > NEXT_PUBLIC_APP_URL > production URL
+    const baseUrl = process.env.NUXT_PUBLIC_APP_URL
+      || process.env.NEXT_PUBLIC_APP_URL
+      || 'https://gregarious-adventure-production.up.railway.app'
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
@@ -187,8 +193,8 @@ export const createSubscriptionCheckout = async (req: PayloadRequest): Promise<R
           quantity: 1,
         },
       ],
-      success_url: successUrl || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005'}/app/settings/billing?success=true`,
-      cancel_url: cancelUrl || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3005'}/app/settings/billing?canceled=true`,
+      success_url: successUrl || `${baseUrl}/app/settings/billing?success=true`,
+      cancel_url: cancelUrl || `${baseUrl}/app/settings/billing?canceled=true`,
       customer_email: user.email,
       metadata: {
         tenantId: tenantId.toString(),
