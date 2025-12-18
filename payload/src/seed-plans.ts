@@ -48,7 +48,7 @@ export async function seedPlans() {
           maxItems: 50,
           maxBookings: 500,
         },
-        stripePriceId: 'price_growth_test', // Placeholder - replace with real Stripe price ID
+        stripePriceId: 'price_1SflzGARnP3WTvQhQBkZIsZF', // Growth plan price
         active: true,
       },
       {
@@ -66,7 +66,7 @@ export async function seedPlans() {
           maxItems: 200,
           maxBookings: 2000,
         },
-        stripePriceId: 'price_pro_test', // Placeholder - replace with real Stripe price ID
+        stripePriceId: 'price_1SflzHARnP3WTvQhcKXJIsy5', // Pro plan price
         active: true,
       },
       {
@@ -84,7 +84,7 @@ export async function seedPlans() {
           maxItems: 1000,
           maxBookings: 10000,
         },
-        stripePriceId: 'price_scale_test', // Placeholder - replace with real Stripe price ID
+        stripePriceId: 'price_1SflzIARnP3WTvQha7fG6lgt', // Scale plan price
         active: true,
       },
     ]
