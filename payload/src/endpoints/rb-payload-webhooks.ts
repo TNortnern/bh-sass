@@ -183,21 +183,41 @@ async function triggerBookingNotifications(
     branding: tenant.branding,
   }
 
+  // Extract all items with their details
+  const allItems = (booking.items || []).map((item: any) => {
+    const service = item.service || (typeof item.serviceId === 'object' ? item.serviceId : null)
+    return {
+      id: String(service?.id || item.serviceId || ''),
+      name: item.label || service?.name || 'Rental Item',
+      description: service?.description,
+      price: item.price || service?.price || 0,
+      quantity: item.quantity || 1,
+    }
+  })
+
+  // Format dates nicely
+  const startDate = new Date(booking.startTime)
+  const endDate = new Date(booking.endTime)
+
   // Prepare booking data for email service
   const bookingData = {
     id: String(booking.id),
     eventDate: booking.startTime,
-    eventTime: new Date(booking.startTime).toLocaleTimeString('en-US', {
+    eventEndDate: booking.endTime,
+    eventTime: startDate.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
     }),
-    location: booking.deliveryAddress || 'TBD',
+    eventEndTime: endDate.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    }),
+    location: booking.deliveryAddress || booking.notes || 'Address pending',
     totalAmount: booking.totalPrice,
     status: booking.status,
-    item: {
-      id: String(booking.items?.[0]?.serviceId || ''),
-      name: serviceName,
-    },
+    notes: booking.notes,
+    item: allItems[0] || { id: '', name: serviceName, price: 0 },
+    items: allItems,
   }
 
   const customerData = {

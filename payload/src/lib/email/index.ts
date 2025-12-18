@@ -10,15 +10,29 @@ import { emailTemplates, type EmailTemplateVariant, interpolate } from './templa
 /**
  * Type definitions for email data
  */
+export interface BookingItemData {
+  id: string
+  name: string
+  description?: string
+  price?: number
+  quantity?: number
+}
+
 export interface BookingData {
   id: string
   eventDate: string
+  eventEndDate?: string
   eventTime: string
+  eventEndTime?: string
   location: string
   totalAmount: number
   status: string
   customer?: CustomerData
-  item?: ItemData
+  item?: BookingItemData  // Primary item (backward compat)
+  items?: BookingItemData[]  // All items including add-ons
+  notes?: string
+  depositAmount?: number
+  balanceDue?: number
 }
 
 export interface CustomerData {
@@ -125,6 +139,62 @@ class EmailService {
   }
 
   /**
+   * Helper: Render items list as HTML for email templates
+   */
+  private renderItemsHtml(items: BookingItemData[] | undefined): string {
+    if (!items || items.length === 0) return ''
+
+    return items.map(item => {
+      const qty = (item.quantity || 1) > 1 ? ` × ${item.quantity}` : ''
+      const price = `$${(item.price || 0).toFixed(2)}`
+      return `
+        <tr>
+          <td style="color: #e5e5e5; padding: 10px 0; border-bottom: 1px solid #333333;">
+            <strong style="color: #ffffff;">${item.name}</strong>${qty}
+            ${item.description ? `<br><span style="font-size: 12px; color: #737373;">${item.description}</span>` : ''}
+          </td>
+          <td style="color: #10b981; font-weight: 600; text-align: right; padding: 10px 0; border-bottom: 1px solid #333333; white-space: nowrap;">
+            ${price}
+          </td>
+        </tr>`
+    }).join('')
+  }
+
+  /**
+   * Helper: Render items list as plain text for email templates
+   */
+  private renderItemsText(items: BookingItemData[] | undefined): string {
+    if (!items || items.length === 0) return ''
+
+    return items.map(item => {
+      const qty = (item.quantity || 1) > 1 ? ` × ${item.quantity}` : ''
+      const price = `$${(item.price || 0).toFixed(2)}`
+      return `  • ${item.name}${qty} - ${price}`
+    }).join('\n')
+  }
+
+  /**
+   * Helper: Get date range display
+   */
+  private formatDateRange(startDate: string, endDate?: string): string {
+    const start = this.formatDate(startDate)
+    if (!endDate) return start
+
+    const end = this.formatDate(endDate)
+    if (start === end) return start
+
+    return `${start} → ${end}`
+  }
+
+  /**
+   * Helper: Get time range display
+   */
+  private formatTimeRange(startTime: string, endTime?: string): string {
+    if (!endTime) return startTime
+    return `${startTime} – ${endTime}`
+  }
+
+  /**
    * Send booking confirmation email
    */
   async sendBookingConfirmation(
@@ -138,14 +208,31 @@ class EmailService {
 
     const variant = this.getDefaultVariant('BOOKING_CONFIRMATION')
 
+    // Determine if we have multiple items
+    const hasMultipleItems = booking.items && booking.items.length > 1
+    const primaryItem = booking.item?.name || booking.items?.[0]?.name || 'Bounce House'
+
     const params = {
       customerName: customer.name,
       bookingId: booking.id,
-      itemName: booking.item?.name || 'Bounce House',
-      eventDate: this.formatDate(booking.eventDate),
-      eventTime: booking.eventTime,
-      location: booking.location,
+      // Single item name for subject/header (backward compat)
+      itemName: primaryItem,
+      // Full items list rendered
+      itemsHtml: this.renderItemsHtml(booking.items),
+      itemsText: this.renderItemsText(booking.items),
+      hasItems: (booking.items && booking.items.length > 0) ? 'true' : '',
+      itemCount: String(booking.items?.length || 1),
+      // Date/time with ranges
+      eventDate: this.formatDateRange(booking.eventDate, booking.eventEndDate),
+      eventTime: this.formatTimeRange(booking.eventTime, booking.eventEndTime),
+      // Location
+      location: booking.location || 'Address pending',
+      // Totals
       totalAmount: (booking.totalAmount ?? 0).toFixed(2),
+      // Notes if present
+      notes: booking.notes || '',
+      hasNotes: booking.notes ? 'true' : '',
+      // URLs
       bookingUrl: this.getBookingUrl(booking.id, tenant),
       ...this.getBusinessDetails(tenant),
     }
@@ -331,16 +418,32 @@ class EmailService {
 
     const variant = this.getDefaultVariant('NEW_BOOKING_RECEIVED')
 
+    // Determine if we have multiple items
+    const primaryItem = booking.item?.name || booking.items?.[0]?.name || 'Rental Item'
+
     const params = {
       customerName: customer.name,
       customerEmail: customer.email,
       customerPhone: customer.phone || 'N/A',
       bookingId: booking.id,
-      itemName: booking.item?.name || 'Rental Item',
-      eventDate: this.formatDate(booking.eventDate),
-      eventTime: booking.eventTime,
-      location: booking.location,
+      // Single item name for subject/header (backward compat)
+      itemName: primaryItem,
+      // Full items list rendered
+      itemsHtml: this.renderItemsHtml(booking.items),
+      itemsText: this.renderItemsText(booking.items),
+      hasItems: (booking.items && booking.items.length > 0) ? 'true' : '',
+      itemCount: String(booking.items?.length || 1),
+      // Date/time with ranges
+      eventDate: this.formatDateRange(booking.eventDate, booking.eventEndDate),
+      eventTime: this.formatTimeRange(booking.eventTime, booking.eventEndTime),
+      // Location
+      location: booking.location || 'Address pending',
+      // Totals
       totalAmount: (booking.totalAmount ?? 0).toFixed(2),
+      // Notes if present
+      notes: booking.notes || '',
+      hasNotes: booking.notes ? 'true' : '',
+      // URLs
       dashboardUrl: this.getDashboardUrl(tenant) + '/bookings',
       ...this.getBusinessDetails(tenant),
     }

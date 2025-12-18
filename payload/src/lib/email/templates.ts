@@ -333,99 +333,129 @@ const boldGradientWrapper = (content: string, preheader?: string): string => `
 const BOOKING_CONFIRMATION_MODERN: EmailTemplateVariant = {
   id: 'modern',
   name: 'Modern Dark',
-  subject: 'Booking Confirmed – {{bookingId}}',
+  subject: '✓ Booking Confirmed #{{bookingId}}',
 
   html: (params) => modernDarkWrapper(`
-    <div style="text-align: center; margin-bottom: 36px;">
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto 20px;">
-        <tr>
-          <td style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); padding: 10px 24px; border-radius: 100px;">
-            <span style="font-size: 13px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 1.5px;">✓ Confirmed</span>
-          </td>
-        </tr>
-      </table>
-      <h2 style="margin: 0; font-size: 32px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 32px;">
+      <div style="display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-radius: 100px; margin-bottom: 20px;">
+        <span style="font-size: 13px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 1px;">✓ Confirmed</span>
+      </div>
+      <h2 style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">
         You're All Set!
       </h2>
+      <p style="margin: 12px 0 0; font-size: 15px; color: #94a3b8;">
+        Booking <strong style="color: #f97316; font-family: monospace;">#{{bookingId}}</strong>
+      </p>
     </div>
 
-    <p style="margin: 0 0 28px; font-size: 16px; line-height: 1.8; color: #a3a3a3;">
-      Hey <strong style="color: #f97316;">{{customerName}}</strong>, your booking is confirmed. We can't wait to make your event amazing!
+    <p style="margin: 0 0 28px; font-size: 16px; line-height: 1.8; color: #a3a3a3; text-align: center;">
+      Hey <strong style="color: #f97316;">{{customerName}}</strong>, your booking is confirmed.<br>
+      We can't wait to make your event amazing!
     </p>
 
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #262626; border-radius: 12px; margin: 0 0 28px; border: 1px solid #333333;">
-      <tr>
-        <td style="padding: 28px;">
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size: 14px;">
-            <tr>
-              <td style="color: #737373; padding: 10px 0; border-bottom: 1px solid #333333;">Booking ID</td>
-              <td style="color: #f97316; font-weight: 600; text-align: right; padding: 10px 0; border-bottom: 1px solid #333333; font-family: monospace; font-size: 13px;">{{bookingId}}</td>
-            </tr>
-            <tr>
-              <td style="color: #737373; padding: 10px 0; border-bottom: 1px solid #333333;">Item</td>
-              <td style="color: #e5e5e5; font-weight: 500; text-align: right; padding: 10px 0; border-bottom: 1px solid #333333;">{{itemName}}</td>
-            </tr>
-            <tr>
-              <td style="color: #737373; padding: 10px 0; border-bottom: 1px solid #333333;">Event Date</td>
-              <td style="color: #e5e5e5; font-weight: 500; text-align: right; padding: 10px 0; border-bottom: 1px solid #333333;">{{eventDate}}</td>
-            </tr>
-            <tr>
-              <td style="color: #737373; padding: 10px 0; border-bottom: 1px solid #333333;">Time</td>
-              <td style="color: #e5e5e5; font-weight: 500; text-align: right; padding: 10px 0; border-bottom: 1px solid #333333;">{{eventTime}}</td>
-            </tr>
-            <tr>
-              <td style="color: #737373; padding: 10px 0;">Location</td>
-              <td style="color: #e5e5e5; font-weight: 500; text-align: right; padding: 10px 0;">{{location}}</td>
-            </tr>
-          </table>
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #404040;">
-            <tr>
-              <td style="color: #737373; font-size: 14px;">Total</td>
-              <td style="color: #f97316; font-size: 26px; font-weight: 700; text-align: right; letter-spacing: -0.5px;">\${{totalAmount}}</td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-
-    <div style="text-align: center; margin: 32px 0;">
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
+    <!-- Event Info Card -->
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin: 0 0 24px;">
+      <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px;">📅 Event Details</div>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size: 14px;">
         <tr>
-          <td style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 10px; box-shadow: 0 8px 24px rgba(249, 115, 22, 0.35);">
-            <a href="{{bookingUrl}}" style="display: inline-block; padding: 16px 40px; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; text-transform: uppercase;">
-              View Booking Details
-            </a>
+          <td style="padding: 10px 0; border-bottom: 1px solid #334155;">
+            <span style="color: #64748b;">Date</span>
+          </td>
+          <td style="color: #f59e0b; font-weight: 700; text-align: right; padding: 10px 0; border-bottom: 1px solid #334155;">{{eventDate}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; border-bottom: 1px solid #334155;">
+            <span style="color: #64748b;">Time</span>
+          </td>
+          <td style="color: #ffffff; font-weight: 600; text-align: right; padding: 10px 0; border-bottom: 1px solid #334155;">{{eventTime}}</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; vertical-align: top;">
+            <span style="color: #64748b;">Delivery Location</span>
+          </td>
+          <td style="color: #ffffff; font-weight: 500; text-align: right; padding: 10px 0; max-width: 200px;">{{location}}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Order Items Card -->
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin: 0 0 24px;">
+      <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px;">🛒 Your Order</div>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size: 14px;">
+        {{itemsHtml}}
+        <!-- Total Row -->
+        <tr>
+          <td colspan="2" style="padding-top: 16px; border-top: 2px solid #334155;">
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr>
+                <td style="color: #ffffff; font-size: 16px; font-weight: 700;">Total</td>
+                <td style="color: #10b981; font-size: 24px; font-weight: 800; text-align: right;">\${{totalAmount}}</td>
+              </tr>
+            </table>
           </td>
         </tr>
       </table>
     </div>
 
-    <p style="margin: 28px 0 0; font-size: 13px; line-height: 1.6; color: #525252; text-align: center;">
-      We'll send you a reminder 24 hours before your event.
+    <!-- CTA Button -->
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="{{bookingUrl}}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 15px; box-shadow: 0 8px 24px rgba(249, 115, 22, 0.35);">
+        View Booking Details →
+      </a>
+    </div>
+
+    <!-- What's Next Section -->
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin: 0 0 24px;">
+      <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px;">📬 What's Next?</div>
+      <ul style="margin: 0; padding: 0 0 0 20px; color: #94a3b8; font-size: 14px; line-height: 1.8;">
+        <li style="margin-bottom: 8px;">We'll send you a reminder 24 hours before your event</li>
+        <li style="margin-bottom: 8px;">On the day of delivery, you'll get a notification when we're on our way</li>
+        <li>Questions? Contact us anytime at {{businessPhone}} or {{businessEmail}}</li>
+      </ul>
+    </div>
+
+    <!-- Footer Note -->
+    <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.6; text-align: center;">
+      Thank you for choosing {{businessName}}! 🎈
     </p>
   `, `Booking #{{bookingId}} confirmed for {{eventDate}}`),
 
   text: (params) => `
-BOOKING CONFIRMED ✓
+✓ BOOKING CONFIRMED
 
 Hey {{customerName}},
 
-Your booking is confirmed! Here are the details:
+Your booking is confirmed! We can't wait to make your event amazing.
+
+Booking #{{bookingId}}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Booking ID: {{bookingId}}
-Item: {{itemName}}
-Event Date: {{eventDate}}
+EVENT DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Date: {{eventDate}}
 Time: {{eventTime}}
-Location: {{location}}
+Delivery Location: {{location}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+YOUR ORDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{{itemsText}}
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 TOTAL: \${{totalAmount}}
 
-View your booking: {{bookingUrl}}
+👉 VIEW BOOKING: {{bookingUrl}}
 
-We'll send you a reminder 24 hours before your event.
+WHAT'S NEXT?
+• We'll send you a reminder 24 hours before your event
+• On the day of delivery, you'll get a notification when we're on our way
+• Questions? Contact us at {{businessPhone}} or {{businessEmail}}
 
-— {{businessName}}
+Thank you for choosing {{businessName}}! 🎈
+
+—
+{{businessName}}
 {{businessPhone}} • {{businessEmail}}
 `
 }
@@ -3556,61 +3586,87 @@ TIME: {{loginTime}}
 const NEW_BOOKING_RECEIVED_MODERN: EmailTemplateVariant = {
   id: 'modern',
   name: 'Modern Dark',
-  subject: '🎉 New Booking from {{customerName}}',
+  subject: '🎉 New Booking #{{bookingId}} from {{customerName}}',
 
   html: (params) => modernDarkWrapper(`
-    <div style="text-align: center; margin-bottom: 40px;">
-      <div style="display: inline-block; padding: 12px 24px; background-color: #10b981; border-radius: 100px; margin-bottom: 24px;">
-        <span style="font-size: 14px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 1px;">🎉 New Booking</span>
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 32px;">
+      <div style="display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 100px; margin-bottom: 20px;">
+        <span style="font-size: 13px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 1px;">🎉 New Booking</span>
       </div>
-      <h2 style="margin: 0; font-size: 36px; font-weight: 800; color: #ffffff; letter-spacing: -1px;">
-        You Got a New Booking!
+      <h2 style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px;">
+        You've Got a New Order!
       </h2>
+      <p style="margin: 12px 0 0; font-size: 15px; color: #94a3b8;">
+        Booking <strong style="color: #f97316; font-family: monospace;">#{{bookingId}}</strong>
+      </p>
     </div>
 
-    <p style="margin: 0 0 32px; font-size: 18px; line-height: 1.7; color: #cbd5e1;">
-      Great news! <strong style="color: #f59e0b;">{{customerName}}</strong> just booked <strong style="color: #10b981;">{{itemName}}</strong>.
-    </p>
-
-    <div style="background-color: #334155; border-radius: 8px; padding: 32px; margin: 0 0 32px;">
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size: 15px; line-height: 2;">
+    <!-- Customer Info Card -->
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin: 0 0 24px;">
+      <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px;">Customer Details</div>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size: 14px;">
         <tr>
-          <td style="color: #94a3b8; padding: 8px 0;">Booking ID</td>
-          <td style="color: #f97316; font-weight: 700; text-align: right; padding: 8px 0; font-family: monospace;">{{bookingId}}</td>
-        </tr>
-        <tr>
-          <td style="color: #94a3b8; padding: 8px 0;">Customer</td>
+          <td style="padding: 8px 0;">
+            <span style="color: #64748b;">Name</span>
+          </td>
           <td style="color: #ffffff; font-weight: 600; text-align: right; padding: 8px 0;">{{customerName}}</td>
         </tr>
         <tr>
-          <td style="color: #94a3b8; padding: 8px 0;">Email</td>
-          <td style="color: #ffffff; font-weight: 600; text-align: right; padding: 8px 0;">{{customerEmail}}</td>
+          <td style="padding: 8px 0;">
+            <span style="color: #64748b;">Email</span>
+          </td>
+          <td style="text-align: right; padding: 8px 0;">
+            <a href="mailto:{{customerEmail}}" style="color: #3b82f6; text-decoration: none;">{{customerEmail}}</a>
+          </td>
         </tr>
         <tr>
-          <td style="color: #94a3b8; padding: 8px 0;">Phone</td>
-          <td style="color: #ffffff; font-weight: 600; text-align: right; padding: 8px 0;">{{customerPhone}}</td>
+          <td style="padding: 8px 0;">
+            <span style="color: #64748b;">Phone</span>
+          </td>
+          <td style="text-align: right; padding: 8px 0;">
+            <a href="tel:{{customerPhone}}" style="color: #3b82f6; text-decoration: none;">{{customerPhone}}</a>
+          </td>
         </tr>
+      </table>
+    </div>
+
+    <!-- Event Info Card -->
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin: 0 0 24px;">
+      <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px;">Event Information</div>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size: 14px;">
         <tr>
-          <td style="color: #94a3b8; padding: 8px 0;">Item</td>
-          <td style="color: #10b981; font-weight: 700; text-align: right; padding: 8px 0;">{{itemName}}</td>
-        </tr>
-        <tr>
-          <td style="color: #94a3b8; padding: 8px 0;">Event Date</td>
+          <td style="padding: 8px 0;">
+            <span style="color: #64748b;">📅 Date</span>
+          </td>
           <td style="color: #f59e0b; font-weight: 700; text-align: right; padding: 8px 0;">{{eventDate}}</td>
         </tr>
         <tr>
-          <td style="color: #94a3b8; padding: 8px 0;">Time</td>
+          <td style="padding: 8px 0;">
+            <span style="color: #64748b;">⏰ Time</span>
+          </td>
           <td style="color: #ffffff; font-weight: 600; text-align: right; padding: 8px 0;">{{eventTime}}</td>
         </tr>
         <tr>
-          <td style="color: #94a3b8; padding: 8px 0;">Location</td>
-          <td style="color: #ffffff; font-weight: 600; text-align: right; padding: 8px 0;">{{location}}</td>
+          <td style="padding: 8px 0; vertical-align: top;">
+            <span style="color: #64748b;">📍 Location</span>
+          </td>
+          <td style="color: #ffffff; font-weight: 500; text-align: right; padding: 8px 0; max-width: 200px;">{{location}}</td>
         </tr>
+      </table>
+    </div>
+
+    <!-- Order Items Card -->
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 12px; padding: 24px; margin: 0 0 24px;">
+      <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px;">Order Items</div>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size: 14px;">
+        {{itemsHtml}}
+        <!-- Total Row -->
         <tr>
-          <td colspan="2" style="padding: 16px 0 8px 0; border-top: 2px solid #475569;">
+          <td colspan="2" style="padding-top: 16px; border-top: 2px solid #334155;">
             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
               <tr>
-                <td style="color: #ffffff; font-size: 18px; font-weight: 700;">Total</td>
+                <td style="color: #ffffff; font-size: 16px; font-weight: 700;">Total</td>
                 <td style="color: #10b981; font-size: 24px; font-weight: 800; text-align: right;">\${{totalAmount}}</td>
               </tr>
             </table>
@@ -3619,35 +3675,49 @@ const NEW_BOOKING_RECEIVED_MODERN: EmailTemplateVariant = {
       </table>
     </div>
 
-    <div style="text-align: center; margin: 0 0 32px;">
-      <a href="{{dashboardUrl}}" style="display: inline-block; padding: 18px 48px; background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);">
-        View Booking
+    <!-- CTA Button -->
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="{{dashboardUrl}}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 15px; box-shadow: 0 8px 24px rgba(249, 115, 22, 0.35);">
+        View Booking Details →
       </a>
     </div>
 
-    <p style="margin: 0; font-size: 14px; color: #64748b; line-height: 1.6; text-align: center;">
+    <!-- Footer Note -->
+    <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.6; text-align: center;">
       Time to celebrate – another happy customer! 🎈
     </p>
-  `, 'New booking from {{customerName}} for {{itemName}}'),
+  `, 'New booking from {{customerName}} - {{itemCount}} item(s) - \${{totalAmount}}'),
 
   text: (params) => `
 🎉 NEW BOOKING RECEIVED!
 
-Great news! You got a new booking.
+Booking #{{bookingId}}
 
-BOOKING DETAILS:
-- Booking ID: {{bookingId}}
-- Customer: {{customerName}}
-- Email: {{customerEmail}}
-- Phone: {{customerPhone}}
-- Item: {{itemName}}
-- Event Date: {{eventDate}}
-- Time: {{eventTime}}
-- Location: {{location}}
-- Total: \${{totalAmount}}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CUSTOMER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Name: {{customerName}}
+Email: {{customerEmail}}
+Phone: {{customerPhone}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EVENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Date: {{eventDate}}
+Time: {{eventTime}}
+Location: {{location}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ORDER ITEMS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{{itemsText}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOTAL: \${{totalAmount}}
 
 👉 VIEW BOOKING: {{dashboardUrl}}
 
+—
 {{businessName}}
 {{businessPhone}} • {{businessEmail}}
 `

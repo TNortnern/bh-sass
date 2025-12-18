@@ -3,15 +3,29 @@
  * Shared types used across the email system
  */
 
+export interface BookingItemData {
+  id: string
+  name: string
+  description?: string
+  price?: number
+  quantity?: number
+}
+
 export interface BookingData {
   id: string
   eventDate: string
+  eventEndDate?: string
   eventTime: string
+  eventEndTime?: string
   location: string
   totalAmount: number
   status: string
   customer?: CustomerData
-  item?: ItemData
+  item?: BookingItemData  // Primary item (backward compat)
+  items?: BookingItemData[]  // All items including add-ons
+  notes?: string
+  depositAmount?: number
+  balanceDue?: number
 }
 
 export interface CustomerData {
@@ -19,6 +33,7 @@ export interface CustomerData {
   name: string
   email: string
   phone?: string
+  address?: string
 }
 
 export interface ItemData {
