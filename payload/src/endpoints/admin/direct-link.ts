@@ -14,9 +14,14 @@ export const directLinkRbPayloadEndpoint: Endpoint = {
     const secret = req.headers.get('x-admin-secret')
     const expectedSecret = process.env.PAYLOAD_SECRET
 
+    // Debug logging
+    console.log('[direct-link] Received secret:', secret ? `${secret.substring(0, 10)}...` : 'null')
+    console.log('[direct-link] Expected secret:', expectedSecret ? `${expectedSecret.substring(0, 10)}...` : 'null')
+    console.log('[direct-link] Match:', secret === expectedSecret)
+
     if (!secret || secret !== expectedSecret) {
       return Response.json(
-        { error: 'Unauthorized. Invalid or missing x-admin-secret header.' },
+        { error: 'Unauthorized. Invalid or missing x-admin-secret header.', debug: { receivedLength: secret?.length, expectedLength: expectedSecret?.length } },
         { status: 401 }
       )
     }
