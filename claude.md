@@ -2,6 +2,8 @@
 
 > Multi-tenant bounce house rental platform built on rb-payload + Payload CMS 3.64 + Nuxt 4.2 + PostgreSQL
 
+**Production URL:** https://gregarious-adventure-production.up.railway.app
+
 ---
 
 ## CRITICAL: Development Guidelines
@@ -268,4 +270,4 @@ access: {
 
 ---
 
-**Last Updated:** 2025-12-15
+**Last Updated:** 2025-12-18

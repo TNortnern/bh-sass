@@ -253,8 +253,20 @@ export const useNotifications = () => {
     disconnectRealtime()
 
     try {
-      // TODO: Get tenantId from auth context
-      const tenantId = 6 // Bounce Kingdom for now
+      // Get tenantId from auth context
+      const { currentUser } = useAuth()
+      const user = currentUser.value
+      if (!user) {
+        console.log('No user logged in, skipping notification stream connection')
+        return
+      }
+
+      // Extract tenantId - can be a string or an object with id
+      const tenantId = typeof user.tenantId === 'object' ? user.tenantId?.id : user.tenantId
+      if (!tenantId) {
+        console.log('No tenant ID found for user, skipping notification stream connection')
+        return
+      }
 
       console.log(`Connecting to notification stream for tenant ${tenantId}`)
 

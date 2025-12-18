@@ -84,14 +84,16 @@ onMounted(async () => {
     selected: false
   }))
 
-  // TODO: Load unavailable dates from availability API
-  // For now, use mock data
-  unavailableDates.value = [
-    '2025-12-05',
-    '2025-12-06',
-    '2025-12-25',
-    '2025-12-26'
-  ]
+  // Load unavailable dates from availability API
+  try {
+    const availabilityData = await $fetch<{ unavailableDates: string[] }>(
+      `/public/items/${foundItem.id}/unavailable-dates`
+    )
+    unavailableDates.value = availabilityData.unavailableDates || []
+  } catch (e) {
+    console.error('Failed to load unavailable dates:', e)
+    unavailableDates.value = []
+  }
 })
 
 const selectedDates = ref<BookingDateRange | null>(null)

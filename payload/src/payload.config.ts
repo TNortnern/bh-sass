@@ -38,6 +38,8 @@ import { SignedDocuments } from './collections/SignedDocuments'
 import { StripeWebhookEvents } from './collections/StripeWebhookEvents'
 import { PlatformSettings } from './globals/PlatformSettings'
 import { availabilityCheckEndpoint } from './endpoints/availability-check'
+import { unavailableDatesEndpoint } from './endpoints/unavailable-dates'
+import { bookingConfirmationEndpoint } from './endpoints/booking-confirmation'
 import {
   maintenanceDueEndpoint,
   maintenanceCompleteEndpoint,
@@ -202,8 +204,11 @@ export default buildConfig({
     },
     // Admin endpoints (super admin only)
     ...adminEndpoints,
-    // Availability check endpoint
+    // Availability check endpoints
     availabilityCheckEndpoint,
+    unavailableDatesEndpoint,
+    // Public booking confirmation endpoint
+    bookingConfirmationEndpoint,
     // Maintenance endpoints
     maintenanceDueEndpoint,
     maintenanceCompleteEndpoint,

@@ -18,9 +18,12 @@ const tenantData = ref<any>(null)
 // Load tenant and handle cart data from URL (from embed widget)
 onMounted(async () => {
   // Check if cart data is passed via URL from embed widget
+  // URL cart data takes priority over localStorage cart (clear existing and use URL data)
   const cartParam = route.query.cart as string
-  if (cartParam && items.value.length === 0) {
+  if (cartParam) {
     try {
+      // Clear existing cart first to ensure URL cart is used
+      clear()
       const embedCart = JSON.parse(decodeURIComponent(cartParam))
       // Convert embed cart format to useCart format
       // Embed format: {id, name, price, image, quantity}

@@ -245,22 +245,49 @@ async function handleCheckoutSessionCompleted(
       paymentStatus: session.payment_status,
     })
 
-    // TODO: Update booking record when Bookings collection supports payment tracking
-    // await payload.update({
-    //   collection: 'bookings',
-    //   id: bookingId,
-    //   data: {
-    //     paymentStatus: 'paid',
-    //     stripeSessionId: session.id,
-    //     stripePaymentIntentId: session.payment_intent as string,
-    //     paidAt: new Date().toISOString(),
-    //   },
-    // })
+    // Get the booking to check total vs paid amount
+    const booking = await payload.findByID({
+      collection: 'bookings',
+      id: bookingId,
+      depth: 0,
+    })
+
+    if (!booking) {
+      console.warn('Booking not found for checkout session:', bookingId)
+      return {
+        success: true,
+        message: 'Booking not found',
+      }
+    }
+
+    // Determine payment status based on amount paid vs total
+    const amountPaid = (session.amount_total || 0) / 100 // Convert from cents
+    const totalPrice = booking.totalPrice || 0
+    const isFullPayment = amountPaid >= totalPrice
+    const newPaymentStatus = isFullPayment ? 'paid_full' : 'deposit_paid'
+
+    // Update booking with payment info and confirm it
+    await payload.update({
+      collection: 'bookings',
+      id: bookingId,
+      data: {
+        status: 'confirmed',
+        paymentStatus: newPaymentStatus,
+        depositPaid: amountPaid,
+      },
+    })
+
+    console.log('Booking updated after payment:', {
+      bookingId,
+      status: 'confirmed',
+      paymentStatus: newPaymentStatus,
+      depositPaid: amountPaid,
+    })
 
     return {
       success: true,
-      message: 'Checkout session processed successfully',
-      data: { bookingId, sessionId: session.id },
+      message: 'Checkout session processed and booking confirmed',
+      data: { bookingId, sessionId: session.id, paymentStatus: newPaymentStatus },
     }
   } catch (error) {
     // Don't log full error message - only log type to prevent PII leakage

@@ -61,8 +61,11 @@
                     name="lucide:check-circle"
                     class="w-5 h-5"
                   />
-                  Photo selected (mock)
+                  Photo ready to upload
                 </div>
+                <p class="text-sm text-gray-500 mt-2">
+                  You can add a real photo from your inventory page later
+                </p>
               </div>
             </div>
           </div>

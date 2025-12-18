@@ -12,18 +12,19 @@ import type { Payload } from 'payload'
 
 // rb-payload API configuration
 const RB_PAYLOAD_URL = process.env.RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app'
-const RB_PAYLOAD_API_KEY = process.env.RB_PAYLOAD_API_KEY || ''
+// Use admin API key for tenant updates (requires elevated permissions)
+const RB_PAYLOAD_ADMIN_API_KEY = process.env.RB_PAYLOAD_ADMIN_API_KEY || ''
 
-// Check if rb-payload sync is enabled (requires API key)
+// Check if rb-payload sync is enabled (requires admin API key)
 const isRbPayloadSyncEnabled = (): boolean => {
-  return !!RB_PAYLOAD_API_KEY
+  return !!RB_PAYLOAD_ADMIN_API_KEY
 }
 
 // Log sync disabled message once
 let syncDisabledLogged = false
 const logSyncDisabled = () => {
   if (!syncDisabledLogged) {
-    console.log('[BusinessHours Sync] rb-payload sync is disabled (RB_PAYLOAD_API_KEY not configured)')
+    console.log('[BusinessHours Sync] rb-payload sync is disabled (RB_PAYLOAD_ADMIN_API_KEY not configured)')
     syncDisabledLogged = true
   }
 }
@@ -120,8 +121,8 @@ async function callRbPayloadApi(
   endpoint: string,
   data?: Record<string, unknown>
 ): Promise<{ ok: boolean; data?: unknown; error?: string }> {
-  if (!RB_PAYLOAD_API_KEY) {
-    return { ok: false, error: 'RB_PAYLOAD_API_KEY not configured' }
+  if (!RB_PAYLOAD_ADMIN_API_KEY) {
+    return { ok: false, error: 'RB_PAYLOAD_ADMIN_API_KEY not configured' }
   }
 
   const url = `${RB_PAYLOAD_URL}${endpoint}`
@@ -131,7 +132,7 @@ async function callRbPayloadApi(
       method,
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': RB_PAYLOAD_API_KEY,
+        'X-API-Key': RB_PAYLOAD_ADMIN_API_KEY,
       },
       ...(data && method !== 'GET' && method !== 'DELETE' && { body: JSON.stringify(data) }),
     })

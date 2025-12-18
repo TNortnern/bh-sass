@@ -239,6 +239,20 @@ export const useAuth = () => {
     } finally {
       currentUser.value = null
       isLoading.value = false
+
+      // Clear localStorage items to prevent stale data for next user
+      if (import.meta.client) {
+        try {
+          localStorage.removeItem('bouncepro_onboarding')
+          localStorage.removeItem('bh_cart')
+        } catch (e) {
+          console.error('Failed to clear localStorage on logout:', e)
+        }
+      }
+
+      // Clear Nuxt useState for notifications to prevent stale data
+      clearNuxtState('notifications')
+
       await navigateTo('/auth/login')
     }
   }

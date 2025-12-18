@@ -92,8 +92,9 @@ onMounted(async () => {
 
   // Map booking data to display format
   const loadedBookingData = loadedBooking as Record<string, unknown>
+  const deliveryAddr = loadedBookingData.deliveryAddress as Record<string, unknown> | undefined
   booking.value = {
-    number: (loadedBookingData.id as string) || '',
+    number: (loadedBookingData.bookingNumber as string) || `BK-${loadedBookingData.id}`,
     status: (loadedBookingData.status as string) || 'pending',
     createdAt: (loadedBookingData.createdAt as string) || new Date().toISOString(),
     customer: {
@@ -103,23 +104,23 @@ onMounted(async () => {
       phone: ((loadedBookingData.customer as Record<string, unknown>)?.phone as string) || ''
     },
     items: ((loadedBookingData.items as Array<Record<string, unknown>>)?.map(item => ({
-      name: (item.label as string) || 'Rental Item',
-      startDate: (loadedBookingData.startTime as string) || '',
-      endDate: (loadedBookingData.endTime as string) || '',
+      name: (item.name as string) || 'Rental Item',
+      startDate: (loadedBookingData.startDate as string) || new Date().toISOString(),
+      endDate: (loadedBookingData.endDate as string) || new Date().toISOString(),
       price: (item.price as number) || 0,
-      quantity: ((item.metadata as Record<string, unknown>)?.quantity as number) || 1,
-      addOns: ((item.metadata as Record<string, unknown>)?.addOns as BookingAddOn[]) || []
+      quantity: (item.quantity as number) || 1,
+      addOns: [] as BookingAddOn[]
     })) || []),
-    address: ((loadedBookingData.items as Array<Record<string, unknown>>)?.[0]?.metadata as Record<string, unknown>)?.deliveryAddress as BookingAddress || {
-      street: '',
-      city: '',
-      state: '',
-      zip: ''
+    address: {
+      street: (deliveryAddr?.street as string) || '',
+      city: (deliveryAddr?.city as string) || '',
+      state: (deliveryAddr?.state as string) || '',
+      zip: (deliveryAddr?.zipCode as string) || ''
     },
-    eventType: (((loadedBookingData.items as Array<Record<string, unknown>>)?.[0]?.metadata as Record<string, unknown>)?.eventType as string) || 'Event',
+    eventType: 'Party Event',
     total: (loadedBookingData.totalPrice as number) || 0,
-    depositPaid: ((loadedBookingData.totalPrice as number) || 0) * 0.5,
-    balanceDue: ((loadedBookingData.totalPrice as number) || 0) * 0.5
+    depositPaid: (loadedBookingData.depositPaid as number) || 0,
+    balanceDue: (loadedBookingData.balanceDue as number) || 0
   }
 })
 
