@@ -10,6 +10,7 @@ import {
   adminSyncTenantRbPayloadEndpoint,
   adminSyncAllTenantsRbPayloadEndpoint
 } from './tenants'
+import { adminLinkTenantRbPayloadEndpoint } from './tenant-link'
 import {
   adminUsersListEndpoint,
   adminUserStatusEndpoint
@@ -47,6 +48,7 @@ export const adminEndpoints: Endpoint[] = [
   adminStopImpersonateEndpoint,
   adminSuspendTenantEndpoint,
   adminSyncTenantRbPayloadEndpoint,
+  adminLinkTenantRbPayloadEndpoint,
 
   // Users
   adminUsersListEndpoint,
