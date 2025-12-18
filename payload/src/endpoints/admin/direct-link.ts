@@ -28,18 +28,24 @@ export const directLinkRbPayloadEndpoint: Endpoint = {
 
     try {
       const body = req.json ? await req.json() : {}
-      const { tenantId, rbPayloadTenantId } = body
+      const { tenantId, rbPayloadTenantId, email } = body
 
-      if (!tenantId || !rbPayloadTenantId) {
+      if (!tenantId) {
         return Response.json(
-          { error: 'tenantId and rbPayloadTenantId are required' },
+          { error: 'tenantId is required' },
+          { status: 400 }
+        )
+      }
+
+      if (!rbPayloadTenantId && !email) {
+        return Response.json(
+          { error: 'At least one of rbPayloadTenantId or email is required' },
           { status: 400 }
         )
       }
 
       const payload = req.payload
       const tenantIdNum = parseInt(String(tenantId), 10)
-      const rbTenantIdNum = parseInt(String(rbPayloadTenantId), 10)
 
       // Access the drizzle db adapter for direct SQL
       const db = (payload.db as any).drizzle
@@ -47,16 +53,40 @@ export const directLinkRbPayloadEndpoint: Endpoint = {
         throw new Error('Could not access Drizzle database adapter')
       }
 
-      // Execute update via direct SQL
-      const result = await db.execute(sql`
-        UPDATE tenants
-        SET rb_payload_tenant_id = ${rbTenantIdNum},
-            rb_payload_sync_status = 'provisioned',
-            rb_payload_sync_error = NULL,
-            updated_at = NOW()
-        WHERE id = ${tenantIdNum}
-        RETURNING id, name, slug, rb_payload_tenant_id
-      `)
+      // Build dynamic SQL based on provided fields
+      let result
+      if (rbPayloadTenantId && email) {
+        const rbTenantIdNum = parseInt(String(rbPayloadTenantId), 10)
+        result = await db.execute(sql`
+          UPDATE tenants
+          SET rb_payload_tenant_id = ${rbTenantIdNum},
+              rb_payload_sync_status = 'provisioned',
+              rb_payload_sync_error = NULL,
+              email = ${email},
+              updated_at = NOW()
+          WHERE id = ${tenantIdNum}
+          RETURNING id, name, slug, email, rb_payload_tenant_id
+        `)
+      } else if (rbPayloadTenantId) {
+        const rbTenantIdNum = parseInt(String(rbPayloadTenantId), 10)
+        result = await db.execute(sql`
+          UPDATE tenants
+          SET rb_payload_tenant_id = ${rbTenantIdNum},
+              rb_payload_sync_status = 'provisioned',
+              rb_payload_sync_error = NULL,
+              updated_at = NOW()
+          WHERE id = ${tenantIdNum}
+          RETURNING id, name, slug, email, rb_payload_tenant_id
+        `)
+      } else {
+        result = await db.execute(sql`
+          UPDATE tenants
+          SET email = ${email},
+              updated_at = NOW()
+          WHERE id = ${tenantIdNum}
+          RETURNING id, name, slug, email, rb_payload_tenant_id
+        `)
+      }
 
       if (!result.rows || result.rows.length === 0) {
         return Response.json(
@@ -67,7 +97,7 @@ export const directLinkRbPayloadEndpoint: Endpoint = {
 
       const tenant = result.rows[0]
 
-      payload.logger.info(`Direct linked tenant ${tenant.name} (ID: ${tenant.id}) to rb-payload tenant ${rbTenantIdNum}`)
+      payload.logger.info(`Updated tenant ${tenant.name} (ID: ${tenant.id})`)
 
       return Response.json({
         success: true,
@@ -75,9 +105,10 @@ export const directLinkRbPayloadEndpoint: Endpoint = {
           id: tenant.id,
           name: tenant.name,
           slug: tenant.slug,
+          email: tenant.email,
           rbPayloadTenantId: tenant.rb_payload_tenant_id,
         },
-        message: 'Tenant linked to rb-payload successfully',
+        message: 'Tenant updated successfully',
       })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
