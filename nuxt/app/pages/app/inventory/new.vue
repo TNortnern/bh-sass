@@ -6,75 +6,36 @@ definePageMeta({
 })
 
 const { createItem } = useInventory()
-// const router = useRouter()
 const toast = useToast()
 const { setBreadcrumbs } = useBreadcrumbs()
 const { currentUser } = useAuth()
 
-// Check if user has tenant ID assigned
 const hasTenant = computed(() => {
   return currentUser.value?.tenantId !== null && currentUser.value?.tenantId !== undefined
 })
 
-// Set breadcrumbs for new inventory page
 onMounted(() => {
   setBreadcrumbs([
-    {
-      label: 'Dashboard',
-      to: '/app',
-      icon: 'i-lucide-home'
-    },
-    {
-      label: 'Inventory',
-      to: '/app/inventory'
-    },
-    {
-      label: 'New Item'
-    }
+    { label: 'Dashboard', to: '/app', icon: 'i-lucide-home' },
+    { label: 'Inventory', to: '/app/inventory' },
+    { label: 'New Item' }
   ])
 })
 
-const currentStep = ref(1)
-const totalSteps = 4
+const isSubmitting = ref(false)
 
-// Form data
 const formData = ref({
-  // Step 1: Basic Info
   name: '',
   category: 'bounce_house',
   description: '',
   status: 'active',
-
-  // Step 2: Specifications
-  dimensions: {
-    length: 0,
-    width: 0,
-    height: 0
-  },
+  dimensions: { length: 0, width: 0, height: 0 },
   weight: 0,
-  capacity: {
-    maxOccupants: 0,
-    maxWeight: 0
-  },
-  ageRange: {
-    min: 0,
-    max: 0
-  },
+  capacity: { maxOccupants: 0, maxWeight: 0 },
+  ageRange: { min: 0, max: 0 },
   setupTime: 0,
-  requiredSpace: {
-    length: 0,
-    width: 0
-  },
-
-  // Step 3: Pricing
-  pricing: {
-    hourly: 0,
-    daily: 0,
-    weekend: 0,
-    weekly: 0
-  },
-
-  // Step 4: Setup & Images
+  requiredSpace: { length: 0, width: 0 },
+  pricing: { hourly: 0, daily: 0, weekend: 0, weekly: 0 },
   setupRequirements: {
     powerOutlet: false,
     waterSource: false,
@@ -104,50 +65,19 @@ const anchoringItems = [
   { label: 'Both', value: 'both' }
 ]
 
-const steps = [
-  { number: 1, title: 'Basic Info', icon: 'i-lucide-info' },
-  { number: 2, title: 'Specifications', icon: 'i-lucide-ruler' },
-  { number: 3, title: 'Pricing', icon: 'i-lucide-dollar-sign' },
-  { number: 4, title: 'Setup & Images', icon: 'i-lucide-settings' }
-]
-
-const canProceed = computed(() => {
-  switch (currentStep.value) {
-    case 1:
-      return formData.value.name.trim() !== '' && formData.value.description.trim() !== ''
-    case 2: {
-      // Check for valid numbers (not NaN, not 0, not empty)
-      const dims = formData.value.dimensions
-      return Number(dims.length) > 0
-        && Number(dims.width) > 0
-        && Number(dims.height) > 0
-    }
-    case 3: {
-      const pricing = formData.value.pricing
-      return Number(pricing.hourly) > 0
-        && Number(pricing.daily) > 0
-        && Number(pricing.weekend) > 0
-    }
-    case 4:
-      return true
-    default:
-      return false
-  }
+const canSubmit = computed(() => {
+  const hasBasicInfo = formData.value.name.trim() !== '' && formData.value.description.trim() !== ''
+  const dims = formData.value.dimensions
+  const hasDimensions = Number(dims.length) > 0 && Number(dims.width) > 0 && Number(dims.height) > 0
+  const pricing = formData.value.pricing
+  const hasPricing = Number(pricing.daily) > 0
+  return hasBasicInfo && hasDimensions && hasPricing
 })
 
-const nextStep = () => {
-  if (currentStep.value < totalSteps) {
-    currentStep.value++
-  }
-}
-
-const previousStep = () => {
-  if (currentStep.value > 1) {
-    currentStep.value--
-  }
-}
-
 const handleSubmit = async () => {
+  if (!canSubmit.value || isSubmitting.value) return
+
+  isSubmitting.value = true
   try {
     type CategoryType = 'bounce_house' | 'water_slide' | 'obstacle_course' | 'game' | 'combo' | 'other'
     type StatusType = 'active' | 'inactive' | 'discontinued'
@@ -192,6 +122,8 @@ const handleSubmit = async () => {
       description: error.data?.message || 'Failed to create inventory item',
       color: 'error'
     })
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>
@@ -200,7 +132,7 @@ const handleSubmit = async () => {
   <NoTenantAlert v-if="!hasTenant" />
   <div
     v-else
-    class="space-y-6"
+    class="space-y-6 max-w-4xl"
   >
     <!-- Header -->
     <div class="flex items-center gap-4">
@@ -221,81 +153,52 @@ const handleSubmit = async () => {
       </div>
     </div>
 
-    <!-- Progress Steps -->
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6">
-      <div class="flex items-center justify-between">
-        <div
-          v-for="step in steps"
-          :key="step.number"
-          class="flex items-center flex-1"
-        >
+    <form
+      class="space-y-6"
+      @submit.prevent="handleSubmit"
+    >
+      <!-- Basic Info Section -->
+      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+        <template #header>
           <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all"
-              :class="currentStep >= step.number
-                ? 'bg-orange-500 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'"
-            >
+            <div class="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
               <UIcon
-                v-if="currentStep > step.number"
-                name="i-lucide-check"
-                class="w-5 h-5"
+                name="i-lucide-info"
+                class="w-4 h-4 text-orange-600 dark:text-orange-400"
               />
-              <span v-else>{{ step.number }}</span>
             </div>
-            <div class="hidden md:block">
-              <p
-                class="text-sm font-medium"
-                :class="currentStep >= step.number
-                  ? 'text-orange-600 dark:text-orange-400'
-                  : 'text-gray-500 dark:text-gray-400'"
-              >
-                {{ step.title }}
-              </p>
-            </div>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Basic Information
+            </h2>
           </div>
-          <div
-            v-if="step.number < totalSteps"
-            class="flex-1 h-0.5 mx-4"
-            :class="currentStep > step.number
-              ? 'bg-orange-500'
-              : 'bg-gray-200 dark:bg-gray-700'"
-          />
-        </div>
-      </div>
-    </div>
+        </template>
 
-    <!-- Form -->
-    <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
-      <form @submit.prevent="currentStep === totalSteps ? handleSubmit() : nextStep()">
-        <!-- Step 1: Basic Info -->
-        <div
-          v-if="currentStep === 1"
-          class="space-y-6"
-        >
-          <UFormField
-            label="Item Name"
-            required
-          >
-            <UInput
-              v-model="formData.name"
-              size="lg"
-              placeholder="e.g., Castle Bounce House XL"
-              class="w-full"
-            />
-          </UFormField>
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <UFormField
+              label="Item Name"
+              required
+            >
+              <UInput
+                v-model="formData.name"
+                size="lg"
+                placeholder="e.g., Castle Bounce House XL"
+                class="w-full"
+              />
+            </UFormField>
 
-          <UFormField
-            label="Category"
-            required
-          >
-            <USelect
-              v-model="formData.category"
-              :items="categoryItems"
-              size="lg"
-              class="w-full"
-            />
-          </UFormField>
+            <UFormField
+              label="Category"
+              required
+            >
+              <USelect
+                v-model="formData.category"
+                :items="categoryItems"
+                size="lg"
+                class="w-full"
+              />
+            </UFormField>
+          </div>
 
           <UFormField
             label="Description"
@@ -305,7 +208,7 @@ const handleSubmit = async () => {
               v-model="formData.description"
               size="lg"
               placeholder="Describe the item, its features, and what makes it special..."
-              :rows="4"
+              :rows="3"
               class="w-full"
             />
           </UFormField>
@@ -315,16 +218,29 @@ const handleSubmit = async () => {
               v-model="formData.status"
               :items="statusItems"
               size="lg"
-              class="w-full"
+              class="w-full max-w-xs"
             />
           </UFormField>
         </div>
+      </UCard>
 
-        <!-- Step 2: Specifications -->
-        <div
-          v-if="currentStep === 2"
-          class="space-y-6"
-        >
+      <!-- Specifications Section -->
+      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+        <template #header>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+              <UIcon
+                name="i-lucide-ruler"
+                class="w-4 h-4 text-blue-600 dark:text-blue-400"
+              />
+            </div>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Specifications
+            </h2>
+          </div>
+        </template>
+
+        <div class="space-y-4">
           <UFormField
             label="Dimensions (feet)"
             required
@@ -366,16 +282,29 @@ const handleSubmit = async () => {
             </div>
           </UFormField>
 
-          <UFormField label="Weight (lbs)">
-            <UInput
-              v-model.number="formData.weight"
-              type="number"
-              min="0"
-              size="lg"
-              placeholder="185"
-              class="w-full"
-            />
-          </UFormField>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <UFormField label="Weight (lbs)">
+              <UInput
+                v-model.number="formData.weight"
+                type="number"
+                min="0"
+                size="lg"
+                placeholder="185"
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField label="Setup Time (minutes)">
+              <UInput
+                v-model.number="formData.setupTime"
+                type="number"
+                min="0"
+                size="lg"
+                placeholder="30"
+                class="w-full"
+              />
+            </UFormField>
+          </div>
 
           <UFormField label="Capacity">
             <div class="grid grid-cols-2 gap-4">
@@ -431,17 +360,6 @@ const handleSubmit = async () => {
             </div>
           </UFormField>
 
-          <UFormField label="Setup Time (minutes)">
-            <UInput
-              v-model.number="formData.setupTime"
-              type="number"
-              min="0"
-              size="lg"
-              placeholder="30"
-              class="w-full"
-            />
-          </UFormField>
-
           <UFormField label="Required Space (feet)">
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -469,31 +387,25 @@ const handleSubmit = async () => {
             </div>
           </UFormField>
         </div>
+      </UCard>
 
-        <!-- Step 3: Pricing -->
-        <div
-          v-if="currentStep === 3"
-          class="space-y-6"
-        >
-          <UFormField
-            label="Hourly Rate"
-            required
-          >
-            <UInput
-              v-model.number="formData.pricing.hourly"
-              type="number"
-              min="0"
-              step="0.01"
-              size="lg"
-              placeholder="75.00"
-              class="w-full"
-            >
-              <template #leading>
-                <span class="text-gray-500 dark:text-gray-400">$</span>
-              </template>
-            </UInput>
-          </UFormField>
+      <!-- Pricing Section -->
+      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+        <template #header>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+              <UIcon
+                name="i-lucide-dollar-sign"
+                class="w-4 h-4 text-green-600 dark:text-green-400"
+              />
+            </div>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Pricing
+            </h2>
+          </div>
+        </template>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <UFormField
             label="Daily Rate"
             required
@@ -513,10 +425,7 @@ const handleSubmit = async () => {
             </UInput>
           </UFormField>
 
-          <UFormField
-            label="Weekend Rate"
-            required
-          >
+          <UFormField label="Weekend Rate">
             <UInput
               v-model.number="formData.pricing.weekend"
               type="number"
@@ -524,6 +433,22 @@ const handleSubmit = async () => {
               step="0.01"
               size="lg"
               placeholder="400.00"
+              class="w-full"
+            >
+              <template #leading>
+                <span class="text-gray-500 dark:text-gray-400">$</span>
+              </template>
+            </UInput>
+          </UFormField>
+
+          <UFormField label="Hourly Rate">
+            <UInput
+              v-model.number="formData.pricing.hourly"
+              type="number"
+              min="0"
+              step="0.01"
+              size="lg"
+              placeholder="75.00"
               class="w-full"
             >
               <template #leading>
@@ -550,51 +475,28 @@ const handleSubmit = async () => {
               </template>
             </UInput>
           </UFormField>
-
-          <!-- Pricing Preview -->
-          <div class="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-            <p class="text-sm font-medium text-orange-900 dark:text-orange-100 mb-3">
-              Pricing Preview
-            </p>
-            <div class="grid grid-cols-2 gap-3 text-sm">
-              <div class="flex justify-between">
-                <span class="text-orange-700 dark:text-orange-300">Hourly:</span>
-                <span class="font-semibold text-orange-900 dark:text-orange-100">
-                  ${{ formData.pricing.hourly || 0 }}
-                </span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-orange-700 dark:text-orange-300">Daily:</span>
-                <span class="font-semibold text-orange-900 dark:text-orange-100">
-                  ${{ formData.pricing.daily || 0 }}
-                </span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-orange-700 dark:text-orange-300">Weekend:</span>
-                <span class="font-semibold text-orange-900 dark:text-orange-100">
-                  ${{ formData.pricing.weekend || 0 }}
-                </span>
-              </div>
-              <div
-                v-if="formData.pricing.weekly"
-                class="flex justify-between"
-              >
-                <span class="text-orange-700 dark:text-orange-300">Weekly:</span>
-                <span class="font-semibold text-orange-900 dark:text-orange-100">
-                  ${{ formData.pricing.weekly }}
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
+      </UCard>
 
-        <!-- Step 4: Setup & Images -->
-        <div
-          v-if="currentStep === 4"
-          class="space-y-6"
-        >
+      <!-- Setup & Images Section -->
+      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+        <template #header>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+              <UIcon
+                name="i-lucide-settings"
+                class="w-4 h-4 text-purple-600 dark:text-purple-400"
+              />
+            </div>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Setup & Images
+            </h2>
+          </div>
+        </template>
+
+        <div class="space-y-4">
           <UFormField label="Setup Requirements">
-            <div class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <label class="flex items-center gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:border-orange-300 dark:hover:border-orange-700 transition-colors">
                 <UCheckbox v-model="formData.setupRequirements.powerOutlet" />
                 <div class="flex-1">
@@ -613,25 +515,27 @@ const handleSubmit = async () => {
             </div>
           </UFormField>
 
-          <UFormField label="Anchoring Method">
-            <USelect
-              v-model="formData.setupRequirements.anchoringMethod"
-              :items="anchoringItems"
-              size="lg"
-              class="w-full"
-            />
-          </UFormField>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <UFormField label="Anchoring Method">
+              <USelect
+                v-model="formData.setupRequirements.anchoringMethod"
+                :items="anchoringItems"
+                size="lg"
+                class="w-full"
+              />
+            </UFormField>
 
-          <UFormField label="Setup Crew Size">
-            <UInput
-              v-model.number="formData.setupRequirements.setupCrew"
-              type="number"
-              min="1"
-              size="lg"
-              placeholder="2"
-              class="w-full"
-            />
-          </UFormField>
+            <UFormField label="Setup Crew Size">
+              <UInput
+                v-model.number="formData.setupRequirements.setupCrew"
+                type="number"
+                min="1"
+                size="lg"
+                placeholder="2"
+                class="w-full"
+              />
+            </UFormField>
+          </div>
 
           <UFormField label="Images">
             <UiImageUploader
@@ -640,61 +544,34 @@ const handleSubmit = async () => {
             />
           </UFormField>
         </div>
+      </UCard>
 
-        <!-- Navigation Buttons -->
-        <div class="flex items-center justify-between gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <UButton
-            v-if="currentStep > 1"
-            type="button"
-            color="neutral"
-            variant="outline"
-            size="lg"
-            @click="previousStep"
-          >
-            <UIcon
-              name="i-lucide-arrow-left"
-              class="w-5 h-5 mr-2"
-            />
-            Previous
-          </UButton>
-          <UButton
-            v-else
-            type="button"
-            color="neutral"
-            variant="ghost"
-            size="lg"
-            to="/app/inventory"
-          >
-            Cancel
-          </UButton>
+      <!-- Submit Button -->
+      <div class="flex items-center justify-between gap-4 pt-4">
+        <UButton
+          type="button"
+          color="neutral"
+          variant="ghost"
+          size="lg"
+          to="/app/inventory"
+        >
+          Cancel
+        </UButton>
 
-          <UButton
-            v-if="currentStep < totalSteps"
-            type="submit"
-            color="primary"
-            size="lg"
-            :disabled="!canProceed"
-          >
-            Next
-            <UIcon
-              name="i-lucide-arrow-right"
-              class="w-5 h-5 ml-2"
-            />
-          </UButton>
-          <UButton
-            v-else
-            type="submit"
-            color="primary"
-            size="lg"
-          >
-            <UIcon
-              name="i-lucide-check"
-              class="w-5 h-5 mr-2"
-            />
-            Create Item
-          </UButton>
-        </div>
-      </form>
-    </UCard>
+        <UButton
+          type="submit"
+          color="primary"
+          size="lg"
+          :disabled="!canSubmit"
+          :loading="isSubmitting"
+        >
+          <UIcon
+            name="i-lucide-plus"
+            class="w-5 h-5 mr-2"
+          />
+          Create Item
+        </UButton>
+      </div>
+    </form>
   </div>
 </template>
