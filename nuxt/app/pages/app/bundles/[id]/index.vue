@@ -288,7 +288,7 @@ const formatDate = (date: string) => {
                 </div>
                 <div class="flex-1">
                   <p class="text-sm font-medium text-gray-900 dark:text-white">
-                    {{ typeof item.rentalItem === 'string' ? 'Item' : (item.rentalItem && 'name' in item.rentalItem ? item.rentalItem.name : 'Item') }}
+                    {{ typeof item.rentalItem === 'object' && item.rentalItem !== null && 'name' in item.rentalItem ? item.rentalItem.name : 'Item' }}
                   </p>
                   <p class="text-xs text-gray-500 dark:text-gray-400">
                     Quantity: {{ item.quantity }}
@@ -296,10 +296,10 @@ const formatDate = (date: string) => {
                 </div>
                 <div class="text-right">
                   <p class="text-sm font-semibold text-gray-900 dark:text-white">
-                    {{ formatPrice((rentalItems.find((i: any) => i.id === (typeof item.rentalItem === 'string' ? item.rentalItem : item.rentalItem.id))?.pricing.daily || 0) * item.quantity) }}
+                    {{ formatPrice((rentalItems.find((i: any) => String(i.id) === (typeof item.rentalItem === 'object' && item.rentalItem !== null ? String(item.rentalItem.id) : String(item.rentalItem)))?.pricing.daily || 0) * item.quantity) }}
                   </p>
                   <p class="text-xs text-gray-500 dark:text-gray-400">
-                    ${{ rentalItems.find((i: any) => i.id === (typeof item.rentalItem === 'string' ? item.rentalItem : item.rentalItem.id))?.pricing.daily || 0 }}/day × {{ item.quantity }}
+                    ${{ rentalItems.find((i: any) => String(i.id) === (typeof item.rentalItem === 'object' && item.rentalItem !== null ? String(item.rentalItem.id) : String(item.rentalItem)))?.pricing.daily || 0 }}/day × {{ item.quantity }}
                   </p>
                 </div>
               </div>

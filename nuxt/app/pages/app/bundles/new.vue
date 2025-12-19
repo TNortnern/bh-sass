@@ -39,7 +39,7 @@ const itemQuantity = ref(1)
 const availableItems = computed(() => {
   return rentalItems.value.filter(item =>
     !formData.value.selectedItems.find(si =>
-      (typeof si.rentalItem === 'string' ? si.rentalItem : si.rentalItem.id) === item.id
+      String(typeof si.rentalItem === 'object' && si.rentalItem !== null ? si.rentalItem.id : si.rentalItem) === String(item.id)
     )
   )
 })
@@ -61,13 +61,13 @@ const addItem = () => {
 
 const removeItem = (itemId: string) => {
   formData.value.selectedItems = formData.value.selectedItems.filter(
-    si => (typeof si.rentalItem === 'string' ? si.rentalItem : si.rentalItem.id) !== itemId
+    si => String(typeof si.rentalItem === 'object' && si.rentalItem !== null ? si.rentalItem.id : si.rentalItem) !== itemId
   )
 }
 
 const updateQuantity = (itemId: string, quantity: number) => {
   const item = formData.value.selectedItems.find(
-    si => (typeof si.rentalItem === 'string' ? si.rentalItem : si.rentalItem.id) === itemId
+    si => String(typeof si.rentalItem === 'object' && si.rentalItem !== null ? si.rentalItem.id : si.rentalItem) === itemId
   )
   if (item && quantity > 0) {
     item.quantity = quantity
@@ -76,9 +76,8 @@ const updateQuantity = (itemId: string, quantity: number) => {
 
 const itemsTotal = computed(() => {
   return formData.value.selectedItems.reduce((sum, si) => {
-    const item = rentalItems.value.find(i =>
-      i.id === (typeof si.rentalItem === 'string' ? si.rentalItem : si.rentalItem.id)
-    )
+    const rentalItemId = typeof si.rentalItem === 'object' && si.rentalItem !== null ? si.rentalItem.id : String(si.rentalItem)
+    const item = rentalItems.value.find(i => String(i.id) === String(rentalItemId))
     if (item) {
       return sum + (item.pricing.daily * si.quantity)
     }
@@ -304,7 +303,7 @@ const handleSubmit = async () => {
             >
               <div
                 v-for="bundleItem in formData.selectedItems"
-                :key="typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id"
+                :key="String(typeof bundleItem.rentalItem === 'object' && bundleItem.rentalItem !== null ? bundleItem.rentalItem.id : bundleItem.rentalItem)"
                 class="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
               >
                 <div class="flex items-center gap-3 flex-1">
@@ -314,10 +313,10 @@ const handleSubmit = async () => {
                   />
                   <div class="flex-1">
                     <p class="text-sm font-medium text-gray-900 dark:text-white">
-                      {{ rentalItems.find((i: any) => i.id === (typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id))?.name || 'Unknown Item' }}
+                      {{ rentalItems.find((i: any) => String(i.id) === String(typeof bundleItem.rentalItem === 'object' && bundleItem.rentalItem !== null ? bundleItem.rentalItem.id : bundleItem.rentalItem))?.name || 'Unknown Item' }}
                     </p>
                     <p class="text-xs text-amber-600 dark:text-amber-400">
-                      ${{ rentalItems.find((i: any) => i.id === (typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id))?.pricing.daily || 0 }}/day × {{ bundleItem.quantity }} = ${{ (rentalItems.find((i: any) => i.id === (typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id))?.pricing.daily || 0) * bundleItem.quantity }}
+                      ${{ rentalItems.find((i: any) => String(i.id) === String(typeof bundleItem.rentalItem === 'object' && bundleItem.rentalItem !== null ? bundleItem.rentalItem.id : bundleItem.rentalItem))?.pricing.daily || 0 }}/day × {{ bundleItem.quantity }} = ${{ (rentalItems.find((i: any) => String(i.id) === String(typeof bundleItem.rentalItem === 'object' && bundleItem.rentalItem !== null ? bundleItem.rentalItem.id : bundleItem.rentalItem))?.pricing.daily || 0) * bundleItem.quantity }}
                     </p>
                   </div>
                 </div>
@@ -328,7 +327,7 @@ const handleSubmit = async () => {
                     min="1"
                     size="sm"
                     class="w-20"
-                    @update:model-value="(val: any) => updateQuantity(typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id, Number(val))"
+                    @update:model-value="(val: any) => updateQuantity(String(typeof bundleItem.rentalItem === 'object' && bundleItem.rentalItem !== null ? bundleItem.rentalItem.id : bundleItem.rentalItem), Number(val))"
                   />
                   <UButton
                     color="neutral"
@@ -336,7 +335,7 @@ const handleSubmit = async () => {
                     size="sm"
                     icon="i-lucide-trash-2"
                     square
-                    @click="removeItem(typeof bundleItem.rentalItem === 'string' ? bundleItem.rentalItem : bundleItem.rentalItem.id)"
+                    @click="removeItem(String(typeof bundleItem.rentalItem === 'object' && bundleItem.rentalItem !== null ? bundleItem.rentalItem.id : bundleItem.rentalItem))"
                   />
                 </div>
               </div>

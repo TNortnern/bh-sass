@@ -7,7 +7,7 @@ export interface RentalItem {
 }
 
 export interface BundleItem {
-  rentalItem: string | RentalItem
+  rentalItem: string | number | RentalItem
   quantity: number
 }
 
@@ -58,11 +58,12 @@ export const useBundles = () => {
   const calculateBundlePrice = (bundle: Bundle, rentalItems: RentalItem[]): BundleWithCalculations => {
     // Calculate total of all items at full price
     const itemsTotal = bundle.items.reduce((sum, bundleItem) => {
-      const item = rentalItems.find(ri =>
-        typeof bundleItem.rentalItem === 'string'
-          ? ri.id === bundleItem.rentalItem
-          : ri.id === bundleItem.rentalItem.id
-      )
+      // Handle rentalItem being a string ID, number ID, or populated object
+      const rentalItemId = typeof bundleItem.rentalItem === 'object' && bundleItem.rentalItem !== null
+        ? bundleItem.rentalItem.id
+        : String(bundleItem.rentalItem)
+
+      const item = rentalItems.find(ri => String(ri.id) === rentalItemId)
       if (item) {
         return sum + (item.pricing.daily * bundleItem.quantity)
       }

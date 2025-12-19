@@ -419,7 +419,7 @@ const statusOptions = [
                   class="w-3.5 h-3.5 text-green-600 dark:text-green-400 flex-shrink-0"
                 />
                 <span class="truncate">
-                  {{ item.quantity }}x {{ typeof item.rentalItem === 'string' ? 'Item' : (item.rentalItem && 'name' in item.rentalItem ? item.rentalItem.name : 'Item') }}
+                  {{ item.quantity }}x {{ typeof item.rentalItem === 'object' && item.rentalItem !== null && 'name' in item.rentalItem ? item.rentalItem.name : 'Item' }}
                 </span>
               </div>
             </div>

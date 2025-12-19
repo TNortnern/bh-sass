@@ -182,7 +182,7 @@ const handleSubmit = async () => {
     <!-- Loading State -->
     <div
       v-if="isFetching"
-      class="space-y-6 max-w-6xl"
+      class="space-y-6"
     >
       <USkeleton class="h-12 w-96" />
       <USkeleton class="h-20" />
@@ -191,7 +191,7 @@ const handleSubmit = async () => {
 
     <div
       v-else
-      class="space-y-6 max-w-6xl"
+      class="space-y-6"
     >
       <!-- Header -->
       <div class="flex items-center gap-4">
