@@ -114,51 +114,86 @@ export default defineEventHandler(async (event) => {
     const bhSaasUrl = config.public?.appUrl || config.payloadApiUrl || 'http://localhost:3004'
     const webhookUrl = `${bhSaasUrl}/api/webhooks/rb-payload`
 
-    const provisionResult = await $fetch<{
-      tenant: {
-        id: number
-        name: string
-        apiKey?: string
-      }
-      isExisting?: boolean
-    }>(`${rbPayloadUrl}/api/provision/tenant`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': rbPayloadAdminKey
-      },
-      body: {
-        name: tenant.name,
-        slug: tenant.slug,
-        plan: tenant.plan || 'free',
-        status: 'active',
-        webhookUrl,
-        businessInfo: {
-          source: 'bh-saas',
-          bhSaasId: tenantId,
-          provisionedAt: new Date().toISOString(),
-          settings: {
-            timezone: tenant.settings?.timezone || 'America/New_York',
-            currency: tenant.settings?.currency || 'USD',
-            locale: tenant.settings?.locale || 'en-US',
-            bookingSettings: {
-              leadTime: tenant.settings?.bookingSettings?.leadTime || 1440, // 24 hours in minutes
-              maxAdvanceBooking: 365,
-              cancellationPolicy: tenant.settings?.bookingSettings?.cancellationPolicy || 'Free cancellation up to 48 hours before the event',
-              requireApproval: tenant.settings?.bookingSettings?.requireApproval || false
-            },
-            availabilityMode: 'inventory',
-            businessType: 'rental'
+    let rbTenantId: number
+    let rbApiKey: string | undefined
+
+    try {
+      const provisionResult = await $fetch<{
+        tenant: {
+          id: number
+          name: string
+          apiKey?: string
+        }
+        isExisting?: boolean
+      }>(`${rbPayloadUrl}/api/provision/tenant`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': rbPayloadAdminKey
+        },
+        body: {
+          name: tenant.name,
+          slug: tenant.slug,
+          plan: tenant.plan || 'free',
+          status: 'active',
+          webhookUrl,
+          businessInfo: {
+            source: 'bh-saas',
+            bhSaasId: tenantId,
+            provisionedAt: new Date().toISOString(),
+            settings: {
+              timezone: tenant.settings?.timezone || 'America/New_York',
+              currency: tenant.settings?.currency || 'USD',
+              locale: tenant.settings?.locale || 'en-US',
+              bookingSettings: {
+                leadTime: tenant.settings?.bookingSettings?.leadTime || 1440, // 24 hours in minutes
+                maxAdvanceBooking: 365,
+                cancellationPolicy: tenant.settings?.bookingSettings?.cancellationPolicy || 'Free cancellation up to 48 hours before the event',
+                requireApproval: tenant.settings?.bookingSettings?.requireApproval || false
+              },
+              availabilityMode: 'inventory',
+              businessType: 'rental'
+            }
           }
         }
+      })
+
+      rbTenantId = provisionResult.tenant.id
+      rbApiKey = provisionResult.tenant.apiKey
+
+      if (provisionResult.isExisting) {
+        console.log(`[Sync] rb-payload tenant ${rbTenantId} already exists for "${tenant.name}" (idempotent)`)
       }
-    })
+    } catch (provisionError: unknown) {
+      const err = provisionError as FetchError
+      const errorMsg = err.data?.error || err.message || ''
 
-    const rbTenantId = provisionResult.tenant.id
-    const rbApiKey = provisionResult.tenant.apiKey
+      // Handle "already exists" error by looking up the existing tenant
+      if (errorMsg.includes('already exists')) {
+        console.log(`[Sync] Tenant "${tenant.slug}" already exists in rb-payload, looking up...`)
 
-    if (provisionResult.isExisting) {
-      console.log(`[Sync] rb-payload tenant ${rbTenantId} already exists for "${tenant.name}" (idempotent)`)
+        // Query rb-payload for the existing tenant by slug
+        const lookupResult = await $fetch<{
+          docs: Array<{ id: number, slug: string, name: string }>
+          totalDocs: number
+        }>(`${rbPayloadUrl}/api/tenants?where[slug][equals]=${encodeURIComponent(tenant.slug)}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': rbPayloadAdminKey
+          }
+        })
+
+        const existingTenant = lookupResult.docs?.[0]
+        if (existingTenant) {
+          rbTenantId = existingTenant.id
+          console.log(`[Sync] Found existing rb-payload tenant ${rbTenantId} for "${tenant.name}"`)
+        } else {
+          throw new Error(`Tenant "${tenant.slug}" reported as existing but not found in rb-payload`)
+        }
+      } else {
+        // Re-throw other errors
+        throw provisionError
+      }
     }
 
     // Update local tenant with rb-payload data

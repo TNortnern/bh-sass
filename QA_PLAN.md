@@ -1,420 +1,228 @@
-# BH-SaaS QA Plan
+# BH-SaaS QA Testing Plan
 
-## Test Environment
-- **Production URL**: https://gregarious-adventure-production.up.railway.app
-- **Test Tenant**: Tray Test Rentals (ID: 18)
-- **Test User**: foodeater563@gmail.com
+> Comprehensive QA plan for BouncePro bounce house rental SaaS platform.
+> Split into Local and Production testing phases.
 
 ---
 
-## Core App Pages (/app)
+## Part 1: Local Testing (localhost:3005)
 
-### 1. Dashboard (`/app`)
-- [ ] Page loads without errors (200)
-- [ ] Shows booking stats (today, week, month)
-- [ ] Shows revenue metrics
-- [ ] Recent bookings list displays
-- [ ] Quick actions work (New Booking, Add Item)
+### Prerequisites
+```bash
+# Start the development environment
+docker compose up -d
+
+# Verify services are running
+docker ps  # Should show: bh_postgres, bh_payload, bh_nuxt
+```
+
+**Local URLs:**
+- Nuxt UI: http://localhost:3005
+- Payload Admin: http://localhost:3005/admin (via proxy)
+- Direct Payload: http://localhost:3004
+
+---
+
+### 1.1 rb-payload Auto-Provisioning (CRITICAL)
+
+#### New User Registration Flow
+- [ ] Navigate to http://localhost:3005/auth/register
+- [ ] Fill out registration form:
+  - Business Name: "QA Test Business [timestamp]"
+  - Email: "qatest+[timestamp]@example.com"
+  - Password: "TestPassword123!"
+- [ ] Submit registration
+- [ ] Verify redirect to onboarding flow
+- [ ] Skip/exit onboarding
+- [ ] Navigate to /app/widgets
+- [ ] **PASS**: Widget Studio page loads (NOT "Booking System Not Configured" alert)
+- [ ] Verify in database:
+  ```bash
+  docker exec bh_postgres psql -U postgres -d bh_payload \
+    -c "SELECT name, rb_payload_tenant_id, rb_payload_sync_status FROM tenants ORDER BY id DESC LIMIT 1;"
+  ```
+  - rb_payload_tenant_id should be a number
+  - rb_payload_sync_status should be "provisioned"
+
+#### "Set Up Booking System" Retry Button
+- [ ] Create a tenant with failed provisioning (manually set status):
+  ```bash
+  docker exec bh_postgres psql -U postgres -d bh_payload \
+    -c "UPDATE tenants SET rb_payload_sync_status='failed', rb_payload_tenant_id=NULL WHERE id=<test_id>;"
+  ```
+- [ ] Log in as that tenant's user
+- [ ] Navigate to /app/widgets
+- [ ] **PASS**: "Booking System Not Configured" alert appears
+- [ ] Click "Set Up Booking System" button
+- [ ] **PASS**: Toast shows "Setup Complete" and Widget Studio loads
+
+---
+
+### 1.2 Core Pages Load Test (Local)
+
+#### Dashboard & Navigation
+- [ ] `/app` - Dashboard loads, shows stats
+- [ ] `/app/calendar` - Calendar renders
+- [ ] `/app/bookings` - Bookings list loads
+- [ ] `/app/inventory` - Inventory grid loads
+- [ ] `/app/customers` - Customer list loads
+
+#### Inventory CRUD
+- [ ] `/app/inventory/new` - Form loads (single page, not stepper)
+- [ ] Create new item with image upload
+- [ ] `/app/inventory/[id]` - Detail page loads
+- [ ] `/app/inventory/[id]/edit` - Edit form pre-fills data
+- [ ] Delete item works with confirmation
+
+#### Bundles (Recent Fix)
+- [ ] `/app/bundles` - List loads, shows bundle cards
+- [ ] `/app/bundles/new` - Create bundle with items
+- [ ] `/app/bundles/[id]` - Detail page shows items and pricing
+- [ ] Bundle items display correctly (not "[object Object]")
+
+#### Widgets
+- [ ] `/app/widgets` - Widget Studio loads
+- [ ] Widget type selection works (Product Catalog, Category Browser, Featured Items)
+- [ ] Theme toggle works (Dark/Light/Auto)
+- [ ] Color picker works
+- [ ] Preview updates in real-time
+- [ ] Embed code is generated and copyable
+
+---
+
+### 1.3 API Health Check (Local)
+
+```bash
+# Test API endpoints (requires valid session cookie)
+curl http://localhost:3005/api/tenants
+curl http://localhost:3005/api/rental-items
+curl http://localhost:3005/api/customers
+curl http://localhost:3005/api/categories
+```
+
+---
+
+## Part 2: Production Testing (Railway)
+
+### Environment
+- **Production URL**: https://gregarious-adventure-production.up.railway.app
+- **Test Account**: Use a dedicated test account (not real customer data)
+
+---
+
+### 2.1 Pre-Deployment Verification
+
+#### Environment Variables (Railway Dashboard)
+Verify these are set in Railway:
+- [ ] `RB_PAYLOAD_URL` = https://reusablebook-payload-production.up.railway.app
+- [ ] `RB_PAYLOAD_ADMIN_API_KEY` = (valid admin API key with provisioning scope)
+- [ ] `DATABASE_URI` = (valid PostgreSQL connection string)
+- [ ] `PAYLOAD_SECRET` = (secure random string)
+- [ ] `STRIPE_SECRET_KEY` = (production Stripe key)
+- [ ] `BREVO_API_KEY` = (email service key)
+
+---
+
+### 2.2 Production Smoke Test
+
+#### Landing & Auth
+- [ ] `/` - Landing page loads, no errors
+- [ ] `/auth/login` - Login page renders
+- [ ] `/auth/register` - Registration page renders
+- [ ] Login with test account works
+- [ ] Logout works
+
+#### Dashboard
+- [ ] `/app` - Dashboard loads after login
+- [ ] Stats display (even if zeros)
+- [ ] No console errors
 - [ ] Navigation sidebar works
 
-### 2. Bookings
-
-#### Bookings List (`/app/bookings`)
-- [ ] Page loads (200)
-- [ ] Table displays bookings
-- [ ] Filters work (status, date range)
-- [ ] Search works
-- [ ] Pagination works
-- [ ] "New Booking" button navigates correctly
-
-#### New Booking (`/app/bookings/new`)
-- [ ] Page loads (200)
-- [ ] Customer selection/creation works
-- [ ] Date picker works
-- [ ] Item selection works
-- [ ] Price calculation updates
-- [ ] Form submission creates booking
-
-#### Booking Detail (`/app/bookings/[id]`)
-- [ ] Page loads (200)
-- [ ] Shows booking details
-- [ ] Status badge displays correctly
-- [ ] Customer info shows
-- [ ] Items list shows
-- [ ] Edit button works
-
-#### Edit Booking (`/app/bookings/[id]/edit`)
-- [ ] Page loads (200)
-- [ ] Pre-fills existing data
-- [ ] Can update status
-- [ ] Can update items
-- [ ] Save works
-
-### 3. Inventory
-
-#### Inventory List (`/app/inventory`)
-- [ ] Page loads (200)
-- [ ] Grid/list view toggle works
-- [ ] Items display with images
-- [ ] Category filter works
-- [ ] Search works
-- [ ] "Add Item" button works
-
-#### New Item (`/app/inventory/new`)
-- [ ] Page loads (200)
-- [ ] Form displays all fields
-- [ ] Image upload works
-- [ ] Category selection works
-- [ ] Pricing fields work
-- [ ] Dimensions fields work
-- [ ] Save creates item
-- [ ] **FIX NEEDED**: Convert from stepper to single page
-
-#### Item Detail (`/app/inventory/[id]`)
-- [ ] Page loads (200)
-- [ ] Shows all item details
-- [ ] Images display
-- [ ] Edit button works
-- [ ] Delete works (with confirmation)
-
-#### Edit Item (`/app/inventory/[id]/edit`)
-- [ ] Page loads (200)
-- [ ] Pre-fills existing data
-- [ ] Can update all fields
-- [ ] Save updates item
-- [ ] **FIX NEEDED**: Convert from stepper to single page
-
-### 4. Customers
-
-#### Customers List (`/app/customers`)
-- [ ] Page loads (200)
-- [ ] Table displays customers
-- [ ] Search works
-- [ ] "Add Customer" button works
-
-#### New Customer (`/app/customers/new`)
-- [ ] Page loads (200)
-- [ ] Form has all fields
-- [ ] Validation works
-- [ ] Save creates customer
-
-#### Customer Detail (`/app/customers/[id]`)
-- [ ] Page loads (200)
-- [ ] Shows customer info
-- [ ] Shows booking history
-- [ ] Edit button works
-
-#### Edit Customer (`/app/customers/[id]/edit`)
-- [ ] Page loads (200)
-- [ ] Pre-fills data
-- [ ] Save updates customer
-
-### 5. Calendar (`/app/calendar`)
-- [ ] Page loads (200)
-- [ ] Calendar renders
-- [ ] Bookings display on dates
-- [ ] Can navigate months
-- [ ] Click on date shows bookings
-
-### 6. Availability (`/app/availability`)
-- [ ] Page loads (200)
-- [ ] Business hours form works
-- [ ] Blackout dates can be added
-- [ ] Save persists changes
-
-### 7. Categories (`/app/categories`)
-- [ ] Page loads (200)
-- [ ] List displays categories
-- [ ] Can add new category
-- [ ] Can edit category
-- [ ] Can delete category
-
-### 8. Add-ons
-
-#### Add-ons List (`/app/addons`)
-- [ ] Page loads (200)
-- [ ] Shows add-on items
-- [ ] Can filter/search
-
-#### New Add-on (`/app/addons/new`)
-- [ ] Page loads (200)
-- [ ] Form works
-- [ ] Save creates add-on
-
-#### Edit Add-on (`/app/addons/[id]/edit`)
-- [ ] Page loads (200)
-- [ ] Pre-fills data
-- [ ] Save updates add-on
-
-### 9. Bundles
-
-#### Bundles List (`/app/bundles`)
-- [ ] Page loads (200)
-- [ ] Shows bundles
-- [ ] Can create new bundle
-
-#### New Bundle (`/app/bundles/new`)
-- [ ] Page loads (200)
-- [ ] Can select items for bundle
-- [ ] Pricing works
-- [ ] Save creates bundle
-
-#### Bundle Detail (`/app/bundles/[id]`)
-- [ ] Page loads (200)
-- [ ] Shows bundle items
-- [ ] Shows pricing
-
-#### Edit Bundle (`/app/bundles/[id]/edit`)
-- [ ] Page loads (200)
-- [ ] Can modify bundle
-
-### 10. Maintenance
-
-#### Maintenance List (`/app/maintenance`)
-- [ ] Page loads (200)
-- [ ] Shows maintenance records
-
-#### New Maintenance (`/app/maintenance/new`)
-- [ ] Page loads (200)
-- [ ] Can create maintenance record
-
-#### Maintenance Schedule (`/app/maintenance/schedule`)
-- [ ] Page loads (200)
-- [ ] Shows upcoming maintenance
-
-### 11. Reports
-
-#### Reports Dashboard (`/app/reports`)
-- [ ] Page loads (200)
-- [ ] Shows report options
-
-#### Revenue Report (`/app/reports/revenue`)
-- [ ] Page loads (200)
-- [ ] Chart renders
-- [ ] Date range filter works
-
-#### Bookings Report (`/app/reports/bookings`)
-- [ ] Page loads (200)
-- [ ] Shows booking analytics
-
-#### Customers Report (`/app/reports/customers`)
-- [ ] Page loads (200)
-- [ ] Shows customer analytics
-
-#### Inventory Report (`/app/reports/inventory`)
-- [ ] Page loads (200)
-- [ ] Shows inventory utilization
-
-### 12. Settings
-
-#### Settings Index (`/app/settings`)
-- [ ] Page loads (200)
-- [ ] Navigation to sub-pages works
-
-#### Profile (`/app/settings/profile`)
-- [ ] Page loads (200)
-- [ ] Can update profile info
-
-#### Branding (`/app/settings/branding`)
-- [ ] Page loads (200)
-- [ ] Logo upload works
-- [ ] Color pickers work
-- [ ] Save persists changes
-
-#### Booking Settings (`/app/settings/booking`)
-- [ ] Page loads (200)
-- [ ] Lead time settings work
-- [ ] Cancellation policy editable
-
-#### Payments (`/app/settings/payments`)
-- [ ] Page loads (200)
-- [ ] Stripe connect status shows
-- [ ] Payment settings editable
-
-#### Team (`/app/settings/team`)
-- [ ] Page loads (200)
-- [ ] Team members list shows
-- [ ] Can invite new member
-
-#### Notifications (`/app/settings/notifications`)
-- [ ] Page loads (200)
-- [ ] Notification preferences editable
-
-#### Emails (`/app/settings/emails`)
-- [ ] Page loads (200)
-- [ ] Email templates show
-- [ ] Can customize templates
-
-#### Billing (`/app/settings/billing`)
-- [ ] Page loads (200)
-- [ ] Current plan shows
-- [ ] Can upgrade plan
-
-#### API (`/app/settings/api`)
-- [ ] Page loads (200)
-- [ ] API keys management works
-
-#### Security (`/app/settings/security`)
-- [ ] Page loads (200)
-- [ ] Password change works
-
-#### Website (`/app/settings/website`)
-- [ ] Page loads (200)
-- [ ] Website settings editable
-
-#### Webhooks (`/app/settings/webhooks`)
-- [ ] Page loads (200)
-- [ ] Webhook configuration works
-
-### 13. Notifications (`/app/notifications`)
-- [ ] Page loads (200)
-- [ ] Shows notifications list
-- [ ] Can mark as read
-- [ ] Can delete notifications
-
-### 14. Templates (`/app/templates`)
-- [ ] Page loads (200)
-- [ ] Shows document templates
-
-### 15. Contracts (`/app/contracts`)
-- [ ] Page loads (200)
-- [ ] Contract management works
-
-### 16. Documents (`/app/documents`)
-- [ ] Page loads (200)
-- [ ] Document list shows
-
-### 17. Widgets (`/app/widgets`)
-- [ ] Page loads (200)
-- [ ] Widget embed code shows
-- [ ] Preview works
-
-### 18. Website Builder
-
-#### Website Index (`/app/website`)
-- [ ] Page loads (200)
-- [ ] Shows website status
-
-#### Website Builder (`/app/website/builder`)
-- [ ] Page loads (200)
-- [ ] Builder interface loads
-
-#### Website Preview (`/app/website/preview`)
-- [ ] Page loads (200)
-- [ ] Preview renders
-
-#### Website Settings (`/app/website/settings`)
-- [ ] Page loads (200)
-- [ ] Settings editable
-
-### 19. Profile (`/app/profile`)
-- [ ] Page loads (200)
-- [ ] Profile info displays
-- [ ] Can update profile
-
-### 20. Onboarding Flow
-- [ ] `/app/onboarding` - Index loads
-- [ ] `/app/onboarding/business` - Business setup
-- [ ] `/app/onboarding/item` - First item setup
-- [ ] `/app/onboarding/availability` - Hours setup
-- [ ] `/app/onboarding/payments` - Payment setup
-- [ ] `/app/onboarding/complete` - Completion screen
-
-### 21. Admin Pages (Super Admin Only)
-
-#### Admin Dashboard (`/app/admin`)
-- [ ] Page loads (200) for super_admin
-- [ ] Shows platform stats
-
-#### Tenants (`/app/admin/tenants`)
-- [ ] Page loads (200)
-- [ ] Lists all tenants
-
-#### Tenant Detail (`/app/admin/tenants/[id]`)
-- [ ] Page loads (200)
-- [ ] Shows tenant details
-
-#### Users (`/app/admin/users`)
-- [ ] Page loads (200)
-- [ ] Lists all users
-
-#### Bookings (`/app/admin/bookings`)
-- [ ] Page loads (200)
-- [ ] Shows all platform bookings
-
-#### Revenue (`/app/admin/revenue`)
-- [ ] Page loads (200)
-- [ ] Platform revenue stats
-
-#### Plans (`/app/admin/plans`)
-- [ ] Page loads (200)
-- [ ] Plan management works
-
-#### Subscriptions (`/app/admin/subscriptions`)
-- [ ] Page loads (200)
-- [ ] Subscription management
-
-#### API Keys (`/app/admin/api-keys`)
-- [ ] Page loads (200)
-- [ ] API key management
-
-#### Audit Log (`/app/admin/audit`)
-- [ ] Page loads (200)
-- [ ] Shows audit events
-
-#### System (`/app/admin/system`)
-- [ ] Page loads (200)
-- [ ] System status shows
+#### Critical Flows
+- [ ] Create a booking (full flow)
+- [ ] Create an inventory item
+- [ ] View customer list
+- [ ] Access widgets page
 
 ---
 
-## Public Pages
+### 2.3 Production rb-payload Integration
 
-### Landing Page (`/`)
-- [ ] Page loads (200)
-- [ ] Hero section renders
-- [ ] Features section shows
-- [ ] Pricing section shows
-- [ ] CTA buttons work
+#### Verify Existing Tenants
+- [ ] Log in to a provisioned tenant account
+- [ ] Navigate to /app/widgets
+- [ ] Widget Studio loads (provisioning working)
 
-### Authentication
-- [ ] `/login` - Login page works
-- [ ] `/register` - Registration works
-- [ ] `/forgot-password` - Password reset works
-
-### Booking Widget (`/book/[tenantSlug]`)
-- [ ] Page loads (200)
-- [ ] Item selection works
-- [ ] Date picker works
-- [ ] Customer form works
-- [ ] Payment flow works (if enabled)
+#### New Registration (Production)
+**Note: Only test if safe to create test data in production**
+- [ ] Register new test business
+- [ ] Verify auto-provisioning completes
+- [ ] Check tenant appears in rb-payload admin
 
 ---
 
-## API Health Checks
+### 2.4 Performance & Security
 
-### Core Endpoints
-- [ ] `GET /api/tenants` - 200
-- [ ] `GET /api/rental-items` - 200
-- [ ] `GET /api/customers` - 200
-- [ ] `GET /api/bookings` - 200 (via rb-payload proxy)
-- [ ] `GET /api/notifications` - 200
-- [ ] `GET /api/categories` - 200
+#### Page Load Times
+- [ ] Dashboard loads < 3s
+- [ ] Inventory list loads < 3s
+- [ ] No N+1 query warnings in logs
 
----
-
-## Known Issues to Fix
-
-1. **Inventory Form Stepper** - Convert to single page form
-   - `/app/inventory/new`
-   - `/app/inventory/[id]/edit`
+#### Security Checks
+- [ ] Cannot access /app/* without authentication (redirects to login)
+- [ ] Cannot access other tenant's data
+- [ ] API endpoints require authentication
+- [ ] Admin pages require super_admin role
 
 ---
 
-## Test Execution Notes
+## Part 3: Regression Test Checklist
 
-- Test Date: _______________
-- Tester: Claude Code
-- Environment: Production
-- Browser: Chrome via MCP
+### Recently Fixed Issues
+- [x] Inventory form width (removed max-w-6xl restriction)
+- [x] Bundles list not displaying (fixed numeric ID handling)
+- [x] rb-payload auto-provisioning (added RB_PAYLOAD_URL env var)
+- [x] Business hours sync 403 error (made non-fatal)
 
+### Known Issues / TODO
+- [ ] Inventory form should be single page (not stepper) - LOW PRIORITY
+- [ ] Business hours sync to rb-payload needs dedicated endpoint - BACKLOG
+
+---
+
+## Test Execution Log
+
+| Date | Tester | Environment | Result | Notes |
+|------|--------|-------------|--------|-------|
+| 2024-12-19 | Claude Code | Local | PASS | rb-payload provisioning working |
+| | | | | |
+
+---
+
+## Quick Commands Reference
+
+```bash
+# Start local environment
+docker compose up -d
+
+# View logs
+docker compose logs -f nuxt
+docker compose logs -f payload
+
+# Check tenant provisioning status
+docker exec bh_postgres psql -U postgres -d bh_payload \
+  -c "SELECT id, name, rb_payload_tenant_id, rb_payload_sync_status FROM tenants ORDER BY id DESC LIMIT 5;"
+
+# Restart services
+docker compose restart nuxt payload
+
+# Full rebuild
+docker compose down && docker compose up --build -d
+```
+
+---
+
+## Contact
+
+- **Production Issues**: Check Railway dashboard logs first
+- **Code Issues**: Review CLAUDE.md for development guidelines

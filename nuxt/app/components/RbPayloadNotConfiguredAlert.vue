@@ -34,7 +34,7 @@ const retrySetup = async () => {
   isRetrying.value = true
 
   try {
-    await $fetch(`/api/v1/admin/tenants/${tenant.value.id}/sync-rb-payload`, {
+    await $fetch(`/v1/admin/tenants/${tenant.value.id}/sync-rb-payload`, {
       method: 'POST',
       credentials: 'include'
     })
