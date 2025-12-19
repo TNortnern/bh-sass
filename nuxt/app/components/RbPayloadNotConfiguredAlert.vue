@@ -8,10 +8,62 @@
  * - The rb-payload tenant was manually deleted
  */
 
-defineProps<{
+const props = defineProps<{
   syncStatus?: 'pending' | 'provisioned' | 'failed' | null
   syncError?: string | null
 }>()
+
+const emit = defineEmits<{
+  (e: 'retry-complete'): void
+}>()
+
+const toast = useToast()
+const { tenant, fetchTenant } = useTenant()
+const isRetrying = ref(false)
+
+const retrySetup = async () => {
+  if (!tenant.value?.id) {
+    toast.add({
+      title: 'Error',
+      description: 'Could not determine your account ID. Please refresh the page.',
+      color: 'error'
+    })
+    return
+  }
+
+  isRetrying.value = true
+
+  try {
+    await $fetch(`/api/v1/admin/tenants/${tenant.value.id}/sync-rb-payload`, {
+      method: 'POST',
+      credentials: 'include'
+    })
+
+    toast.add({
+      title: 'Setup Complete',
+      description: 'Your booking system has been configured successfully!',
+      color: 'success'
+    })
+
+    // Refresh tenant data to update the sync status
+    await fetchTenant()
+    emit('retry-complete')
+  } catch (err: unknown) {
+    const error = err as { data?: { error?: string } }
+    toast.add({
+      title: 'Setup Failed',
+      description: error.data?.error || 'Failed to configure booking system. Please try again or contact support.',
+      color: 'error'
+    })
+  } finally {
+    isRetrying.value = false
+  }
+}
+
+// Determine if retry is available (not pending, and not already provisioned)
+const canRetry = computed(() => {
+  return props.syncStatus !== 'pending' && props.syncStatus !== 'provisioned'
+})
 </script>
 
 <template>
@@ -89,28 +141,48 @@ defineProps<{
           class="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800"
         >
           <p class="text-sm text-amber-900 dark:text-amber-100">
-            <span class="font-semibold">Action needed:</span> Please contact support to complete your booking system setup.
+            <span class="font-semibold">Action needed:</span> Click the button below to set up your booking system.
           </p>
         </div>
 
-        <div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex flex-col gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <!-- Retry Setup Button -->
           <UButton
+            v-if="canRetry"
             color="primary"
             block
-            to="/app/settings"
-            variant="outline"
+            :loading="isRetrying"
+            :disabled="isRetrying"
+            @click="retrySetup"
           >
-            View Settings
+            <UIcon
+              v-if="!isRetrying"
+              name="i-lucide-refresh-cw"
+              class="w-4 h-4 mr-2"
+            />
+            {{ isRetrying ? 'Setting up...' : 'Set Up Booking System' }}
           </UButton>
-          <UButton
-            color="primary"
-            block
-            as="a"
-            href="mailto:support@bouncepro.com?subject=Booking%20System%20Setup%20Request"
-            target="_blank"
-          >
-            Contact Support
-          </UButton>
+
+          <div class="flex gap-3">
+            <UButton
+              color="neutral"
+              block
+              to="/app/settings"
+              variant="outline"
+            >
+              View Settings
+            </UButton>
+            <UButton
+              color="neutral"
+              block
+              as="a"
+              href="mailto:support@bouncepro.com?subject=Booking%20System%20Setup%20Request"
+              target="_blank"
+              variant="outline"
+            >
+              Contact Support
+            </UButton>
+          </div>
         </div>
       </div>
     </UCard>

@@ -83,8 +83,8 @@ export default defineEventHandler(async (event) => {
     // or just return success and let the hook handle it
     // For now, we'll directly call the provisioning logic
 
-    const rbPayloadUrl = process.env.RB_PAYLOAD_URL || 'https://reusablebook-payload-production.up.railway.app'
-    const rbPayloadAdminKey = process.env.RB_PAYLOAD_ADMIN_API_KEY
+    const rbPayloadUrl = config.rbPayloadUrl || 'https://reusablebook-payload-production.up.railway.app'
+    const rbPayloadAdminKey = config.rbPayloadAdminApiKey
 
     if (!rbPayloadAdminKey) {
       // Update tenant with error
@@ -106,15 +106,22 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    // Create tenant in rb-payload
-    console.log(`[Sync] Creating tenant "${tenant.name}" in rb-payload...`)
+    // Create tenant in rb-payload using the provisioning endpoint
+    // This endpoint handles tenant creation and API key generation in one call
+    console.log(`[Sync] Creating tenant "${tenant.name}" in rb-payload via provisioning endpoint...`)
 
-    const rbTenantResult = await $fetch<{
-      doc: {
+    // Get BH-SaaS base URL for webhook
+    const bhSaasUrl = config.public?.appUrl || config.payloadApiUrl || 'http://localhost:3004'
+    const webhookUrl = `${bhSaasUrl}/api/webhooks/rb-payload`
+
+    const provisionResult = await $fetch<{
+      tenant: {
         id: number
         name: string
+        apiKey?: string
       }
-    }>(`${rbPayloadUrl}/api/tenants`, {
+      isExisting?: boolean
+    }>(`${rbPayloadUrl}/api/provision/tenant`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -123,46 +130,35 @@ export default defineEventHandler(async (event) => {
       body: {
         name: tenant.name,
         slug: tenant.slug,
-        isActive: true,
-        settings: {
-          timezone: tenant.settings?.timezone || 'America/New_York',
-          currency: tenant.settings?.currency || 'USD',
-          locale: tenant.settings?.locale || 'en-US',
-          bookingSettings: {
-            leadTime: tenant.settings?.bookingSettings?.leadTime || 24,
-            cancellationPolicy: tenant.settings?.bookingSettings?.cancellationPolicy || '',
-            requireApproval: tenant.settings?.bookingSettings?.requireApproval || false
+        plan: tenant.plan || 'free',
+        status: 'active',
+        webhookUrl,
+        businessInfo: {
+          source: 'bh-saas',
+          bhSaasId: tenantId,
+          provisionedAt: new Date().toISOString(),
+          settings: {
+            timezone: tenant.settings?.timezone || 'America/New_York',
+            currency: tenant.settings?.currency || 'USD',
+            locale: tenant.settings?.locale || 'en-US',
+            bookingSettings: {
+              leadTime: tenant.settings?.bookingSettings?.leadTime || 1440, // 24 hours in minutes
+              maxAdvanceBooking: 365,
+              cancellationPolicy: tenant.settings?.bookingSettings?.cancellationPolicy || 'Free cancellation up to 48 hours before the event',
+              requireApproval: tenant.settings?.bookingSettings?.requireApproval || false
+            },
+            availabilityMode: 'inventory',
+            businessType: 'rental'
           }
         }
       }
     })
 
-    const rbTenantId = rbTenantResult.doc.id
+    const rbTenantId = provisionResult.tenant.id
+    const rbApiKey = provisionResult.tenant.apiKey
 
-    // Create API key for the tenant in rb-payload
-    let rbApiKey: string | undefined
-    try {
-      const apiKeyResult = await $fetch<{
-        doc: {
-          id: number
-          key: string
-        }
-      }>(`${rbPayloadUrl}/api/api-keys`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': rbPayloadAdminKey
-        },
-        body: {
-          name: `${tenant.name} API Key`,
-          tenantId: rbTenantId,
-          scopes: ['read', 'write'],
-          isActive: true
-        }
-      })
-      rbApiKey = apiKeyResult.doc.key
-    } catch (apiKeyError) {
-      console.warn(`[Sync] Failed to create API key for tenant ${rbTenantId}:`, apiKeyError)
+    if (provisionResult.isExisting) {
+      console.log(`[Sync] rb-payload tenant ${rbTenantId} already exists for "${tenant.name}" (idempotent)`)
     }
 
     // Update local tenant with rb-payload data
