@@ -132,7 +132,7 @@ const handleSubmit = async () => {
   <NoTenantAlert v-if="!hasTenant" />
   <div
     v-else
-    class="space-y-6 max-w-4xl"
+    class="space-y-6 max-w-6xl"
   >
     <!-- Header -->
     <div class="flex items-center gap-4">
