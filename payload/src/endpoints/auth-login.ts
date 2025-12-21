@@ -75,17 +75,46 @@ export const authLoginEndpoint: Endpoint = {
           password: typeof body.password === 'string' ? body.password : ''
         }
 
-    const result = await loginOperation({
-      collection: collectionForLogin,
-      data: authData,
-      depth,
-      req
-    })
+    let result
+    try {
+      result = await loginOperation({
+        collection: collectionForLogin,
+        data: authData,
+        depth,
+        req
+      })
+    } catch (error: unknown) {
+      const statusCode = typeof (error as any)?.status === 'number'
+        ? (error as any).status
+        : typeof (error as any)?.statusCode === 'number'
+          ? (error as any).statusCode
+          : 500
+      const message = (error as any)?.data?.errors?.[0]?.message
+        || (error as any)?.message
+        || 'Login failed. Please try again.'
 
-    if (!result.token) {
+      return Response.json(
+        { errors: [{ message }] },
+        {
+          status: statusCode,
+          headers: headersWithCors({
+            headers: new Headers(),
+            req
+          })
+        }
+      )
+    }
+
+    if (!result?.token) {
       return Response.json(
         { errors: [{ message: 'Login failed. Please try again.' }] },
-        { status: 401 }
+        {
+          status: 401,
+          headers: headersWithCors({
+            headers: new Headers(),
+            req
+          })
+        }
       )
     }
 

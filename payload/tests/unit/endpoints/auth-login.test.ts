@@ -143,4 +143,23 @@ describe('authLoginEndpoint', () => {
 
     expect(data.token).toBeUndefined()
   })
+
+  it('returns status from thrown errors with message', async () => {
+    vi.mocked(loginOperation).mockRejectedValue({
+      statusCode: 401,
+      message: 'Invalid email or password'
+    })
+
+    const req = createRequest({
+      email: 'test@example.com',
+      password: 'bad',
+      rememberMe: false
+    })
+
+    const response = await authLoginEndpoint.handler(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(401)
+    expect(data.errors?.[0]?.message).toBe('Invalid email or password')
+  })
 })
