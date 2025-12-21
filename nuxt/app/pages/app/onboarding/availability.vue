@@ -72,12 +72,10 @@
                 v-if="availability[day]"
                 class="flex items-center gap-3 min-w-[140px]"
               >
-                <UToggle
+                <USwitch
                   v-model="availability[day].enabled"
                   size="lg"
-                  :ui="{
-                    active: 'bg-gradient-to-r from-amber-500 to-orange-600'
-                  }"
+                  color="warning"
                   @update:model-value="debouncedSave"
                 />
                 <label class="font-medium text-white capitalize cursor-pointer select-none">

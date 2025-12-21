@@ -691,6 +691,52 @@ export const Tenants: CollectionConfig = {
       },
     },
     {
+      name: 'customWebsite',
+      type: 'group',
+      admin: {
+        description: 'Custom website development offering',
+      },
+      fields: [
+        {
+          name: 'requested',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: {
+            description: 'Whether tenant has requested custom website development',
+          },
+        },
+        {
+          name: 'status',
+          type: 'select',
+          options: [
+            { label: 'Pending', value: 'pending' },
+            { label: 'In Progress', value: 'in_progress' },
+            { label: 'Live', value: 'live' },
+          ],
+          admin: {
+            description: 'Status of custom website development',
+            condition: (data) => data.customWebsite?.requested,
+          },
+        },
+        {
+          name: 'setupPaidAt',
+          type: 'date',
+          admin: {
+            description: 'Date when one-time setup fee was paid',
+            condition: (data) => data.customWebsite?.requested,
+          },
+        },
+        {
+          name: 'monthlyStartedAt',
+          type: 'date',
+          admin: {
+            description: 'Date when monthly recurring fee started',
+            condition: (data) => data.customWebsite?.requested,
+          },
+        },
+      ],
+    },
+    {
       name: 'settings',
       type: 'group',
       fields: [

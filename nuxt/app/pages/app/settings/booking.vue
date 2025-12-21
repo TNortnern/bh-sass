@@ -278,7 +278,7 @@
                   </p>
                 </div>
               </div>
-              <UToggle
+              <USwitch
                 v-model="booking.autoConfirm"
                 size="lg"
                 @change="markHasChanges"
@@ -302,7 +302,7 @@
                   </p>
                 </div>
               </div>
-              <UToggle
+              <USwitch
                 v-model="booking.preventOverbooking"
                 size="lg"
                 @change="markHasChanges"

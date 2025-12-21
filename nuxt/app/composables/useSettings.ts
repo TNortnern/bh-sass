@@ -75,6 +75,18 @@ export interface NotificationSettings {
   reminderTiming: number // hours before rental
 }
 
+export interface PlanLimits {
+  maxUsers: number // -1 means unlimited
+  maxItems: number
+  maxBookings: number
+}
+
+export interface PlanInfo {
+  name: string
+  slug: string
+  limits: PlanLimits
+}
+
 export interface ApiKey {
   id: string
   name: string
@@ -109,6 +121,7 @@ interface SettingsState {
   saving: Ref<boolean>
   hasUnsavedChanges: Ref<boolean>
   tenantId: Ref<string | null>
+  planInfo: Ref<PlanInfo | null>
 }
 
 const state: SettingsState = {
@@ -122,7 +135,8 @@ const state: SettingsState = {
   loading: ref(false),
   saving: ref(false),
   hasUnsavedChanges: ref(false),
-  tenantId: ref(null)
+  tenantId: ref(null),
+  planInfo: ref(null)
 }
 
 // Mock data for development
@@ -252,6 +266,7 @@ export const useSettings = () => {
         try {
           interface TenantResponse {
             name?: string
+            plan?: string
             logo?: { url?: string }
             description?: string
             phone?: string
@@ -395,6 +410,41 @@ export const useSettings = () => {
               reminder: ns?.inAppReminder ?? false
             },
             reminderTiming: ns?.reminderTiming ?? 24
+          }
+
+          // Fetch plan info for limits
+          if (tenantResponse.plan) {
+            try {
+              interface PlanResponse {
+                docs: Array<{
+                  name: string
+                  slug: string
+                  limits: {
+                    maxUsers: number
+                    maxItems: number
+                    maxBookings: number
+                  }
+                }>
+              }
+              const planResponse = await $fetch<PlanResponse>('/api/plans', {
+                query: {
+                  where: { slug: { equals: tenantResponse.plan } },
+                  limit: 1
+                },
+                credentials: 'include'
+              })
+
+              if (planResponse.docs.length > 0 && planResponse.docs[0]) {
+                const plan = planResponse.docs[0]
+                state.planInfo.value = {
+                  name: plan.name,
+                  slug: plan.slug,
+                  limits: plan.limits
+                }
+              }
+            } catch (planError) {
+              console.warn('Failed to fetch plan info:', planError)
+            }
           }
         } catch (error) {
           console.warn('Failed to fetch tenant data, using defaults:', error)
@@ -824,6 +874,27 @@ export const useSettings = () => {
 
       if (!tenantId) {
         throw new Error('No tenant ID available')
+      }
+
+      // Check plan limits before attempting to invite
+      if (state.planInfo.value) {
+        const maxUsers = state.planInfo.value.limits.maxUsers
+        if (maxUsers !== -1) { // -1 means unlimited
+          // Count active team members (staff, manager, admin - not customers)
+          const activeTeamMembers = state.team.value.filter(
+            m => m.status === 'active' && ['admin', 'manager', 'staff'].includes(m.role)
+          ).length
+
+          if (activeTeamMembers >= maxUsers) {
+            const planName = state.planInfo.value.name
+            toast.add({
+              title: 'Team member limit reached',
+              description: `Your ${planName} plan allows ${maxUsers} team ${maxUsers === 1 ? 'member' : 'members'}. Please upgrade your plan to add more team members.`,
+              color: 'warning'
+            })
+            throw new Error('Team member limit reached')
+          }
+        }
       }
 
       // Create user with pending status via API
@@ -1467,6 +1538,28 @@ export const useSettings = () => {
     message?: string
   }
 
+  // Computed properties for plan limits
+  const activeTeamMembersCount = computed(() => {
+    return state.team.value.filter(
+      m => m.status === 'active' && ['admin', 'manager', 'staff'].includes(m.role)
+    ).length
+  })
+
+  const teamMemberLimit = computed(() => {
+    return state.planInfo.value?.limits.maxUsers ?? null
+  })
+
+  const isAtTeamMemberLimit = computed(() => {
+    if (!state.planInfo.value) return false
+    const limit = state.planInfo.value.limits.maxUsers
+    if (limit === -1) return false // Unlimited
+    return activeTeamMembersCount.value >= limit
+  })
+
+  const canInviteTeamMember = computed(() => {
+    return !isAtTeamMemberLimit.value
+  })
+
   return {
     // State
     business: state.business,
@@ -1479,6 +1572,13 @@ export const useSettings = () => {
     loading: state.loading,
     saving: state.saving,
     hasUnsavedChanges: state.hasUnsavedChanges,
+    planInfo: state.planInfo,
+
+    // Computed
+    activeTeamMembersCount,
+    teamMemberLimit,
+    isAtTeamMemberLimit,
+    canInviteTeamMember,
 
     // Methods
     fetchSettings,

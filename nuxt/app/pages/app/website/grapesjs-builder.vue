@@ -6,7 +6,8 @@
  * For a focused editing experience, users can open the fullscreen editor.
  */
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: 'website-builder'
 })
 
 const toast = useToast()

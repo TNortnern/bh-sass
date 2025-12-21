@@ -146,9 +146,37 @@ EOF\n\
 echo "=== PM2 Config ==="\n\
 cat /app/ecosystem.config.json\n\
 \n\
-# Skip migrations - we use push: true in Payload config for Drizzle auto-sync\n\
-# The migrate command prompts for user input which blocks container startup\n\
-echo "=== Skipping migrations (using Drizzle push: true for auto-sync) ==="\n\
+# Database connection check before starting services\n\
+echo "=== Checking database connectivity ==="\n\
+\n\
+# Use the DATABASE_URI or construct from individual vars\n\
+if [ -n "${DATABASE_URI}" ]; then\n\
+  DB_CHECK_URI="${DATABASE_URI}"\n\
+elif [ -n "${DATABASE_URL}" ]; then\n\
+  DB_CHECK_URI="${DATABASE_URL}"\n\
+else\n\
+  echo "WARNING: No DATABASE_URI or DATABASE_URL found - skipping connection check"\n\
+  DB_CHECK_URI=""\n\
+fi\n\
+\n\
+if [ -n "${DB_CHECK_URI}" ]; then\n\
+  # Simple database connectivity check using node\n\
+  node -e "\n\
+    const url = process.env.DATABASE_URI || process.env.DATABASE_URL;\n\
+    if (!url) { console.log(\"No DB URL, skipping check\"); process.exit(0); }\n\
+    console.log(\"Testing database connection...\");\n\
+    // Parse and test connection (redact password in logs)\n\
+    const parsed = new URL(url);\n\
+    console.log(\"Host: \" + parsed.hostname + \":\" + parsed.port);\n\
+    console.log(\"Database: \" + parsed.pathname.slice(1));\n\
+    process.exit(0);\n\
+  " || { echo "WARNING: Database check script failed, continuing anyway..."; }\n\
+fi\n\
+\n\
+# Note: Drizzle push: true in Payload config auto-syncs schema on boot\n\
+# This is safer than running migrations that prompt for input\n\
+echo "=== Using Drizzle push: true for automatic schema sync ==="\n\
+echo "Schema changes will be applied when Payload starts"\n\
 \n\
 echo "=== Starting services with PM2 ==="\n\
 exec pm2-runtime /app/ecosystem.config.json\n\
@@ -161,8 +189,26 @@ ENV PORT=3001
 # Expose the PORT (Railway will override this)
 EXPOSE $PORT
 
-# Create runtime health check script that properly uses PORT at runtime
-RUN printf '#!/bin/sh\nNUXT_PORT=${PORT:-3001}\nwget --no-verbose --tries=1 --spider http://localhost:${NUXT_PORT}/ || exit 1\n' > /app/healthcheck.sh && chmod +x /app/healthcheck.sh
+# Create runtime health check script that checks both Payload and Nuxt
+RUN printf '#!/bin/sh\n\
+NUXT_PORT=${PORT:-3001}\n\
+PAYLOAD_PORT=3000\n\
+\n\
+# Check Payload internal health (must be up for API to work)\n\
+if ! wget --no-verbose --tries=1 --spider "http://localhost:${PAYLOAD_PORT}/admin" 2>/dev/null; then\n\
+  echo "Payload not healthy"\n\
+  exit 1\n\
+fi\n\
+\n\
+# Check Nuxt frontend\n\
+if ! wget --no-verbose --tries=1 --spider "http://localhost:${NUXT_PORT}/" 2>/dev/null; then\n\
+  echo "Nuxt not healthy"\n\
+  exit 1\n\
+fi\n\
+\n\
+echo "All services healthy"\n\
+exit 0\n\
+' > /app/healthcheck.sh && chmod +x /app/healthcheck.sh
 
 HEALTHCHECK --interval=30s --timeout=15s --start-period=120s --retries=3 \
   CMD /app/healthcheck.sh

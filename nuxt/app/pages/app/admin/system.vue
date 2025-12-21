@@ -204,7 +204,7 @@ const saveSettings = async () => {
               </p>
             </div>
           </div>
-          <UToggle v-model="maintenanceEnabled" />
+          <USwitch v-model="maintenanceEnabled" />
         </div>
 
         <div
@@ -318,7 +318,7 @@ const saveSettings = async () => {
               </p>
             </div>
           </div>
-          <UToggle v-model="announcementEnabled" />
+          <USwitch v-model="announcementEnabled" />
         </div>
 
         <div

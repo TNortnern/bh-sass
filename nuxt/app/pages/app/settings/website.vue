@@ -68,7 +68,7 @@
                 </p>
               </div>
             </div>
-            <UToggle
+            <USwitch
               v-model="websiteConfig.enabled"
               size="lg"
               @change="markHasChanges"
@@ -353,7 +353,7 @@
                 </p>
               </div>
             </div>
-            <UToggle
+            <USwitch
               v-model="websiteConfig.showServices"
               size="md"
               @change="markHasChanges"
@@ -400,7 +400,7 @@
                 </p>
               </div>
             </div>
-            <UToggle
+            <USwitch
               v-model="websiteConfig.showTestimonials"
               size="md"
               @change="markHasChanges"
@@ -500,7 +500,7 @@
                 </p>
               </div>
             </div>
-            <UToggle
+            <USwitch
               v-model="websiteConfig.showGallery"
               size="md"
               @change="markHasChanges"

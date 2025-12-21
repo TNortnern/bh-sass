@@ -305,7 +305,7 @@
               :key="key"
               class="flex items-center gap-4 p-3 px-4 bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.05] rounded-lg tabular-nums max-md:flex-wrap"
             >
-              <UToggle
+              <USwitch
                 v-model="day.enabled"
                 size="md"
                 @change="markHasChanges"

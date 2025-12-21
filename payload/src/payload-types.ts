@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     media: Media;
     tenants: Tenant;
+    roles: Role;
     categories: Category;
     'rental-items': RentalItem;
     variations: Variation;
@@ -106,6 +107,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     tenants: TenantsSelect<false> | TenantsSelect<true>;
+    roles: RolesSelect<false> | RolesSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     'rental-items': RentalItemsSelect<false> | RentalItemsSelect<true>;
     variations: VariationsSelect<false> | VariationsSelect<true>;
@@ -248,7 +250,7 @@ export interface Tenant {
   /**
    * Subscription plan tier
    */
-  plan: 'free' | 'growth' | 'pro' | 'scale';
+  plan: 'free' | 'pro' | 'platinum';
   /**
    * Stripe Connect account ID
    */
@@ -521,6 +523,27 @@ export interface Tenant {
     | number
     | boolean
     | null;
+  /**
+   * Custom website development offering
+   */
+  customWebsite?: {
+    /**
+     * Whether tenant has requested custom website development
+     */
+    requested?: boolean | null;
+    /**
+     * Status of custom website development
+     */
+    status?: ('pending' | 'in_progress' | 'live') | null;
+    /**
+     * Date when one-time setup fee was paid
+     */
+    setupPaidAt?: string | null;
+    /**
+     * Date when monthly recurring fee started
+     */
+    monthlyStartedAt?: string | null;
+  };
   settings?: {
     timezone?: ('America/New_York' | 'America/Chicago' | 'America/Denver' | 'America/Los_Angeles' | 'UTC') | null;
     currency?: ('USD' | 'EUR' | 'GBP' | 'CAD') | null;
@@ -672,6 +695,86 @@ export interface Media {
       filename?: string | null;
     };
   };
+}
+/**
+ * Custom roles and permissions for team members (Pro/Platinum feature)
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "roles".
+ */
+export interface Role {
+  id: number;
+  /**
+   * The tenant this custom role belongs to
+   */
+  tenantId: number | Tenant;
+  /**
+   * Role name (e.g., "Operations Manager", "Delivery Driver")
+   */
+  name: string;
+  /**
+   * Optional description of what this role is for
+   */
+  description?: string | null;
+  /**
+   * System roles are built-in templates that cannot be deleted
+   */
+  isSystemRole?: boolean | null;
+  /**
+   * Granular permissions granted to users with this role
+   */
+  permissions: {
+    /**
+     * Permission key following resource.action pattern
+     */
+    key:
+      | 'bookings.view'
+      | 'bookings.create'
+      | 'bookings.edit'
+      | 'bookings.delete'
+      | 'bookings.manage_payments'
+      | 'inventory.view'
+      | 'inventory.create'
+      | 'inventory.edit'
+      | 'inventory.delete'
+      | 'inventory.manage_pricing'
+      | 'customers.view'
+      | 'customers.create'
+      | 'customers.edit'
+      | 'customers.delete'
+      | 'customers.export'
+      | 'availability.view'
+      | 'availability.manage'
+      | 'team.view'
+      | 'team.invite'
+      | 'team.edit_roles'
+      | 'team.remove'
+      | 'reports.view_revenue'
+      | 'reports.view_customers'
+      | 'reports.export'
+      | 'settings.view'
+      | 'settings.edit_branding'
+      | 'settings.edit_booking'
+      | 'settings.edit_integrations'
+      | 'settings.edit_payments'
+      | 'documents.view'
+      | 'documents.create'
+      | 'documents.delete'
+      | 'contracts.view'
+      | 'contracts.create'
+      | 'contracts.delete';
+    id?: string | null;
+  }[];
+  /**
+   * Color for role badge in UI
+   */
+  color?: ('blue' | 'green' | 'purple' | 'orange' | 'pink' | 'indigo' | 'teal') | null;
+  /**
+   * Number of users assigned to this role (auto-calculated)
+   */
+  memberCount?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1311,6 +1414,39 @@ export interface Plan {
      * Maximum number of bookings per month
      */
     maxBookings: number;
+    /**
+     * Maximum number of team members allowed
+     */
+    maxUsers: number;
+  };
+  /**
+   * Feature toggles for this plan
+   */
+  featureFlags?: {
+    /**
+     * Access to website builder
+     */
+    websiteBuilder?: boolean | null;
+    /**
+     * Access to custom roles and permissions
+     */
+    customRoles?: boolean | null;
+    /**
+     * Can request custom website development
+     */
+    customWebsite?: boolean | null;
+    /**
+     * Access to priority support
+     */
+    prioritySupport?: boolean | null;
+    /**
+     * Remove BouncePro branding
+     */
+    whiteLabel?: boolean | null;
+    /**
+     * Access to API keys and webhooks
+     */
+    apiAccess?: boolean | null;
   };
   /**
    * Stripe Price ID (e.g., price_xxx)
@@ -2673,6 +2809,10 @@ export interface PayloadLockedDocument {
         value: number | Tenant;
       } | null)
     | ({
+        relationTo: 'roles';
+        value: number | Role;
+      } | null)
+    | ({
         relationTo: 'categories';
         value: number | Category;
       } | null)
@@ -3053,6 +3193,14 @@ export interface TenantsSelect<T extends boolean = true> {
             };
       };
   websiteBuilder?: T;
+  customWebsite?:
+    | T
+    | {
+        requested?: T;
+        status?: T;
+        setupPaidAt?: T;
+        monthlyStartedAt?: T;
+      };
   settings?:
     | T
     | {
@@ -3092,6 +3240,26 @@ export interface TenantsSelect<T extends boolean = true> {
             };
       };
   status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "roles_select".
+ */
+export interface RolesSelect<T extends boolean = true> {
+  tenantId?: T;
+  name?: T;
+  description?: T;
+  isSystemRole?: T;
+  permissions?:
+    | T
+    | {
+        key?: T;
+        id?: T;
+      };
+  color?: T;
+  memberCount?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3348,6 +3516,17 @@ export interface PlansSelect<T extends boolean = true> {
     | {
         maxItems?: T;
         maxBookings?: T;
+        maxUsers?: T;
+      };
+  featureFlags?:
+    | T
+    | {
+        websiteBuilder?: T;
+        customRoles?: T;
+        customWebsite?: T;
+        prioritySupport?: T;
+        whiteLabel?: T;
+        apiAccess?: T;
       };
   stripePriceId?: T;
   active?: T;

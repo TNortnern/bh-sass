@@ -36,6 +36,7 @@ import { EmailTemplates } from './collections/EmailTemplates'
 import { Documents } from './collections/Documents'
 import { SignedDocuments } from './collections/SignedDocuments'
 import { StripeWebhookEvents } from './collections/StripeWebhookEvents'
+import { Roles } from './collections/Roles'
 import { PlatformSettings } from './globals/PlatformSettings'
 import { availabilityCheckEndpoint } from './endpoints/availability-check'
 import { unavailableDatesEndpoint } from './endpoints/unavailable-dates'
@@ -162,6 +163,7 @@ export default buildConfig({
     Users,
     Media,
     Tenants,
+    Roles,
     Categories,
     RentalItems,
     Variations,

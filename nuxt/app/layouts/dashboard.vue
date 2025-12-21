@@ -2,6 +2,12 @@
 const colorMode = useColorMode()
 const route = useRoute()
 const { logout, currentUser, displayName, initials } = useAuth()
+const { hasWebsiteBuilder, fetchPlan } = usePlanFeatures()
+
+// Fetch plan on mount
+onMounted(() => {
+  fetchPlan()
+})
 
 // Set dark mode as default
 onMounted(() => {
@@ -172,7 +178,7 @@ watch(() => route.path, () => {
           v-for="item in navigationItems"
           :key="item.to"
           :to="item.to"
-          class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 relative"
           :class="isActiveRoute(item.to)
             ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 font-medium'
             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'"
@@ -182,6 +188,12 @@ watch(() => route.path, () => {
             class="w-5 h-5 flex-shrink-0"
           />
           <span>{{ item.label }}</span>
+          <!-- Show lock icon for Website when feature is not available -->
+          <UIcon
+            v-if="item.to === '/app/website' && !hasWebsiteBuilder"
+            name="i-lucide-lock"
+            class="w-4 h-4 ml-auto text-gray-400 dark:text-gray-500"
+          />
         </NuxtLink>
       </nav>
 

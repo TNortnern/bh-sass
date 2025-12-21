@@ -173,6 +173,73 @@ export const Users: CollectionConfig = {
   ],
   timestamps: true,
   hooks: {
+    beforeValidate: [
+      // Check plan limits before creating new team members
+      async ({ req, operation, data }) => {
+        // Only check on create operations
+        if (operation !== 'create') return
+
+        // Skip for super_admins (they don't belong to a tenant)
+        if (data?.role === 'super_admin') return
+
+        // Skip for customers (they count differently than team members)
+        if (data?.role === 'customer') return
+
+        // Get tenant ID from data or current user
+        const tenantId = data?.tenantId || getTenantId(req.user)
+        if (!tenantId) return // No tenant to check limits for
+
+        try {
+          // Fetch the tenant to get their plan
+          const tenant = await req.payload.findByID({
+            collection: 'tenants',
+            id: tenantId,
+          })
+
+          if (!tenant?.plan) return // No plan to check
+
+          // Fetch the plan details
+          const planResponse = await req.payload.find({
+            collection: 'plans',
+            where: { slug: { equals: tenant.plan } },
+            limit: 1,
+          })
+
+          const plan = planResponse.docs[0]
+          if (!plan?.limits?.maxUsers) return // No limit to enforce
+
+          // Check if limit is unlimited (-1)
+          if (plan.limits.maxUsers === -1) return
+
+          // Count existing team members (exclude customers)
+          const existingUsers = await req.payload.find({
+            collection: 'users',
+            where: {
+              and: [
+                { tenantId: { equals: tenantId } },
+                { role: { not_equals: 'customer' } },
+                { isActive: { equals: true } },
+              ],
+            },
+            limit: 0, // Just get the count
+          })
+
+          // Check if at limit
+          if (existingUsers.totalDocs >= plan.limits.maxUsers) {
+            throw new Error(
+              `Team member limit reached. Your ${plan.name} plan allows ${plan.limits.maxUsers} team ${plan.limits.maxUsers === 1 ? 'member' : 'members'}. Please upgrade your plan to add more team members.`
+            )
+          }
+        } catch (error) {
+          // Re-throw the error if it's our limit check error
+          if (error instanceof Error && error.message.includes('limit reached')) {
+            throw error
+          }
+          // Log other errors but don't block user creation
+          req.payload.logger.error({ err: error, msg: 'Error checking user limits' })
+        }
+      },
+    ],
     afterChange: [auditCreateAndUpdate, sendUserWelcomeEmail],
     afterDelete: [auditDelete],
   },

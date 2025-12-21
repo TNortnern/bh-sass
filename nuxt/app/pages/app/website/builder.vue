@@ -382,7 +382,8 @@ const componentMap: Record<string, any> = {
 }
 
 definePageMeta({
-  layout: 'editor'
+  layout: 'editor',
+  middleware: 'website-builder'
 })
 
 // Preset templates

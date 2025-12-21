@@ -9,7 +9,7 @@ export interface Tenant {
   id: number | string
   name: string
   slug: string
-  plan: 'free' | 'growth' | 'pro' | 'scale'
+  plan: 'free' | 'pro' | 'platinum'
   status: 'active' | 'suspended' | 'deleted'
   // rb-payload integration
   rbPayloadTenantId?: number | null

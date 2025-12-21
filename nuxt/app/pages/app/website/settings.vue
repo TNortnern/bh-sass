@@ -341,7 +341,7 @@
                   Social proof builds trust
                 </p>
               </div>
-              <UToggle
+              <USwitch
                 v-model="websiteConfig.showTestimonials"
                 @change="markHasChanges"
               />
@@ -432,7 +432,7 @@
             <div class="p-4 space-y-1">
               <label class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.02] cursor-pointer transition-colors">
                 <span class="text-sm text-gray-700 dark:text-gray-300">Show Services Grid</span>
-                <UToggle
+                <USwitch
                   v-model="websiteConfig.showServices"
                   size="sm"
                   @change="markHasChanges"
@@ -440,7 +440,7 @@
               </label>
               <label class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.02] cursor-pointer transition-colors">
                 <span class="text-sm text-gray-700 dark:text-gray-300">Show Photo Gallery</span>
-                <UToggle
+                <USwitch
                   v-model="websiteConfig.showGallery"
                   size="sm"
                   @change="markHasChanges"

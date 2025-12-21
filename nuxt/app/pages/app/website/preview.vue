@@ -31,7 +31,8 @@ import WebsiteSectionsBlogCards from '~/components/website-sections/BlogCards.vu
 import WebsiteSectionsWaiverSignature from '~/components/website-sections/WaiverSignature.vue'
 
 definePageMeta({
-  layout: false // No layout - full screen
+  layout: false, // No layout - full screen
+  middleware: 'website-builder'
 })
 
 // Component map for dynamic rendering

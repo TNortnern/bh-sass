@@ -8,6 +8,12 @@ definePageMeta({
 })
 
 const router = useRouter()
+const { hasWebsiteBuilder, fetchPlan, loading: planLoading, upgradeUrl, getRecommendedPlan } = usePlanFeatures()
+
+// Fetch plan on mount
+onMounted(async () => {
+  await fetchPlan()
+})
 
 // Template definitions matching our 5 templates
 const templates = [
@@ -60,11 +66,17 @@ const templates = [
 
 // Open builder with selected template
 const openBuilder = (templateId: string) => {
+  if (!hasWebsiteBuilder.value) {
+    return // Feature gate prevents navigation
+  }
   router.push(`/app/website/builder?template=${templateId}`)
 }
 
 // Open blank builder
 const openBlankBuilder = () => {
+  if (!hasWebsiteBuilder.value) {
+    return // Feature gate prevents navigation
+  }
   router.push('/app/website/builder')
 }
 
@@ -76,6 +88,47 @@ const openPreview = () => {
 
 <template>
   <div>
+    <!-- Feature Gate - Upgrade Prompt -->
+    <div
+      v-if="!planLoading && !hasWebsiteBuilder"
+      class="mb-8 p-6 rounded-2xl bg-gradient-to-br from-primary-500/10 to-orange-500/10 border-2 border-primary-500/30"
+    >
+      <div class="flex items-start gap-4">
+        <div class="w-12 h-12 rounded-xl bg-primary-500/20 flex items-center justify-center shrink-0">
+          <UIcon
+            name="i-lucide-lock"
+            class="size-6 text-primary-500"
+          />
+        </div>
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+            Unlock Website Builder
+          </h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Create beautiful, professional websites with our drag-and-drop builder. Upgrade to {{ getRecommendedPlan('websiteBuilder') }} to access this feature and customize your rental business website.
+          </p>
+          <div class="flex items-center gap-3">
+            <UButton
+              :to="upgradeUrl"
+              color="primary"
+              size="md"
+              icon="i-lucide-arrow-up-right"
+            >
+              Upgrade to {{ getRecommendedPlan('websiteBuilder') }}
+            </UButton>
+            <UButton
+              to="/app/settings/billing"
+              color="neutral"
+              variant="ghost"
+              size="md"
+            >
+              View Plans
+            </UButton>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Page Header -->
     <div class="flex items-start justify-between gap-4 mb-8">
       <div>
@@ -92,11 +145,13 @@ const openPreview = () => {
           label="Preview Site"
           color="neutral"
           variant="ghost"
+          :disabled="!hasWebsiteBuilder"
           @click="openPreview"
         />
         <UButton
           icon="i-lucide-plus"
           label="Start Building"
+          :disabled="!hasWebsiteBuilder"
           @click="openBlankBuilder"
         />
       </div>
@@ -106,7 +161,9 @@ const openPreview = () => {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
       <!-- Start Fresh -->
       <button
-        class="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.02] p-6 text-left hover:border-primary-500/50 transition-all duration-300"
+        class="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.02] p-6 text-left transition-all duration-300"
+        :class="hasWebsiteBuilder ? 'hover:border-primary-500/50 cursor-pointer' : 'opacity-60 cursor-not-allowed'"
+        :disabled="!hasWebsiteBuilder"
         @click="openBlankBuilder"
       >
         <div class="flex items-center gap-5">
@@ -132,9 +189,11 @@ const openPreview = () => {
       </button>
 
       <!-- Continue Editing -->
-      <NuxtLink
-        to="/app/website/builder"
-        class="group relative overflow-hidden rounded-2xl border-2 border-primary-500/30 bg-gradient-to-br from-primary-500/5 to-orange-500/5 p-6 text-left hover:border-primary-500 transition-all duration-300"
+      <button
+        class="group relative overflow-hidden rounded-2xl border-2 border-primary-500/30 bg-gradient-to-br from-primary-500/5 to-orange-500/5 p-6 text-left transition-all duration-300"
+        :class="hasWebsiteBuilder ? 'hover:border-primary-500 cursor-pointer' : 'opacity-60 cursor-not-allowed'"
+        :disabled="!hasWebsiteBuilder"
+        @click="openBlankBuilder"
       >
         <div class="flex items-center gap-5">
           <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-400 to-orange-500 flex items-center justify-center shrink-0">
@@ -159,7 +218,7 @@ const openPreview = () => {
           name="i-lucide-arrow-right"
           class="absolute right-6 top-1/2 -translate-y-1/2 size-5 text-primary-400 group-hover:translate-x-1 transition-all"
         />
-      </NuxtLink>
+      </button>
     </div>
 
     <!-- Template Selection -->
@@ -176,7 +235,8 @@ const openPreview = () => {
       <div
         v-for="template in templates"
         :key="template.id"
-        class="group relative cursor-pointer rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.02] overflow-hidden hover:border-primary-500/50 hover:shadow-xl hover:shadow-primary-500/10 transition-all duration-300"
+        class="group relative rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.02] overflow-hidden transition-all duration-300"
+        :class="hasWebsiteBuilder ? 'cursor-pointer hover:border-primary-500/50 hover:shadow-xl hover:shadow-primary-500/10' : 'opacity-60 cursor-not-allowed'"
         @click="openBuilder(template.id)"
       >
         <!-- Template Preview -->

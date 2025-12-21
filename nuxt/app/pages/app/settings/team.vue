@@ -9,16 +9,47 @@
         <p class="text-sm text-gray-600 dark:text-[#888]">
           Manage team members and their permissions
         </p>
+        <!-- Show usage if plan info is available -->
+        <div
+          v-if="planInfo && teamMemberLimit !== null"
+          class="flex items-center gap-2 mt-2"
+        >
+          <span class="text-xs text-gray-500 dark:text-[#666]">
+            {{ activeTeamMembersCount }} of {{ teamMemberLimit === -1 ? 'unlimited' : teamMemberLimit }} team {{ teamMemberLimit === 1 ? 'member' : 'members' }}
+          </span>
+          <UBadge
+            v-if="isAtTeamMemberLimit"
+            color="warning"
+            size="xs"
+          >
+            Limit reached
+          </UBadge>
+        </div>
       </div>
-      <UButton
-        color="primary"
-        size="lg"
-        icon="i-heroicons-user-plus"
-        class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-black font-semibold shadow-lg hover:shadow-amber-500/25 transition-all duration-200"
-        @click="showInviteModal = true"
-      >
-        Invite Team Member
-      </UButton>
+      <div class="flex flex-col gap-2">
+        <UButton
+          color="primary"
+          size="lg"
+          icon="i-heroicons-user-plus"
+          :disabled="isAtTeamMemberLimit"
+          class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-black font-semibold shadow-lg hover:shadow-amber-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          @click="handleInviteClick"
+        >
+          Invite Team Member
+        </UButton>
+        <p
+          v-if="isAtTeamMemberLimit"
+          class="text-xs text-center text-amber-600 dark:text-amber-400"
+        >
+          <NuxtLink
+            to="/app/settings/billing"
+            class="underline hover:text-amber-700 dark:hover:text-amber-300"
+          >
+            Upgrade plan
+          </NuxtLink>
+          to add more members
+        </p>
+      </div>
     </div>
 
     <div
@@ -628,20 +659,105 @@
         </div>
       </template>
     </UModal>
+
+    <!-- Upgrade Plan Modal -->
+    <UModal v-model:open="showUpgradeModal">
+      <template #content>
+        <div class="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-100 dark:border-white/[0.06]">
+            <div class="flex items-center gap-3">
+              <UIcon
+                name="i-heroicons-arrow-trending-up"
+                class="w-6 h-6 text-amber-500"
+              />
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                Upgrade Your Plan
+              </h3>
+            </div>
+          </div>
+
+          <div class="p-6 flex flex-col gap-4">
+            <p class="text-sm text-gray-600 dark:text-[#888] leading-relaxed">
+              You've reached the team member limit for your
+              <strong class="text-gray-900 dark:text-white">{{ planInfo?.name }}</strong> plan.
+            </p>
+            <div class="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl p-4">
+              <div class="flex items-start gap-3">
+                <UIcon
+                  name="i-heroicons-information-circle"
+                  class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5"
+                />
+                <div class="text-sm text-amber-800 dark:text-amber-300">
+                  <p class="font-semibold mb-1">
+                    Current limit:
+                  </p>
+                  <p>{{ teamMemberLimit === -1 ? 'Unlimited' : teamMemberLimit }} team {{ teamMemberLimit === 1 ? 'member' : 'members' }}</p>
+                </div>
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-[#888]">
+              Upgrade to a higher plan to add more team members and unlock additional features.
+            </p>
+          </div>
+
+          <div class="px-6 py-4 border-t border-gray-100 dark:border-white/[0.06] flex justify-end gap-3">
+            <UButton
+              variant="ghost"
+              @click="showUpgradeModal = false"
+            >
+              Cancel
+            </UButton>
+            <NuxtLink to="/app/settings/billing">
+              <UButton
+                color="primary"
+                icon="i-heroicons-arrow-up-right"
+                class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-black font-semibold"
+              >
+                View Plans
+              </UButton>
+            </NuxtLink>
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { TeamMember } from '~/composables/useSettings'
 
-const { team, loading, saving, inviteTeamMember, removeTeamMember, deactivateTeamMember, reactivateTeamMember, resendInvitation: resendInvitationFn, updateTeamMemberRole } = useSettings()
+const {
+  team,
+  loading,
+  saving,
+  planInfo,
+  activeTeamMembersCount,
+  teamMemberLimit,
+  isAtTeamMemberLimit,
+  canInviteTeamMember: _canInviteTeamMember,
+  inviteTeamMember,
+  removeTeamMember,
+  deactivateTeamMember,
+  reactivateTeamMember,
+  resendInvitation: resendInvitationFn,
+  updateTeamMemberRole
+} = useSettings()
 
 const showInviteModal = ref(false)
 const showRemoveModal = ref(false)
 const showEditRoleModal = ref(false)
 const showDeactivateModal = ref(false)
+const showUpgradeModal = ref(false)
 const selectedMember = ref<TeamMember | null>(null)
 const editRoleForm = ref<TeamMember['role']>('staff')
+
+const handleInviteClick = () => {
+  if (isAtTeamMemberLimit.value) {
+    showUpgradeModal.value = true
+  } else {
+    showInviteModal.value = true
+  }
+}
 
 const inviteForm = ref<{
   email: string

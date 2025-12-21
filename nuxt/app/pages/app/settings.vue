@@ -151,6 +151,12 @@ const tabs = [
     to: '/app/settings/emails'
   },
   {
+    label: 'Website',
+    description: 'Public website and booking pages',
+    icon: 'i-heroicons-globe-americas',
+    to: '/app/settings/website'
+  },
+  {
     label: 'API Keys',
     description: 'API access and integrations',
     icon: 'i-heroicons-key',
@@ -173,6 +179,12 @@ const tabs = [
     description: 'Plan, invoices, and subscription',
     icon: 'i-heroicons-banknotes',
     to: '/app/settings/billing'
+  },
+  {
+    label: 'Custom Website',
+    description: 'Professional website development',
+    icon: 'i-heroicons-globe-alt',
+    to: '/app/settings/custom-website'
   }
 ]
 

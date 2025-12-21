@@ -74,10 +74,9 @@
                   </p>
                 </div>
               </div>
-              <UToggle
+              <USwitch
                 v-model="notifications.email.newBooking"
-                size="lg"
-                @change="markHasChanges"
+                @update:model-value="markHasChanges"
               />
             </div>
 
@@ -98,10 +97,9 @@
                   </p>
                 </div>
               </div>
-              <UToggle
+              <USwitch
                 v-model="notifications.email.cancellation"
-                size="lg"
-                @change="markHasChanges"
+                @update:model-value="markHasChanges"
               />
             </div>
 
@@ -122,10 +120,9 @@
                   </p>
                 </div>
               </div>
-              <UToggle
+              <USwitch
                 v-model="notifications.email.payment"
-                size="lg"
-                @change="markHasChanges"
+                @update:model-value="markHasChanges"
               />
             </div>
 
@@ -146,10 +143,9 @@
                   </p>
                 </div>
               </div>
-              <UToggle
+              <USwitch
                 v-model="notifications.email.reminder"
-                size="lg"
-                @change="markHasChanges"
+                @update:model-value="markHasChanges"
               />
             </div>
 
@@ -170,10 +166,9 @@
                   </p>
                 </div>
               </div>
-              <UToggle
+              <USwitch
                 v-model="notifications.email.dailySummary"
-                size="lg"
-                @change="markHasChanges"
+                @update:model-value="markHasChanges"
               />
             </div>
           </div>
@@ -220,10 +215,9 @@
                   </p>
                 </div>
               </div>
-              <UToggle
+              <USwitch
                 v-model="notifications.inApp.newBooking"
-                size="lg"
-                @change="markHasChanges"
+                @update:model-value="markHasChanges"
               />
             </div>
 
@@ -244,10 +238,9 @@
                   </p>
                 </div>
               </div>
-              <UToggle
+              <USwitch
                 v-model="notifications.inApp.cancellation"
-                size="lg"
-                @change="markHasChanges"
+                @update:model-value="markHasChanges"
               />
             </div>
 
@@ -268,10 +261,9 @@
                   </p>
                 </div>
               </div>
-              <UToggle
+              <USwitch
                 v-model="notifications.inApp.payment"
-                size="lg"
-                @change="markHasChanges"
+                @update:model-value="markHasChanges"
               />
             </div>
 
@@ -292,10 +284,9 @@
                   </p>
                 </div>
               </div>
-              <UToggle
+              <USwitch
                 v-model="notifications.inApp.reminder"
-                size="lg"
-                @change="markHasChanges"
+                @update:model-value="markHasChanges"
               />
             </div>
           </div>

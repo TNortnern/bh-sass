@@ -3,7 +3,8 @@
 import { tailwindBlocks } from '~/data/tailwind-blocks'
 
 definePageMeta({
-  layout: false
+  layout: false,
+  middleware: 'website-builder'
 })
 
 const { savedBlocks, saveBlock, deleteBlock } = useSavedBlocks()

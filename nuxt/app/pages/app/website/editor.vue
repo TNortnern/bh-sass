@@ -5,7 +5,8 @@
  * Features: Multi-page support, Custom blocks, HyperUI blocks, Template loading
  */
 definePageMeta({
-  layout: 'editor'
+  layout: 'editor',
+  middleware: 'website-builder'
 })
 
 const toast = useToast()
