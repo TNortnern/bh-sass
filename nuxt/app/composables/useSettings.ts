@@ -843,10 +843,17 @@ export const useSettings = () => {
       // Simulate Stripe Connect flow
       await new Promise(resolve => setTimeout(resolve, 1000))
 
-      // In production, this would redirect to Stripe
-      const response = await $fetch('/api/stripe/connect', {
-        method: 'POST'
+      // Call Payload's Stripe Connect onboarding endpoint
+      const response = await $fetch<{ url: string }>('/api/stripe/connect/onboard', {
+        method: 'POST',
+        credentials: 'include'
       })
+
+      // Redirect to Stripe Connect onboarding URL
+      if (response?.url) {
+        window.location.href = response.url
+        return response
+      }
 
       // For now, just update state
       toast.add({
