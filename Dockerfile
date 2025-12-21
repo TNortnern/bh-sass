@@ -35,22 +35,8 @@ COPY --from=payload-builder /payload/.next/standalone ./payload
 COPY --from=payload-builder /payload/.next/static ./payload/.next/static
 COPY --from=payload-builder /payload/public ./payload/public
 
-# Copy migration script and pg dependency
-COPY --from=payload-builder /payload/node_modules/pg ./payload-migrate/node_modules/pg
-COPY --from=payload-builder /payload/node_modules/pg-types ./payload-migrate/node_modules/pg-types
-COPY --from=payload-builder /payload/node_modules/pg-protocol ./payload-migrate/node_modules/pg-protocol
-COPY --from=payload-builder /payload/node_modules/pg-pool ./payload-migrate/node_modules/pg-pool
-COPY --from=payload-builder /payload/node_modules/pg-connection-string ./payload-migrate/node_modules/pg-connection-string
-COPY --from=payload-builder /payload/node_modules/pgpass ./payload-migrate/node_modules/pgpass
-COPY --from=payload-builder /payload/node_modules/buffer-writer ./payload-migrate/node_modules/buffer-writer
-COPY --from=payload-builder /payload/node_modules/packet-reader ./payload-migrate/node_modules/packet-reader
-COPY --from=payload-builder /payload/node_modules/postgres-array ./payload-migrate/node_modules/postgres-array
-COPY --from=payload-builder /payload/node_modules/postgres-bytea ./payload-migrate/node_modules/postgres-bytea
-COPY --from=payload-builder /payload/node_modules/postgres-date ./payload-migrate/node_modules/postgres-date
-COPY --from=payload-builder /payload/node_modules/postgres-interval ./payload-migrate/node_modules/postgres-interval
-COPY --from=payload-builder /payload/node_modules/postgres-range ./payload-migrate/node_modules/postgres-range
-COPY --from=payload-builder /payload/node_modules/split2 ./payload-migrate/node_modules/split2
-COPY --from=payload-builder /payload/node_modules/obuf ./payload-migrate/node_modules/obuf
+# Install pg for migrations and copy migration script
+RUN mkdir -p /app/payload-migrate && cd /app/payload-migrate && npm init -y && npm install pg --no-save
 COPY --from=payload-builder /payload/scripts/migrate.js ./payload-migrate/migrate.js
 
 # Copy Nuxt build
