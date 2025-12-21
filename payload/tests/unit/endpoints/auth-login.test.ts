@@ -6,11 +6,6 @@ import { generatePayloadCookie, headersWithCors, loginOperation } from 'payload'
 vi.mock('payload', () => ({
   generatePayloadCookie: vi.fn(),
   headersWithCors: vi.fn(({ headers }) => headers),
-  isNumber: (value: unknown) => {
-    if (typeof value === 'number') return Number.isFinite(value)
-    if (typeof value === 'string' && value.trim() !== '') return !Number.isNaN(Number(value))
-    return false
-  },
   loginOperation: vi.fn()
 }))
 
@@ -56,6 +51,46 @@ describe('authLoginEndpoint', () => {
 
     expect(response.status).toBe(500)
     expect(data.errors?.[0]?.message).toContain('Authentication is not configured')
+  })
+
+  it('returns 400 when email is missing', async () => {
+    const req = createRequest({ password: 'pass' })
+
+    const response = await authLoginEndpoint.handler(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(400)
+    expect(data.errors?.[0]?.message).toBe('Email is required')
+  })
+
+  it('returns 400 when email is empty string', async () => {
+    const req = createRequest({ email: '  ', password: 'pass' })
+
+    const response = await authLoginEndpoint.handler(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(400)
+    expect(data.errors?.[0]?.message).toBe('Email is required')
+  })
+
+  it('returns 400 when password is missing', async () => {
+    const req = createRequest({ email: 'test@example.com' })
+
+    const response = await authLoginEndpoint.handler(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(400)
+    expect(data.errors?.[0]?.message).toBe('Password is required')
+  })
+
+  it('returns 400 when password is empty string', async () => {
+    const req = createRequest({ email: 'test@example.com', password: '' })
+
+    const response = await authLoginEndpoint.handler(req)
+    const data = await response.json()
+
+    expect(response.status).toBe(400)
+    expect(data.errors?.[0]?.message).toBe('Password is required')
   })
 
   it('uses default token expiration when rememberMe is false', async () => {

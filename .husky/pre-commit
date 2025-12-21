@@ -23,4 +23,9 @@ cd ..
 # cd payload && pnpm typecheck || exit 1
 # cd ..
 
+# Run Payload unit tests for critical endpoints
+echo "🧪 Running Payload endpoint tests..."
+cd payload && pnpm vitest run tests/unit/endpoints/ --reporter=dot || exit 1
+cd ..
+
 echo "✅ Pre-commit checks passed!"
