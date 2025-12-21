@@ -37,6 +37,26 @@ toast.add({ title: 'Success', description: 'Item saved', color: 'success' })
 ### Git Commits
 **NEVER use `git commit --no-verify`!** Fix pre-commit hook failures, don't bypass them.
 
+### Database Migrations - CRITICAL
+**ALWAYS keep database schema in sync with production!**
+
+When modifying Payload collections (adding/removing/changing fields):
+1. **Before pushing**: Generate a migration with `docker compose exec payload pnpm payload migrate:create`
+2. **Verify locally**: Run `docker compose exec payload pnpm payload migrate` to test
+3. **Push migration file**: Commit the new migration file in `payload/src/migrations/`
+4. **After deploy**: Verify migration ran on Railway (check logs for "Running migration")
+
+**Common schema change triggers:**
+- Adding new fields to collections
+- Adding new group fields (creates multiple columns)
+- Changing field types
+- Adding array fields (creates junction tables)
+
+**If you see `column does not exist` errors in production:**
+1. The schema was changed without a migration
+2. Generate migration locally, push, and redeploy
+3. Or manually run `payload migrate` on Railway via console
+
 ### Nuxt Page Routing
 **Never have both `page.vue` AND `page/index.vue`!**
 
