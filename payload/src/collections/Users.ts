@@ -24,11 +24,13 @@ export const Users: CollectionConfig = {
     lockTime: 10 * 60 * 1000, // 10 minutes in milliseconds
   },
   access: {
-    // Super admins can see all users, tenant admins can see their tenant's users
+    // Super admins can see all users, tenant admins/admins can see their tenant's users
     read: (({ req: { user } }) => {
       if (!user) return false
       if (user.role === 'super_admin') return true
-      if (user.role === 'tenant_admin' || user.role === 'staff') {
+      // Tenant admin roles that can view all tenant users
+      const tenantAdminRoles = ['tenant_admin', 'admin', 'manager', 'staff']
+      if (tenantAdminRoles.includes(user.role)) {
         const tenantId = getTenantId(user)
         if (!tenantId) return { id: { equals: user.id } } // Fallback to own profile
         return { tenantId: { equals: tenantId } }
@@ -42,13 +44,14 @@ export const Users: CollectionConfig = {
         // Unauthenticated users can only create tenant_admin or customer accounts
         return data?.role === 'tenant_admin' || data?.role === 'customer' || !data?.role
       }
-      // Authenticated users: super admins and tenant admins can create users
-      return user.role === 'super_admin' || user.role === 'tenant_admin'
+      // Authenticated users: super admins, tenant admins, and admins can create users
+      return user.role === 'super_admin' || user.role === 'tenant_admin' || user.role === 'admin'
     },
     update: (({ req: { user } }) => {
       if (!user) return false
       if (user.role === 'super_admin') return true
-      if (user.role === 'tenant_admin') {
+      // Tenant admin and admin roles can update tenant users
+      if (user.role === 'tenant_admin' || user.role === 'admin') {
         const tenantId = getTenantId(user)
         if (!tenantId) return { id: { equals: user.id } }
         return { tenantId: { equals: tenantId } }
@@ -59,7 +62,8 @@ export const Users: CollectionConfig = {
     delete: (({ req: { user } }) => {
       if (!user) return false
       if (user.role === 'super_admin') return true
-      if (user.role === 'tenant_admin') {
+      // Tenant admin and admin roles can delete tenant users
+      if (user.role === 'tenant_admin' || user.role === 'admin') {
         const tenantId = getTenantId(user)
         if (!tenantId) return false
         return { tenantId: { equals: tenantId } }
@@ -113,6 +117,14 @@ export const Users: CollectionConfig = {
         {
           label: 'Tenant Admin',
           value: 'tenant_admin',
+        },
+        {
+          label: 'Admin',
+          value: 'admin',
+        },
+        {
+          label: 'Manager',
+          value: 'manager',
         },
         {
           label: 'Staff',

@@ -53,6 +53,29 @@ async function runMigrations() {
       ADD COLUMN IF NOT EXISTS "roles_id" integer;
     `);
 
+    // Migration: Add 'admin' and 'manager' roles to users enum
+    console.log('Running migration: add_admin_manager_roles...');
+
+    // Check if enum values already exist before adding
+    const enumCheck = await pool.query(`
+      SELECT unnest(enum_range(NULL::enum_users_role))::text as value;
+    `);
+    const existingValues = enumCheck.rows.map(r => r.value);
+
+    if (!existingValues.includes('admin')) {
+      await pool.query(`
+        ALTER TYPE "enum_users_role" ADD VALUE IF NOT EXISTS 'admin';
+      `);
+      console.log('Added admin role to enum');
+    }
+
+    if (!existingValues.includes('manager')) {
+      await pool.query(`
+        ALTER TYPE "enum_users_role" ADD VALUE IF NOT EXISTS 'manager';
+      `);
+      console.log('Added manager role to enum');
+    }
+
     console.log('Migration completed successfully');
 
   } catch (err) {
