@@ -173,10 +173,40 @@ if [ -n "${DB_CHECK_URI}" ]; then\n\
   " || { echo "WARNING: Database check script failed, continuing anyway..."; }\n\
 fi\n\
 \n\
-# Run migrations with force flag to avoid interactive prompts\n\
+# Run migrations directly with SQL (npx payload migrate has module resolution issues)\n\
 echo "=== Running database migrations ==="\n\
-cd /app/payload-migrate && npx payload migrate --force-accept-data-loss 2>&1 || echo "Migration completed or no migrations needed"\n\
-cd /app\n\
+node -e "\n\
+const { Pool } = require('"'"'/app/payload-migrate/node_modules/pg'"'"');\n\
+const url = process.env.DATABASE_URI || process.env.DATABASE_URL;\n\
+if (!url) { console.log('"'"'No DB URL, skipping migrations'"'"'); process.exit(0); }\n\
+const pool = new Pool({ connectionString: url, ssl: process.env.DATABASE_SSL === '"'"'true'"'"' ? { rejectUnauthorized: false } : false });\n\
+(async () => {\n\
+  try {\n\
+    console.log('"'"'Running custom_website migration...'"'"');\n\
+    await pool.query(\\\`\n\
+      DO \\$\\$ BEGIN\n\
+        CREATE TYPE \\\"public\\\".\\\"enum_tenants_custom_website_status\\\" AS ENUM('"'"'pending'"'"', '"'"'in_progress'"'"', '"'"'live'"'"');\n\
+      EXCEPTION\n\
+        WHEN duplicate_object THEN null;\n\
+      END \\$\\$;\n\
+    \\\`);\n\
+    await pool.query(\\\`\n\
+      ALTER TABLE \\\"tenants\\\"\n\
+      ADD COLUMN IF NOT EXISTS \\\"website_builder\\\" jsonb,\n\
+      ADD COLUMN IF NOT EXISTS \\\"custom_website_requested\\\" boolean DEFAULT false,\n\
+      ADD COLUMN IF NOT EXISTS \\\"custom_website_status\\\" \\\"enum_tenants_custom_website_status\\\",\n\
+      ADD COLUMN IF NOT EXISTS \\\"custom_website_setup_paid_at\\\" timestamp(3) with time zone,\n\
+      ADD COLUMN IF NOT EXISTS \\\"custom_website_monthly_started_at\\\" timestamp(3) with time zone;\n\
+    \\\`);\n\
+    console.log('"'"'Migration completed successfully'"'"');\n\
+    await pool.end();\n\
+  } catch (err) {\n\
+    console.error('"'"'Migration error:'"'"', err.message);\n\
+    await pool.end();\n\
+    process.exit(1);\n\
+  }\n\
+})();\n\
+" || echo "Migration script failed"\n\
 \n\
 echo "=== Starting services with PM2 ==="\n\
 exec pm2-runtime /app/ecosystem.config.json\n\
