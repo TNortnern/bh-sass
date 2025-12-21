@@ -1,5 +1,6 @@
 // storage-adapter-import-placeholder
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { migrations } from './migrations'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { buildConfig } from 'payload'
@@ -316,6 +317,8 @@ export default buildConfig({
     // Enable schema push to auto-sync database schema on startup
     // This is needed for fresh databases or schema changes
     push: true,
+    // Run migrations in production
+    prodMigrations: migrations,
   }),
   sharp,
   plugins: [
