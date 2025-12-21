@@ -119,16 +119,12 @@ export const Tenants: CollectionConfig = {
           value: 'free',
         },
         {
-          label: 'Growth',
-          value: 'growth',
-        },
-        {
-          label: 'Pro',
+          label: 'Pro ($29/mo)',
           value: 'pro',
         },
         {
-          label: 'Scale',
-          value: 'scale',
+          label: 'Platinum ($100/mo)',
+          value: 'platinum',
         },
       ],
       admin: {

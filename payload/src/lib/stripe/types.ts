@@ -8,7 +8,7 @@ export type StripeAccountStatus = 'pending' | 'active' | 'restricted' | 'disable
 /**
  * Platform pricing tiers
  */
-export type PricingTier = 'free' | 'growth' | 'pro' | 'scale'
+export type PricingTier = 'free' | 'pro' | 'platinum'
 
 /**
  * Platform fee configuration by tier

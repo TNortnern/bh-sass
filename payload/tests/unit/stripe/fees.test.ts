@@ -14,16 +14,14 @@ describe('Stripe Fee Calculations', () => {
   describe('PLATFORM_FEE_RATES', () => {
     it('should define correct fee rates for all tiers', () => {
       expect(PLATFORM_FEE_RATES.free.rate).toBe(0.06) // 6%
-      expect(PLATFORM_FEE_RATES.growth.rate).toBe(0.025) // 2.5%
-      expect(PLATFORM_FEE_RATES.pro.rate).toBe(0.005) // 0.5%
-      expect(PLATFORM_FEE_RATES.scale.rate).toBe(0) // 0%
+      expect(PLATFORM_FEE_RATES.pro.rate).toBe(0.035) // 3.5%
+      expect(PLATFORM_FEE_RATES.platinum.rate).toBe(0.01) // 1%
     })
 
     it('should have descriptions for all tiers', () => {
       expect(PLATFORM_FEE_RATES.free.description).toContain('6%')
-      expect(PLATFORM_FEE_RATES.growth.description).toContain('2.5%')
-      expect(PLATFORM_FEE_RATES.pro.description).toContain('0.5%')
-      expect(PLATFORM_FEE_RATES.scale.description).toContain('No platform fee')
+      expect(PLATFORM_FEE_RATES.pro.description).toContain('3.5%')
+      expect(PLATFORM_FEE_RATES.platinum.description).toContain('1%')
     })
   })
 
@@ -34,22 +32,16 @@ describe('Stripe Fee Calculations', () => {
       expect(fee).toBe(600) // $6.00
     })
 
-    it('should calculate 2.5% fee for growth tier', () => {
-      const amount = 10000 // $100.00
-      const fee = calculatePlatformFee(amount, 'growth')
-      expect(fee).toBe(250) // $2.50
-    })
-
-    it('should calculate 0.5% fee for pro tier', () => {
+    it('should calculate 3.5% fee for pro tier', () => {
       const amount = 10000 // $100.00
       const fee = calculatePlatformFee(amount, 'pro')
-      expect(fee).toBe(50) // $0.50
+      expect(fee).toBe(350) // $3.50
     })
 
-    it('should calculate 0% fee for scale tier', () => {
+    it('should calculate 1% fee for platinum tier', () => {
       const amount = 10000 // $100.00
-      const fee = calculatePlatformFee(amount, 'scale')
-      expect(fee).toBe(0) // $0.00
+      const fee = calculatePlatformFee(amount, 'platinum')
+      expect(fee).toBe(100) // $1.00
     })
 
     it('should handle large amounts correctly', () => {
@@ -107,37 +99,26 @@ describe('Stripe Fee Calculations', () => {
       expect(result.depositAmount).toBeUndefined()
     })
 
-    it('should calculate full payment for growth tier', () => {
-      const subtotal = 10000 // $100.00
-      const result = calculatePayment(subtotal, 'growth')
-
-      expect(result.subtotal).toBe(10000)
-      expect(result.platformFee).toBe(250) // 2.5%
-      expect(result.stripeFee).toBe(320) // 2.9% + $0.30
-      expect(result.total).toBe(10000)
-      expect(result.tenantReceives).toBe(9430) // $100 - $2.50 - $3.20
-    })
-
     it('should calculate full payment for pro tier', () => {
       const subtotal = 10000 // $100.00
       const result = calculatePayment(subtotal, 'pro')
 
       expect(result.subtotal).toBe(10000)
-      expect(result.platformFee).toBe(50) // 0.5%
+      expect(result.platformFee).toBe(350) // 3.5%
       expect(result.stripeFee).toBe(320) // 2.9% + $0.30
       expect(result.total).toBe(10000)
-      expect(result.tenantReceives).toBe(9630) // $100 - $0.50 - $3.20
+      expect(result.tenantReceives).toBe(9330) // $100 - $3.50 - $3.20
     })
 
-    it('should calculate full payment for scale tier (no platform fee)', () => {
+    it('should calculate full payment for platinum tier', () => {
       const subtotal = 10000 // $100.00
-      const result = calculatePayment(subtotal, 'scale')
+      const result = calculatePayment(subtotal, 'platinum')
 
       expect(result.subtotal).toBe(10000)
-      expect(result.platformFee).toBe(0) // 0%
+      expect(result.platformFee).toBe(100) // 1%
       expect(result.stripeFee).toBe(320) // 2.9% + $0.30
       expect(result.total).toBe(10000)
-      expect(result.tenantReceives).toBe(9680) // $100 - $0 - $3.20
+      expect(result.tenantReceives).toBe(9580) // $100 - $1 - $3.20
     })
 
     it('should calculate 50% deposit payment', () => {
@@ -150,7 +131,7 @@ describe('Stripe Fee Calculations', () => {
 
     it('should calculate 25% deposit payment', () => {
       const subtotal = 20000 // $200.00
-      const result = calculatePayment(subtotal, 'growth', 25)
+      const result = calculatePayment(subtotal, 'pro', 25)
 
       expect(result.subtotal).toBe(20000)
       expect(result.depositAmount).toBe(5000) // 25% of $200
@@ -190,7 +171,7 @@ describe('Stripe Fee Calculations', () => {
   describe('calculateApplicationFee', () => {
     it('should return same result as calculatePlatformFee', () => {
       const amount = 10000
-      const tiers: PricingTier[] = ['free', 'growth', 'pro', 'scale']
+      const tiers: PricingTier[] = ['free', 'pro', 'platinum']
 
       tiers.forEach((tier) => {
         const platformFee = calculatePlatformFee(amount, tier)
@@ -203,9 +184,8 @@ describe('Stripe Fee Calculations', () => {
   describe('getPlatformFeeConfig', () => {
     it('should return correct config for all tiers', () => {
       expect(getPlatformFeeConfig('free')).toEqual(PLATFORM_FEE_RATES.free)
-      expect(getPlatformFeeConfig('growth')).toEqual(PLATFORM_FEE_RATES.growth)
       expect(getPlatformFeeConfig('pro')).toEqual(PLATFORM_FEE_RATES.pro)
-      expect(getPlatformFeeConfig('scale')).toEqual(PLATFORM_FEE_RATES.scale)
+      expect(getPlatformFeeConfig('platinum')).toEqual(PLATFORM_FEE_RATES.platinum)
     })
   })
 
@@ -248,34 +228,34 @@ describe('Stripe Fee Calculations', () => {
       expect(result.depositAmount).toBe(10000) // $100 deposit
     })
 
-    it('should calculate fees for $500 weekend package (growth tier)', () => {
+    it('should calculate fees for $500 weekend package (pro tier)', () => {
       const bookingAmount = 50000 // $500
-      const result = calculatePayment(bookingAmount, 'growth')
-
-      expect(result.total).toBe(50000)
-      expect(result.platformFee).toBe(1250) // $12.50 (2.5%)
-      expect(result.stripeFee).toBe(1480) // $14.80
-      expect(result.tenantReceives).toBe(47270) // $472.70
-    })
-
-    it('should calculate fees for $1000 party package (pro tier)', () => {
-      const bookingAmount = 100000 // $1000
       const result = calculatePayment(bookingAmount, 'pro')
 
-      expect(result.total).toBe(100000)
-      expect(result.platformFee).toBe(500) // $5.00 (0.5%)
-      expect(result.stripeFee).toBe(2930) // $29.30
-      expect(result.tenantReceives).toBe(96570) // $965.70
+      expect(result.total).toBe(50000)
+      expect(result.platformFee).toBe(1750) // $17.50 (3.5%)
+      expect(result.stripeFee).toBe(1480) // $14.80
+      expect(result.tenantReceives).toBe(46770) // $467.70
     })
 
-    it('should calculate fees for $5000 corporate event (scale tier)', () => {
+    it('should calculate fees for $1000 party package (platinum tier)', () => {
+      const bookingAmount = 100000 // $1000
+      const result = calculatePayment(bookingAmount, 'platinum')
+
+      expect(result.total).toBe(100000)
+      expect(result.platformFee).toBe(1000) // $10.00 (1%)
+      expect(result.stripeFee).toBe(2930) // $29.30
+      expect(result.tenantReceives).toBe(96070) // $960.70
+    })
+
+    it('should calculate fees for $5000 corporate event (platinum tier)', () => {
       const bookingAmount = 500000 // $5000
-      const result = calculatePayment(bookingAmount, 'scale')
+      const result = calculatePayment(bookingAmount, 'platinum')
 
       expect(result.total).toBe(500000)
-      expect(result.platformFee).toBe(0) // $0 (0%)
+      expect(result.platformFee).toBe(5000) // $50 (1%)
       expect(result.stripeFee).toBe(14530) // $145.30
-      expect(result.tenantReceives).toBe(485470) // $4,854.70
+      expect(result.tenantReceives).toBe(480470) // $4,804.70
     })
   })
 })

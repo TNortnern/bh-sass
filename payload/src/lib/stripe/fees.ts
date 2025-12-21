@@ -9,17 +9,13 @@ export const PLATFORM_FEE_RATES: Record<PricingTier, PlatformFeeConfig> = {
     rate: 0.06, // 6%
     description: 'Free tier - 6% platform fee',
   },
-  growth: {
-    rate: 0.025, // 2.5%
-    description: 'Growth tier - 2.5% platform fee',
-  },
   pro: {
-    rate: 0.005, // 0.5%
-    description: 'Pro tier - 0.5% platform fee',
+    rate: 0.035, // 3.5%
+    description: 'Pro tier - 3.5% platform fee',
   },
-  scale: {
-    rate: 0, // 0%
-    description: 'Scale tier - No platform fee',
+  platinum: {
+    rate: 0.01, // 1%
+    description: 'Platinum tier - 1% platform fee',
   },
 }
 

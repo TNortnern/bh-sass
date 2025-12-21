@@ -167,7 +167,7 @@
         </div>
 
         <div class="p-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div
               v-for="plan in plans"
               :key="plan.value"
@@ -582,58 +582,44 @@ const plans = [
     transactionFee: '6% + Stripe fees',
     icon: 'i-heroicons-paper-airplane',
     features: [
-      'Basic booking management',
-      'Up to 20 bookings/month',
-      'Email support',
-      'Redirect booking flow'
-    ]
-  },
-  {
-    value: 'growth',
-    name: 'Growth',
-    description: 'For growing rental businesses',
-    price: 39,
-    transactionFee: '2.5% + Stripe fees',
-    icon: 'i-heroicons-chart-bar',
-    recommended: true,
-    features: [
-      'Unlimited bookings',
-      'Bundles & packages',
-      'Webhook notifications',
-      'Priority email support',
-      'Customer portal'
+      'Up to 10 rental items',
+      'Up to 50 bookings/month',
+      '1 team member',
+      'Basic email support'
     ]
   },
   {
     value: 'pro',
     name: 'Pro',
-    description: 'Advanced features for professionals',
-    price: 99,
-    transactionFee: '0.5% + Stripe fees',
+    description: 'For growing rental businesses',
+    price: 29,
+    transactionFee: '3.5% + Stripe fees',
     icon: 'i-heroicons-rocket-launch',
+    recommended: true,
     features: [
-      'Everything in Growth',
-      'API access',
-      'Custom branding',
-      'Advanced analytics',
-      'Phone support',
-      'Team collaboration'
+      'Up to 50 rental items',
+      '500 bookings/month',
+      '5 team members',
+      'Website builder',
+      'Custom roles & permissions',
+      'API access & webhooks'
     ]
   },
   {
-    value: 'scale',
-    name: 'Scale',
+    value: 'platinum',
+    name: 'Platinum',
     description: 'For high-volume operations',
-    price: 249,
-    transactionFee: 'Stripe fees only',
-    icon: 'i-heroicons-building-office',
+    price: 100,
+    transactionFee: '1% + Stripe fees',
+    icon: 'i-heroicons-crown',
     features: [
-      'Everything in Pro',
-      'Zero platform fees',
+      'Unlimited rental items',
+      'Unlimited bookings',
+      'Unlimited team members',
+      'Priority support',
       'White-label solution',
-      'Custom domain',
-      'Dedicated support',
-      'Custom integrations'
+      'Free custom website (after 2 months)',
+      'All Pro features included'
     ]
   }
 ]
@@ -641,7 +627,7 @@ const plans = [
 // Computed
 const canUpgrade = computed(() => {
   const currentLevel = getPlanLevel(subscription.value?.planId)
-  return currentLevel < 3 && !subscription.value?.cancelAtPeriodEnd
+  return currentLevel < 2 && !subscription.value?.cancelAtPeriodEnd
 })
 
 const canCancel = computed(() => {
@@ -657,16 +643,15 @@ const planBadgeClasses = computed(() => {
   const plan = subscription.value?.planId || 'free'
   const classes: Record<string, string> = {
     free: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300',
-    growth: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
     pro: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
-    scale: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
+    platinum: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
   }
   return classes[plan] || classes.free
 })
 
 // Methods
 const getPlanLevel = (plan: string | undefined): number => {
-  const levels: Record<string, number> = { free: 0, growth: 1, pro: 2, scale: 3 }
+  const levels: Record<string, number> = { free: 0, pro: 1, platinum: 2 }
   return levels[plan || 'free'] || 0
 }
 
@@ -693,9 +678,8 @@ const getPlanFee = (plan: string | undefined): string => {
 const planIconClasses = (plan: string): string => {
   const classes: Record<string, string> = {
     free: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400',
-    growth: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
     pro: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
-    scale: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+    platinum: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
   }
   return (classes[plan] || classes.free) as string
 }

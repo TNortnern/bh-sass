@@ -17,22 +17,16 @@ describe('Stripe Fee Calculations', () => {
       expect(fee).toBe(600) // $6.00
     })
 
-    it('should calculate correct platform fee for growth tier (2.5%)', () => {
-      const amount = 10000 // $100.00
-      const fee = calculatePlatformFee(amount, 'growth')
-      expect(fee).toBe(250) // $2.50
-    })
-
-    it('should calculate correct platform fee for pro tier (0.5%)', () => {
+    it('should calculate correct platform fee for pro tier (3.5%)', () => {
       const amount = 10000 // $100.00
       const fee = calculatePlatformFee(amount, 'pro')
-      expect(fee).toBe(50) // $0.50
+      expect(fee).toBe(350) // $3.50
     })
 
-    it('should calculate zero platform fee for scale tier', () => {
+    it('should calculate correct platform fee for platinum tier (1%)', () => {
       const amount = 10000 // $100.00
-      const fee = calculatePlatformFee(amount, 'scale')
-      expect(fee).toBe(0)
+      const fee = calculatePlatformFee(amount, 'platinum')
+      expect(fee).toBe(100) // $1.00
     })
 
     it('should round correctly for fractional amounts', () => {
@@ -81,29 +75,29 @@ describe('Stripe Fee Calculations', () => {
     it('should calculate payment with deposit', () => {
       const subtotal = 10000 // $100.00
       const depositPercentage = 50 // 50% deposit
-      const result = calculatePayment(subtotal, 'growth', depositPercentage)
+      const result = calculatePayment(subtotal, 'pro', depositPercentage)
 
       expect(result.subtotal).toBe(10000)
-      expect(result.platformFee).toBe(250) // 2.5%
+      expect(result.platformFee).toBe(350) // 3.5%
       expect(result.stripeFee).toBe(320)
       expect(result.total).toBe(10000)
-      expect(result.tenantReceives).toBe(9430) // 10000 - 250 - 320
+      expect(result.tenantReceives).toBe(9330) // 10000 - 350 - 320
       expect(result.depositAmount).toBe(5000) // 50% of 10000
     })
 
-    it('should handle scale tier with no platform fee', () => {
+    it('should handle platinum tier with low platform fee', () => {
       const subtotal = 10000 // $100.00
-      const result = calculatePayment(subtotal, 'scale')
+      const result = calculatePayment(subtotal, 'platinum')
 
-      expect(result.platformFee).toBe(0)
-      expect(result.tenantReceives).toBe(9680) // 10000 - 0 - 320
+      expect(result.platformFee).toBe(100) // 1%
+      expect(result.tenantReceives).toBe(9580) // 10000 - 100 - 320
     })
   })
 
   describe('calculateApplicationFee', () => {
     it('should return same value as calculatePlatformFee', () => {
       const amount = 10000
-      const tiers: PricingTier[] = ['free', 'growth', 'pro', 'scale']
+      const tiers: PricingTier[] = ['free', 'pro', 'platinum']
 
       tiers.forEach((tier) => {
         const platformFee = calculatePlatformFee(amount, tier)
@@ -119,17 +113,13 @@ describe('Stripe Fee Calculations', () => {
       expect(freeConfig.rate).toBe(0.06)
       expect(freeConfig.description).toContain('6%')
 
-      const growthConfig = getPlatformFeeConfig('growth')
-      expect(growthConfig.rate).toBe(0.025)
-      expect(growthConfig.description).toContain('2.5%')
-
       const proConfig = getPlatformFeeConfig('pro')
-      expect(proConfig.rate).toBe(0.005)
-      expect(proConfig.description).toContain('0.5%')
+      expect(proConfig.rate).toBe(0.035)
+      expect(proConfig.description).toContain('3.5%')
 
-      const scaleConfig = getPlatformFeeConfig('scale')
-      expect(scaleConfig.rate).toBe(0)
-      expect(scaleConfig.description).toContain('No platform fee')
+      const platinumConfig = getPlatformFeeConfig('platinum')
+      expect(platinumConfig.rate).toBe(0.01)
+      expect(platinumConfig.description).toContain('1%')
     })
   })
 
@@ -169,9 +159,9 @@ describe('Stripe Fee Calculations', () => {
 
     it('should handle fractional cents correctly', () => {
       const amount = 10001 // $100.01
-      const fee = calculatePlatformFee(amount, 'growth')
-      // 2.5% of 10001 = 250.025, should round to 250
-      expect(fee).toBe(250)
+      const fee = calculatePlatformFee(amount, 'pro')
+      // 3.5% of 10001 = 350.035, should round to 350
+      expect(fee).toBe(350)
     })
   })
 
@@ -188,20 +178,20 @@ describe('Stripe Fee Calculations', () => {
     it('should calculate fees with 50% deposit on $200 rental', () => {
       const rentalAmount = 20000 // $200.00
       const depositPercentage = 50
-      const result = calculatePayment(rentalAmount, 'growth', depositPercentage)
+      const result = calculatePayment(rentalAmount, 'pro', depositPercentage)
 
       expect(result.depositAmount).toBe(10000) // $100.00
-      expect(result.platformFee).toBe(500) // $5.00 (2.5% of full amount)
-      expect(result.tenantReceives).toBe(18890) // $188.90
+      expect(result.platformFee).toBe(700) // $7.00 (3.5% of full amount)
+      expect(result.tenantReceives).toBe(18690) // $186.90
     })
 
-    it('should show scale tier advantage', () => {
+    it('should show platinum tier advantage', () => {
       const amount = 50000 // $500.00
       const freeResult = calculatePayment(amount, 'free')
-      const scaleResult = calculatePayment(amount, 'scale')
+      const platinumResult = calculatePayment(amount, 'platinum')
 
-      const savings = freeResult.platformFee - scaleResult.platformFee
-      expect(savings).toBe(3000) // $30.00 savings on $500 transaction
+      const savings = freeResult.platformFee - platinumResult.platformFee
+      expect(savings).toBe(2500) // $25.00 savings on $500 transaction (6% - 1% = 5%)
     })
   })
 })

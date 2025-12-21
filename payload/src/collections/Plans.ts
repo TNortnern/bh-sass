@@ -107,6 +107,72 @@ export const Plans: CollectionConfig = {
             description: 'Maximum number of bookings per month',
           },
         },
+        {
+          name: 'maxUsers',
+          type: 'number',
+          required: true,
+          defaultValue: 1,
+          admin: {
+            description: 'Maximum number of team members allowed',
+          },
+        },
+      ],
+    },
+    {
+      name: 'featureFlags',
+      type: 'group',
+      admin: {
+        description: 'Feature toggles for this plan',
+      },
+      fields: [
+        {
+          name: 'websiteBuilder',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: {
+            description: 'Access to website builder',
+          },
+        },
+        {
+          name: 'customRoles',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: {
+            description: 'Access to custom roles and permissions',
+          },
+        },
+        {
+          name: 'customWebsite',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: {
+            description: 'Can request custom website development',
+          },
+        },
+        {
+          name: 'prioritySupport',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: {
+            description: 'Access to priority support',
+          },
+        },
+        {
+          name: 'whiteLabel',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: {
+            description: 'Remove BouncePro branding',
+          },
+        },
+        {
+          name: 'apiAccess',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: {
+            description: 'Access to API keys and webhooks',
+          },
+        },
       ],
     },
     {

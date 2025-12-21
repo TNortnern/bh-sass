@@ -22,7 +22,7 @@ interface PlanWithStats {
 
 interface Tenant {
   id: string
-  plan: 'free' | 'growth' | 'pro' | 'scale'
+  plan: 'free' | 'pro' | 'platinum'
   status: string
 }
 
@@ -45,64 +45,46 @@ const PLAN_DEFINITIONS = [
     slug: 'free',
     price: 0,
     features: [
-      'Up to 10 bookings per month',
-      'Basic inventory management',
+      'Up to 10 rental items',
+      'Up to 50 bookings/month',
+      '1 team member',
       'Email notifications',
-      'Customer database',
-      'Basic reporting'
+      'Basic email support'
     ],
     transactionFee: 6.0,
-    isActive: true
-  },
-  {
-    id: 'growth',
-    name: 'Growth',
-    slug: 'growth',
-    price: 39,
-    features: [
-      'Unlimited bookings',
-      'Advanced inventory management',
-      'Email & SMS notifications',
-      'Customer portal',
-      'Advanced reporting',
-      'Custom branding',
-      'Priority support'
-    ],
-    transactionFee: 2.5,
     isActive: true
   },
   {
     id: 'pro',
     name: 'Pro',
     slug: 'pro',
-    price: 99,
+    price: 29,
     features: [
-      'Everything in Growth',
-      'Multi-location support',
-      'API access',
-      'Webhooks',
-      'Contract management',
-      'Advanced automation',
-      'Dedicated support'
+      'Up to 50 rental items',
+      '500 bookings/month',
+      '5 team members',
+      'Website builder',
+      'Custom roles & permissions',
+      'API access & webhooks'
     ],
-    transactionFee: 0.5,
+    transactionFee: 3.5,
     isActive: true
   },
   {
-    id: 'scale',
-    name: 'Scale',
-    slug: 'scale',
-    price: 249,
+    id: 'platinum',
+    name: 'Platinum',
+    slug: 'platinum',
+    price: 100,
     features: [
-      'Everything in Pro',
-      'Custom integrations',
-      'White-label options',
-      'Franchise management',
-      'Custom reporting',
-      'SLA guarantee',
-      'Account manager'
+      'Unlimited rental items',
+      'Unlimited bookings',
+      'Unlimited team members',
+      'Priority support',
+      'White-label solution',
+      'Free custom website (after 2 months)',
+      'All Pro features included'
     ],
-    transactionFee: 0,
+    transactionFee: 1.0,
     isActive: true
   }
 ]

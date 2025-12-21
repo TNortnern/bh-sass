@@ -14,7 +14,7 @@ export async function seedPlans() {
     }
     console.log('✓ Cleared existing plans')
 
-    // Create plans matching the billing page
+    // Create plans matching the new pricing tiers
     const plans = [
       {
         name: 'Free',
@@ -22,69 +22,82 @@ export async function seedPlans() {
         price: 0,
         transactionFee: 6,
         features: [
-          { feature: 'Basic booking management' },
-          { feature: 'Up to 20 bookings/month' },
-          { feature: 'Email support' },
-          { feature: 'Redirect booking flow' },
+          { feature: 'Up to 10 rental items' },
+          { feature: 'Up to 50 bookings/month' },
+          { feature: '1 team member' },
+          { feature: 'Basic email support' },
         ],
         limits: {
           maxItems: 10,
-          maxBookings: 20,
+          maxBookings: 50,
+          maxUsers: 1,
         },
-        active: true,
-      },
-      {
-        name: 'Growth',
-        slug: 'growth',
-        price: 3900, // $39 in cents
-        transactionFee: 2.5,
-        features: [
-          { feature: 'Unlimited bookings' },
-          { feature: 'Bundles & packages' },
-          { feature: 'Webhook notifications' },
-          { feature: 'Priority email support' },
-        ],
-        limits: {
-          maxItems: 50,
-          maxBookings: 500,
+        featureFlags: {
+          websiteBuilder: false,
+          customRoles: false,
+          customWebsite: false,
+          prioritySupport: false,
+          whiteLabel: false,
+          apiAccess: false,
         },
-        stripePriceId: 'price_1SflzGARnP3WTvQhQBkZIsZF', // Growth plan price
         active: true,
       },
       {
         name: 'Pro',
         slug: 'pro',
-        price: 9900, // $99 in cents
-        transactionFee: 0.5,
+        price: 2900, // $29 in cents
+        transactionFee: 3.5,
         features: [
-          { feature: 'Everything in Growth' },
-          { feature: 'API access' },
-          { feature: 'Custom branding' },
-          { feature: 'Advanced analytics' },
+          { feature: 'Up to 50 rental items' },
+          { feature: '500 bookings/month' },
+          { feature: '5 team members' },
+          { feature: 'Website builder' },
+          { feature: 'Custom roles & permissions' },
+          { feature: 'API access & webhooks' },
         ],
         limits: {
-          maxItems: 200,
-          maxBookings: 2000,
+          maxItems: 50,
+          maxBookings: 500,
+          maxUsers: 5,
         },
-        stripePriceId: 'price_1SflzHARnP3WTvQhcKXJIsy5', // Pro plan price
+        featureFlags: {
+          websiteBuilder: true,
+          customRoles: true,
+          customWebsite: true,
+          prioritySupport: false,
+          whiteLabel: false,
+          apiAccess: true,
+        },
+        stripePriceId: 'price_pro', // Update with real Stripe Price ID
         active: true,
       },
       {
-        name: 'Scale',
-        slug: 'scale',
-        price: 24900, // $249 in cents
-        transactionFee: 0,
+        name: 'Platinum',
+        slug: 'platinum',
+        price: 10000, // $100 in cents
+        transactionFee: 1,
         features: [
-          { feature: 'Everything in Pro' },
-          { feature: 'Zero platform fees' },
+          { feature: 'Unlimited rental items' },
+          { feature: 'Unlimited bookings' },
+          { feature: 'Unlimited team members' },
+          { feature: 'Priority support' },
           { feature: 'White-label solution' },
-          { feature: 'Custom domain' },
+          { feature: 'Free custom website (after 2 months)' },
         ],
         limits: {
-          maxItems: 1000,
-          maxBookings: 10000,
+          maxItems: -1, // -1 = unlimited
+          maxBookings: -1,
+          maxUsers: -1,
         },
-        stripePriceId: 'price_1SflzIARnP3WTvQha7fG6lgt', // Scale plan price
+        featureFlags: {
+          websiteBuilder: true,
+          customRoles: true,
+          customWebsite: true,
+          prioritySupport: true,
+          whiteLabel: true,
+          apiAccess: true,
+        },
+        stripePriceId: 'price_platinum', // Update with real Stripe Price ID
         active: true,
       },
     ]
