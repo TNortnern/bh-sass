@@ -1,6 +1,6 @@
 import type { Endpoint } from 'payload'
 
-import { generatePayloadCookie, headersWithCors, isNumber, loginOperation } from 'payload'
+import { generatePayloadCookie, headersWithCors, loginOperation } from 'payload'
 
 const DEFAULT_REMEMBER_ME_DAYS = 30
 const SECONDS_PER_DAY = 24 * 60 * 60
@@ -45,7 +45,7 @@ export const authLoginEndpoint: Endpoint = {
     const body = await req.json?.() || {}
     const rememberMe = parseBoolean(body.rememberMe)
     const depthParam = req.searchParams?.get('depth')
-    const depth = isNumber(depthParam) ? Number(depthParam) : undefined
+    const depth = depthParam && !Number.isNaN(Number(depthParam)) ? Number(depthParam) : undefined
 
     const tokenExpiration = rememberMe
       ? resolveRememberMeExpiration(collection.config.auth.tokenExpiration)
