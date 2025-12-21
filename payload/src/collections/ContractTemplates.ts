@@ -57,7 +57,8 @@ export const ContractTemplates: CollectionConfig = {
         }
       }
 
-      if (req.user?.role === 'tenant_admin') {
+      // Tenant admin and staff can update their tenant's templates
+      if (req.user?.role === 'tenant_admin' || req.user?.role === 'staff') {
         const tenantId = getTenantId(req.user)
         if (!tenantId) return false
         return {
@@ -90,7 +91,8 @@ export const ContractTemplates: CollectionConfig = {
         }
       }
 
-      if (req.user?.role === 'tenant_admin') {
+      // Tenant admin and staff can delete their tenant's non-default templates
+      if (req.user?.role === 'tenant_admin' || req.user?.role === 'staff') {
         const tenantId = getTenantId(req.user)
         if (!tenantId) return false
         return {

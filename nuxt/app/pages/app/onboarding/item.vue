@@ -7,13 +7,13 @@
           name="lucide:package-plus"
           class="w-4 h-4"
         />
-        Step 2: Your First Rental Item
+        Step 2: Add Inventory (Optional)
       </div>
       <h1 class="text-3xl sm:text-4xl font-bold text-white mb-3 tracking-tight">
-        Add your first rental item
+        Add a rental item
       </h1>
       <p class="text-gray-400 max-w-xl mx-auto">
-        This will be the first item customers can book on your page. You can add more items later.
+        You can skip this step and add your inventory later from your dashboard.
       </p>
     </div>
 
@@ -84,6 +84,9 @@
               size="xl"
               icon="i-lucide-castle"
               class="w-full"
+              :ui="{
+                base: 'bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:border-amber-500'
+              }"
               @input="debouncedSave"
             />
           </UFormField>
@@ -100,6 +103,9 @@
               :rows="4"
               size="xl"
               class="w-full"
+              :ui="{
+                base: 'bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:border-amber-500'
+              }"
               @input="debouncedSave"
             />
           </UFormField>
@@ -119,6 +125,9 @@
               placeholder="0.00"
               size="xl"
               class="w-full"
+              :ui="{
+                base: 'bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:border-amber-500'
+              }"
               @input="debouncedSave"
             >
               <template #leading>
@@ -207,21 +216,27 @@
       <div class="flex items-center gap-3">
         <UButton
           color="neutral"
-          variant="ghost"
+          variant="soft"
           size="lg"
-          class="text-gray-400 hover:text-white"
+          class="text-white bg-gray-700/50 hover:bg-gray-600/50"
           @click="handleSkip"
         >
+          <template #leading>
+            <Icon
+              name="lucide:arrow-right"
+              class="w-4 h-4"
+            />
+          </template>
           Skip for now
         </UButton>
 
         <UButton
+          v-if="isFormValid"
           size="lg"
-          :disabled="!isFormValid"
           class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all"
           @click="handleNext"
         >
-          Continue
+          Save & Continue
           <template #trailing>
             <Icon
               name="lucide:arrow-right"

@@ -271,6 +271,18 @@ export const useSettings = () => {
                 requireApproval?: boolean
                 bufferTime?: number
               }
+              notificationSettings?: {
+                emailNewBooking?: boolean
+                emailCancellation?: boolean
+                emailPayment?: boolean
+                emailReminder?: boolean
+                emailDailySummary?: boolean
+                inAppNewBooking?: boolean
+                inAppCancellation?: boolean
+                inAppPayment?: boolean
+                inAppReminder?: boolean
+                reminderTiming?: number
+              }
             }
             businessHours?: Record<string, { open?: string, close?: string, enabled?: boolean }>
             serviceArea?: {
@@ -281,7 +293,7 @@ export const useSettings = () => {
             stripeAccountId?: string
           }
 
-          const tenantResponse = await $fetch<TenantResponse>(`/v1/tenants/${tenantId}`, {
+          const tenantResponse = await $fetch<TenantResponse>(`/api/tenants/${tenantId}`, {
             credentials: 'include'
           })
 
@@ -365,18 +377,39 @@ export const useSettings = () => {
             payoutSchedule: 'weekly',
             lastPayoutDate: null
           }
+
+          // Map notification settings from tenant
+          const ns = tenantResponse.settings?.notificationSettings
+          state.notifications.value = {
+            email: {
+              newBooking: ns?.emailNewBooking ?? true,
+              cancellation: ns?.emailCancellation ?? true,
+              payment: ns?.emailPayment ?? true,
+              reminder: ns?.emailReminder ?? true,
+              dailySummary: ns?.emailDailySummary ?? false
+            },
+            inApp: {
+              newBooking: ns?.inAppNewBooking ?? true,
+              cancellation: ns?.inAppCancellation ?? true,
+              payment: ns?.inAppPayment ?? true,
+              reminder: ns?.inAppReminder ?? false
+            },
+            reminderTiming: ns?.reminderTiming ?? 24
+          }
         } catch (error) {
           console.warn('Failed to fetch tenant data, using defaults:', error)
           // Fall back to mock data if tenant fetch fails
           state.business.value = mockBusinessSettings
           state.booking.value = mockBookingSettings
           state.payments.value = mockPaymentSettings
+          state.notifications.value = mockNotificationSettings
         }
       } else {
         // No tenant ID - use mock data
         state.business.value = mockBusinessSettings
         state.booking.value = mockBookingSettings
         state.payments.value = mockPaymentSettings
+        state.notifications.value = mockNotificationSettings
       }
 
       // Fetch real team members from Users collection
@@ -422,8 +455,7 @@ export const useSettings = () => {
         state.team.value = mockTeamMembers
       }
 
-      // Fetch notification settings from tenant
-      state.notifications.value = mockNotificationSettings
+      // Note: Notification settings are now fetched from tenant data above
 
       // Fetch real API keys from Payload
       try {
@@ -558,13 +590,31 @@ export const useSettings = () => {
             }
           }
           break
-        case 'notifications':
+        case 'notifications': {
+          // Convert nested NotificationSettings to flat Payload format
+          const notifData = data as {
+            email?: { newBooking?: boolean, cancellation?: boolean, payment?: boolean, reminder?: boolean, dailySummary?: boolean }
+            inApp?: { newBooking?: boolean, cancellation?: boolean, payment?: boolean, reminder?: boolean }
+            reminderTiming?: number
+          }
           payload = {
             settings: {
-              notificationSettings: data
+              notificationSettings: {
+                emailNewBooking: notifData.email?.newBooking ?? true,
+                emailCancellation: notifData.email?.cancellation ?? true,
+                emailPayment: notifData.email?.payment ?? true,
+                emailReminder: notifData.email?.reminder ?? true,
+                emailDailySummary: notifData.email?.dailySummary ?? false,
+                inAppNewBooking: notifData.inApp?.newBooking ?? true,
+                inAppCancellation: notifData.inApp?.cancellation ?? true,
+                inAppPayment: notifData.inApp?.payment ?? true,
+                inAppReminder: notifData.inApp?.reminder ?? false,
+                reminderTiming: notifData.reminderTiming ?? 24
+              }
             }
           }
           break
+        }
         case 'website':
           // Website settings go in website field
           payload = {
@@ -576,7 +626,7 @@ export const useSettings = () => {
       }
 
       // Make real API call to Payload
-      await $fetch(`/v1/tenants/${tenantId}`, {
+      await $fetch(`/api/tenants/${tenantId}`, {
         method: 'PATCH',
         body: payload,
         credentials: 'include'
@@ -654,7 +704,7 @@ export const useSettings = () => {
       })
 
       // Update tenant with new logo reference
-      await $fetch(`/v1/tenants/${tenantId}`, {
+      await $fetch(`/api/tenants/${tenantId}`, {
         method: 'PATCH',
         body: { logo: uploadResponse.doc.id },
         credentials: 'include'
@@ -701,7 +751,7 @@ export const useSettings = () => {
       }
 
       // Remove logo reference from tenant
-      await $fetch(`/v1/tenants/${tenantId}`, {
+      await $fetch(`/api/tenants/${tenantId}`, {
         method: 'PATCH',
         body: { logo: null },
         credentials: 'include'
@@ -1025,7 +1075,7 @@ export const useSettings = () => {
     state.saving.value = true
     try {
       // Update user role in Payload
-      await $fetch(`/v1/users/${memberId}`, {
+      await $fetch(`/api/users/${memberId}`, {
         method: 'PATCH',
         body: { role: newRole },
         credentials: 'include'

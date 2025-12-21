@@ -1,8 +1,10 @@
 // RentalItem type for bundle calculations
+// Supports both frontend format (daily) and Payload format (dailyRate)
 export interface RentalItem {
-  id: string
+  id: string | number
   pricing: {
-    daily: number
+    daily?: number
+    dailyRate?: number
   }
 }
 
@@ -60,12 +62,14 @@ export const useBundles = () => {
     const itemsTotal = bundle.items.reduce((sum, bundleItem) => {
       // Handle rentalItem being a string ID, number ID, or populated object
       const rentalItemId = typeof bundleItem.rentalItem === 'object' && bundleItem.rentalItem !== null
-        ? bundleItem.rentalItem.id
+        ? String(bundleItem.rentalItem.id)
         : String(bundleItem.rentalItem)
 
       const item = rentalItems.find(ri => String(ri.id) === rentalItemId)
       if (item) {
-        return sum + (item.pricing.daily * bundleItem.quantity)
+        // Support both frontend (daily) and Payload (dailyRate) field names
+        const dailyPrice = item.pricing.dailyRate ?? item.pricing.daily ?? 0
+        return sum + (dailyPrice * bundleItem.quantity)
       }
       return sum
     }, 0)

@@ -95,20 +95,22 @@
                     v-model="availability[day].open"
                     type="time"
                     size="lg"
+                    class="dark-time-input"
                     :ui="{
-                      base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500'
+                      base: 'bg-gray-800/50 border-gray-700 text-white focus:border-amber-500'
                     }"
                     @change="debouncedSave"
                   />
                 </div>
-                <span class="text-gray-500">to</span>
+                <span class="text-gray-400">to</span>
                 <div class="flex-1">
                   <UInput
                     v-model="availability[day].close"
                     type="time"
                     size="lg"
+                    class="dark-time-input"
                     :ui="{
-                      base: 'bg-gray-800/50 border-gray-700 focus:border-amber-500'
+                      base: 'bg-gray-800/50 border-gray-700 text-white focus:border-amber-500'
                     }"
                     @change="debouncedSave"
                   />
@@ -316,5 +318,15 @@ useHead({
 
 .animate-slide-in {
   animation: slide-in 0.5s ease-out;
+}
+
+/* Fix for dark mode time inputs */
+.dark-time-input :deep(input[type="time"]) {
+  color-scheme: dark;
+  color: white;
+}
+
+.dark-time-input :deep(input[type="time"]::-webkit-calendar-picker-indicator) {
+  filter: invert(1);
 }
 </style>

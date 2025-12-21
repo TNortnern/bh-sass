@@ -1,6 +1,6 @@
 /**
- * Bunny CDN Upload API
- * Handles file uploads to Bunny CDN storage
+ * Image Upload API
+ * Uploads to Bunny CDN if configured, otherwise falls back to Payload media
  */
 
 export default defineEventHandler(async (event) => {
@@ -11,12 +11,7 @@ export default defineEventHandler(async (event) => {
   const cdnHostname = config.bunnyCdnHostname || process.env.BUNNY_CDN_HOSTNAME
   const storageHostname = config.bunnyStorageHostname || process.env.BUNNY_STORAGE_HOSTNAME || 'storage.bunnycdn.com'
 
-  if (!storageApiKey || !storageZone || !cdnHostname) {
-    throw createError({
-      statusCode: 500,
-      message: 'Bunny CDN not configured'
-    })
-  }
+  const useBunnyCdn = storageApiKey && storageZone && cdnHostname
 
   const formData = await readMultipartFormData(event)
 
@@ -48,35 +43,92 @@ export default defineEventHandler(async (event) => {
   const filename = `inventory/${timestamp}-${randomString}-${sanitizedName}.${extension}`
 
   try {
-    // Upload to Bunny CDN Storage
-    const uploadUrl = `https://${storageHostname}/${storageZone}/${filename}`
+    // Use Bunny CDN if configured
+    if (useBunnyCdn) {
+      const uploadUrl = `https://${storageHostname}/${storageZone}/${filename}`
 
-    const response = await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: {
-        'AccessKey': storageApiKey,
-        'Content-Type': file.type || 'application/octet-stream'
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      body: file.data as any
+      const response = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'AccessKey': storageApiKey!,
+          'Content-Type': file.type || 'application/octet-stream'
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        body: file.data as any
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Bunny CDN upload error:', errorText)
+        throw createError({
+          statusCode: response.status,
+          message: `Upload failed: ${errorText}`
+        })
+      }
+
+      // Return CDN URL
+      const cdnUrl = `https://${cdnHostname}/${filename}`
+
+      return {
+        success: true,
+        url: cdnUrl,
+        filename,
+        originalName: file.filename,
+        size: file.data.length,
+        type: file.type
+      }
+    }
+
+    // Fallback: Upload to Payload media collection
+    const payloadUrl = config.payloadApiUrl || 'http://payload:3000'
+
+    // Create a new FormData for Payload
+    const payloadFormData = new FormData()
+    // Convert Buffer to Uint8Array for Blob compatibility
+    const uint8Array = new Uint8Array(file.data)
+    const blob = new Blob([uint8Array], { type: file.type || 'application/octet-stream' })
+    payloadFormData.append('file', blob, file.filename || 'upload.jpg')
+    payloadFormData.append('_payload', JSON.stringify({
+      alt: file.filename || 'Uploaded image'
+    }))
+
+    // Forward cookies for authentication
+    const cookieHeader = getHeader(event, 'cookie')
+    const headers: Record<string, string> = {}
+    if (cookieHeader) {
+      headers['Cookie'] = cookieHeader
+    }
+
+    const payloadResponse = await fetch(`${payloadUrl}/api/media`, {
+      method: 'POST',
+      headers,
+      body: payloadFormData
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Bunny CDN upload error:', errorText)
+    if (!payloadResponse.ok) {
+      const errorText = await payloadResponse.text()
+      console.error('Payload media upload error:', errorText)
       throw createError({
-        statusCode: response.status,
+        statusCode: payloadResponse.status,
         message: `Upload failed: ${errorText}`
       })
     }
 
-    // Return CDN URL
-    const cdnUrl = `https://${cdnHostname}/${filename}`
+    const responseData = await payloadResponse.json() as { doc?: { url?: string, filename?: string } }
+
+    // Payload returns the media document with a URL
+    const mediaUrl = responseData.doc?.url
+    if (!mediaUrl) {
+      throw createError({
+        statusCode: 500,
+        message: 'Upload succeeded but no URL returned'
+      })
+    }
 
     return {
       success: true,
-      url: cdnUrl,
-      filename,
+      url: mediaUrl,
+      filename: responseData.doc?.filename || filename,
       originalName: file.filename,
       size: file.data.length,
       type: file.type

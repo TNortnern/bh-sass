@@ -26,7 +26,13 @@ export const AddOns: CollectionConfig = {
         }
       }
 
-      // Public access: allow reading active add-ons
+      // Authenticated user without tenantId - deny access
+      if (req.user) {
+        console.warn(`[AddOns] User ${req.user.id} has no tenantId, denying access`)
+        return false
+      }
+
+      // Public access (for widget ONLY): allow reading active add-ons
       return {
         active: {
           equals: true,
@@ -54,7 +60,8 @@ export const AddOns: CollectionConfig = {
         }
       }
 
-      if (req.user?.role === 'tenant_admin') {
+      // Tenant admin and staff can update their tenant's add-ons
+      if (req.user?.role === 'tenant_admin' || req.user?.role === 'staff') {
         const tenantId = getTenantId(req.user)
         if (!tenantId) return false
         return {
@@ -79,7 +86,8 @@ export const AddOns: CollectionConfig = {
         }
       }
 
-      if (req.user?.role === 'tenant_admin') {
+      // Tenant admin and staff can delete their tenant's add-ons
+      if (req.user?.role === 'tenant_admin' || req.user?.role === 'staff') {
         const tenantId = getTenantId(req.user)
         if (!tenantId) return false
         return {

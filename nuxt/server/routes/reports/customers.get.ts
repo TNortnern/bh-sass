@@ -30,7 +30,9 @@ export default defineEventHandler(async (event) => {
   const rbPayloadUrl = config.rbPayloadUrl || 'https://reusablebook-payload-production.up.railway.app'
   const apiKey = config.rbPayloadApiKey
 
-  const TENANT_ID = 6 // Bounce Kingdom
+  // Get tenant from authenticated user
+  const tenant = await getAuthenticatedTenant(event)
+  const TENANT_ID = tenant.rbPayloadTenantId
 
   if (!apiKey) {
     throw createError({

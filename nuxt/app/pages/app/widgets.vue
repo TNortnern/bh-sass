@@ -27,10 +27,93 @@ const {
   fetchTenant
 } = useTenant()
 
-// Fetch tenant on mount
+// Auto-provisioning state
+const isAutoProvisioning = ref(false)
+
+// Fetch tenant on mount and auto-provision if needed
 onMounted(async () => {
   await fetchTenant()
+
+  // Auto-provision rb-payload if tenant exists but isn't configured
+  if (tenant.value && !isRbPayloadConfigured.value) {
+    await autoProvisionRbPayload()
+  }
 })
+
+// Auto-provision rb-payload tenant
+async function autoProvisionRbPayload() {
+  if (!tenant.value?.id || isAutoProvisioning.value) return
+
+  // Don't auto-provision if status is 'pending' (already in progress)
+  if (tenant.value.rbPayloadSyncStatus === 'pending') {
+    // Poll for completion instead
+    pollForProvisioning()
+    return
+  }
+
+  isAutoProvisioning.value = true
+
+  try {
+    const response = await $fetch<{ success: boolean, error?: string }>(`/v1/admin/tenants/${tenant.value.id}/sync-rb-payload`, {
+      method: 'POST',
+      credentials: 'include'
+    })
+
+    if (response.success) {
+      toast.add({
+        title: 'Booking System Ready',
+        description: 'Your widget is now ready to use!',
+        color: 'success'
+      })
+
+      // Refresh tenant data
+      await fetchTenant(true)
+    }
+  } catch (err: unknown) {
+    const error = err as { data?: { error?: string } }
+    console.error('Auto-provisioning failed:', error)
+    // Don't show error toast - the alert component will handle it
+  } finally {
+    isAutoProvisioning.value = false
+  }
+}
+
+// Poll for provisioning completion (when status is 'pending')
+async function pollForProvisioning() {
+  isAutoProvisioning.value = true
+
+  // Poll every 2 seconds for up to 30 seconds
+  const maxAttempts = 15
+  let attempts = 0
+
+  const poll = async () => {
+    attempts++
+    await fetchTenant(true)
+
+    if (isRbPayloadConfigured.value) {
+      isAutoProvisioning.value = false
+      toast.add({
+        title: 'Booking System Ready',
+        description: 'Your widget is now ready to use!',
+        color: 'success'
+      })
+      return
+    }
+
+    if (tenant.value?.rbPayloadSyncStatus === 'failed') {
+      isAutoProvisioning.value = false
+      return
+    }
+
+    if (attempts < maxAttempts) {
+      setTimeout(poll, 2000)
+    } else {
+      isAutoProvisioning.value = false
+    }
+  }
+
+  await poll()
+}
 
 // Widget configuration state
 const config = reactive({
@@ -398,11 +481,57 @@ https://yoursite.com/rentals?category=water-slides&featured=true`
   <!-- No tenant -->
   <NoTenantAlert v-else-if="!hasTenant" />
 
-  <!-- Not configured -->
+  <!-- Auto-provisioning in progress -->
+  <div
+    v-else-if="isAutoProvisioning"
+    class="min-h-[60vh] flex items-center justify-center p-4"
+  >
+    <UCard class="max-w-md w-full text-center">
+      <template #header>
+        <div class="flex flex-col items-center gap-3">
+          <div class="w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+            <UIcon
+              name="i-lucide-loader-2"
+              class="text-orange-600 dark:text-orange-400 w-8 h-8 animate-spin"
+            />
+          </div>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Setting Up Your Widget
+          </h2>
+        </div>
+      </template>
+
+      <div class="space-y-4">
+        <p class="text-gray-600 dark:text-gray-400">
+          We're configuring your booking system. This usually takes just a few seconds...
+        </p>
+
+        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
+          <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <UIcon
+              name="i-lucide-check-circle"
+              class="text-green-500 w-4 h-4"
+            />
+            <span>Creating booking engine tenant</span>
+          </div>
+          <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <UIcon
+              name="i-lucide-loader-2"
+              class="text-orange-500 w-4 h-4 animate-spin"
+            />
+            <span>Configuring widget settings</span>
+          </div>
+        </div>
+      </div>
+    </UCard>
+  </div>
+
+  <!-- Not configured (failed or requires manual action) -->
   <RbPayloadNotConfiguredAlert
     v-else-if="!isRbPayloadConfigured"
     :sync-status="tenant?.rbPayloadSyncStatus"
     :sync-error="tenant?.rbPayloadSyncError"
+    @retry-complete="fetchTenant(true)"
   />
 
   <!-- Main content -->

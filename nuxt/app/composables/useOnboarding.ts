@@ -4,7 +4,7 @@ export interface OnboardingState {
   completed: boolean
   business: {
     name: string
-    type: string
+    types: string[]
     timezone: string
     serviceArea: string
   }
@@ -29,7 +29,7 @@ export function useOnboarding() {
     completed: false,
     business: {
       name: '',
-      type: '',
+      types: [],
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       serviceArea: ''
     },
@@ -133,7 +133,7 @@ export function useOnboarding() {
       completed: false,
       business: {
         name: '',
-        type: '',
+        types: [],
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         serviceArea: ''
       },

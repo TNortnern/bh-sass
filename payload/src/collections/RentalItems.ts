@@ -153,7 +153,14 @@ export const RentalItems: CollectionConfig = {
         }
       }
 
-      // Public access (for booking widget): allow reading active items
+      // Authenticated user without tenantId - deny access (shouldn't happen normally)
+      if (req.user) {
+        console.warn(`[RentalItems] User ${req.user.id} has no tenantId, denying access`)
+        return false
+      }
+
+      // Public access (for booking widget ONLY): allow reading active items
+      // This should only be used by unauthenticated widget requests
       return {
         isActive: {
           equals: true,
@@ -251,6 +258,12 @@ export const RentalItems: CollectionConfig = {
             // On CREATE: Always use the authenticated user's tenant
             // Never allow client-provided tenantId (prevents data leakage across tenants)
             const tenantId = getTenantId(req.user)
+
+            // If no user but tenantId is explicitly provided (seed script or system operation)
+            // Allow it through - this enables database seeding
+            if (!tenantId && data?.tenantId) {
+              return data.tenantId
+            }
 
             // If no user or no tenant associated, throw error
             if (!tenantId) {

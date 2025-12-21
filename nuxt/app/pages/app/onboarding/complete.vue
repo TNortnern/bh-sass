@@ -221,10 +221,10 @@ const setupSummary = computed(() => {
     })
   }
 
-  if (state.value.business.type) {
+  if (state.value.business.types && state.value.business.types.length > 0) {
     summary.push({
       label: 'Business Type',
-      value: state.value.business.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+      value: state.value.business.types.map((t: string) => t.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())).join(', ')
     })
   }
 

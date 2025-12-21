@@ -9,11 +9,15 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const { fetchItem, updateItem } = useInventory()
+const { fetchCategories } = useCategories()
 const { setBreadcrumbs } = useBreadcrumbs()
 
 const itemId = computed(() => route.params.id as string)
 const isFetching = ref(true)
 const isSubmitting = ref(false)
+
+// Fetch custom categories from API
+const customCategories = ref<Array<{ id: string, name: string, slug: string }>>([])
 
 const formData = ref({
   name: '',
@@ -37,6 +41,13 @@ const formData = ref({
 })
 
 onMounted(async () => {
+  // Fetch custom categories in parallel
+  fetchCategories().then((categories) => {
+    customCategories.value = categories
+  }).catch((error) => {
+    console.error('Failed to fetch categories:', error)
+  })
+
   try {
     const item = await fetchItem(itemId.value)
     if (item) {
@@ -103,7 +114,8 @@ const populateFormData = (item: InventoryItem) => {
   formData.value.images = item.images || []
 }
 
-const categoryItems = [
+// Default categories + custom categories from API
+const defaultCategories = [
   { label: 'Bounce House', value: 'bounce_house' },
   { label: 'Water Slide', value: 'water_slide' },
   { label: 'Obstacle Course', value: 'obstacle_course' },
@@ -111,6 +123,24 @@ const categoryItems = [
   { label: 'Combo', value: 'combo' },
   { label: 'Other', value: 'other' }
 ]
+
+const categoryItems = computed(() => {
+  // Start with default categories
+  const items = [...defaultCategories]
+
+  // Add custom categories from API (using slug as value)
+  for (const cat of customCategories.value) {
+    // Don't add if a default category with this slug already exists
+    if (!items.some(item => item.value === cat.slug)) {
+      items.push({
+        label: cat.name,
+        value: cat.slug
+      })
+    }
+  }
+
+  return items
+})
 
 const statusItems = [
   { label: 'Active', value: 'active' },

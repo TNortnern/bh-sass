@@ -6,6 +6,7 @@ definePageMeta({
 })
 
 const { createItem } = useInventory()
+const { fetchCategories } = useCategories()
 const toast = useToast()
 const { setBreadcrumbs } = useBreadcrumbs()
 const { currentUser } = useAuth()
@@ -14,12 +15,23 @@ const hasTenant = computed(() => {
   return currentUser.value?.tenantId !== null && currentUser.value?.tenantId !== undefined
 })
 
-onMounted(() => {
+// Fetch custom categories from API
+const customCategories = ref<Array<{ id: string, name: string, slug: string }>>([])
+
+onMounted(async () => {
   setBreadcrumbs([
     { label: 'Dashboard', to: '/app', icon: 'i-lucide-home' },
     { label: 'Inventory', to: '/app/inventory' },
     { label: 'New Item' }
   ])
+
+  // Fetch custom categories
+  try {
+    const categories = await fetchCategories()
+    customCategories.value = categories
+  } catch (error) {
+    console.error('Failed to fetch categories:', error)
+  }
 })
 
 const isSubmitting = ref(false)
@@ -45,7 +57,8 @@ const formData = ref({
   images: [] as string[]
 })
 
-const categoryItems = [
+// Default categories + custom categories from API
+const defaultCategories = [
   { label: 'Bounce House', value: 'bounce_house' },
   { label: 'Water Slide', value: 'water_slide' },
   { label: 'Obstacle Course', value: 'obstacle_course' },
@@ -53,6 +66,24 @@ const categoryItems = [
   { label: 'Combo', value: 'combo' },
   { label: 'Other', value: 'other' }
 ]
+
+const categoryItems = computed(() => {
+  // Start with default categories
+  const items = [...defaultCategories]
+
+  // Add custom categories from API (using slug as value)
+  for (const cat of customCategories.value) {
+    // Don't add if a default category with this slug already exists
+    if (!items.some(item => item.value === cat.slug)) {
+      items.push({
+        label: cat.name,
+        value: cat.slug
+      })
+    }
+  }
+
+  return items
+})
 
 const statusItems = [
   { label: 'Active', value: 'active' },

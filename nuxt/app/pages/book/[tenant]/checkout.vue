@@ -160,7 +160,11 @@ const formatCurrency = (amount: number) => {
   }).format(amount)
 }
 
-const depositAmount = computed(() => total.value * 0.5)
+const depositPercentage = computed(() => {
+  return tenantData.value?.settings?.bookingSettings?.depositPercentage ?? 30
+})
+
+const depositAmount = computed(() => total.value * (depositPercentage.value / 100))
 </script>
 
 <template>
@@ -226,7 +230,7 @@ const depositAmount = computed(() => total.value * 0.5)
                     Pay Deposit (Recommended)
                   </div>
                   <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    50% now, balance due on delivery
+                    {{ depositPercentage }}% now, balance due on delivery
                   </div>
                 </div>
                 <div class="text-xl font-bold text-orange-600 dark:text-orange-500">

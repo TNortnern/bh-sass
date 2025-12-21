@@ -267,6 +267,34 @@ const printBooking = () => {
         </div>
       </div>
 
+      <!-- Waiver Signing CTA -->
+      <div class="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
+            <UIcon
+              name="lucide:file-signature"
+              class="w-6 h-6 text-blue-600 dark:text-blue-400"
+            />
+          </div>
+          <div class="flex-1">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+              Sign Your Waiver
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Please sign the liability waiver before your event. This is required for all rentals and only takes a minute.
+            </p>
+            <UButton
+              :to="`/site/${tenantSlug}/waiver?booking=${booking.number}`"
+              color="primary"
+              size="lg"
+              icon="i-lucide-pen-tool"
+            >
+              Sign Waiver Now
+            </UButton>
+          </div>
+        </div>
+      </div>
+
       <!-- Action Buttons -->
       <div class="flex flex-wrap gap-3 justify-center mb-8">
         <UDropdownMenu
@@ -466,8 +494,21 @@ const printBooking = () => {
               </div>
             </div>
             <div class="flex items-start gap-3">
-              <div class="w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center flex-shrink-0 text-sm font-bold">
+              <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0 text-sm font-bold">
                 2
+              </div>
+              <div>
+                <div class="font-medium text-gray-900 dark:text-white">
+                  Sign the Waiver
+                </div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">
+                  Complete the liability waiver before your event (required)
+                </div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div class="w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                3
               </div>
               <div>
                 <div class="font-medium text-gray-900 dark:text-white">
@@ -480,7 +521,7 @@ const printBooking = () => {
             </div>
             <div class="flex items-start gap-3">
               <div class="w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center flex-shrink-0 text-sm font-bold">
-                3
+                4
               </div>
               <div>
                 <div class="font-medium text-gray-900 dark:text-white">
@@ -493,7 +534,7 @@ const printBooking = () => {
             </div>
             <div class="flex items-start gap-3">
               <div class="w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center flex-shrink-0 text-sm font-bold">
-                4
+                5
               </div>
               <div>
                 <div class="font-medium text-gray-900 dark:text-white">

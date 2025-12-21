@@ -81,7 +81,7 @@
                   color="warning"
                   variant="soft"
                   size="xs"
-                  to="/app/settings/billing"
+                  to="/pricing"
                   target="_blank"
                 >
                   View Pricing Plans

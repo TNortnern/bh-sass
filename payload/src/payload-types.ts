@@ -568,6 +568,51 @@ export interface Tenant {
        */
       pickupTime?: number | null;
     };
+    /**
+     * Notification preferences
+     */
+    notificationSettings?: {
+      /**
+       * Email notifications for new bookings
+       */
+      emailNewBooking?: boolean | null;
+      /**
+       * Email notifications for cancellations
+       */
+      emailCancellation?: boolean | null;
+      /**
+       * Email notifications for payments
+       */
+      emailPayment?: boolean | null;
+      /**
+       * Email reminder notifications
+       */
+      emailReminder?: boolean | null;
+      /**
+       * Daily summary email
+       */
+      emailDailySummary?: boolean | null;
+      /**
+       * In-app notifications for new bookings
+       */
+      inAppNewBooking?: boolean | null;
+      /**
+       * In-app notifications for cancellations
+       */
+      inAppCancellation?: boolean | null;
+      /**
+       * In-app notifications for payments
+       */
+      inAppPayment?: boolean | null;
+      /**
+       * In-app reminder notifications
+       */
+      inAppReminder?: boolean | null;
+      /**
+       * Hours before rental to send reminder
+       */
+      reminderTiming?: number | null;
+    };
   };
   /**
    * Tenant account status
@@ -2183,21 +2228,7 @@ export interface MaintenanceRecord {
   /**
    * Detailed notes about the maintenance work
    */
-  notes?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+  notes?: string | null;
   /**
    * Checklist items completed during maintenance
    */
@@ -3044,6 +3075,20 @@ export interface TenantsSelect<T extends boolean = true> {
               baseDeliveryFee?: T;
               setupTime?: T;
               pickupTime?: T;
+            };
+        notificationSettings?:
+          | T
+          | {
+              emailNewBooking?: T;
+              emailCancellation?: T;
+              emailPayment?: T;
+              emailReminder?: T;
+              emailDailySummary?: T;
+              inAppNewBooking?: T;
+              inAppCancellation?: T;
+              inAppPayment?: T;
+              inAppReminder?: T;
+              reminderTiming?: T;
             };
       };
   status?: T;

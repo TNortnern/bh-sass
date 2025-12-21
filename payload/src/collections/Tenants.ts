@@ -2,6 +2,7 @@ import type { Access, CollectionConfig } from 'payload'
 import { getTenantId } from '../utilities/getTenantId'
 import { auditCreateAndUpdate, auditDelete } from '../hooks/auditHooks'
 import { provisionRbPayloadTenant, isRbPayloadProvisioningEnabled } from '../lib/rbPayloadProvisioning'
+import { defaultTemplates } from '../lib/documents/default-templates'
 
 // Debug log only in development
 if (process.env.NODE_ENV === 'development' && process.env.DEBUG_COLLECTIONS) {
@@ -769,7 +770,7 @@ export const Tenants: CollectionConfig = {
             {
               name: 'depositPercentage',
               type: 'number',
-              defaultValue: 50,
+              defaultValue: 30,
               admin: {
                 description: 'Required deposit percentage (0-100)',
                 step: 1,
@@ -819,6 +820,75 @@ export const Tenants: CollectionConfig = {
             },
           ],
         },
+        {
+          name: 'notificationSettings',
+          type: 'group',
+          admin: {
+            description: 'Notification preferences',
+          },
+          fields: [
+            {
+              name: 'emailNewBooking',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: { description: 'Email notifications for new bookings' },
+            },
+            {
+              name: 'emailCancellation',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: { description: 'Email notifications for cancellations' },
+            },
+            {
+              name: 'emailPayment',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: { description: 'Email notifications for payments' },
+            },
+            {
+              name: 'emailReminder',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: { description: 'Email reminder notifications' },
+            },
+            {
+              name: 'emailDailySummary',
+              type: 'checkbox',
+              defaultValue: false,
+              admin: { description: 'Daily summary email' },
+            },
+            {
+              name: 'inAppNewBooking',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: { description: 'In-app notifications for new bookings' },
+            },
+            {
+              name: 'inAppCancellation',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: { description: 'In-app notifications for cancellations' },
+            },
+            {
+              name: 'inAppPayment',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: { description: 'In-app notifications for payments' },
+            },
+            {
+              name: 'inAppReminder',
+              type: 'checkbox',
+              defaultValue: false,
+              admin: { description: 'In-app reminder notifications' },
+            },
+            {
+              name: 'reminderTiming',
+              type: 'number',
+              defaultValue: 24,
+              admin: { description: 'Hours before rental to send reminder' },
+            },
+          ],
+        },
       ],
     },
     {
@@ -848,152 +918,46 @@ export const Tenants: CollectionConfig = {
   timestamps: true,
   hooks: {
     afterChange: [
-      // Create default waiver template for new tenants (only on create, not update)
+      // Create default contract templates for new tenants (only on create, not update)
       async ({ doc, req, operation }: { doc: any; req: any; operation: 'create' | 'update' }) => {
         // Only run on create, not update
         if (operation !== 'create') return doc
-        try {
-          req.payload.logger.info(`Creating default waiver template for tenant "${doc.name}"...`)
 
-          await req.payload.create({
-            collection: 'contract-templates',
-            data: {
-              tenantId: doc.id,
-              name: 'Equipment Rental Waiver & Agreement',
-              templateType: 'liability-waiver',
-              description: 'Standard liability waiver and rental agreement for equipment rentals. Covers safety rules, liability release, and rental terms.',
-              isDefault: false, // Tenant can delete this
-              requiresSignature: true,
-              isActive: true,
-              content: {
-                root: {
-                  type: 'root',
-                  children: [
-                    {
-                      type: 'heading',
-                      tag: 'h1',
-                      children: [{ type: 'text', text: 'EQUIPMENT RENTAL AGREEMENT & LIABILITY WAIVER' }],
-                    },
-                    {
-                      type: 'paragraph',
-                      children: [{ type: 'text', text: 'This Agreement is entered into between {{tenantName}} ("Company") and {{customerName}} ("Renter") on {{bookingDate}}.' }],
-                    },
-                    {
-                      type: 'heading',
-                      tag: 'h2',
-                      children: [{ type: 'text', text: '1. RENTAL DETAILS' }],
-                    },
-                    {
-                      type: 'paragraph',
-                      children: [
-                        { type: 'text', text: 'Equipment: {{itemName}}', format: ['bold'] },
-                        { type: 'linebreak' },
-                        { type: 'text', text: 'Rental Period: {{startDate}} to {{endDate}}' },
-                        { type: 'linebreak' },
-                        { type: 'text', text: 'Delivery Address: {{deliveryAddress}}' },
-                        { type: 'linebreak' },
-                        { type: 'text', text: 'Total Amount: {{totalAmount}}' },
-                      ],
-                    },
-                    {
-                      type: 'heading',
-                      tag: 'h2',
-                      children: [{ type: 'text', text: '2. ASSUMPTION OF RISK & RELEASE OF LIABILITY' }],
-                    },
-                    {
-                      type: 'paragraph',
-                      children: [{ type: 'text', text: 'I, {{customerName}}, acknowledge that the use of inflatable equipment and party rental items involves inherent risks, including but not limited to: physical injury, falls, collisions with other users, equipment malfunction, and other hazards.' }],
-                    },
-                    {
-                      type: 'paragraph',
-                      children: [{ type: 'text', text: 'I VOLUNTARILY ASSUME ALL RISKS associated with the use of the rented equipment. I hereby RELEASE, WAIVE, AND DISCHARGE {{tenantName}}, its owners, employees, agents, and representatives from any and all liability, claims, demands, and causes of action arising from any injury, loss, or damage to myself, my family members, guests, or property that may occur during the rental period.' }],
-                    },
-                    {
-                      type: 'heading',
-                      tag: 'h2',
-                      children: [{ type: 'text', text: '3. SAFETY RULES & GUIDELINES' }],
-                    },
-                    {
-                      type: 'paragraph',
-                      children: [{ type: 'text', text: 'The Renter agrees to enforce the following safety rules at all times:' }],
-                    },
-                    {
-                      type: 'list',
-                      listType: 'bullet',
-                      children: [
-                        { type: 'listitem', children: [{ type: 'text', text: 'Adult supervision is REQUIRED at all times when equipment is in use' }] },
-                        { type: 'listitem', children: [{ type: 'text', text: 'Remove shoes, eyeglasses, jewelry, and sharp objects before use' }] },
-                        { type: 'listitem', children: [{ type: 'text', text: 'No food, drinks, gum, silly string, or water near equipment' }] },
-                        { type: 'listitem', children: [{ type: 'text', text: 'No flips, wrestling, rough play, or climbing on walls' }] },
-                        { type: 'listitem', children: [{ type: 'text', text: 'Separate users by age and size groups' }] },
-                        { type: 'listitem', children: [{ type: 'text', text: 'Do not exceed maximum capacity as specified' }] },
-                        { type: 'listitem', children: [{ type: 'text', text: 'Do not use in high winds (15+ mph), rain, or severe weather' }] },
-                        { type: 'listitem', children: [{ type: 'text', text: 'Keep blower running at all times during use' }] },
-                      ],
-                    },
-                    {
-                      type: 'heading',
-                      tag: 'h2',
-                      children: [{ type: 'text', text: '4. DAMAGE & RESPONSIBILITY' }],
-                    },
-                    {
-                      type: 'paragraph',
-                      children: [{ type: 'text', text: 'The Renter is responsible for the equipment from delivery until pickup. The Renter agrees to pay for any damage, excessive cleaning, or loss of equipment caused by misuse, negligence, or failure to follow safety guidelines. A damage assessment will be conducted upon pickup.' }],
-                    },
-                    {
-                      type: 'heading',
-                      tag: 'h2',
-                      children: [{ type: 'text', text: '5. WEATHER & CANCELLATION' }],
-                    },
-                    {
-                      type: 'paragraph',
-                      children: [{ type: 'text', text: 'Equipment must be deflated and secured in case of rain, high winds, or severe weather. The Company reserves the right to cancel or postpone rentals due to unsafe weather conditions. Cancellation policy: {{cancellationPolicy}}' }],
-                    },
-                    {
-                      type: 'heading',
-                      tag: 'h2',
-                      children: [{ type: 'text', text: '6. INDEMNIFICATION' }],
-                    },
-                    {
-                      type: 'paragraph',
-                      children: [{ type: 'text', text: 'The Renter agrees to INDEMNIFY and HOLD HARMLESS {{tenantName}} from any claims, lawsuits, costs, and expenses (including attorney fees) arising from the rental, use, or misuse of the equipment by the Renter, their guests, or any third parties.' }],
-                    },
-                    {
-                      type: 'heading',
-                      tag: 'h2',
-                      children: [{ type: 'text', text: '7. AGREEMENT' }],
-                    },
-                    {
-                      type: 'paragraph',
-                      children: [{ type: 'text', text: 'I have read this Agreement and Waiver in its entirety. I understand and agree to all terms and conditions. I confirm that I am at least 18 years of age and legally authorized to sign this agreement.' }],
-                    },
-                    {
-                      type: 'paragraph',
-                      children: [
-                        { type: 'linebreak' },
-                        { type: 'text', text: 'Renter Signature: _______________________  Date: {{signatureDate}}', format: ['bold'] },
-                        { type: 'linebreak' },
-                        { type: 'linebreak' },
-                        { type: 'text', text: 'Printed Name: {{customerName}}', format: ['bold'] },
-                        { type: 'linebreak' },
-                        { type: 'text', text: 'Phone: {{customerPhone}}  Email: {{customerEmail}}', format: ['bold'] },
-                      ],
-                    },
-                  ],
-                  direction: null,
-                  format: '',
-                  indent: 0,
-                  version: 1,
-                },
-              },
-            },
-          })
+        // Use setImmediate to run after the current transaction commits
+        // This prevents FK constraint failures when the tenant isn't yet visible
+        setImmediate(async () => {
+          try {
+            req.payload.logger.info(`Creating default contract templates for tenant "${doc.name}"...`)
 
-          req.payload.logger.info(`✓ Created default waiver template for tenant "${doc.name}"`)
-        } catch (error) {
-          req.payload.logger.error({ err: error, msg: `Failed to create default waiver template for tenant "${doc.name}"` })
-          // Don't fail tenant creation if template creation fails
-        }
+            // Create all 5 default templates for the new tenant
+            let created = 0
+            for (const template of defaultTemplates) {
+              try {
+                await req.payload.create({
+                  collection: 'contract-templates',
+                  data: {
+                    tenantId: doc.id,
+                    name: template.name,
+                    templateType: template.templateType,
+                    description: template.description,
+                    content: template.content,
+                    requiresSignature: template.requiresSignature,
+                    isActive: template.isActive,
+                    isDefault: false, // Tenant copies are NOT system defaults (can be deleted)
+                  } as any,
+                })
+                created++
+              } catch (templateError) {
+                req.payload.logger.error({ err: templateError, msg: `Failed to create template "${template.name}" for tenant "${doc.name}"` })
+              }
+            }
+
+            req.payload.logger.info(`✓ Created ${created}/${defaultTemplates.length} default templates for tenant "${doc.name}"`)
+          } catch (error) {
+            req.payload.logger.error({ err: error, msg: `Failed to create default templates for tenant "${doc.name}"` })
+            // Don't fail tenant creation if template creation fails
+          }
+        }) // end setImmediate
 
         return doc
       },

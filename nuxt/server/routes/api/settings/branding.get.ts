@@ -73,9 +73,10 @@ export default defineEventHandler(async (event) => {
     })
 
     // Extract branding settings from tenant
+    // Note: typeof null === 'object' in JS, so we need explicit null check
     const branding = {
-      logo: typeof tenant.logo === 'object' ? tenant.logo.url : null,
-      logoId: typeof tenant.logo === 'object' ? tenant.logo.id : tenant.logo,
+      logo: tenant.logo && typeof tenant.logo === 'object' ? tenant.logo.url : null,
+      logoId: tenant.logo && typeof tenant.logo === 'object' ? tenant.logo.id : (tenant.logo || null),
       businessName: tenant.branding?.businessName || tenant.name || '',
       tagline: tenant.branding?.tagline || '',
       templateId: tenant.website?.templateId || 'classic',
@@ -92,7 +93,13 @@ export default defineEventHandler(async (event) => {
 
     return branding
   } catch (error: unknown) {
-    console.error('Failed to fetch branding settings:', error)
+    // Enhanced error logging
+    const errorDetails = {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      statusCode: error && typeof error === 'object' && 'statusCode' in error ? (error as { statusCode?: number }).statusCode : undefined,
+      data: error && typeof error === 'object' && 'data' in error ? (error as { data?: unknown }).data : undefined
+    }
+    console.error('Failed to fetch branding settings:', JSON.stringify(errorDetails, null, 2))
 
     // If it's already a H3 error, rethrow it
     if (error && typeof error === 'object' && 'statusCode' in error) {

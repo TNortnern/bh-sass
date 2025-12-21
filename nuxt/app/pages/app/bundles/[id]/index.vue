@@ -144,6 +144,18 @@ const formatDate = (date: string) => {
     day: 'numeric'
   })
 }
+
+// Helper to get item daily price from rental items
+const getItemDailyPrice = (bundleItem: { rentalItem: unknown, quantity: number }) => {
+  const rentalItemId = typeof bundleItem.rentalItem === 'object' && bundleItem.rentalItem !== null
+    ? String((bundleItem.rentalItem as { id: unknown }).id)
+    : String(bundleItem.rentalItem)
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const item = rentalItems.value.find((i: any) => String(i.id) === rentalItemId) as any
+  if (!item?.pricing) return 0
+  return item.pricing.dailyRate ?? item.pricing.daily ?? 0
+}
 </script>
 
 <template>
@@ -296,10 +308,10 @@ const formatDate = (date: string) => {
                 </div>
                 <div class="text-right">
                   <p class="text-sm font-semibold text-gray-900 dark:text-white">
-                    {{ formatPrice((rentalItems.find((i: any) => String(i.id) === (typeof item.rentalItem === 'object' && item.rentalItem !== null ? String(item.rentalItem.id) : String(item.rentalItem)))?.pricing.daily || 0) * item.quantity) }}
+                    {{ formatPrice(getItemDailyPrice(item) * item.quantity) }}
                   </p>
                   <p class="text-xs text-gray-500 dark:text-gray-400">
-                    ${{ rentalItems.find((i: any) => String(i.id) === (typeof item.rentalItem === 'object' && item.rentalItem !== null ? String(item.rentalItem.id) : String(item.rentalItem)))?.pricing.daily || 0 }}/day × {{ item.quantity }}
+                    ${{ getItemDailyPrice(item) }}/day × {{ item.quantity }}
                   </p>
                 </div>
               </div>

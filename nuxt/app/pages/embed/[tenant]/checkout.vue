@@ -179,9 +179,13 @@ const cartTotal = computed(() => {
   return cart.value.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 })
 
+const depositPercentage = computed(() => {
+  const settings = tenantData.value?.settings as { bookingSettings?: { depositPercentage?: number } } | undefined
+  return settings?.bookingSettings?.depositPercentage ?? 30
+})
+
 const depositAmount = computed(() => {
-  // 50% deposit
-  return cartTotal.value * 0.5
+  return cartTotal.value * (depositPercentage.value / 100)
 })
 
 const isCartEmpty = computed(() => cart.value.length === 0)
@@ -489,7 +493,7 @@ const eventTypes = [
             <span>{{ formatPrice(cartTotal) }}</span>
           </div>
           <div class="flex justify-between text-lg font-bold text-gray-900 dark:text-white">
-            <span>Deposit Due (50%)</span>
+            <span>Deposit Due ({{ depositPercentage }}%)</span>
             <span class="text-orange-600">{{ formatPrice(depositAmount) }}</span>
           </div>
         </div>

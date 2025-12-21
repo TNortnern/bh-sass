@@ -192,7 +192,7 @@ export const MaintenanceRecords: CollectionConfig = {
     },
     {
       name: 'notes',
-      type: 'richText',
+      type: 'textarea',
       admin: {
         description: 'Detailed notes about the maintenance work',
       },

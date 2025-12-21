@@ -3,7 +3,7 @@
  * Uses server-side routes to securely handle API authentication
  *
  * Server routes: /booking/*
- * Tenant: bounce-kingdom (ID: 6)
+ * Uses tenant's rbPayloadTenantId from useTenant composable
  */
 
 import type {
@@ -18,16 +18,43 @@ import type {
 
 export const useRbPayload = () => {
   const toast = useToast()
+  const { rbPayloadTenantId, fetchTenant, isRbPayloadConfigured } = useTenant()
 
-  // Tenant ID for bounce-kingdom
-  const TENANT_ID = 6
+  /**
+   * Ensure tenant data is loaded and get rb-payload tenant ID
+   */
+  const ensureTenantId = async (): Promise<number | null> => {
+    // If we already have the tenant ID, use it
+    if (rbPayloadTenantId.value) {
+      return rbPayloadTenantId.value
+    }
+
+    // Try to fetch tenant data
+    await fetchTenant()
+
+    if (!rbPayloadTenantId.value) {
+      console.warn('rb-payload tenant ID not available - tenant may not be provisioned')
+      return null
+    }
+
+    return rbPayloadTenantId.value
+  }
 
   /**
    * Fetch all services for the tenant
    */
   const getServices = async (): Promise<RbPayloadService[]> => {
     try {
-      const response = await $fetch<{ success: boolean, services: RbPayloadService[], error?: string }>('/booking/services')
+      const tenantId = await ensureTenantId()
+
+      if (!tenantId) {
+        console.warn('No rb-payload tenant ID available, cannot fetch services')
+        return []
+      }
+
+      const response = await $fetch<{ success: boolean, services: RbPayloadService[], error?: string }>(
+        `/booking/services?tenantId=${tenantId}`
+      )
 
       if (!response.success && response.error) {
         console.warn('rb-payload services warning:', response.error)
@@ -156,7 +183,11 @@ export const useRbPayload = () => {
   }
 
   return {
-    TENANT_ID,
+    // Expose tenant ID from useTenant for backwards compatibility
+    get TENANT_ID() { return rbPayloadTenantId.value },
+    rbPayloadTenantId,
+    isRbPayloadConfigured,
+    ensureTenantId,
     getServices,
     getStaff,
     getOrCreateCustomer,

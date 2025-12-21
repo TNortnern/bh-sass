@@ -26,7 +26,13 @@ export const Bundles: CollectionConfig = {
         }
       }
 
-      // Public access: allow reading active bundles
+      // Authenticated user without tenantId - deny access
+      if (req.user) {
+        console.warn(`[Bundles] User ${req.user.id} has no tenantId, denying access`)
+        return false
+      }
+
+      // Public access (for widget ONLY): allow reading active bundles
       return {
         active: {
           equals: true,

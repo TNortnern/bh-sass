@@ -112,11 +112,12 @@ export default defineEventHandler(async (event) => {
     })
 
     // Return updated branding settings
+    // Note: typeof null === 'object' in JS, so we need explicit null check
     return {
       success: true,
       branding: {
-        logo: typeof updatedTenant.logo === 'object' ? updatedTenant.logo.url : null,
-        logoId: typeof updatedTenant.logo === 'object' ? updatedTenant.logo.id : updatedTenant.logo,
+        logo: updatedTenant.logo && typeof updatedTenant.logo === 'object' ? updatedTenant.logo.url : null,
+        logoId: updatedTenant.logo && typeof updatedTenant.logo === 'object' ? updatedTenant.logo.id : (updatedTenant.logo || null),
         businessName: updatedTenant.branding?.businessName || updatedTenant.name || '',
         tagline: updatedTenant.branding?.tagline || '',
         templateId: updatedTenant.website?.templateId || 'classic',
@@ -132,7 +133,13 @@ export default defineEventHandler(async (event) => {
       }
     }
   } catch (error: unknown) {
-    console.error('Failed to save branding settings:', error)
+    // Enhanced error logging
+    const errorDetails = {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      statusCode: error && typeof error === 'object' && 'statusCode' in error ? (error as { statusCode?: number }).statusCode : undefined,
+      data: error && typeof error === 'object' && 'data' in error ? (error as { data?: unknown }).data : undefined
+    }
+    console.error('Failed to save branding settings:', JSON.stringify(errorDetails, null, 2))
 
     // If it's already a H3 error, rethrow it
     if (error && typeof error === 'object' && 'statusCode' in error) {
@@ -140,11 +147,11 @@ export default defineEventHandler(async (event) => {
     }
 
     // Type guard for error with data property
-    const errorData = error && typeof error === 'object' && 'data' in error ? (error as { data?: { errors?: Array<{ message?: string }> } }).data : undefined
+    const errorData = error && typeof error === 'object' && 'data' in error ? (error as { data?: { errors?: Array<{ message?: string }>, message?: string } }).data : undefined
 
     throw createError({
       statusCode: 500,
-      message: errorData?.errors?.[0]?.message || 'Failed to save branding settings'
+      message: errorData?.errors?.[0]?.message || errorData?.message || 'Failed to save branding settings'
     })
   }
 })
