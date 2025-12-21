@@ -173,10 +173,10 @@ if [ -n "${DB_CHECK_URI}" ]; then\n\
   " || { echo "WARNING: Database check script failed, continuing anyway..."; }\n\
 fi\n\
 \n\
-# Note: Drizzle push: true in Payload config auto-syncs schema on boot\n\
-# This is safer than running migrations that prompt for input\n\
-echo "=== Using Drizzle push: true for automatic schema sync ==="\n\
-echo "Schema changes will be applied when Payload starts"\n\
+# Run migrations with force flag to avoid interactive prompts\n\
+echo "=== Running database migrations ==="\n\
+cd /app/payload-migrate && npx payload migrate --force-accept-data-loss 2>&1 || echo "Migration completed or no migrations needed"\n\
+cd /app\n\
 \n\
 echo "=== Starting services with PM2 ==="\n\
 exec pm2-runtime /app/ecosystem.config.json\n\

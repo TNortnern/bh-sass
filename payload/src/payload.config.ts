@@ -316,9 +316,8 @@ export default buildConfig({
     },
     // Enable schema push to auto-sync database schema on startup
     // This is needed for fresh databases or schema changes
-    push: true,
-    // Run migrations in production
-    prodMigrations: migrations,
+    // push: true causes issues with migration prompts - disabled for now
+    push: false,
   }),
   sharp,
   plugins: [
