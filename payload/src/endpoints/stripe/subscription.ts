@@ -6,6 +6,7 @@ import type Stripe from 'stripe'
 /**
  * GET /api/stripe/subscription
  * Get current subscription for the authenticated tenant
+ * Returns subscription data in the format expected by the frontend billing page
  */
 export const getSubscription = async (req: PayloadRequest): Promise<Response> => {
   const { user, payload } = req
@@ -33,6 +34,12 @@ export const getSubscription = async (req: PayloadRequest): Promise<Response> =>
       )
     }
 
+    // Get tenant to check plan
+    const tenant = await payload.findByID({
+      collection: 'tenants',
+      id: tenantId,
+    })
+
     // Get subscription from database
     const subscriptions = await payload.find({
       collection: 'subscriptions',
@@ -44,31 +51,91 @@ export const getSubscription = async (req: PayloadRequest): Promise<Response> =>
     })
 
     const subscription = subscriptions.docs[0]
+    const stripe = getStripeClient()
 
-    if (!subscription) {
-      return Response.json({
-        subscription: null,
-        message: 'No active subscription found',
-      })
+    // Build response in the format the frontend expects
+    const response: {
+      planId: { slug: string }
+      status: string
+      currentPeriodEnd: string | null
+      cancelAtPeriodEnd: boolean
+      trialEnd: string | null
+      paymentMethod: {
+        brand: string
+        last4: string
+        expMonth: number
+        expYear: number
+      } | null
+      invoices: Array<{
+        id: string
+        number: string
+        date: string
+        amount: number
+        status: string
+        invoiceUrl: string | null
+      }>
+    } = {
+      planId: { slug: tenant?.plan || 'free' },
+      status: 'active',
+      currentPeriodEnd: null,
+      cancelAtPeriodEnd: false,
+      trialEnd: null,
+      paymentMethod: null,
+      invoices: [],
     }
 
-    // Get full subscription details from Stripe if we have a Stripe subscription ID
-    let stripeSubscription: Stripe.Subscription | null = null
-    if (subscription.stripeSubscriptionId) {
+    // If we have a subscription with Stripe data, fetch details
+    if (subscription?.stripeSubscriptionId) {
       try {
-        const stripe = getStripeClient()
-        stripeSubscription = await stripe.subscriptions.retrieve(
+        const stripeSubscription = await stripe.subscriptions.retrieve(
           subscription.stripeSubscriptionId,
+          { expand: ['default_payment_method'] },
         )
+
+        response.status = stripeSubscription.status
+        response.currentPeriodEnd = new Date(stripeSubscription.current_period_end * 1000).toISOString()
+        response.cancelAtPeriodEnd = stripeSubscription.cancel_at_period_end
+        response.trialEnd = stripeSubscription.trial_end
+          ? new Date(stripeSubscription.trial_end * 1000).toISOString()
+          : null
+
+        // Get payment method details
+        const paymentMethod = stripeSubscription.default_payment_method
+        if (paymentMethod && typeof paymentMethod === 'object' && paymentMethod.type === 'card' && paymentMethod.card) {
+          response.paymentMethod = {
+            brand: paymentMethod.card.brand || 'unknown',
+            last4: paymentMethod.card.last4 || '****',
+            expMonth: paymentMethod.card.exp_month || 0,
+            expYear: paymentMethod.card.exp_year || 0,
+          }
+        }
       } catch (error) {
         console.error('Error fetching Stripe subscription:', error)
       }
     }
 
-    return Response.json({
-      subscription,
-      stripeSubscription,
-    })
+    // Fetch invoices if we have a customer ID
+    if (subscription?.stripeCustomerId) {
+      try {
+        const stripeInvoices = await stripe.invoices.list({
+          customer: subscription.stripeCustomerId,
+          limit: 10,
+        })
+
+        response.invoices = stripeInvoices.data.map((invoice) => ({
+          id: invoice.id,
+          number: invoice.number || invoice.id,
+          date: new Date(invoice.created * 1000).toISOString(),
+          amount: (invoice.amount_paid || 0) / 100, // Convert from cents
+          status: invoice.status || 'unknown',
+          invoiceUrl: invoice.hosted_invoice_url || null,
+        }))
+      } catch (error) {
+        console.error('Error fetching invoices:', error)
+      }
+    }
+
+    return Response.json(response)
   } catch (error) {
     console.error('Error fetching subscription:', error)
 
@@ -362,6 +429,7 @@ export const cancelSubscription = async (req: PayloadRequest): Promise<Response>
 /**
  * GET /api/stripe/portal
  * Get Stripe Customer Portal link for managing subscription
+ * Creates a Stripe customer if one doesn't exist (for Free plan users)
  */
 export const getCustomerPortal = async (req: PayloadRequest): Promise<Response> => {
   const { user, payload } = req
@@ -389,6 +457,8 @@ export const getCustomerPortal = async (req: PayloadRequest): Promise<Response> 
       )
     }
 
+    const stripe = getStripeClient()
+
     // Get subscription from database
     const subscriptions = await payload.find({
       collection: 'subscriptions',
@@ -399,26 +469,58 @@ export const getCustomerPortal = async (req: PayloadRequest): Promise<Response> 
       sort: '-createdAt',
     })
 
-    const subscription = subscriptions.docs[0]
+    let stripeCustomerId = subscriptions.docs[0]?.stripeCustomerId
 
-    if (!subscription || !subscription.stripeCustomerId) {
-      return Response.json(
-        {
-          error: 'Not Found',
-          message: 'No Stripe customer found',
+    // If no Stripe customer exists, create one
+    if (!stripeCustomerId) {
+      // Get tenant details for customer metadata
+      const tenant = await payload.findByID({
+        collection: 'tenants',
+        id: tenantId,
+      })
+
+      // Create Stripe customer
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          tenantId: tenantId.toString(),
+          tenantName: tenant?.name || 'Unknown',
         },
-        { status: 404 },
-      )
+      })
+
+      stripeCustomerId = customer.id
+
+      // Create or update subscription record with the customer ID
+      if (subscriptions.docs[0]) {
+        await payload.update({
+          collection: 'subscriptions',
+          id: subscriptions.docs[0].id,
+          data: {
+            stripeCustomerId: customer.id,
+          },
+        })
+      } else {
+        // Create a subscription record for Free plan users
+        await payload.create({
+          collection: 'subscriptions',
+          data: {
+            tenantId,
+            stripeCustomerId: customer.id,
+            status: 'active',
+            // planId will be looked up or set to free by default
+          },
+        })
+      }
     }
 
     // Create customer portal session
-    const stripe = getStripeClient()
+    const baseUrl = process.env.NUXT_PUBLIC_APP_URL
+      || process.env.NEXT_PUBLIC_APP_URL
+      || 'https://gregarious-adventure-production.up.railway.app'
 
     const session = await stripe.billingPortal.sessions.create({
-      customer: subscription.stripeCustomerId,
-      return_url: process.env.NEXT_PUBLIC_APP_URL
-        ? `${process.env.NEXT_PUBLIC_APP_URL}/app/settings/billing`
-        : 'http://localhost:3005/app/settings/billing',
+      customer: stripeCustomerId,
+      return_url: `${baseUrl}/app/settings/billing`,
     })
 
     return Response.json({

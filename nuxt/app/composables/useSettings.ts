@@ -1452,18 +1452,33 @@ export const useSettings = () => {
     }
   }
 
-  const testWebhook = async (_webhookId: string) => {
+  const testWebhook = async (webhookId: string) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      toast.add({
-        title: 'Test webhook sent',
-        description: 'A test event has been sent to your webhook endpoint.',
-        color: 'success'
+      // Send test webhook via the real API endpoint
+      const response = await $fetch<{ success: boolean, delivery: { status: string, error?: string } }>('/api/webhooks/test', {
+        method: 'POST',
+        body: {
+          endpointId: webhookId,
+          event: 'ping' // Use a simple ping event for testing
+        },
+        credentials: 'include'
       })
 
-      return true
+      if (response.success) {
+        toast.add({
+          title: 'Test webhook sent',
+          description: 'A test event has been successfully delivered to your webhook endpoint.',
+          color: 'success'
+        })
+      } else {
+        toast.add({
+          title: 'Test webhook failed',
+          description: response.delivery?.error || 'The webhook endpoint returned an error.',
+          color: 'warning'
+        })
+      }
+
+      return response.success
     } catch (error) {
       toast.add({
         title: 'Error testing webhook',
