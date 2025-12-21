@@ -7,11 +7,12 @@ echo
 
 # Step 1: Login
 echo "1. Logging in as admin@bouncepro.demo..."
-LOGIN_RESPONSE=$(curl -s -c cookies.txt -X POST "${BASE_URL}/api/users/login" \
+LOGIN_RESPONSE=$(curl -s -c cookies.txt -X POST "${BASE_URL}/api/auth/login" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@bouncepro.demo",
-    "password": "password123"
+    "password": "password123",
+    "rememberMe": true
   }')
 
 echo "Login response: ${LOGIN_RESPONSE}" | jq '.' 2>/dev/null || echo "${LOGIN_RESPONSE}"

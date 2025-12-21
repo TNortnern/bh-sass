@@ -16,9 +16,9 @@ fi
 echo ""
 
 echo "Step 2: Login test..."
-LOGIN_RESPONSE=$(curl -s -c /tmp/cookies.txt -X POST http://localhost:3005/v1/users/login \
+LOGIN_RESPONSE=$(curl -s -c /tmp/cookies.txt -X POST http://localhost:3005/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@test.com","password":"password"}')
+  -d '{"email":"test@test.com","password":"password","rememberMe":true}')
 
 if echo "$LOGIN_RESPONSE" | grep -q "token"; then
     echo "✓ Login successful"

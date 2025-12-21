@@ -28,14 +28,20 @@ DATABASE_URI=postgresql://bouncepro_user:password@postgres:5432/bouncepro
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `PAYLOAD_SECRET` | Yes | - | Secret key for JWT signing (min 32 chars) |
+| `PAYLOAD_COOKIE_DOMAIN` | No | - | Domain to scope auth cookies (e.g. `.yourdomain.com`) |
 | `NEXT_PUBLIC_SERVER_URL` | Yes | - | Public URL for Payload API |
 | `NODE_ENV` | No | development | Environment (development/production) |
+| `REMEMBER_ME_TOKEN_EXPIRATION` | No | - | Remember-me token lifetime in seconds (overrides `REMEMBER_ME_DAYS`) |
+| `REMEMBER_ME_DAYS` | No | 30 | Remember-me token lifetime in days |
 
 **Example:**
 ```env
 PAYLOAD_SECRET=<generated_with_openssl_rand_base64_32>
+PAYLOAD_COOKIE_DOMAIN=.yourdomain.com
 NEXT_PUBLIC_SERVER_URL=https://api.yourdomain.com
 NODE_ENV=production
+REMEMBER_ME_TOKEN_EXPIRATION=2592000
+REMEMBER_ME_DAYS=30
 ```
 
 ---

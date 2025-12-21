@@ -833,9 +833,9 @@ curl https://gregarious-adventure-production.up.railway.app/public/items/[tenant
 ### 21.2 Authenticated API
 ```bash
 # Login to get cookie
-curl -c cookies.txt -X POST https://gregarious-adventure-production.up.railway.app/api/users/login \
+curl -c cookies.txt -X POST https://gregarious-adventure-production.up.railway.app/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@bouncepro.demo","password":"demo123!"}'
+  -d '{"email":"admin@bouncepro.demo","password":"demo123!","rememberMe":true}'
 
 # Test authenticated endpoint
 curl -b cookies.txt https://gregarious-adventure-production.up.railway.app/api/tenants

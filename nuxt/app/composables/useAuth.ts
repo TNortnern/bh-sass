@@ -90,9 +90,13 @@ export const useAuth = () => {
     error.value = null
 
     try {
-      const response = await $fetch<{ user: User, token: string }>('/v1/users/login', {
+      const response = await $fetch<{ user: User, token: string }>('/v1/auth/login', {
         method: 'POST',
-        body: { email: credentials.email, password: credentials.password },
+        body: {
+          email: credentials.email,
+          password: credentials.password,
+          rememberMe: credentials.rememberMe
+        },
         credentials: 'include'
       })
 

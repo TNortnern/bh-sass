@@ -1,4 +1,5 @@
 import type { Endpoint } from 'payload'
+import { generatePayloadCookie, headersWithCors } from 'payload'
 
 /**
  * Public registration endpoint
@@ -104,6 +105,15 @@ export const registerHandler: Endpoint['handler'] = async (req) => {
       req
     })
 
+    const usersCollection = payload.collections?.users
+    const cookie = usersCollection?.config?.auth && loginResult.token
+      ? generatePayloadCookie({
+          collectionAuthConfig: usersCollection.config.auth,
+          cookiePrefix: req.payload.config.cookiePrefix,
+          token: loginResult.token
+        })
+      : null
+
     return Response.json({
       message: 'Registration successful',
       user: {
@@ -123,7 +133,15 @@ export const registerHandler: Endpoint['handler'] = async (req) => {
         rbPayloadSyncStatus: tenant.rbPayloadSyncStatus
       },
       token: loginResult.token
-    }, { status: 201 })
+    }, {
+      status: 201,
+      headers: cookie
+        ? headersWithCors({
+            headers: new Headers({ 'Set-Cookie': cookie }),
+            req
+          })
+        : undefined
+    })
 
   } catch (error: any) {
     console.error('Registration error:', error)

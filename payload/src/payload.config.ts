@@ -82,6 +82,7 @@ import { startBookingReminderJob, stopBookingReminderJob } from './jobs/bookingR
 import { adminEndpoints } from './endpoints/admin'
 import { emailEndpoints } from './endpoints/email'
 import { registerHandler } from './endpoints/register'
+import { authLoginEndpoint } from './endpoints/auth-login'
 import { rotateApiKeyEndpoint } from './endpoints/api-keys'
 import { rbPayloadWebhookEndpoint } from './endpoints/rb-payload-webhooks'
 
@@ -205,6 +206,8 @@ export default buildConfig({
       method: 'post',
       handler: registerHandler,
     },
+    // Custom login endpoint with remember-me support
+    authLoginEndpoint,
     // Admin endpoints (super admin only)
     ...adminEndpoints,
     // Availability check endpoints

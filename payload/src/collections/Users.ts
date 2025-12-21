@@ -16,7 +16,7 @@ export const Users: CollectionConfig = {
     cookies: {
       sameSite: 'Lax',
       secure: process.env.NODE_ENV === 'production',
-      domain: undefined,
+      domain: process.env.PAYLOAD_COOKIE_DOMAIN || undefined,
     },
     // Token expiration: 7 days (in seconds)
     tokenExpiration: 7 * 24 * 60 * 60,
