@@ -35,11 +35,23 @@ COPY --from=payload-builder /payload/.next/standalone ./payload
 COPY --from=payload-builder /payload/.next/static ./payload/.next/static
 COPY --from=payload-builder /payload/public ./payload/public
 
-# Copy Payload source and dependencies for migrations
-COPY --from=payload-builder /payload/node_modules ./payload-migrate/node_modules
-COPY --from=payload-builder /payload/src ./payload-migrate/src
-COPY --from=payload-builder /payload/package.json ./payload-migrate/package.json
-COPY --from=payload-builder /payload/tsconfig.json ./payload-migrate/tsconfig.json
+# Copy migration script and pg dependency
+COPY --from=payload-builder /payload/node_modules/pg ./payload-migrate/node_modules/pg
+COPY --from=payload-builder /payload/node_modules/pg-types ./payload-migrate/node_modules/pg-types
+COPY --from=payload-builder /payload/node_modules/pg-protocol ./payload-migrate/node_modules/pg-protocol
+COPY --from=payload-builder /payload/node_modules/pg-pool ./payload-migrate/node_modules/pg-pool
+COPY --from=payload-builder /payload/node_modules/pg-connection-string ./payload-migrate/node_modules/pg-connection-string
+COPY --from=payload-builder /payload/node_modules/pgpass ./payload-migrate/node_modules/pgpass
+COPY --from=payload-builder /payload/node_modules/buffer-writer ./payload-migrate/node_modules/buffer-writer
+COPY --from=payload-builder /payload/node_modules/packet-reader ./payload-migrate/node_modules/packet-reader
+COPY --from=payload-builder /payload/node_modules/postgres-array ./payload-migrate/node_modules/postgres-array
+COPY --from=payload-builder /payload/node_modules/postgres-bytea ./payload-migrate/node_modules/postgres-bytea
+COPY --from=payload-builder /payload/node_modules/postgres-date ./payload-migrate/node_modules/postgres-date
+COPY --from=payload-builder /payload/node_modules/postgres-interval ./payload-migrate/node_modules/postgres-interval
+COPY --from=payload-builder /payload/node_modules/postgres-range ./payload-migrate/node_modules/postgres-range
+COPY --from=payload-builder /payload/node_modules/split2 ./payload-migrate/node_modules/split2
+COPY --from=payload-builder /payload/node_modules/obuf ./payload-migrate/node_modules/obuf
+COPY --from=payload-builder /payload/scripts/migrate.js ./payload-migrate/migrate.js
 
 # Copy Nuxt build
 COPY --from=nuxt-builder /nuxt/.output ./nuxt/.output
@@ -173,40 +185,10 @@ if [ -n "${DB_CHECK_URI}" ]; then\n\
   " || { echo "WARNING: Database check script failed, continuing anyway..."; }\n\
 fi\n\
 \n\
-# Run migrations directly with SQL (npx payload migrate has module resolution issues)\n\
+# Run migrations using the migrate.js script\n\
 echo "=== Running database migrations ==="\n\
-node -e "\n\
-const { Pool } = require('"'"'/app/payload-migrate/node_modules/pg'"'"');\n\
-const url = process.env.DATABASE_URI || process.env.DATABASE_URL;\n\
-if (!url) { console.log('"'"'No DB URL, skipping migrations'"'"'); process.exit(0); }\n\
-const pool = new Pool({ connectionString: url, ssl: process.env.DATABASE_SSL === '"'"'true'"'"' ? { rejectUnauthorized: false } : false });\n\
-(async () => {\n\
-  try {\n\
-    console.log('"'"'Running custom_website migration...'"'"');\n\
-    await pool.query(\\\`\n\
-      DO \\$\\$ BEGIN\n\
-        CREATE TYPE \\\"public\\\".\\\"enum_tenants_custom_website_status\\\" AS ENUM('"'"'pending'"'"', '"'"'in_progress'"'"', '"'"'live'"'"');\n\
-      EXCEPTION\n\
-        WHEN duplicate_object THEN null;\n\
-      END \\$\\$;\n\
-    \\\`);\n\
-    await pool.query(\\\`\n\
-      ALTER TABLE \\\"tenants\\\"\n\
-      ADD COLUMN IF NOT EXISTS \\\"website_builder\\\" jsonb,\n\
-      ADD COLUMN IF NOT EXISTS \\\"custom_website_requested\\\" boolean DEFAULT false,\n\
-      ADD COLUMN IF NOT EXISTS \\\"custom_website_status\\\" \\\"enum_tenants_custom_website_status\\\",\n\
-      ADD COLUMN IF NOT EXISTS \\\"custom_website_setup_paid_at\\\" timestamp(3) with time zone,\n\
-      ADD COLUMN IF NOT EXISTS \\\"custom_website_monthly_started_at\\\" timestamp(3) with time zone;\n\
-    \\\`);\n\
-    console.log('"'"'Migration completed successfully'"'"');\n\
-    await pool.end();\n\
-  } catch (err) {\n\
-    console.error('"'"'Migration error:'"'"', err.message);\n\
-    await pool.end();\n\
-    process.exit(1);\n\
-  }\n\
-})();\n\
-" || echo "Migration script failed"\n\
+cd /app/payload-migrate && NODE_PATH=/app/payload-migrate/node_modules node migrate.js || echo "Migration completed or failed - check logs"\n\
+cd /app\n\
 \n\
 echo "=== Starting services with PM2 ==="\n\
 exec pm2-runtime /app/ecosystem.config.json\n\
