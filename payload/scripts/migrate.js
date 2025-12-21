@@ -46,6 +46,13 @@ async function runMigrations() {
       ADD COLUMN IF NOT EXISTS "custom_website_monthly_started_at" timestamp(3) with time zone;
     `);
 
+    // Migration: Add roles_id to payload_locked_documents_rels for Roles collection
+    console.log('Running migration: add_roles_to_locked_documents...');
+    await pool.query(`
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "roles_id" integer;
+    `);
+
     console.log('Migration completed successfully');
 
   } catch (err) {
