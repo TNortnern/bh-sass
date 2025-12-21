@@ -64,15 +64,40 @@ export const authLoginEndpoint: Endpoint = {
       }
     }
 
-    const authData = collectionForLogin.config.auth.loginWithUsername !== false
+    // Validate required credentials before attempting login
+    const email = typeof body.email === 'string' ? body.email.trim() : ''
+    const password = typeof body.password === 'string' ? body.password : ''
+
+    if (!email) {
+      return Response.json(
+        { errors: [{ message: 'Email is required' }] },
+        {
+          status: 400,
+          headers: headersWithCors({ headers: new Headers(), req })
+        }
+      )
+    }
+
+    if (!password) {
+      return Response.json(
+        { errors: [{ message: 'Password is required' }] },
+        {
+          status: 400,
+          headers: headersWithCors({ headers: new Headers(), req })
+        }
+      )
+    }
+
+    // Build auth data - only include username field when loginWithUsername is explicitly enabled
+    const authData = collectionForLogin.config.auth.loginWithUsername === true
       ? {
-          email: typeof body.email === 'string' ? body.email : '',
-          password: typeof body.password === 'string' ? body.password : '',
+          email,
+          password,
           username: typeof body.username === 'string' ? body.username : ''
         }
       : {
-          email: typeof body.email === 'string' ? body.email : '',
-          password: typeof body.password === 'string' ? body.password : ''
+          email,
+          password
         }
 
     let result

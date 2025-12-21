@@ -106,15 +106,17 @@ export const registerHandler: Endpoint['handler'] = async (req) => {
     })
 
     const usersCollection = payload.collections?.users
-    const cookie = usersCollection?.config?.auth && loginResult.token
+    const authConfig = usersCollection?.config?.auth
+    const cookie = authConfig && loginResult.token
       ? generatePayloadCookie({
-          collectionAuthConfig: usersCollection.config.auth,
+          collectionAuthConfig: authConfig,
           cookiePrefix: req.payload.config.cookiePrefix,
           token: loginResult.token
         })
       : null
 
-    return Response.json({
+    // Build response - respect removeTokenFromResponses setting for consistency with login
+    const responseData: Record<string, unknown> = {
       message: 'Registration successful',
       user: {
         id: user.id,
@@ -131,9 +133,15 @@ export const registerHandler: Endpoint['handler'] = async (req) => {
         rbPayloadTenantId: tenant.rbPayloadTenantId,
         rbPayloadApiKey: tenant.rbPayloadApiKey,
         rbPayloadSyncStatus: tenant.rbPayloadSyncStatus
-      },
-      token: loginResult.token
-    }, {
+      }
+    }
+
+    // Only include token in response body if removeTokenFromResponses is not enabled
+    if (!authConfig?.removeTokenFromResponses) {
+      responseData.token = loginResult.token
+    }
+
+    return Response.json(responseData, {
       status: 201,
       headers: cookie
         ? headersWithCors({
