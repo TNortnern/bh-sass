@@ -20,31 +20,25 @@
     </div>
 
     <!-- Navigation & Content -->
-    <div class="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-0 min-h-[calc(100vh-180px)]">
+    <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] xl:grid-cols-[320px_1fr] gap-0 min-h-[calc(100vh-180px)]">
       <!-- Sidebar Navigation -->
-      <nav class="bg-gray-50 dark:bg-[#0a0a0a] border-r-0 lg:border-r border-b lg:border-b-0 border-gray-200 dark:border-[#1a1a1a] p-4 lg:p-6 flex flex-col gap-2 relative lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
+      <nav class="bg-gray-50 dark:bg-[#0a0a0a] border-r-0 lg:border-r border-b lg:border-b-0 border-gray-200 dark:border-[#1a1a1a] p-4 lg:p-5 flex flex-col gap-1.5 relative lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
         <NuxtLink
           v-for="tab in tabs"
           :key="tab.to"
           :to="tab.to"
-          class="flex items-center gap-4 px-5 py-4 rounded-[10px] bg-transparent border border-transparent text-gray-600 dark:text-[#888] no-underline transition-all duration-200 relative overflow-hidden hover:bg-amber-50 dark:hover:bg-amber-500/5 hover:border-amber-200 dark:hover:border-amber-500/10 hover:text-gray-900 dark:hover:text-[#e5e5e5] before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-amber-500 dark:before:bg-amber-400 before:scale-y-0 before:transition-transform before:duration-200"
+          class="flex items-center gap-3 px-3 py-3 rounded-lg bg-transparent border border-transparent text-gray-600 dark:text-[#888] no-underline transition-all duration-200 relative hover:bg-amber-50 dark:hover:bg-amber-500/5 hover:border-amber-200 dark:hover:border-amber-500/10 hover:text-gray-900 dark:hover:text-[#e5e5e5] before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-amber-500 dark:before:bg-amber-400 before:scale-y-0 before:transition-transform before:duration-200 before:rounded-l-lg"
           active-class="!bg-amber-100 dark:!bg-amber-500/8 !border-amber-200 dark:!border-amber-500/20 !text-amber-600 dark:!text-amber-400 before:!scale-y-100"
         >
-          <div class="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-white/[0.03] rounded-lg border border-gray-200 dark:border-white/[0.05] flex-shrink-0 transition-all duration-200">
+          <div class="w-9 h-9 flex items-center justify-center bg-gray-100 dark:bg-white/[0.03] rounded-lg border border-gray-200 dark:border-white/[0.05] flex-shrink-0 transition-all duration-200">
             <UIcon
               :name="tab.icon"
-              class="w-5 h-5"
-            />
-          </div>
-          <div class="flex-1 flex flex-col gap-0.5 min-w-0">
-            <span class="text-[15px] font-semibold tracking-tight">{{ tab.label }}</span>
-            <span class="text-[13px] text-gray-500 dark:text-[#666] leading-snug transition-colors duration-200">{{ tab.description }}</span>
-          </div>
-          <div class="flex items-center justify-center opacity-0 -translate-x-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0">
-            <UIcon
-              name="i-heroicons-chevron-right"
               class="w-4 h-4"
             />
+          </div>
+          <div class="flex-1 min-w-0">
+            <span class="block text-sm font-semibold tracking-tight truncate">{{ tab.label }}</span>
+            <span class="block text-xs text-gray-500 dark:text-[#666] truncate">{{ tab.description }}</span>
           </div>
         </NuxtLink>
 
