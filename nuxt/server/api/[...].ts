@@ -26,6 +26,10 @@ export default defineEventHandler(async (event) => {
     const authorization = getHeader(event, 'authorization')
     if (authorization) headers['Authorization'] = authorization
 
+    // Forward Stripe webhook signature header
+    const stripeSignature = getHeader(event, 'stripe-signature')
+    if (stripeSignature) headers['stripe-signature'] = stripeSignature
+
     const contentType = getHeader(event, 'content-type')
 
     // Get body for non-GET requests
