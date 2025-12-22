@@ -139,8 +139,12 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
-    // Note: Admin panel access is controlled via Users collection access control
-    // super_admin role is enforced in the Users collection read/update access
+    // Restrict admin panel access to super_admin role only
+    access: ({ user }) => {
+      if (!user) return false
+      // Only super admins can access the admin panel
+      return user.role === 'super_admin'
+    },
   },
   // CORS configuration for cookie persistence across Nuxt proxy
   cors: [

@@ -572,57 +572,109 @@ const upgradingTo = ref<string | null>(null)
 const canceling = ref(false)
 const openingPortal = ref(false)
 
-// Plans data
-const plans = [
-  {
-    value: 'free',
-    name: 'Free',
-    description: 'Get started with basic features',
-    price: 0,
-    transactionFee: '6% + Stripe fees',
-    icon: 'i-heroicons-paper-airplane',
-    features: [
-      'Up to 10 rental items',
-      'Up to 50 bookings/month',
-      '1 team member',
-      'Basic email support'
-    ]
-  },
-  {
-    value: 'pro',
-    name: 'Pro',
-    description: 'For growing rental businesses',
-    price: 29,
-    transactionFee: '3.5% + Stripe fees',
-    icon: 'i-heroicons-rocket-launch',
-    recommended: true,
-    features: [
-      'Up to 50 rental items',
-      '500 bookings/month',
-      '5 team members',
-      'Website builder',
-      'Custom roles & permissions',
-      'API access & webhooks'
-    ]
-  },
-  {
-    value: 'platinum',
-    name: 'Platinum',
-    description: 'For high-volume operations',
-    price: 100,
-    transactionFee: '1% + Stripe fees',
-    icon: 'i-heroicons-crown',
-    features: [
-      'Unlimited rental items',
-      'Unlimited bookings',
-      'Unlimited team members',
-      'Priority support',
-      'White-label solution',
-      'Free custom website (after 2 months)',
-      'All Pro features included'
+// Plan type definition
+interface Plan {
+  value: string
+  name: string
+  description: string
+  price: number
+  transactionFee: string
+  icon: string
+  recommended?: boolean
+  features: string[]
+}
+
+// Plans data - loaded dynamically from API
+const plans = ref<Plan[]>([])
+
+// Default plan icons and descriptions (API doesn't store these)
+const planMeta: Record<string, { icon: string, description: string, recommended?: boolean }> = {
+  free: { icon: 'i-heroicons-paper-airplane', description: 'Get started with basic features' },
+  pro: { icon: 'i-heroicons-rocket-launch', description: 'For growing rental businesses', recommended: true },
+  platinum: { icon: 'i-heroicons-crown', description: 'For high-volume operations' },
+  growth: { icon: 'i-heroicons-arrow-trending-up', description: 'Scale your business' }
+}
+
+// Fetch plans from API
+const fetchPlans = async () => {
+  try {
+    interface ApiPlan {
+      slug: string
+      name: string
+      price: number
+      transactionFee: number
+      features?: Array<{ feature: string }>
+      limits?: {
+        maxItems: number
+        maxBookings: number
+        maxUsers: number
+      }
+      featureFlags?: {
+        websiteBuilder?: boolean
+        customRoles?: boolean
+        apiAccess?: boolean
+        prioritySupport?: boolean
+        whiteLabel?: boolean
+        customWebsite?: boolean
+      }
+      active?: boolean
+    }
+
+    const response = await $fetch<{ docs: ApiPlan[] }>('/api/plans', {
+      query: { where: { active: { equals: true } }, sort: 'price' },
+      credentials: 'include'
+    })
+
+    if (response.docs) {
+      plans.value = response.docs.map((plan) => {
+        const meta = planMeta[plan.slug] || { icon: 'i-heroicons-sparkles', description: 'Business plan' }
+
+        // Build features list from limits and feature flags
+        const features: string[] = []
+        if (plan.limits) {
+          const itemsText = plan.limits.maxItems >= 9999 ? 'Unlimited rental items' : `Up to ${plan.limits.maxItems} rental items`
+          const bookingsText = plan.limits.maxBookings >= 9999 ? 'Unlimited bookings' : `${plan.limits.maxBookings} bookings/month`
+          const usersText = plan.limits.maxUsers >= 9999 ? 'Unlimited team members' : `${plan.limits.maxUsers} team member${plan.limits.maxUsers > 1 ? 's' : ''}`
+          features.push(itemsText, bookingsText, usersText)
+        }
+        if (plan.featureFlags?.websiteBuilder) features.push('Website builder')
+        if (plan.featureFlags?.customRoles) features.push('Custom roles & permissions')
+        if (plan.featureFlags?.apiAccess) features.push('API access & webhooks')
+        if (plan.featureFlags?.prioritySupport) features.push('Priority support')
+        if (plan.featureFlags?.whiteLabel) features.push('White-label solution')
+        if (plan.featureFlags?.customWebsite) features.push('Custom website development')
+
+        // Add any custom features from the plan
+        if (plan.features) {
+          plan.features.forEach((f) => {
+            if (f.feature && !features.includes(f.feature)) {
+              features.push(f.feature)
+            }
+          })
+        }
+
+        return {
+          value: plan.slug,
+          name: plan.name,
+          description: meta.description,
+          price: plan.price / 100, // Convert from cents
+          transactionFee: `${plan.transactionFee}% + Stripe fees`,
+          icon: meta.icon,
+          recommended: meta.recommended,
+          features: features.length > 0 ? features : ['Basic email support']
+        }
+      })
+    }
+  } catch (err) {
+    console.error('Failed to fetch plans:', err)
+    // Fallback to basic plans if API fails
+    plans.value = [
+      { value: 'free', name: 'Free', description: 'Get started', price: 0, transactionFee: '6% + Stripe fees', icon: 'i-heroicons-paper-airplane', features: ['Basic features'] },
+      { value: 'pro', name: 'Pro', description: 'For growing businesses', price: 29, transactionFee: '3.5% + Stripe fees', icon: 'i-heroicons-rocket-launch', recommended: true, features: ['Advanced features'] },
+      { value: 'platinum', name: 'Platinum', description: 'Enterprise solution', price: 100, transactionFee: '1% + Stripe fees', icon: 'i-heroicons-crown', features: ['All features'] }
     ]
   }
-]
+}
 
 // Computed
 const canUpgrade = computed(() => {
@@ -636,7 +688,7 @@ const canCancel = computed(() => {
 
 const availableUpgrades = computed(() => {
   const currentLevel = getPlanLevel(subscription.value?.planId)
-  return plans.filter(plan => getPlanLevel(plan.value) > currentLevel)
+  return plans.value.filter(plan => getPlanLevel(plan.value) > currentLevel)
 })
 
 const planBadgeClasses = computed(() => {
@@ -656,22 +708,22 @@ const getPlanLevel = (plan: string | undefined): number => {
 }
 
 const getPlanName = (plan: string | undefined): string => {
-  const planData = plans.find(p => p.value === plan)
+  const planData = plans.value.find(p => p.value === plan)
   return planData?.name || 'Free'
 }
 
 const getPlanIcon = (plan: string | undefined): string => {
-  const planData = plans.find(p => p.value === plan)
+  const planData = plans.value.find(p => p.value === plan)
   return planData?.icon || 'i-heroicons-paper-airplane'
 }
 
 const getPlanPrice = (plan: string | undefined): number => {
-  const planData = plans.find(p => p.value === plan)
+  const planData = plans.value.find(p => p.value === plan)
   return planData?.price || 0
 }
 
 const getPlanFee = (plan: string | undefined): string => {
-  const planData = plans.find(p => p.value === plan)
+  const planData = plans.value.find(p => p.value === plan)
   return planData?.transactionFee || 'N/A'
 }
 
@@ -891,7 +943,8 @@ const downloadInvoice = (invoice: any) => {
 }
 
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
+  await fetchPlans()
   fetchBillingData()
 })
 </script>
