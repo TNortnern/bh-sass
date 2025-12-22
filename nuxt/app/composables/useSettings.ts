@@ -412,13 +412,14 @@ export const useSettings = () => {
             reminderTiming: ns?.reminderTiming ?? 24
           }
 
-          // Fetch plan info for limits
+          // Fetch plan info for limits and transaction fee
           if (tenantResponse.plan) {
             try {
               interface PlanResponse {
                 docs: Array<{
                   name: string
                   slug: string
+                  transactionFee: number
                   limits: {
                     maxUsers: number
                     maxItems: number
@@ -440,6 +441,10 @@ export const useSettings = () => {
                   name: plan.name,
                   slug: plan.slug,
                   limits: plan.limits
+                }
+                // Update platform fee from plan's transaction fee
+                if (state.payments.value && typeof plan.transactionFee === 'number') {
+                  state.payments.value.platformFee = plan.transactionFee
                 }
               }
             } catch (planError) {
