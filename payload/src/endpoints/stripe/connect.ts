@@ -153,8 +153,10 @@ export const onboardStripeConnect = async (req: PayloadRequest): Promise<Respons
 
     // Generate onboarding link - no idempotency key needed as links expire quickly
     // and we need fresh URLs each time
-    const returnUrl = `${process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'}/app/settings/payments?stripe_connected=true`
-    const refreshUrl = `${process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'}/app/settings/payments`
+    // FRONTEND_URL points to Nuxt, not Payload (for return URL after Stripe onboarding)
+    const frontendUrl = process.env.FRONTEND_URL || process.env.NUXT_PUBLIC_URL || 'http://localhost:3005'
+    const returnUrl = `${frontendUrl}/app/settings/payments?stripe_connected=true`
+    const refreshUrl = `${frontendUrl}/app/settings/payments`
 
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
@@ -246,8 +248,10 @@ export const refreshOnboardingLink = async (req: PayloadRequest): Promise<Respon
     }
 
     const stripe = getStripeClient()
-    const returnUrl = `${process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'}/app/settings/payments?stripe_connected=true`
-    const refreshUrl = `${process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'}/app/settings/payments`
+    // FRONTEND_URL points to Nuxt, not Payload (for return URL after Stripe onboarding)
+    const frontendUrl = process.env.FRONTEND_URL || process.env.NUXT_PUBLIC_URL || 'http://localhost:3005'
+    const returnUrl = `${frontendUrl}/app/settings/payments?stripe_connected=true`
+    const refreshUrl = `${frontendUrl}/app/settings/payments`
 
     // No idempotency key - account links expire quickly and we need fresh URLs each time
     const accountLink = await stripe.accountLinks.create({

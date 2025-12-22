@@ -45,6 +45,8 @@ services:
       STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-pk_test_placeholder}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-whsec_placeholder}
       PAYLOAD_PUBLIC_SERVER_URL: http://localhost:3004
+      # Frontend URL for Stripe Connect return URLs (points to Nuxt, not Payload)
+      FRONTEND_URL: http://localhost:3005
       # Brevo Email Configuration (same as rb-payload)
       BREVO_API_KEY: ${BREVO_API_KEY:-your_brevo_api_key}
       EMAIL_FROM_ADDRESS: reusablebooking@yahoo.com

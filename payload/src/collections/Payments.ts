@@ -204,6 +204,23 @@ export const Payments: CollectionConfig = {
       },
     },
     {
+      name: 'stripeFee',
+      type: 'number',
+      admin: {
+        description: 'Stripe processing fee in cents (typically 2.9% + 30¢)',
+        step: 1,
+        readOnly: true,
+      },
+    },
+    {
+      name: 'platformFeePercent',
+      type: 'number',
+      admin: {
+        description: 'Platform fee percentage at time of transaction',
+        readOnly: true,
+      },
+    },
+    {
       name: 'netAmount',
       type: 'number',
       admin: {

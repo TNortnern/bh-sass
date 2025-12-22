@@ -304,7 +304,7 @@ async function handleCheckoutSessionCompleted(
 
 /**
  * Handle payment_intent.succeeded event
- * Additional payment confirmation
+ * Create platform transaction record for fee tracking
  */
 async function handlePaymentIntentSucceeded(
   event: Stripe.Event,
@@ -314,13 +314,112 @@ async function handlePaymentIntentSucceeded(
 
   try {
     const bookingId = paymentIntent.metadata?.bookingId
+    const tenantId = paymentIntent.metadata?.tenantId
+    const amount = paymentIntent.amount // In cents
 
     console.log('Payment intent succeeded:', {
       paymentIntentId: paymentIntent.id,
       bookingId,
-      amount: paymentIntent.amount,
+      tenantId,
+      amount,
       applicationFee: paymentIntent.application_fee_amount,
     })
+
+    // Create platform transaction record for fee tracking
+    if (tenantId && amount > 0) {
+      try {
+        // Get tenant to find their plan and transaction fee
+        const tenant = await payload.findByID({
+          collection: 'tenants',
+          id: Number(tenantId),
+          depth: 0,
+        })
+
+        // Get plan details for transaction fee percentage
+        let platformFeePercent = 6 // Default 6% for free plan
+        if (tenant?.plan) {
+          const plans = await payload.find({
+            collection: 'plans',
+            where: { slug: { equals: tenant.plan } },
+            limit: 1,
+          })
+          if (plans.docs[0]?.transactionFee) {
+            platformFeePercent = plans.docs[0].transactionFee
+          }
+        }
+
+        // Calculate fees
+        const platformFee = Math.round(amount * (platformFeePercent / 100))
+        const stripeFee = Math.round(amount * 0.029) + 30 // Stripe's 2.9% + 30¢
+        const netAmount = amount - platformFee - stripeFee
+
+        // Create platform transaction record
+        const now = new Date()
+        await payload.create({
+          collection: 'platform-transactions',
+          data: {
+            type: 'booking_payment',
+            tenantId: Number(tenantId),
+            bookingId: bookingId ? Number(bookingId) : undefined,
+            stripePaymentIntentId: paymentIntent.id,
+            stripeChargeId: typeof paymentIntent.latest_charge === 'string'
+              ? paymentIntent.latest_charge
+              : paymentIntent.latest_charge?.id,
+            grossAmount: amount,
+            stripeFee,
+            platformFee,
+            platformFeePercent,
+            netAmount,
+            status: 'completed',
+            periodMonth: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
+            periodYear: now.getFullYear(),
+            taxYear: now.getFullYear(),
+            metadata: {
+              stripeAccountId: paymentIntent.on_behalf_of || paymentIntent.transfer_data?.destination,
+              applicationFeeAmount: paymentIntent.application_fee_amount,
+            },
+          },
+        })
+
+        console.log('Platform transaction created:', {
+          tenantId,
+          bookingId,
+          grossAmount: amount,
+          platformFee,
+          stripeFee,
+          netAmount,
+        })
+
+        // Also update the Payment record if it exists
+        const existingPayments = await payload.find({
+          collection: 'payments',
+          where: {
+            stripePaymentIntentId: { equals: paymentIntent.id },
+          },
+          limit: 1,
+        })
+
+        if (existingPayments.docs.length > 0) {
+          await payload.update({
+            collection: 'payments',
+            id: existingPayments.docs[0].id,
+            data: {
+              status: 'succeeded',
+              platformFee,
+              stripeFee,
+              platformFeePercent,
+              netAmount,
+            },
+          })
+        }
+      } catch (feeError) {
+        // Log but don't fail the webhook - payment was successful
+        console.error('Error creating platform transaction:', {
+          type: feeError instanceof Error ? feeError.name : 'Unknown',
+          paymentIntentId: paymentIntent.id,
+        })
+      }
+    }
 
     return {
       success: true,
@@ -572,6 +671,19 @@ async function handleSubscriptionCreated(
       },
     })
 
+    // Update tenant's plan field to match the subscription
+    const planSlug = plans.docs[0]?.slug as 'free' | 'pro' | 'platinum' | undefined
+    if (planSlug) {
+      await payload.update({
+        collection: 'tenants',
+        id: Number(tenantId),
+        data: {
+          plan: planSlug,
+        },
+      })
+      console.log('Updated tenant plan:', { tenantId, plan: planSlug })
+    }
+
     console.log('Subscription created:', {
       tenantId,
       subscriptionId: subscription.id,
@@ -664,6 +776,22 @@ async function handleSubscriptionUpdated(
           : undefined,
       },
     })
+
+    // Update tenant's plan field to match the subscription
+    const tenantId = typeof existingSubscription.tenantId === 'object'
+      ? existingSubscription.tenantId.id
+      : existingSubscription.tenantId
+    const updatedPlanSlug = plans.docs[0]?.slug as 'free' | 'pro' | 'platinum' | undefined
+    if (tenantId && updatedPlanSlug) {
+      await payload.update({
+        collection: 'tenants',
+        id: tenantId,
+        data: {
+          plan: updatedPlanSlug,
+        },
+      })
+      console.log('Updated tenant plan:', { tenantId, plan: updatedPlanSlug })
+    }
 
     console.log('Subscription updated:', {
       subscriptionId: subscription.id,

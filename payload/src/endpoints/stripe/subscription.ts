@@ -246,9 +246,9 @@ export const createSubscriptionCheckout = async (req: PayloadRequest): Promise<R
     const idempotencyKey = `tenant_${tenantId}_subscription_checkout_v1`
 
     // Determine the base URL for redirects
-    // Priority: provided URL > NUXT_PUBLIC_APP_URL > NEXT_PUBLIC_APP_URL > production URL
-    const baseUrl = process.env.NUXT_PUBLIC_APP_URL
-      || process.env.NEXT_PUBLIC_APP_URL
+    // Priority: provided URL > FRONTEND_URL > NUXT_PUBLIC_APP_URL > production URL
+    const baseUrl = process.env.FRONTEND_URL
+      || process.env.NUXT_PUBLIC_APP_URL
       || 'https://gregarious-adventure-production.up.railway.app'
 
     const session = await stripe.checkout.sessions.create({
@@ -514,8 +514,9 @@ export const getCustomerPortal = async (req: PayloadRequest): Promise<Response> 
     }
 
     // Create customer portal session
-    const baseUrl = process.env.NUXT_PUBLIC_APP_URL
-      || process.env.NEXT_PUBLIC_APP_URL
+    // Priority: FRONTEND_URL > NUXT_PUBLIC_APP_URL > production URL
+    const baseUrl = process.env.FRONTEND_URL
+      || process.env.NUXT_PUBLIC_APP_URL
       || 'https://gregarious-adventure-production.up.railway.app'
 
     const session = await stripe.billingPortal.sessions.create({

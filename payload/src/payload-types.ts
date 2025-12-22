@@ -97,6 +97,7 @@ export interface Config {
     documents: Document;
     'signed-documents': SignedDocument;
     'stripe-webhook-events': StripeWebhookEvent;
+    'platform-transactions': PlatformTransaction;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -134,6 +135,7 @@ export interface Config {
     documents: DocumentsSelect<false> | DocumentsSelect<true>;
     'signed-documents': SignedDocumentsSelect<false> | SignedDocumentsSelect<true>;
     'stripe-webhook-events': StripeWebhookEventsSelect<false> | StripeWebhookEventsSelect<true>;
+    'platform-transactions': PlatformTransactionsSelect<false> | PlatformTransactionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -188,7 +190,7 @@ export interface User {
   /**
    * User role and permissions level
    */
-  role: 'super_admin' | 'tenant_admin' | 'staff' | 'customer';
+  role: 'super_admin' | 'tenant_admin' | 'admin' | 'manager' | 'staff' | 'customer';
   /**
    * Whether this user account is active
    */
@@ -1758,6 +1760,14 @@ export interface Payment {
    */
   platformFee?: number | null;
   /**
+   * Stripe processing fee in cents (typically 2.9% + 30¢)
+   */
+  stripeFee?: number | null;
+  /**
+   * Platform fee percentage at time of transaction
+   */
+  platformFeePercent?: number | null;
+  /**
    * Net amount tenant receives in cents (after platform fee)
    */
   netAmount?: number | null;
@@ -2773,6 +2783,109 @@ export interface StripeWebhookEvent {
   createdAt: string;
 }
 /**
+ * Platform fee records for tax reporting and revenue tracking
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "platform-transactions".
+ */
+export interface PlatformTransaction {
+  id: number;
+  /**
+   * Type of financial transaction
+   */
+  type: 'booking_payment' | 'subscription_payment' | 'refund' | 'payout' | 'adjustment';
+  /**
+   * Tenant this transaction belongs to
+   */
+  tenantId: number | Tenant;
+  /**
+   * Related booking (for booking payments)
+   */
+  bookingId?: (number | null) | Booking;
+  /**
+   * Related subscription (for subscription payments)
+   */
+  subscriptionId?: (number | null) | Subscription;
+  /**
+   * For refunds: links to the original payment for audit trail
+   */
+  originalTransactionId?: (number | null) | PlatformTransaction;
+  /**
+   * Stripe Payment Intent ID (pi_xxx)
+   */
+  stripePaymentIntentId?: string | null;
+  /**
+   * Stripe Charge ID (ch_xxx)
+   */
+  stripeChargeId?: string | null;
+  /**
+   * Stripe Transfer ID for Connect payouts (tr_xxx)
+   */
+  stripeTransferId?: string | null;
+  /**
+   * Total payment amount in cents
+   */
+  grossAmount: number;
+  /**
+   * Stripe processing fee in cents (typically 2.9% + 30¢)
+   */
+  stripeFee: number;
+  /**
+   * Our platform fee in cents
+   */
+  platformFee: number;
+  /**
+   * Platform fee percentage at time of transaction (e.g., 6 for 6%)
+   */
+  platformFeePercent: number;
+  /**
+   * Amount tenant receives after all fees (in cents)
+   */
+  netAmount: number;
+  /**
+   * Current status of the transaction
+   */
+  status: 'pending' | 'completed' | 'refunded' | 'partially_refunded' | 'failed';
+  /**
+   * Total amount refunded in cents (for partial refunds)
+   */
+  refundedAmount?: number | null;
+  /**
+   * When the refund was processed
+   */
+  refundedAt?: string | null;
+  /**
+   * YYYY-MM format for monthly revenue reports
+   */
+  periodMonth?: string | null;
+  /**
+   * Year for annual reports
+   */
+  periodYear?: number | null;
+  /**
+   * Tax year for 1099-K reporting (may differ from calendar year)
+   */
+  taxYear?: number | null;
+  /**
+   * Additional Stripe metadata and context
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Internal notes (for adjustments or manual entries)
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -2915,6 +3028,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'stripe-webhook-events';
         value: number | StripeWebhookEvent;
+      } | null)
+    | ({
+        relationTo: 'platform-transactions';
+        value: number | PlatformTransaction;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -3641,6 +3758,8 @@ export interface PaymentsSelect<T extends boolean = true> {
   stripeChargeId?: T;
   stripeRefundId?: T;
   platformFee?: T;
+  stripeFee?: T;
+  platformFeePercent?: T;
   netAmount?: T;
   type?: T;
   metadata?: T;
@@ -3974,6 +4093,35 @@ export interface StripeWebhookEventsSelect<T extends boolean = true> {
   processedAt?: T;
   eventCreatedAt?: T;
   metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "platform-transactions_select".
+ */
+export interface PlatformTransactionsSelect<T extends boolean = true> {
+  type?: T;
+  tenantId?: T;
+  bookingId?: T;
+  subscriptionId?: T;
+  originalTransactionId?: T;
+  stripePaymentIntentId?: T;
+  stripeChargeId?: T;
+  stripeTransferId?: T;
+  grossAmount?: T;
+  stripeFee?: T;
+  platformFee?: T;
+  platformFeePercent?: T;
+  netAmount?: T;
+  status?: T;
+  refundedAmount?: T;
+  refundedAt?: T;
+  periodMonth?: T;
+  periodYear?: T;
+  taxYear?: T;
+  metadata?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
 }
