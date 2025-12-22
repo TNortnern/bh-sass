@@ -1,4 +1,5 @@
 import type { Payload } from 'payload'
+import { randomBytes } from 'crypto'
 
 export interface ApiKeyAuthResult {
   authenticated: boolean
@@ -172,14 +173,11 @@ export function getApiKeyFromHeaders(headers: Headers | Record<string, string>):
 /**
  * Generate a new secure API key
  * Format: bp_live_[random 32 chars]
+ * Uses crypto.randomBytes for cryptographically secure generation
  */
 export function generateApiKey(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
-  let key = 'bp_live_'
-  for (let i = 0; i < 32; i++) {
-    key += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return key
+  const randomPart = randomBytes(24).toString('base64url')
+  return `bp_live_${randomPart}`
 }
 
 /**

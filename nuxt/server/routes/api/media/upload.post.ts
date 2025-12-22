@@ -1,3 +1,13 @@
+// Security: Whitelist of allowed file types
+const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']
+const ALLOWED_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/svg+xml'
+]
+
 interface UserResponse {
   user?: {
     tenantId?: string | { id: string }
@@ -59,6 +69,26 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         message: 'No file found in upload'
+      })
+    }
+
+    // Validate file extension
+    const filename = fileItem.filename || 'upload'
+    const extension = filename.split('.').pop()?.toLowerCase() || ''
+
+    if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
+      throw createError({
+        statusCode: 400,
+        message: `Invalid file extension. Allowed types: ${ALLOWED_EXTENSIONS.join(', ')}`
+      })
+    }
+
+    // Validate MIME type
+    const mimeType = fileItem.type || ''
+    if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
+      throw createError({
+        statusCode: 400,
+        message: `Invalid file type. Allowed MIME types: ${ALLOWED_MIME_TYPES.join(', ')}`
       })
     }
 

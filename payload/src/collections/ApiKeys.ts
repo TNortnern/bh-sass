@@ -1,4 +1,5 @@
 import type { Access, CollectionConfig } from 'payload'
+import { randomBytes } from 'crypto'
 import { getTenantId } from '../utilities/getTenantId'
 import { getAccessContext } from '../utilities/accessControl'
 
@@ -151,10 +152,8 @@ export const ApiKeys: CollectionConfig = {
         beforeValidate: [
           ({ value }) => {
             if (!value) {
-              // Generate secure API key with tk_ prefix (32 random characters)
-              const randomPart = Array.from({ length: 32 }, () =>
-                Math.random().toString(36).charAt(2)
-              ).join('')
+              // Generate cryptographically secure API key with tk_ prefix
+              const randomPart = randomBytes(24).toString('base64url')
               return `tk_${randomPart}`
             }
             return value

@@ -3,6 +3,16 @@
  * Uploads to Bunny CDN if configured, otherwise falls back to Payload media
  */
 
+// Security: Whitelist of allowed file types
+const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']
+const ALLOWED_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/svg+xml'
+]
+
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
 
@@ -31,11 +41,29 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Validate file extension
+  const originalName = file.filename || 'upload'
+  const extension = originalName.split('.').pop()?.toLowerCase() || ''
+
+  if (!extension || !ALLOWED_EXTENSIONS.includes(extension)) {
+    throw createError({
+      statusCode: 400,
+      message: `Invalid file extension. Allowed types: ${ALLOWED_EXTENSIONS.join(', ')}`
+    })
+  }
+
+  // Validate MIME type
+  const mimeType = file.type || ''
+  if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
+    throw createError({
+      statusCode: 400,
+      message: `Invalid file type. Allowed MIME types: ${ALLOWED_MIME_TYPES.join(', ')}`
+    })
+  }
+
   // Generate unique filename
   const timestamp = Date.now()
   const randomString = Math.random().toString(36).substring(2, 8)
-  const originalName = file.filename || 'upload'
-  const extension = originalName.split('.').pop() || 'jpg'
   const sanitizedName = originalName
     .replace(/\.[^/.]+$/, '') // Remove extension
     .replace(/[^a-zA-Z0-9]/g, '-') // Replace special chars

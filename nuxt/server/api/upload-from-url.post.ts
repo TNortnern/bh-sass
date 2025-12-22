@@ -3,6 +3,16 @@
  * Download an image from URL and re-upload to Bunny CDN
  */
 
+// Security: Whitelist of allowed file types
+const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']
+const ALLOWED_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/svg+xml'
+]
+
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
 
@@ -63,13 +73,13 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const contentType = imageResponse.headers.get('content-type') || 'image/jpeg'
+    const contentType = imageResponse.headers.get('content-type') || ''
 
-    // Validate it's an image
-    if (!contentType.startsWith('image/')) {
+    // Validate MIME type
+    if (!ALLOWED_MIME_TYPES.includes(contentType)) {
       throw createError({
         statusCode: 400,
-        message: 'URL does not point to a valid image'
+        message: `Invalid MIME type. Allowed types: ${ALLOWED_MIME_TYPES.join(', ')}`
       })
     }
 
@@ -84,11 +94,18 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Generate filename from URL or create new one
+    // Validate and extract file extension from URL
     const urlPath = parsedUrl.pathname
-    const originalExt = urlPath.split('.').pop()?.toLowerCase() || 'jpg'
-    const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']
-    const extension = validExtensions.includes(originalExt) ? originalExt : 'jpg'
+    const originalExt = urlPath.split('.').pop()?.toLowerCase() || ''
+
+    if (!originalExt || !ALLOWED_EXTENSIONS.includes(originalExt)) {
+      throw createError({
+        statusCode: 400,
+        message: `Invalid file extension in URL. Allowed types: ${ALLOWED_EXTENSIONS.join(', ')}`
+      })
+    }
+
+    const extension = originalExt
 
     const timestamp = Date.now()
     const randomString = Math.random().toString(36).substring(2, 8)
