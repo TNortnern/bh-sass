@@ -7,23 +7,24 @@
 const { Pool } = require('pg');
 
 /**
- * Get database URL, preferring PG* variables (external proxy) over DATABASE_URI (internal).
- * Railway's internal networking can timeout, external proxy is more reliable.
+ * Get database URL, preferring internal DATABASE_URI over external proxy.
+ * Railway internal networking is designed for persistent connections.
  */
 function getDatabaseUrl() {
-  const { PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE } = process.env;
-
-  if (PGHOST && PGUSER && PGPASSWORD && PGDATABASE) {
-    const port = PGPORT || '5432';
-    const url = `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${port}/${PGDATABASE}`;
-    console.log(`[DB] Using external proxy: ${PGHOST}:${port}/${PGDATABASE}`);
-    return url;
-  }
-
+  // Prefer internal DATABASE_URI
   const uri = process.env.DATABASE_URI || process.env.DATABASE_URL;
   if (uri && uri.length > 15 && uri.includes('@')) {
     console.log('[DB] Using DATABASE_URI/DATABASE_URL from environment');
     return uri;
+  }
+
+  // Fallback to external proxy via PG* variables
+  const { PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE } = process.env;
+  if (PGHOST && PGUSER && PGPASSWORD && PGDATABASE) {
+    const port = PGPORT || '5432';
+    const url = `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${port}/${PGDATABASE}`;
+    console.log(`[DB] Using external proxy fallback: ${PGHOST}:${port}/${PGDATABASE}`);
+    return url;
   }
 
   return null;

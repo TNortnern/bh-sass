@@ -98,38 +98,37 @@ let webhookRetryInterval: NodeJS.Timeout | null = null
 let bookingReminderInterval: NodeJS.Timeout | null = null
 
 /**
- * Get database connection string with fallback to individual PG* variables.
+ * Get database connection string.
  *
  * Priority:
- * 1. PG* variables (external proxy - more reliable on Railway)
- * 2. DATABASE_URI (may use internal hostname that can timeout)
- * 3. DATABASE_URL (Railway's default variable)
+ * 1. DATABASE_URI (internal hostname - best for Railway inter-service)
+ * 2. DATABASE_URL (Railway's default variable)
+ * 3. PG* variables (external proxy - use as last fallback)
  *
- * Railway's internal networking (postgres.railway.internal) can be unreliable.
- * PG* variables typically point to the external proxy which is more stable.
+ * Railway's internal networking (postgres.railway.internal) is designed for
+ * persistent connections between services. External proxy can drop connections.
  */
 function getDatabaseUri(): string {
-  // PREFER PG* variables - they use the external proxy which is more reliable
-  const { PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE } = process.env
-
-  if (PGHOST && PGUSER && PGPASSWORD && PGDATABASE) {
-    const port = PGPORT || '5432'
-    const constructedUri = `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${port}/${PGDATABASE}`
-    console.log(`[DB] Using external proxy: ${PGHOST}:${port}/${PGDATABASE}`)
-    return constructedUri
-  }
-
-  // Fallback to DATABASE_URI if PG* not available
+  // PREFER internal DATABASE_URI for Railway inter-service communication
   const uri = process.env.DATABASE_URI || ''
   if (uri && uri.length > 15 && uri.includes('@')) {
-    console.log('[DB] Using DATABASE_URI from environment')
+    console.log('[DB] Using internal DATABASE_URI')
     return uri
   }
 
-  // Last resort: try DATABASE_URL (Railway's default variable name)
-  if (process.env.DATABASE_URL) {
+  // Fallback to DATABASE_URL (Railway's default variable)
+  if (process.env.DATABASE_URL && process.env.DATABASE_URL.length > 15 && process.env.DATABASE_URL.includes('@')) {
     console.log('[DB] Using DATABASE_URL from environment')
     return process.env.DATABASE_URL
+  }
+
+  // Last resort: construct from PG* variables (external proxy)
+  const { PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE } = process.env
+  if (PGHOST && PGUSER && PGPASSWORD && PGDATABASE) {
+    const port = PGPORT || '5432'
+    const constructedUri = `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${port}/${PGDATABASE}`
+    console.log(`[DB] Using external proxy fallback: ${PGHOST}:${port}/${PGDATABASE}`)
+    return constructedUri
   }
 
   console.error('[DB] WARNING: No valid database connection string found!')
