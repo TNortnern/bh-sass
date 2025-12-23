@@ -26,12 +26,17 @@ export const Contracts: CollectionConfig = {
 
       return false
     },
-    create: async ({ req }) => {
+    create: async ({ req, data }) => {
       if (req.user?.role === 'super_admin') return true
 
       const context = await getAccessContext(req)
 
+      // Allow authenticated users with tenant context
       if (context.authMethod && context.tenantId) return true
+
+      // Allow public creation of liability waivers only (for customer waiver signing)
+      // The waiver is always associated with a tenant and customer
+      if (data?.type === 'liability-waiver' && data?.tenantId) return true
 
       return false
     },
@@ -105,7 +110,7 @@ export const Contracts: CollectionConfig = {
     {
       name: 'contractNumber',
       type: 'text',
-      required: true,
+      required: false, // Auto-generated in beforeValidate hook
       unique: true,
       admin: {
         description: 'Auto-generated contract number (e.g., CTR-2025-001)',
@@ -160,9 +165,9 @@ export const Contracts: CollectionConfig = {
       name: 'bookingId',
       type: 'relationship',
       relationTo: 'bookings',
-      required: true,
+      required: false, // Optional - waivers can be signed without a booking
       admin: {
-        description: 'Related booking',
+        description: 'Related booking (optional for standalone waivers)',
       },
     },
     {
@@ -212,7 +217,7 @@ export const Contracts: CollectionConfig = {
     {
       name: 'content',
       type: 'richText',
-      required: true,
+      required: false, // Optional - waivers use standard template
       admin: {
         description: 'Contract terms and conditions',
       },

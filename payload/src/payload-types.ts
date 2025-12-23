@@ -98,6 +98,7 @@ export interface Config {
     'signed-documents': SignedDocument;
     'stripe-webhook-events': StripeWebhookEvent;
     'platform-transactions': PlatformTransaction;
+    'quote-requests': QuoteRequest;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -136,6 +137,7 @@ export interface Config {
     'signed-documents': SignedDocumentsSelect<false> | SignedDocumentsSelect<true>;
     'stripe-webhook-events': StripeWebhookEventsSelect<false> | StripeWebhookEventsSelect<true>;
     'platform-transactions': PlatformTransactionsSelect<false> | PlatformTransactionsSelect<true>;
+    'quote-requests': QuoteRequestsSelect<false> | QuoteRequestsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -253,6 +255,10 @@ export interface Tenant {
    * Subscription plan tier
    */
   plan: 'free' | 'pro' | 'platinum';
+  /**
+   * Override platform fee rate (0-1). Set to 0 to exempt from fees. Leave empty to use tier-based fee.
+   */
+  platformFeeOverride?: number | null;
   /**
    * Stripe Connect account ID
    */
@@ -2190,11 +2196,11 @@ export interface Contract {
   /**
    * Auto-generated contract number (e.g., CTR-2025-001)
    */
-  contractNumber: string;
+  contractNumber?: string | null;
   /**
-   * Related booking
+   * Related booking (optional for standalone waivers)
    */
-  bookingId: number | Booking;
+  bookingId?: (number | null) | Booking;
   /**
    * Customer signing this contract
    */
@@ -2206,7 +2212,7 @@ export interface Contract {
   /**
    * Contract terms and conditions
    */
-  content: {
+  content?: {
     root: {
       type: string;
       children: {
@@ -2220,7 +2226,7 @@ export interface Contract {
       version: number;
     };
     [k: string]: unknown;
-  };
+  } | null;
   /**
    * Contract status
    */
@@ -2886,6 +2892,159 @@ export interface PlatformTransaction {
   createdAt: string;
 }
 /**
+ * Customer quote requests for custom events
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quote-requests".
+ */
+export interface QuoteRequest {
+  id: number;
+  /**
+   * Tenant this quote belongs to
+   */
+  tenantId: number | Tenant;
+  status: 'pending' | 'responded' | 'converted' | 'declined' | 'expired';
+  /**
+   * Customer full name
+   */
+  customerName: string;
+  /**
+   * Customer email address
+   */
+  customerEmail: string;
+  /**
+   * Customer phone number
+   */
+  customerPhone?: string | null;
+  /**
+   * Type of event (Birthday, Corporate, Wedding, etc.)
+   */
+  eventType: string;
+  /**
+   * Date of the event
+   */
+  eventDate: string;
+  /**
+   * Event start time (HH:MM)
+   */
+  eventStartTime?: string | null;
+  /**
+   * Event end time (HH:MM)
+   */
+  eventEndTime?: string | null;
+  /**
+   * Expected number of guests
+   */
+  guestCount?: number | null;
+  /**
+   * Indoor or outdoor venue
+   */
+  venueType?: ('indoor' | 'outdoor') | null;
+  /**
+   * Age range of guests (e.g., "5-12 years")
+   */
+  ageRange?: string | null;
+  /**
+   * How the equipment will be obtained
+   */
+  fulfillmentType?: ('delivery' | 'pickup') | null;
+  /**
+   * Delivery address (if delivery selected)
+   */
+  deliveryAddress?: string | null;
+  /**
+   * Customer's budget range (e.g., "$200-$400")
+   */
+  budgetRange?: string | null;
+  /**
+   * Array of products/items requested (JSON)
+   */
+  productsRequested?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Additional services requested (setup, generators, etc.)
+   */
+  additionalServices?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Special requests or notes from customer
+   */
+  specialRequests?: string | null;
+  /**
+   * File attachments (images, documents)
+   */
+  attachments?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Admin response to the quote request
+   */
+  response?: {
+    /**
+     * Quoted total amount in cents
+     */
+    totalAmount?: number | null;
+    /**
+     * Message to customer
+     */
+    message?: string | null;
+    /**
+     * Quote validity in days
+     */
+    validityDays?: number | null;
+    /**
+     * Terms and conditions for this quote
+     */
+    termsConditions?: string | null;
+    /**
+     * When the response was sent
+     */
+    respondedAt?: string | null;
+    /**
+     * Staff member who responded
+     */
+    respondedBy?: (number | null) | User;
+  };
+  /**
+   * Internal notes (not visible to customer)
+   */
+  adminNotes?: string | null;
+  /**
+   * Booking created from this quote
+   */
+  convertedBookingId?: (number | null) | Booking;
+  /**
+   * How this quote request came in
+   */
+  source?: ('website' | 'phone' | 'email' | 'walkin' | 'referral') | null;
+  /**
+   * IP address of submitter
+   */
+  clientIP?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -3032,6 +3191,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'platform-transactions';
         value: number | PlatformTransaction;
+      } | null)
+    | ({
+        relationTo: 'quote-requests';
+        value: number | QuoteRequest;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -3170,6 +3333,7 @@ export interface TenantsSelect<T extends boolean = true> {
   domain?: T;
   logo?: T;
   plan?: T;
+  platformFeeOverride?: T;
   stripeAccountId?: T;
   stripeAccountStatus?: T;
   stripeDetailsSubmitted?: T;
@@ -4122,6 +4286,47 @@ export interface PlatformTransactionsSelect<T extends boolean = true> {
   taxYear?: T;
   metadata?: T;
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quote-requests_select".
+ */
+export interface QuoteRequestsSelect<T extends boolean = true> {
+  tenantId?: T;
+  status?: T;
+  customerName?: T;
+  customerEmail?: T;
+  customerPhone?: T;
+  eventType?: T;
+  eventDate?: T;
+  eventStartTime?: T;
+  eventEndTime?: T;
+  guestCount?: T;
+  venueType?: T;
+  ageRange?: T;
+  fulfillmentType?: T;
+  deliveryAddress?: T;
+  budgetRange?: T;
+  productsRequested?: T;
+  additionalServices?: T;
+  specialRequests?: T;
+  attachments?: T;
+  response?:
+    | T
+    | {
+        totalAmount?: T;
+        message?: T;
+        validityDays?: T;
+        termsConditions?: T;
+        respondedAt?: T;
+        respondedBy?: T;
+      };
+  adminNotes?: T;
+  convertedBookingId?: T;
+  source?: T;
+  clientIP?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -284,7 +284,7 @@ const printBooking = () => {
               Please sign the liability waiver before your event. This is required for all rentals and only takes a minute.
             </p>
             <UButton
-              :to="`/site/${tenantSlug}/waiver?booking=${booking.number}`"
+              :to="`/sign/${tenantSlug}/waiver?bookingId=${bookingId}`"
               color="primary"
               size="lg"
               icon="i-lucide-pen-tool"

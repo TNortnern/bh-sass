@@ -8,6 +8,13 @@
 
 ## CRITICAL: Development Guidelines
 
+### Environment Paths
+```bash
+# Bun (for dev-browser and other tools)
+export PATH="$HOME/.bun/bin:$PATH"
+# Or use directly: ~/.bun/bin/bun
+```
+
 ### Running the App
 **ALWAYS use Docker Compose** - starts both UI and API:
 ```bash
@@ -290,4 +297,4 @@ access: {
 
 ---
 
-**Last Updated:** 2025-12-18
+**Last Updated:** 2025-12-23
