@@ -20,10 +20,21 @@ async function runMigrations() {
     connectionString: url,
     ssl: process.env.DATABASE_SSL === 'true'
       ? { rejectUnauthorized: false }
-      : (process.env.PGSSLMODE === 'require' ? true : false)
+      : (process.env.PGSSLMODE === 'require' ? true : false),
+    // Add connection timeout to avoid hanging
+    connectionTimeoutMillis: 30000,
+    idleTimeoutMillis: 10000,
+    max: 1
   });
 
+  console.log('Database pool configured with 30s timeout...');
+
   try {
+    // Test connection first
+    console.log('Testing database connection...');
+    const testResult = await pool.query('SELECT 1 as test');
+    console.log('Database connection successful:', testResult.rows[0]);
+
     // Migration: Add custom website fields to tenants table
     console.log('Running migration: add_custom_website_fields...');
 
