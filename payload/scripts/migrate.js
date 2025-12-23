@@ -6,11 +6,34 @@
 
 const { Pool } = require('pg');
 
+/**
+ * Get database URL, preferring PG* variables (external proxy) over DATABASE_URI (internal).
+ * Railway's internal networking can timeout, external proxy is more reliable.
+ */
+function getDatabaseUrl() {
+  const { PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE } = process.env;
+
+  if (PGHOST && PGUSER && PGPASSWORD && PGDATABASE) {
+    const port = PGPORT || '5432';
+    const url = `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${port}/${PGDATABASE}`;
+    console.log(`[DB] Using external proxy: ${PGHOST}:${port}/${PGDATABASE}`);
+    return url;
+  }
+
+  const uri = process.env.DATABASE_URI || process.env.DATABASE_URL;
+  if (uri && uri.length > 15 && uri.includes('@')) {
+    console.log('[DB] Using DATABASE_URI/DATABASE_URL from environment');
+    return uri;
+  }
+
+  return null;
+}
+
 async function runMigrations() {
-  const url = process.env.DATABASE_URI || process.env.DATABASE_URL;
+  const url = getDatabaseUrl();
 
   if (!url) {
-    console.log('No DATABASE_URI or DATABASE_URL found, skipping migrations');
+    console.log('No database connection string found, skipping migrations');
     return;
   }
 

@@ -99,25 +99,31 @@ let bookingReminderInterval: NodeJS.Timeout | null = null
 
 /**
  * Get database connection string with fallback to individual PG* variables.
- * This works around Railway CLI bug that truncates long DATABASE_URI values.
+ *
+ * Priority:
+ * 1. PG* variables (external proxy - more reliable on Railway)
+ * 2. DATABASE_URI (may use internal hostname that can timeout)
+ * 3. DATABASE_URL (Railway's default variable)
+ *
+ * Railway's internal networking (postgres.railway.internal) can be unreliable.
+ * PG* variables typically point to the external proxy which is more stable.
  */
 function getDatabaseUri(): string {
-  const uri = process.env.DATABASE_URI || ''
-
-  // Check if DATABASE_URI is valid (not just 'postgresql://' or empty)
-  if (uri && uri.length > 15 && uri.includes('@')) {
-    console.log('[DB] Using DATABASE_URI from environment')
-    return uri
-  }
-
-  // Fallback: construct from individual PG* variables (Railway provides these)
+  // PREFER PG* variables - they use the external proxy which is more reliable
   const { PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE } = process.env
 
   if (PGHOST && PGUSER && PGPASSWORD && PGDATABASE) {
     const port = PGPORT || '5432'
     const constructedUri = `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${port}/${PGDATABASE}`
-    console.log(`[DB] Constructed connection string from PG* vars: ${PGHOST}:${port}/${PGDATABASE}`)
+    console.log(`[DB] Using external proxy: ${PGHOST}:${port}/${PGDATABASE}`)
     return constructedUri
+  }
+
+  // Fallback to DATABASE_URI if PG* not available
+  const uri = process.env.DATABASE_URI || ''
+  if (uri && uri.length > 15 && uri.includes('@')) {
+    console.log('[DB] Using DATABASE_URI from environment')
+    return uri
   }
 
   // Last resort: try DATABASE_URL (Railway's default variable name)
