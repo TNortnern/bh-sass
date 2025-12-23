@@ -39,6 +39,7 @@ import { SignedDocuments } from './collections/SignedDocuments'
 import { StripeWebhookEvents } from './collections/StripeWebhookEvents'
 import { Roles } from './collections/Roles'
 import { PlatformTransactions } from './collections/PlatformTransactions'
+import { QuoteRequests } from './collections/QuoteRequests'
 import { PlatformSettings } from './globals/PlatformSettings'
 import { availabilityCheckEndpoint } from './endpoints/availability-check'
 import { unavailableDatesEndpoint } from './endpoints/unavailable-dates'
@@ -198,6 +199,7 @@ export default buildConfig({
     SignedDocuments,
     StripeWebhookEvents,
     PlatformTransactions,
+    QuoteRequests,
   ],
   globals: [PlatformSettings],
   endpoints: [

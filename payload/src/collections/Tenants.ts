@@ -132,6 +132,24 @@ export const Tenants: CollectionConfig = {
       },
     },
     {
+      name: 'platformFeeOverride',
+      type: 'number',
+      min: 0,
+      max: 1,
+      admin: {
+        description: 'Override platform fee rate (0-1). Set to 0 to exempt from fees. Leave empty to use tier-based fee.',
+        step: 0.01,
+        placeholder: 'e.g., 0 for exempt, 0.02 for 2%',
+        position: 'sidebar',
+      },
+      access: {
+        // Only super admins can set fee overrides
+        create: ({ req: { user } }) => user?.role === 'super_admin',
+        update: ({ req: { user } }) => user?.role === 'super_admin',
+        read: ({ req: { user } }) => user?.role === 'super_admin' || user?.role === 'tenant_admin',
+      },
+    },
+    {
       name: 'stripeAccountId',
       type: 'text',
       access: {

@@ -31,9 +31,18 @@ const STRIPE_FIXED_FEE = 30 // cents
  *
  * @param amountInCents - Transaction amount in cents
  * @param tier - Tenant's pricing tier
+ * @param feeOverride - Optional override rate (0-1). Use 0 for exempt tenants. undefined = use tier rate.
  * @returns Platform fee in cents
  */
-export function calculatePlatformFee(amountInCents: number, tier: PricingTier): number {
+export function calculatePlatformFee(
+  amountInCents: number,
+  tier: PricingTier,
+  feeOverride?: number | null,
+): number {
+  // If feeOverride is explicitly set (including 0), use it instead of tier rate
+  if (feeOverride !== undefined && feeOverride !== null) {
+    return Math.round(amountInCents * feeOverride)
+  }
   const config = PLATFORM_FEE_RATES[tier]
   return Math.round(amountInCents * config.rate)
 }
@@ -54,15 +63,17 @@ export function calculateStripeFee(amountInCents: number): number {
  * @param subtotalInCents - Booking subtotal in cents
  * @param tier - Tenant's pricing tier
  * @param depositPercentage - Optional deposit percentage (0-100)
+ * @param feeOverride - Optional override rate (0-1). Use 0 for exempt tenants.
  * @returns Complete payment calculation
  */
 export function calculatePayment(
   subtotalInCents: number,
   tier: PricingTier,
   depositPercentage?: number,
+  feeOverride?: number | null,
 ): PaymentCalculation {
   // Calculate fees
-  const platformFee = calculatePlatformFee(subtotalInCents, tier)
+  const platformFee = calculatePlatformFee(subtotalInCents, tier, feeOverride)
   const stripeFee = calculateStripeFee(subtotalInCents)
 
   // Total amount customer pays
@@ -93,10 +104,15 @@ export function calculatePayment(
  *
  * @param amountInCents - Transaction amount in cents
  * @param tier - Tenant's pricing tier
+ * @param feeOverride - Optional override rate (0-1). Use 0 for exempt tenants.
  * @returns Application fee amount in cents
  */
-export function calculateApplicationFee(amountInCents: number, tier: PricingTier): number {
-  return calculatePlatformFee(amountInCents, tier)
+export function calculateApplicationFee(
+  amountInCents: number,
+  tier: PricingTier,
+  feeOverride?: number | null,
+): number {
+  return calculatePlatformFee(amountInCents, tier, feeOverride)
 }
 
 /**

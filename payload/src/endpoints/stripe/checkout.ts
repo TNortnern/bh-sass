@@ -133,6 +133,7 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
 
     const stripe = getStripeClient()
     const tier = (tenant.plan as PricingTier) || 'free'
+    const feeOverride = tenant.platformFeeOverride as number | null | undefined
 
     // Calculate payment amount (deposit or full)
     let paymentAmount = amount
@@ -141,7 +142,16 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
     }
 
     // Calculate application fee (platform fee)
-    const applicationFee = calculateApplicationFee(paymentAmount, tier)
+    // If tenant has platformFeeOverride set (including 0 for exempt), use it
+    const applicationFee = calculateApplicationFee(paymentAmount, tier, feeOverride)
+
+    console.log('[Checkout] Fee calculation:', {
+      tier,
+      feeOverride,
+      paymentAmount,
+      applicationFee,
+      isExempt: feeOverride === 0,
+    })
 
     // Build success and cancel URLs
     const baseUrl = process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'
@@ -191,6 +201,8 @@ export const createCheckoutSession = async (req: PayloadRequest): Promise<Respon
           fullAmount: amount.toString(),
           platformFee: applicationFee.toString(),
           tier,
+          feeExempt: feeOverride === 0 ? 'true' : 'false',
+          feeOverride: feeOverride !== undefined && feeOverride !== null ? feeOverride.toString() : '',
           ...metadata,
         },
       },
