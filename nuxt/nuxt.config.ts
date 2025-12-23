@@ -70,10 +70,24 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-30',
 
   nitro: {
-    // Explicitly inline pdfkit to bundle it into the server output
+    // Explicitly inline pdfkit and all its dependencies into the server output
     // Required because we don't copy node_modules to production image
     externals: {
-      inline: ['pdfkit']
+      inline: [
+        'pdfkit',
+        'fontkit',
+        'linebreak',
+        'png-js',
+        'jpeg-exif',
+        'crypto-js',
+        'restructure',
+        'unicode-trie',
+        'unicode-properties',
+        'dfa',
+        'deep-equal',
+        'brotli',
+        'tiny-inflate'
+      ]
     }
   },
 
