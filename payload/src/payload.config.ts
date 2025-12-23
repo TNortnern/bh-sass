@@ -311,6 +311,13 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: getDatabaseUri(),
+      // Connection pool settings for Railway external proxy resilience
+      // External proxy can drop idle connections - keep pool refreshed
+      max: 10, // Maximum number of clients in the pool
+      min: 2, // Minimum number of clients to keep connected
+      idleTimeoutMillis: 10000, // Close idle clients after 10 seconds
+      connectionTimeoutMillis: 30000, // Wait max 30 seconds for connection
+      allowExitOnIdle: false, // Keep pool alive even when idle
       // SSL configuration for Railway Postgres
       // DATABASE_SSL=auto: Don't set ssl option, let pg use PGSSLMODE or connection string
       // DATABASE_SSL=simple: uses just `ssl: true`
