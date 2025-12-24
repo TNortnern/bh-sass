@@ -54,7 +54,7 @@ const TRANSACTION_FEES: Record<string, number> = {
   scale: 0 // 0%
 }
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const payloadUrl = config.public.payloadUrl || 'http://localhost:3004'
   const rbPayloadUrl = config.rbPayloadUrl || 'https://reusablebook-payload-production.up.railway.app'
@@ -68,10 +68,13 @@ export default defineEventHandler(async () => {
   }
 
   try {
+    // Get cookie from request to forward authentication
+    const cookie = getRequestHeader(event, 'cookie')
+
     // Fetch all tenants from Payload CMS
     const tenantsUrl = `${payloadUrl}/api/tenants?limit=1000`
     const tenantsResponse = await $fetch<TenantsResponse>(tenantsUrl, {
-      headers: useRequestHeaders(['cookie']) as HeadersInit
+      headers: cookie ? { cookie } : {}
     })
 
     const tenants = tenantsResponse.docs || []
