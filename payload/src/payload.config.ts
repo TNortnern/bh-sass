@@ -100,39 +100,39 @@ let bookingReminderInterval: NodeJS.Timeout | null = null
 /**
  * Get database connection string.
  *
- * Priority:
- * 1. DATABASE_URI (internal hostname - best for Railway inter-service)
- * 2. DATABASE_URL (Railway's default variable)
- * 3. PG* variables (external proxy - use as last fallback)
+ * Priority (reliability-first for Railway):
+ * 1. DATABASE_URL (Railway's default variable - most reliable)
+ * 2. PG* variables (external proxy fallback)
+ * 3. DATABASE_URI (internal hostname - can timeout during maintenance)
  *
- * Railway's internal networking (postgres.railway.internal) is designed for
- * persistent connections between services. External proxy can drop connections.
+ * External proxy is preferred because internal networking can timeout
+ * during Railway infrastructure maintenance events.
  */
 function getDatabaseUri(): string {
-  // PREFER internal DATABASE_URI for Railway inter-service communication
-  const uri = process.env.DATABASE_URI || ''
-  if (uri && uri.length > 15 && uri.includes('@')) {
-    console.log('[DB] Using internal DATABASE_URI')
-    return uri
-  }
-
-  // Fallback to DATABASE_URL (Railway's default variable)
+  // PREFER DATABASE_URL (Railway's official variable, always works)
   if (process.env.DATABASE_URL && process.env.DATABASE_URL.length > 15 && process.env.DATABASE_URL.includes('@')) {
     console.log('[DB] Using DATABASE_URL from environment')
     return process.env.DATABASE_URL
   }
 
-  // Last resort: construct from PG* variables (external proxy)
+  // Fallback to PG* variables (external proxy - reliable)
   const { PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE } = process.env
   if (PGHOST && PGUSER && PGPASSWORD && PGDATABASE) {
     const port = PGPORT || '5432'
     const constructedUri = `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${port}/${PGDATABASE}`
-    console.log(`[DB] Using external proxy fallback: ${PGHOST}:${port}/${PGDATABASE}`)
+    console.log(`[DB] Using external proxy: ${PGHOST}:${port}/${PGDATABASE}`)
     return constructedUri
   }
 
+  // Last resort: DATABASE_URI (internal hostname - can timeout)
+  const uri = process.env.DATABASE_URI || ''
+  if (uri && uri.length > 15 && uri.includes('@')) {
+    console.log('[DB] Using internal DATABASE_URI (may timeout during maintenance)')
+    return uri
+  }
+
   console.error('[DB] WARNING: No valid database connection string found!')
-  console.error('[DB] Set DATABASE_URI, DATABASE_URL, or individual PG* variables')
+  console.error('[DB] Set DATABASE_URL, PG* variables, or DATABASE_URI')
   return ''
 }
 

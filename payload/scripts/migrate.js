@@ -7,24 +7,30 @@
 const { Pool } = require('pg');
 
 /**
- * Get database URL, preferring internal DATABASE_URI over external proxy.
- * Railway internal networking is designed for persistent connections.
+ * Get database URL with reliability-first priority.
+ * DATABASE_URL is preferred as Railway's official variable.
  */
 function getDatabaseUrl() {
-  // Prefer internal DATABASE_URI
-  const uri = process.env.DATABASE_URI || process.env.DATABASE_URL;
-  if (uri && uri.length > 15 && uri.includes('@')) {
-    console.log('[DB] Using DATABASE_URI/DATABASE_URL from environment');
-    return uri;
+  // PREFER DATABASE_URL (Railway's official variable)
+  if (process.env.DATABASE_URL && process.env.DATABASE_URL.length > 15 && process.env.DATABASE_URL.includes('@')) {
+    console.log('[DB] Using DATABASE_URL from environment');
+    return process.env.DATABASE_URL;
   }
 
-  // Fallback to external proxy via PG* variables
+  // Fallback to PG* variables (external proxy)
   const { PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE } = process.env;
   if (PGHOST && PGUSER && PGPASSWORD && PGDATABASE) {
     const port = PGPORT || '5432';
     const url = `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${port}/${PGDATABASE}`;
-    console.log(`[DB] Using external proxy fallback: ${PGHOST}:${port}/${PGDATABASE}`);
+    console.log(`[DB] Using external proxy: ${PGHOST}:${port}/${PGDATABASE}`);
     return url;
+  }
+
+  // Last resort: DATABASE_URI (internal hostname - may timeout)
+  const uri = process.env.DATABASE_URI;
+  if (uri && uri.length > 15 && uri.includes('@')) {
+    console.log('[DB] Using DATABASE_URI (may timeout during maintenance)');
+    return uri;
   }
 
   return null;

@@ -82,13 +82,21 @@ export const healthReadyEndpoint: Endpoint = {
     }
 
     // Check required environment variables
-    const requiredEnvVars = ['DATABASE_URI', 'PAYLOAD_SECRET']
-    const missingEnvVars = requiredEnvVars.filter(v => !process.env[v])
+    // Database: accept DATABASE_URL, PG* variables, or DATABASE_URI
+    const hasDbConfig = !!(
+      process.env.DATABASE_URL ||
+      (process.env.PGHOST && process.env.PGUSER && process.env.PGPASSWORD && process.env.PGDATABASE) ||
+      process.env.DATABASE_URI
+    )
+    const hasPayloadSecret = !!process.env.PAYLOAD_SECRET
 
-    if (missingEnvVars.length > 0) {
+    if (!hasDbConfig || !hasPayloadSecret) {
+      const missing = []
+      if (!hasDbConfig) missing.push('DATABASE_URL/PG*/DATABASE_URI')
+      if (!hasPayloadSecret) missing.push('PAYLOAD_SECRET')
       checks.environment = {
         status: 'error',
-        message: `Missing: ${missingEnvVars.join(', ')}`,
+        message: `Missing: ${missing.join(', ')}`,
       }
       allHealthy = false
     } else {
