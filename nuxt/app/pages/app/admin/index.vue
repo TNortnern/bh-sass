@@ -367,7 +367,7 @@ const statusColor = computed(() => {
 }
 
 .stat-footer {
-  @apply flex gap-6 pt-5;
+  @apply flex flex-wrap gap-4 pt-5;
   border-top: 1px solid rgb(229 231 235);
 }
 .dark .stat-footer {
@@ -375,7 +375,7 @@ const statusColor = computed(() => {
 }
 
 .stat-detail {
-  @apply flex flex-col gap-1;
+  @apply flex flex-col gap-1 min-w-fit;
 }
 
 .detail-value {
@@ -501,9 +501,14 @@ const statusColor = computed(() => {
 .tier-progress.pro { background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%); }
 .tier-progress.scale { background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%); }
 
+/* Quick Actions Card */
+.quick-actions-card {
+  grid-column: span 2;
+}
+
 /* Quick Actions */
 .quick-actions {
-  @apply grid grid-cols-2 gap-4;
+  @apply grid grid-cols-4 gap-4;
 }
 
 .action-button {
@@ -528,9 +533,17 @@ const statusColor = computed(() => {
   border-color: rgba(59, 130, 246, 0.3);
 }
 
+@media (max-width: 1280px) {
+  .quick-actions { @apply grid-cols-2; }
+}
+
 @media (max-width: 1024px) {
-  .system-health-card, .subscriptions-card { grid-column: span 1; }
+  .system-health-card, .subscriptions-card, .quick-actions-card { grid-column: span 1; }
   .health-metrics { @apply grid-cols-1; }
+  .quick-actions { @apply grid-cols-2; }
+}
+
+@media (max-width: 640px) {
   .quick-actions { @apply grid-cols-1; }
 }
 </style>
