@@ -27,10 +27,13 @@ export const healthDbEndpoint: Endpoint = {
   handler: async (req) => {
     try {
       // Attempt a simple database query to verify connectivity
+      // Use depth: 0 to avoid fetching relationships (faster, no cascading queries)
       const startTime = Date.now()
       await req.payload.find({
         collection: 'users',
         limit: 1,
+        depth: 0,
+        overrideAccess: true, // Bypass access control for health check
       })
       const responseTime = Date.now() - startTime
 
@@ -41,10 +44,14 @@ export const healthDbEndpoint: Endpoint = {
         timestamp: new Date().toISOString(),
       })
     } catch (error) {
+      // Include error name and code for better debugging
+      const errorInfo = error instanceof Error
+        ? { message: error.message.slice(0, 500), name: error.name }
+        : { message: 'Database connection failed' }
       return Response.json({
         status: 'error',
         database: 'disconnected',
-        error: error instanceof Error ? error.message : 'Database connection failed',
+        error: errorInfo,
         timestamp: new Date().toISOString(),
       }, { status: 503 })
     }
@@ -68,15 +75,19 @@ export const healthReadyEndpoint: Endpoint = {
       await req.payload.find({
         collection: 'tenants',
         limit: 1,
+        depth: 0,
+        overrideAccess: true, // Bypass access control for health check
       })
       checks.database = {
         status: 'ok',
         responseTime: `${Date.now() - startTime}ms`,
       }
     } catch (error) {
+      // Extract more detailed error info
+      const errMsg = error instanceof Error ? error.message : 'Connection failed'
       checks.database = {
         status: 'error',
-        message: error instanceof Error ? error.message : 'Connection failed',
+        message: errMsg.slice(0, 500), // Truncate to prevent huge errors
       }
       allHealthy = false
     }
