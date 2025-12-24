@@ -44,25 +44,81 @@ toast.add({ title: 'Success', description: 'Item saved', color: 'success' })
 ### Git Commits
 **NEVER use `git commit --no-verify`!** Fix pre-commit hook failures, don't bypass them.
 
-### Database Migrations - CRITICAL
-**ALWAYS keep database schema in sync with production!**
+### Database Migrations - MANDATORY (Like Django!)
+**ALL database schema changes MUST have a migration file. No exceptions.**
 
-When modifying Payload collections (adding/removing/changing fields):
-1. **Before pushing**: Generate a migration with `docker compose exec payload pnpm payload migrate:create`
-2. **Verify locally**: Run `docker compose exec payload pnpm payload migrate` to test
-3. **Push migration file**: Commit the new migration file in `payload/src/migrations/`
-4. **After deploy**: Verify migration ran on Railway (check logs for "Running migration")
-
-**Common schema change triggers:**
-- Adding new fields to collections
-- Adding new group fields (creates multiple columns)
+#### The Rule
+Any change to Payload collections that affects the database schema REQUIRES a migration:
+- Adding/removing fields
 - Changing field types
+- Adding group fields (creates multiple columns)
 - Adding array fields (creates junction tables)
+- Adding indexes
+- Changing relationships
 
-**If you see `column does not exist` errors in production:**
-1. The schema was changed without a migration
-2. Generate migration locally, push, and redeploy
-3. Or manually run `payload migrate` on Railway via console
+#### Workflow (Every Time)
+```bash
+# 1. Make your collection changes in payload/src/collections/*.ts
+
+# 2. Generate migration (REQUIRED before committing)
+cd payload && pnpm payload migrate:create
+
+# 3. Review the generated migration in payload/src/migrations/
+#    - Verify it has the correct SQL
+#    - Check both `up` and `down` functions
+
+# 4. Test locally
+docker compose exec payload pnpm payload migrate
+
+# 5. Commit BOTH the collection changes AND the migration file
+git add payload/src/collections/ payload/src/migrations/
+git commit -m "feat: Add X field to Y collection"
+
+# 6. Push - migrations run automatically on Railway deploy
+git push
+```
+
+#### CI/CD Pipeline
+Migrations run automatically on every Railway deploy via `payload migrate` in the startup script. The pipeline:
+1. Builds the Docker image
+2. Starts container
+3. Runs `payload migrate` (applies pending migrations)
+4. Starts the app
+
+#### Troubleshooting
+**"column does not exist" in production:**
+1. Someone changed a collection without creating a migration
+2. Fix: Generate migration locally → push → redeploy
+
+**Migration failed on deploy:**
+1. Check Railway logs for the error
+2. Fix the migration file or create a new one
+3. Redeploy
+
+**Fresh database setup:**
+```bash
+# All migrations run in order from payload/src/migrations/index.ts
+docker compose exec payload pnpm payload migrate
+```
+
+#### Migration Files Location
+- `payload/src/migrations/*.ts` - Payload migration files (for local dev)
+- `payload/src/migrations/index.ts` - Migration registry (auto-updated)
+- `payload/scripts/migrate.js` - Production migration script (MUST also add SQL here!)
+
+#### IMPORTANT: Dual Migration System
+Due to Payload's standalone build limitations, migrations must be added in TWO places:
+1. **Payload migrations** (`payload/src/migrations/*.ts`) - For local development
+2. **Production script** (`payload/scripts/migrate.js`) - For Railway deploys
+
+When creating a new migration:
+```bash
+# 1. Generate Payload migration
+cd payload && pnpm payload migrate:create
+
+# 2. ALSO add the SQL to payload/scripts/migrate.js in the migrations array
+# Copy the SQL from the generated .ts file into migrate.js
+```
 
 ### Nuxt Page Routing
 **Never have both `page.vue` AND `page/index.vue`!**
