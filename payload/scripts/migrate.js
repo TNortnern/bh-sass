@@ -105,6 +105,189 @@ const migrations = [
     `
   },
   {
+    name: '20251224_add_missing_tenant_columns',
+    description: 'Add all potentially missing columns to tenants table',
+    up: `
+      -- Platform fee override
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "platform_fee_override" numeric;
+
+      -- rb-payload integration fields
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "rb_payload_tenant_id" integer;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "rb_payload_api_key" varchar;
+
+      -- rb-payload sync status enum
+      DO $$ BEGIN
+        CREATE TYPE "public"."enum_tenants_rb_payload_sync_status" AS ENUM('pending', 'provisioned', 'failed');
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "rb_payload_sync_status" "enum_tenants_rb_payload_sync_status" DEFAULT 'pending';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "rb_payload_sync_error" varchar;
+
+      -- Contact info
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "phone" varchar;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "email" varchar;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "description" varchar;
+
+      -- Address fields (group)
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "address_street" varchar;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "address_city" varchar;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "address_state" varchar;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "address_zip" varchar;
+
+      -- Business hours (group fields for each day)
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_monday_enabled" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_monday_open" varchar DEFAULT '09:00';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_monday_close" varchar DEFAULT '18:00';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_tuesday_enabled" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_tuesday_open" varchar DEFAULT '09:00';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_tuesday_close" varchar DEFAULT '18:00';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_wednesday_enabled" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_wednesday_open" varchar DEFAULT '09:00';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_wednesday_close" varchar DEFAULT '18:00';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_thursday_enabled" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_thursday_open" varchar DEFAULT '09:00';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_thursday_close" varchar DEFAULT '18:00';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_friday_enabled" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_friday_open" varchar DEFAULT '09:00';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_friday_close" varchar DEFAULT '20:00';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_saturday_enabled" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_saturday_open" varchar DEFAULT '08:00';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_saturday_close" varchar DEFAULT '20:00';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_sunday_enabled" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_sunday_open" varchar DEFAULT '10:00';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "business_hours_sunday_close" varchar DEFAULT '16:00';
+
+      -- Service area
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "service_area_radius" numeric DEFAULT 25;
+
+      -- Service area unit enum
+      DO $$ BEGIN
+        CREATE TYPE "public"."enum_tenants_service_area_unit" AS ENUM('miles', 'km');
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "service_area_unit" "enum_tenants_service_area_unit" DEFAULT 'miles';
+
+      -- Branding fields
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "branding_business_name" varchar;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "branding_tagline" varchar;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "branding_primary_color" varchar DEFAULT '#fbbf24';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "branding_secondary_color" varchar DEFAULT '#3b82f6';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "branding_accent_color" varchar DEFAULT '#10b981';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "branding_email_header_bg" varchar DEFAULT '#fbbf24';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "branding_email_button_color" varchar DEFAULT '#10b981';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "branding_email_footer" varchar;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "branding_invoice_header" varchar DEFAULT 'INVOICE';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "branding_terms_and_conditions" varchar;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "branding_safety_guidelines" varchar;
+
+      -- Website fields
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_enabled" boolean DEFAULT false;
+
+      -- Website template enum
+      DO $$ BEGIN
+        CREATE TYPE "public"."enum_tenants_website_template_id" AS ENUM('classic', 'modern', 'bold', 'playful', 'elegant');
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_template_id" "enum_tenants_website_template_id" DEFAULT 'classic';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_hero_title" varchar;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_hero_subtitle" varchar;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_hero_image_id" integer;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_about_title" varchar DEFAULT 'About Us';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_about_content" varchar;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_show_services" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_services_title" varchar DEFAULT 'Our Rentals';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_show_testimonials" boolean DEFAULT false;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_show_gallery" boolean DEFAULT false;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_cta_text" varchar DEFAULT 'Book Now';
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_seo_title" varchar;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_seo_description" varchar;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "website_seo_keywords" varchar;
+
+      -- Notification settings (group fields)
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "settings_notification_settings_email_new_booking" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "settings_notification_settings_email_cancellation" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "settings_notification_settings_email_payment" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "settings_notification_settings_email_reminder" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "settings_notification_settings_email_daily_summary" boolean DEFAULT false;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "settings_notification_settings_in_app_new_booking" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "settings_notification_settings_in_app_cancellation" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "settings_notification_settings_in_app_payment" boolean DEFAULT true;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "settings_notification_settings_in_app_reminder" boolean DEFAULT false;
+      ALTER TABLE "tenants"
+      ADD COLUMN IF NOT EXISTS "settings_notification_settings_reminder_timing" numeric DEFAULT 24;
+    `
+  },
+  {
     name: '20251221_add_custom_website_fields',
     description: 'Add custom website fields to tenants table',
     up: `
