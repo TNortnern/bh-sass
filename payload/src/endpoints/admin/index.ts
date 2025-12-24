@@ -22,6 +22,7 @@ import {
   adminRevokeApiKeyEndpoint
 } from './api-keys'
 import { inventorySyncEndpoints } from './inventory-sync'
+import { seedDemoUsersEndpoint } from './seed'
 
 /**
  * Admin endpoints - Super admin only
@@ -64,5 +65,8 @@ export const adminEndpoints: Endpoint[] = [
   adminRevokeApiKeyEndpoint,
 
   // Inventory Sync
-  ...inventorySyncEndpoints
+  ...inventorySyncEndpoints,
+
+  // Seeding (protected by PAYLOAD_SECRET)
+  seedDemoUsersEndpoint
 ]
