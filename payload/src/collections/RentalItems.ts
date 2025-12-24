@@ -255,8 +255,14 @@ export const RentalItems: CollectionConfig = {
               return data?.tenantId
             }
 
-            // On CREATE: Always use the authenticated user's tenant
-            // Never allow client-provided tenantId (prevents data leakage across tenants)
+            // Super admin can create items for any tenant if they explicitly specify one
+            // This enables migrations and admin operations across tenants
+            if (req.user?.role === 'super_admin' && data?.tenantId) {
+              return data.tenantId
+            }
+
+            // For regular users: Always use the authenticated user's tenant
+            // This prevents data leakage across tenants
             const tenantId = getTenantId(req.user)
 
             // If no user but tenantId is explicitly provided (seed script or system operation)
@@ -271,7 +277,6 @@ export const RentalItems: CollectionConfig = {
             }
 
             // Override client-provided value with user's tenant
-            // This prevents data leakage across tenants
             return tenantId
           },
         ],
