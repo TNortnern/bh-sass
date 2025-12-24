@@ -46,7 +46,7 @@ const handleExitImpersonation = async () => {
 .impersonation-banner {
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 9999; /* High z-index like Django admin to ensure banner is always visible */
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   border-bottom: 2px solid #92400e;
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
