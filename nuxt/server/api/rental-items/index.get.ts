@@ -113,28 +113,51 @@ export default defineEventHandler(async (event) => {
   const payloadUrl = config.payloadApiUrl || 'http://payload:3000'
   const apiKey = config.payloadApiKey
 
-  // Get the cookie header to forward to Payload for session auth
+  // Get auth headers to forward to Payload
   const cookieHeader = getHeader(event, 'cookie') || ''
+  const authHeader = getHeader(event, 'authorization') || ''
+  const apiKeyHeader = getHeader(event, 'x-api-key') || ''
 
-  // Must have either session cookie or API key
-  if (!cookieHeader.includes('payload-token') && !apiKey) {
+  // Must have session cookie, Authorization header, API key header, or config API key
+  const hasAuth = cookieHeader.includes('payload-token')
+    || authHeader.startsWith('JWT ')
+    || apiKeyHeader
+    || apiKey
+  if (!hasAuth) {
     throw createError({
       statusCode: 401,
       message: 'Authentication required'
     })
   }
 
-  // Build headers - prefer session auth, fall back to API key
+  // Build headers - forward auth to Payload
+  // Priority: Cookie (session) > Authorization header (JWT) > X-API-Key header > config API key
   const headers: Record<string, string> = {}
   if (cookieHeader.includes('payload-token')) {
     headers['Cookie'] = cookieHeader
+  } else if (authHeader.startsWith('JWT ')) {
+    headers['Authorization'] = authHeader
+  } else if (apiKeyHeader) {
+    headers['X-API-Key'] = apiKeyHeader
   } else if (apiKey) {
     headers['X-API-Key'] = apiKey
   }
 
   try {
-    // Don't filter by tenantId - let Payload's access control handle tenant scoping
-    const response = await fetch(`${payloadUrl}/api/rental-items?limit=100&depth=2`, {
+    // Forward query parameters to Payload (limit, depth, sort, etc.)
+    const query = getQuery(event)
+    const rawFormat = query.raw === 'true' || query.raw === '1'
+    const queryParams = new URLSearchParams()
+    for (const [key, value] of Object.entries(query)) {
+      if (key !== 'raw' && value !== undefined) {
+        queryParams.set(key, String(value))
+      }
+    }
+    // Set defaults if not provided
+    if (!queryParams.has('limit')) queryParams.set('limit', '100')
+    if (!queryParams.has('depth')) queryParams.set('depth', '2')
+
+    const response = await fetch(`${payloadUrl}/api/rental-items?${queryParams.toString()}`, {
       headers
     })
 
@@ -146,6 +169,11 @@ export default defineEventHandler(async (event) => {
     }
 
     const data = await response.json()
+
+    // Return raw Payload format if requested, otherwise transform
+    if (rawFormat) {
+      return data
+    }
 
     // Transform each item to frontend format
     return {
