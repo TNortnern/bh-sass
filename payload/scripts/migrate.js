@@ -50,6 +50,61 @@ function getDatabaseUrl() {
  */
 const migrations = [
   {
+    name: '20251224_ensure_tenant_junction_tables',
+    description: 'Ensure tenant array field junction tables exist',
+    up: `
+      -- Create tenants_service_area_zip_codes if not exists
+      CREATE TABLE IF NOT EXISTS "tenants_service_area_zip_codes" (
+        "_order" integer NOT NULL,
+        "_parent_id" integer NOT NULL,
+        "id" serial PRIMARY KEY NOT NULL,
+        "code" varchar
+      );
+      CREATE INDEX IF NOT EXISTS "tenants_service_area_zip_codes_order_idx" ON "tenants_service_area_zip_codes" USING btree ("_order");
+      CREATE INDEX IF NOT EXISTS "tenants_service_area_zip_codes_parent_id_idx" ON "tenants_service_area_zip_codes" USING btree ("_parent_id");
+
+      -- Create tenants_website_testimonials if not exists
+      CREATE TABLE IF NOT EXISTS "tenants_website_testimonials" (
+        "_order" integer NOT NULL,
+        "_parent_id" integer NOT NULL,
+        "id" serial PRIMARY KEY NOT NULL,
+        "name" varchar,
+        "content" varchar,
+        "rating" numeric
+      );
+      CREATE INDEX IF NOT EXISTS "tenants_website_testimonials_order_idx" ON "tenants_website_testimonials" USING btree ("_order");
+      CREATE INDEX IF NOT EXISTS "tenants_website_testimonials_parent_id_idx" ON "tenants_website_testimonials" USING btree ("_parent_id");
+
+      -- Create tenants_website_gallery_images if not exists
+      CREATE TABLE IF NOT EXISTS "tenants_website_gallery_images" (
+        "_order" integer NOT NULL,
+        "_parent_id" integer NOT NULL,
+        "id" serial PRIMARY KEY NOT NULL,
+        "image_id" integer,
+        "caption" varchar
+      );
+      CREATE INDEX IF NOT EXISTS "tenants_website_gallery_images_order_idx" ON "tenants_website_gallery_images" USING btree ("_order");
+      CREATE INDEX IF NOT EXISTS "tenants_website_gallery_images_parent_id_idx" ON "tenants_website_gallery_images" USING btree ("_parent_id");
+      CREATE INDEX IF NOT EXISTS "tenants_website_gallery_images_image_idx" ON "tenants_website_gallery_images" USING btree ("image_id");
+
+      -- Add foreign key constraints if they don't exist (silently skip if exists)
+      DO $$ BEGIN
+        ALTER TABLE "tenants_service_area_zip_codes" ADD CONSTRAINT "tenants_service_area_zip_codes_parent_id_fk"
+          FOREIGN KEY ("_parent_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+      DO $$ BEGIN
+        ALTER TABLE "tenants_website_testimonials" ADD CONSTRAINT "tenants_website_testimonials_parent_id_fk"
+          FOREIGN KEY ("_parent_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+      DO $$ BEGIN
+        ALTER TABLE "tenants_website_gallery_images" ADD CONSTRAINT "tenants_website_gallery_images_parent_id_fk"
+          FOREIGN KEY ("_parent_id") REFERENCES "public"."tenants"("id") ON DELETE cascade ON UPDATE no action;
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+    `
+  },
+  {
     name: '20251221_add_custom_website_fields',
     description: 'Add custom website fields to tenants table',
     up: `
