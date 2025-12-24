@@ -343,6 +343,77 @@ const migrations = [
         END IF;
       END $$;
     `
+  },
+  {
+    name: '20251224_fix_locked_documents_rels',
+    description: 'Add missing columns to payload_locked_documents_rels for all collections',
+    up: `
+      -- Add all potentially missing collection ID columns to locked_documents_rels
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "quote_requests_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "platform_transactions_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "stripe_webhook_events_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "signed_documents_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "documents_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "email_templates_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "maintenance_schedules_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "maintenance_records_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "contract_templates_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "contracts_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "invoices_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "audit_logs_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "api_keys_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "notifications_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "webhook_deliveries_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "webhook_endpoints_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "payments_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "add_ons_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "bundles_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "inventory_units_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "subscriptions_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "plans_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "availability_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "customers_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "bookings_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "variations_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "rental_items_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "categories_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "roles_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "tenants_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "media_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "users_id" integer;
+    `
   }
 ];
 
