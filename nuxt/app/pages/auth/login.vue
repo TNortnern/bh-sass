@@ -3,7 +3,14 @@ definePageMeta({
   layout: 'auth'
 })
 
+const route = useRoute()
 const { login, loginWithProvider, isLoading, error } = useAuth()
+
+// Get tenant from query param (e.g., ?tenant=sugar-rush-party-co)
+const tenantSlug = computed(() => {
+  const tenant = route.query.tenant
+  return typeof tenant === 'string' ? tenant : undefined
+})
 
 const form = ref({
   email: '',
@@ -31,7 +38,8 @@ const handleLogin = async () => {
   await login({
     email: form.value.email,
     password: form.value.password,
-    rememberMe: form.value.rememberMe
+    rememberMe: form.value.rememberMe,
+    tenant: tenantSlug.value // Pass tenant from query param if present
   })
   loginMethod.value = null
 }
@@ -60,6 +68,17 @@ useHead({
           <p class="text-gray-400 text-sm">
             Sign in to your BouncePro account
           </p>
+          <!-- Show tenant context when logging in via direct link -->
+          <div
+            v-if="tenantSlug"
+            class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs"
+          >
+            <UIcon
+              name="i-lucide-building-2"
+              class="w-3.5 h-3.5"
+            />
+            <span>Logging in to: <strong>{{ tenantSlug }}</strong></span>
+          </div>
         </div>
       </template>
 

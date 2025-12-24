@@ -1,6 +1,7 @@
 import type { Endpoint } from 'payload'
 
 import { generatePayloadCookie, headersWithCors, loginOperation } from 'payload'
+import { userHasTenantAccess, getTenantId } from '../utilities/getTenantId'
 
 const DEFAULT_REMEMBER_ME_DAYS = 30
 const SECONDS_PER_DAY = 24 * 60 * 60
@@ -143,6 +144,80 @@ export const authLoginEndpoint: Endpoint = {
       )
     }
 
+    // Handle tenant parameter - allow specifying which tenant to activate on login
+    // Can be passed as query param (?tenant=slug) or in body (tenantSlug or tenantId)
+    const tenantParam = req.searchParams?.get('tenant') || body.tenantSlug || body.tenant
+    const tenantIdParam = body.tenantId
+
+    let activeTenant: any = null
+
+    if (result.user && (tenantParam || tenantIdParam)) {
+      try {
+        // Find the requested tenant
+        let requestedTenant: any = null
+
+        if (tenantIdParam) {
+          requestedTenant = await payload.findByID({
+            collection: 'tenants',
+            id: tenantIdParam,
+          })
+        } else if (tenantParam) {
+          const tenantResult = await payload.find({
+            collection: 'tenants',
+            where: { slug: { equals: tenantParam } },
+            limit: 1,
+          })
+          requestedTenant = tenantResult.docs[0]
+        }
+
+        if (requestedTenant) {
+          // Check if user has access to this tenant
+          if (userHasTenantAccess(result.user, requestedTenant.id)) {
+            // Update user's activeTenantId
+            await payload.update({
+              collection: 'users',
+              id: result.user.id,
+              data: { activeTenantId: requestedTenant.id },
+            })
+
+            activeTenant = {
+              id: requestedTenant.id,
+              name: requestedTenant.name,
+              slug: requestedTenant.slug,
+            }
+
+            // Update the result.user object
+            result.user.activeTenantId = requestedTenant.id
+          }
+        }
+      } catch (err) {
+        // Log but don't fail login if tenant switch fails
+        payload.logger.error({ err, msg: 'Failed to set active tenant on login' })
+      }
+    }
+
+    // If no specific tenant requested, get the current active tenant info
+    if (!activeTenant && result.user) {
+      const currentTenantId = getTenantId(result.user)
+      if (currentTenantId) {
+        try {
+          const currentTenant = await payload.findByID({
+            collection: 'tenants',
+            id: currentTenantId,
+          })
+          if (currentTenant) {
+            activeTenant = {
+              id: currentTenant.id,
+              name: currentTenant.name,
+              slug: currentTenant.slug,
+            }
+          }
+        } catch {
+          // Ignore errors fetching tenant info
+        }
+      }
+    }
+
     const cookie = generatePayloadCookie({
       collectionAuthConfig: authConfig,
       cookiePrefix: req.payload.config.cookiePrefix,
@@ -157,7 +232,9 @@ export const authLoginEndpoint: Endpoint = {
     return Response.json(
       {
         message: req.t('authentication:passed'),
-        ...result
+        ...result,
+        // Include active tenant info in response
+        activeTenant,
       },
       {
         headers: headersWithCors({

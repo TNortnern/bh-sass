@@ -250,6 +250,9 @@ watch(() => route.path, () => {
 
           <!-- Right: Actions -->
           <div class="flex items-center gap-2">
+            <!-- Tenant Switcher (for multi-tenant users) -->
+            <DashboardTenantSwitcher />
+
             <!-- Dark mode toggle -->
             <UButton
               color="neutral"

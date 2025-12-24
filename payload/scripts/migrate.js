@@ -414,6 +414,39 @@ const migrations = [
       ALTER TABLE "payload_locked_documents_rels"
       ADD COLUMN IF NOT EXISTS "users_id" integer;
     `
+  },
+  {
+    name: '20251224_add_multi_tenant_user_access',
+    description: 'Add multi-tenant user access (activeTenantId and additionalTenants)',
+    up: `
+      -- Add activeTenantId column to users table
+      ALTER TABLE "users"
+      ADD COLUMN IF NOT EXISTS "active_tenant_id_id" integer REFERENCES "tenants"("id") ON DELETE SET NULL;
+
+      -- Create junction table for additionalTenants (hasMany relationship)
+      CREATE TABLE IF NOT EXISTS "users_additional_tenants" (
+        "_order" integer NOT NULL,
+        "_parent_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+        "tenants_id" integer NOT NULL REFERENCES "tenants"("id") ON DELETE CASCADE,
+        PRIMARY KEY ("_parent_id", "tenants_id")
+      );
+
+      -- Create indexes for better query performance
+      CREATE INDEX IF NOT EXISTS "users_active_tenant_id_idx" ON "users" ("active_tenant_id_id");
+      CREATE INDEX IF NOT EXISTS "users_additional_tenants_parent_idx" ON "users_additional_tenants" ("_parent_id");
+      CREATE INDEX IF NOT EXISTS "users_additional_tenants_tenant_idx" ON "users_additional_tenants" ("tenants_id");
+
+      -- Create users_rels table for hasMany relationship fields (used by Payload)
+      CREATE TABLE IF NOT EXISTS "users_rels" (
+        "id" serial PRIMARY KEY,
+        "order" integer,
+        "parent_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+        "path" varchar(255),
+        "tenants_id" integer REFERENCES "tenants"("id") ON DELETE CASCADE
+      );
+      CREATE INDEX IF NOT EXISTS "users_rels_parent_id_idx" ON "users_rels" ("parent_id");
+      CREATE INDEX IF NOT EXISTS "users_rels_path_idx" ON "users_rels" ("path");
+    `
   }
 ];
 

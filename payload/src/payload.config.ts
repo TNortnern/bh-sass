@@ -18,6 +18,7 @@ import { Bookings } from './collections/Bookings'
 import { Customers } from './collections/Customers'
 import { Availability } from './collections/Availability'
 import { Plans } from './collections/Plans'
+import { PromoCodes } from './collections/PromoCodes'
 import { Subscriptions } from './collections/Subscriptions'
 import { InventoryUnits } from './collections/InventoryUnits'
 import { Bundles } from './collections/Bundles'
@@ -88,6 +89,7 @@ import { registerHandler } from './endpoints/register'
 import { authLoginEndpoint } from './endpoints/auth-login'
 import { rotateApiKeyEndpoint } from './endpoints/api-keys'
 import { rbPayloadWebhookEndpoint } from './endpoints/rb-payload-webhooks'
+import { switchTenantEndpoint, accessibleTenantsEndpoint } from './endpoints/tenant-switch'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -184,6 +186,7 @@ export default buildConfig({
     Customers,
     Availability,
     Plans,
+    PromoCodes,
     Subscriptions,
     InventoryUnits,
     Bundles,
@@ -223,6 +226,9 @@ export default buildConfig({
     },
     // Custom login endpoint with remember-me support
     authLoginEndpoint,
+    // Tenant switching endpoints (multi-tenant user access)
+    switchTenantEndpoint,
+    accessibleTenantsEndpoint,
     // Admin endpoints (super admin only)
     ...adminEndpoints,
     // Availability check endpoints

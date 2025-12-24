@@ -17,6 +17,7 @@ export interface LoginCredentials {
   email: string
   password: string
   rememberMe?: boolean
+  tenant?: string // Optional tenant slug to activate on login
 }
 
 export interface RegisterData {
@@ -90,13 +91,21 @@ export const useAuth = () => {
     error.value = null
 
     try {
+      // Build request body
+      const body: Record<string, unknown> = {
+        email: credentials.email,
+        password: credentials.password,
+        rememberMe: credentials.rememberMe
+      }
+
+      // Add tenant slug if provided (for direct tenant login via ?tenant=slug)
+      if (credentials.tenant) {
+        body.tenantSlug = credentials.tenant
+      }
+
       const response = await $fetch<{ user: User, token: string }>('/v1/auth/login', {
         method: 'POST',
-        body: {
-          email: credentials.email,
-          password: credentials.password,
-          rememberMe: credentials.rememberMe
-        },
+        body,
         credentials: 'include'
       })
 

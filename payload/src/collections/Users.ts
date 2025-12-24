@@ -79,7 +79,7 @@ export const Users: CollectionConfig = {
       // Not required - super_admins don't belong to a tenant
       required: false,
       admin: {
-        description: 'The tenant this user belongs to (not required for super admins)',
+        description: 'Primary tenant this user belongs to (not required for super admins)',
         // Hide for super_admins since they don't need a tenant
         condition: (data) => {
           return data?.role !== 'super_admin'
@@ -102,6 +102,30 @@ export const Users: CollectionConfig = {
           return 'Tenant is required for non-super admin users'
         }
         return true
+      },
+    },
+    {
+      name: 'additionalTenants',
+      type: 'relationship',
+      relationTo: 'tenants',
+      hasMany: true,
+      admin: {
+        description: 'Additional tenants this user can access (for multi-tenant users)',
+        condition: (data) => {
+          return data?.role !== 'super_admin' && data?.role !== 'customer'
+        },
+      },
+    },
+    {
+      name: 'activeTenantId',
+      type: 'relationship',
+      relationTo: 'tenants',
+      required: false,
+      admin: {
+        description: 'Currently active tenant (defaults to primary tenantId if not set)',
+        condition: (data) => {
+          return data?.role !== 'super_admin'
+        },
       },
     },
     {
