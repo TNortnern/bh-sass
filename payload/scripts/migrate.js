@@ -449,6 +449,17 @@ const migrations = [
       CREATE INDEX IF NOT EXISTS "users_rels_parent_id_idx" ON "users_rels" ("parent_id");
       CREATE INDEX IF NOT EXISTS "users_rels_path_idx" ON "users_rels" ("path");
     `
+  },
+  {
+    name: '20251226_add_plan_fields',
+    description: 'Add missing fields to plans table (annual pricing, stripe IDs)',
+    up: `
+      -- Add annual pricing fields
+      ALTER TABLE "plans"
+      ADD COLUMN IF NOT EXISTS "annual_price" numeric;
+      ALTER TABLE "plans"
+      ADD COLUMN IF NOT EXISTS "stripe_annual_price_id" varchar;
+    `
   }
 ];
 
