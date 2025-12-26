@@ -104,15 +104,21 @@ export async function authenticateApiKey(
     }
 
     // Update last used timestamp (async, don't await)
-    payload.update({
-      collection: 'api-keys',
-      id: String(apiKeyDoc.id),
-      data: {
-        lastUsed: new Date().toISOString(),
-      },
-    }).catch((err) => {
-      payload.logger.error(`Failed to update API key lastUsed: ${err}`)
-    })
+    // Wrap in try-catch to prevent database errors from breaking API requests
+    // This can fail if migrations haven't been run (missing columns in payload_locked_documents_rels)
+    try {
+      payload.update({
+        collection: 'api-keys',
+        id: String(apiKeyDoc.id),
+        data: {
+          lastUsed: new Date().toISOString(),
+        },
+      }).catch(() => {
+        // Silently ignore - lastUsed is non-critical
+      })
+    } catch {
+      // Silently ignore - lastUsed is non-critical
+    }
 
     // Extract scopes - handle both array and other types
     const scopes: string[] = Array.isArray(apiKeyDoc.scopes)
