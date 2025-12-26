@@ -35,9 +35,10 @@ COPY --from=payload-builder /payload/.next/standalone ./payload
 COPY --from=payload-builder /payload/.next/static ./payload/.next/static
 COPY --from=payload-builder /payload/public ./payload/public
 
-# Install pg for migrations and copy migration script
+# Install pg for migrations and copy migration scripts
 RUN mkdir -p /app/payload-migrate && cd /app/payload-migrate && npm init -y && npm install pg --no-save
 COPY --from=payload-builder /payload/scripts/migrate.js ./payload-migrate/migrate.js
+COPY --from=payload-builder /payload/scripts/schema-sync.js ./payload-migrate/schema-sync.js
 
 # Copy Nuxt build
 COPY --from=nuxt-builder /nuxt/.output ./nuxt/.output
@@ -171,7 +172,11 @@ if [ -n "${DB_CHECK_URI}" ]; then\n\
   " || { echo "WARNING: Database check script failed, continuing anyway..."; }\n\
 fi\n\
 \n\
-# Run migrations using the migrate.js script - FAIL BUILD IF MIGRATIONS FAIL\n\
+# Run BULLETPROOF schema sync first - auto-fixes missing columns\n\
+echo "=== Running schema sync (auto-fix missing columns) ==="\n\
+cd /app/payload-migrate && NODE_PATH=/app/payload-migrate/node_modules node schema-sync.js || { echo "SCHEMA SYNC FAILED!"; exit 1; }\n\
+\n\
+# Then run migrations\n\
 echo "=== Running database migrations ==="\n\
 cd /app/payload-migrate && NODE_PATH=/app/payload-migrate/node_modules node migrate.js || { echo "MIGRATION FAILED! Build aborted."; exit 1; }\n\
 echo "=== Migrations completed successfully ==="\n\
