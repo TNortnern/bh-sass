@@ -80,6 +80,15 @@ export default defineEventHandler(async (event) => {
       setHeader(event, 'content-type', responseContentType)
     }
 
+    // CRITICAL: Forward Set-Cookie headers from backend to client
+    // This is required for authentication cookies to work
+    const setCookieHeaders = response.headers.getSetCookie()
+    if (setCookieHeaders && setCookieHeaders.length > 0) {
+      for (const cookie of setCookieHeaders) {
+        appendHeader(event, 'set-cookie', cookie)
+      }
+    }
+
     // Set status code
     setResponseStatus(event, response.status)
 
