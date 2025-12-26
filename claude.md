@@ -78,12 +78,15 @@ git commit -m "feat: Add X field to Y collection"
 git push
 ```
 
-#### CI/CD Pipeline
-Migrations run automatically on every Railway deploy via `payload migrate` in the startup script. The pipeline:
-1. Builds the Docker image
-2. Starts container
-3. Runs `payload migrate` (applies pending migrations)
-4. Starts the app
+#### CI/CD Pipeline (Railway)
+Migrations run automatically on every Railway deploy. The startup script (`start.sh` in Dockerfile):
+1. Builds Docker image
+2. Container starts
+3. Runs `payload/scripts/migrate.js` (custom migration runner)
+4. **If migrations fail, build aborts with exit 1**
+5. If successful, PM2 starts Payload + Nuxt
+
+**IMPORTANT:** The migrate.js script tracks migrations in `_migrations_applied` table. Add new migrations to the `migrations` array in `payload/scripts/migrate.js`.
 
 #### Troubleshooting
 **"column does not exist" in production:**
