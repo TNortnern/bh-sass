@@ -171,9 +171,10 @@ if [ -n "${DB_CHECK_URI}" ]; then\n\
   " || { echo "WARNING: Database check script failed, continuing anyway..."; }\n\
 fi\n\
 \n\
-# Run migrations using the migrate.js script\n\
+# Run migrations using the migrate.js script - FAIL BUILD IF MIGRATIONS FAIL\n\
 echo "=== Running database migrations ==="\n\
-cd /app/payload-migrate && NODE_PATH=/app/payload-migrate/node_modules node migrate.js || echo "Migration completed or failed - check logs"\n\
+cd /app/payload-migrate && NODE_PATH=/app/payload-migrate/node_modules node migrate.js || { echo "MIGRATION FAILED! Build aborted."; exit 1; }\n\
+echo "=== Migrations completed successfully ==="\n\
 cd /app\n\
 \n\
 echo "=== Starting services with PM2 ==="\n\

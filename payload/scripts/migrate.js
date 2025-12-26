@@ -352,6 +352,8 @@ const migrations = [
       ALTER TABLE "payload_locked_documents_rels"
       ADD COLUMN IF NOT EXISTS "quote_requests_id" integer;
       ALTER TABLE "payload_locked_documents_rels"
+      ADD COLUMN IF NOT EXISTS "promo_codes_id" integer;
+      ALTER TABLE "payload_locked_documents_rels"
       ADD COLUMN IF NOT EXISTS "platform_transactions_id" integer;
       ALTER TABLE "payload_locked_documents_rels"
       ADD COLUMN IF NOT EXISTS "stripe_webhook_events_id" integer;
