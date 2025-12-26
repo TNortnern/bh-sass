@@ -3,6 +3,7 @@ const colorMode = useColorMode()
 const route = useRoute()
 const { logout, currentUser, displayName, initials } = useAuth()
 const { hasWebsiteBuilder, fetchPlan } = usePlanFeatures()
+const { stats } = useBookings()
 
 // Fetch plan on mount
 onMounted(() => {
@@ -188,6 +189,14 @@ watch(() => route.path, () => {
             class="w-5 h-5 flex-shrink-0"
           />
           <span>{{ item.label }}</span>
+          <!-- Show pending booking count badge -->
+          <UBadge
+            v-if="item.to === '/app/bookings' && stats.pending > 0"
+            :label="stats.pending.toString()"
+            color="warning"
+            size="xs"
+            class="ml-auto"
+          />
           <!-- Show lock icon for Website when feature is not available -->
           <UIcon
             v-if="item.to === '/app/website' && !hasWebsiteBuilder"

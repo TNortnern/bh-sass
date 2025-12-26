@@ -531,6 +531,16 @@ const deleteUnit = async () => {
         </UButton>
       </div>
 
+      <!-- Warning Banner for No Units -->
+      <UAlert
+        v-if="!item.units || item.units.length === 0"
+        icon="i-lucide-alert-triangle"
+        color="warning"
+        variant="soft"
+        title="No Units Available"
+        description="This item has no inventory units assigned and cannot be booked. Add units below to make this item available for rental."
+      />
+
       <!-- Hero Section -->
       <div class="grid lg:grid-cols-3 gap-6">
         <!-- Image Gallery -->

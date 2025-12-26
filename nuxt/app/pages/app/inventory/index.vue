@@ -123,19 +123,20 @@ const itemsWithoutUnits = computed(() => {
 <template>
   <div class="space-y-6">
     <!-- Page Header -->
-    <div class="flex items-center justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
           Inventory
         </h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">
+        <p class="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
           Manage your rental items and units
         </p>
       </div>
       <UButton
         color="primary"
-        size="lg"
+        size="md"
         to="/app/inventory/new"
+        class="w-full sm:w-auto"
       >
         <UIcon
           name="i-lucide-plus"
@@ -146,90 +147,102 @@ const itemsWithoutUnits = computed(() => {
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <UCard
+        class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+        :ui="{ body: 'p-3 md:p-5' }"
+      >
         <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <div class="flex-1 min-w-0">
+            <p class="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">
               Total Items
             </p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            <p class="text-xl md:text-3xl font-bold text-gray-900 dark:text-white mt-1 md:mt-2">
               {{ stats.total }}
             </p>
-            <p class="text-sm text-green-600 dark:text-green-400 mt-2">
+            <p class="text-xs md:text-sm text-green-600 dark:text-green-400 mt-1 md:mt-2">
               {{ stats.active }} active
             </p>
           </div>
-          <div class="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
+          <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
             <UIcon
               name="i-lucide-box"
-              class="w-6 h-6 text-blue-600 dark:text-blue-400"
+              class="w-4 h-4 md:w-6 md:h-6 text-blue-600 dark:text-blue-400"
             />
           </div>
         </div>
       </UCard>
 
-      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <UCard
+        class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+        :ui="{ body: 'p-3 md:p-5' }"
+      >
         <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Units Rented
+          <div class="flex-1 min-w-0">
+            <p class="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">
+              Rented
             </p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            <p class="text-xl md:text-3xl font-bold text-gray-900 dark:text-white mt-1 md:mt-2">
               {{ stats.rented }}
             </p>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              Currently in use
+            <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-1 md:mt-2 truncate">
+              In use
             </p>
           </div>
-          <div class="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
+          <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
             <UIcon
               name="i-lucide-calendar-check"
-              class="w-6 h-6 text-green-600 dark:text-green-400"
+              class="w-4 h-4 md:w-6 md:h-6 text-green-600 dark:text-green-400"
             />
           </div>
         </div>
       </UCard>
 
-      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <UCard
+        class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+        :ui="{ body: 'p-3 md:p-5' }"
+      >
         <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <div class="flex-1 min-w-0">
+            <p class="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">
               Maintenance
             </p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            <p class="text-xl md:text-3xl font-bold text-gray-900 dark:text-white mt-1 md:mt-2">
               {{ stats.maintenance }}
             </p>
-            <p class="text-sm text-orange-600 dark:text-orange-400 mt-2">
-              Needs attention
+            <p class="text-xs md:text-sm text-orange-600 dark:text-orange-400 mt-1 md:mt-2 truncate">
+              Attention
             </p>
           </div>
-          <div class="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center flex-shrink-0">
+          <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center flex-shrink-0">
             <UIcon
               name="i-lucide-wrench"
-              class="w-6 h-6 text-orange-600 dark:text-orange-400"
+              class="w-4 h-4 md:w-6 md:h-6 text-orange-600 dark:text-orange-400"
             />
           </div>
         </div>
       </UCard>
 
-      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <UCard
+        class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+        :ui="{ body: 'p-3 md:p-5' }"
+      >
         <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Avg Utilization
+          <div class="flex-1 min-w-0">
+            <p class="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">
+              Utilization
             </p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            <p class="text-xl md:text-3xl font-bold text-gray-900 dark:text-white mt-1 md:mt-2">
               {{ stats.avgUtilization }}%
             </p>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              Fleet efficiency
+            <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-1 md:mt-2 truncate">
+              Efficiency
             </p>
           </div>
-          <div class="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center flex-shrink-0">
+          <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center flex-shrink-0">
             <UIcon
               name="i-lucide-activity"
-              class="w-6 h-6 text-purple-600 dark:text-purple-400"
+              class="w-4 h-4 md:w-6 md:h-6 text-purple-600 dark:text-purple-400"
             />
           </div>
         </div>

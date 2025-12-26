@@ -120,7 +120,7 @@ definePageMeta({
 })
 
 const { currentUser } = useAuth()
-const { nextStep, loadProgress } = useOnboarding()
+const { nextStep } = useOnboarding()
 
 const userName = computed(() => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -135,22 +135,22 @@ const features = [
   {
     icon: 'lucide:building',
     title: 'Business Details',
-    description: 'Add your business name, location, and service area'
-  },
-  {
-    icon: 'lucide:package-plus',
-    title: 'Your First Item',
-    description: 'Create your first rental item to showcase'
+    description: 'Add your business name, timezone, and service area'
   },
   {
     icon: 'lucide:calendar-clock',
-    title: 'Set Availability',
-    description: 'Define your business hours and lead time'
+    title: 'Business Hours',
+    description: 'Set your weekly schedule and availability'
+  },
+  {
+    icon: 'lucide:package-plus',
+    title: 'Add Inventory',
+    description: 'Add your rental items from the dashboard'
   },
   {
     icon: 'lucide:credit-card',
     title: 'Payment Setup',
-    description: 'Connect Stripe to start accepting payments'
+    description: 'Optional: Connect Stripe to accept payments'
   }
 ]
 
@@ -164,11 +164,6 @@ const handleSkip = async () => {
     await navigateTo('/app')
   }
 }
-
-// Load saved progress on mount
-onMounted(() => {
-  loadProgress()
-})
 
 useHead({
   title: 'Welcome - Onboarding | BouncePro'

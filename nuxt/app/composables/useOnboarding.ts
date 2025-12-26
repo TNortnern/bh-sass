@@ -8,24 +8,15 @@ export interface OnboardingState {
     timezone: string
     serviceArea: string
   }
-  firstItem: {
-    name: string
-    description: string
-    price: number
-    photo: string | null
-  } | null
   availability: {
     [key: string]: { open: string, close: string, enabled: boolean }
   }
-  paymentsConnected: boolean
 }
-
-const STORAGE_KEY = 'bouncepro_onboarding'
 
 export function useOnboarding() {
   const state = useState<OnboardingState>('onboarding', () => ({
     currentStep: 1,
-    totalSteps: 6,
+    totalSteps: 4,
     completed: false,
     business: {
       name: '',
@@ -33,7 +24,6 @@ export function useOnboarding() {
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       serviceArea: ''
     },
-    firstItem: null,
     availability: {
       monday: { open: '09:00', close: '17:00', enabled: true },
       tuesday: { open: '09:00', close: '17:00', enabled: true },
@@ -42,32 +32,18 @@ export function useOnboarding() {
       friday: { open: '09:00', close: '17:00', enabled: true },
       saturday: { open: '10:00', close: '16:00', enabled: true },
       sunday: { open: '10:00', close: '16:00', enabled: false }
-    },
-    paymentsConnected: false
-  }))
-
-  // Auto-save to localStorage on state changes
-  watch(state, (newState) => {
-    if (import.meta.client) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(newState))
-      } catch (error) {
-        console.error('Failed to save onboarding progress:', error)
-      }
     }
-  }, { deep: true })
+  }))
 
   function nextStep() {
     if (state.value.currentStep < state.value.totalSteps) {
       state.value.currentStep++
-      saveProgress()
     }
   }
 
   function prevStep() {
     if (state.value.currentStep > 1) {
       state.value.currentStep--
-      saveProgress()
     }
   }
 
@@ -78,58 +54,73 @@ export function useOnboarding() {
   function goToStep(step: number) {
     if (step >= 1 && step <= state.value.totalSteps) {
       state.value.currentStep = step
-      saveProgress()
     }
   }
 
   async function completeOnboarding() {
     state.value.completed = true
-    saveProgress()
-
-    // Clear localStorage after completion
-    if (import.meta.client) {
-      try {
-        localStorage.removeItem(STORAGE_KEY)
-      } catch (error) {
-        console.error('Failed to clear onboarding progress:', error)
-      }
-    }
-
     // Navigate to dashboard
     await navigateTo('/app')
   }
 
-  function saveProgress() {
-    if (import.meta.client) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.value))
-      } catch (error) {
-        console.error('Failed to save onboarding progress:', error)
-      }
+  async function saveBusinessInfo(data: Partial<OnboardingState['business']>) {
+    const { currentUser } = useAuth()
+
+    if (!currentUser.value?.tenantId) {
+      throw new Error('No tenant ID found')
+    }
+
+    try {
+      await $fetch(`/api/tenants/${currentUser.value.tenantId}`, {
+        method: 'PATCH',
+        body: {
+          name: data.name,
+          address: data.serviceArea ? { city: data.serviceArea } : undefined,
+          settings: {
+            timezone: data.timezone
+          }
+        }
+      })
+    } catch (error) {
+      console.error('Failed to save business info:', error)
+      throw error
     }
   }
 
-  function loadProgress() {
-    if (import.meta.client) {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY)
-        if (saved) {
-          const parsed = JSON.parse(saved)
-          // Merge saved state with current state
-          Object.assign(state.value, parsed)
-          return true
-        }
-      } catch (error) {
-        console.error('Failed to load onboarding progress:', error)
-      }
+  async function saveBusinessHours(availability: OnboardingState['availability']) {
+    const { currentUser } = useAuth()
+
+    if (!currentUser.value?.tenantId) {
+      throw new Error('No tenant ID found')
     }
-    return false
+
+    try {
+      // Transform availability object to match Tenant schema
+      const businessHours = Object.entries(availability).reduce((acc, [day, hours]) => {
+        acc[day] = {
+          enabled: hours.enabled,
+          open: hours.open,
+          close: hours.close
+        }
+        return acc
+      }, {} as Record<string, { enabled: boolean, open: string, close: string }>)
+
+      await $fetch(`/api/tenants/${currentUser.value.tenantId}`, {
+        method: 'PATCH',
+        body: {
+          businessHours
+        }
+      })
+    } catch (error) {
+      console.error('Failed to save business hours:', error)
+      throw error
+    }
   }
 
   function resetOnboarding() {
     state.value = {
       currentStep: 1,
-      totalSteps: 6,
+      totalSteps: 4,
       completed: false,
       business: {
         name: '',
@@ -137,7 +128,6 @@ export function useOnboarding() {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         serviceArea: ''
       },
-      firstItem: null,
       availability: {
         monday: { open: '09:00', close: '17:00', enabled: true },
         tuesday: { open: '09:00', close: '17:00', enabled: true },
@@ -146,15 +136,6 @@ export function useOnboarding() {
         friday: { open: '09:00', close: '17:00', enabled: true },
         saturday: { open: '10:00', close: '16:00', enabled: true },
         sunday: { open: '10:00', close: '16:00', enabled: false }
-      },
-      paymentsConnected: false
-    }
-
-    if (import.meta.client) {
-      try {
-        localStorage.removeItem(STORAGE_KEY)
-      } catch (error) {
-        console.error('Failed to clear onboarding progress:', error)
       }
     }
   }
@@ -168,7 +149,6 @@ export function useOnboarding() {
 
   function updateState(updates: Partial<OnboardingState>) {
     Object.assign(state.value, updates)
-    saveProgress()
   }
 
   return {
@@ -181,8 +161,8 @@ export function useOnboarding() {
     skipStep,
     goToStep,
     completeOnboarding,
-    saveProgress,
-    loadProgress,
+    saveBusinessInfo,
+    saveBusinessHours,
     resetOnboarding,
     updateState
   }

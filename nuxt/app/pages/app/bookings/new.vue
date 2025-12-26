@@ -403,7 +403,7 @@ const states = [
             <!-- New Customer Form -->
             <div
               v-else
-              class="grid grid-cols-2 gap-4"
+              class="grid grid-cols-1 sm:grid-cols-2 gap-4"
             >
               <UFormField
                 label="First Name"
@@ -479,7 +479,7 @@ const states = [
 
           <div
             v-else
-            class="grid grid-cols-2 gap-3"
+            class="grid grid-cols-1 sm:grid-cols-2 gap-3"
           >
             <button
               v-for="item in items"
@@ -491,7 +491,7 @@ const states = [
                 : 'border-gray-200 dark:border-gray-700 hover:border-orange-300'"
               @click="form.itemId = item.id"
             >
-              <div class="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center flex-shrink-0">
                 <UIcon
                   name="i-lucide-tent"
                   class="w-6 h-6 text-orange-600"
@@ -533,7 +533,7 @@ const states = [
 
           <div class="space-y-4">
             <!-- Dates -->
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <UFormField
                 label="Start Date"
                 required
@@ -581,10 +581,11 @@ const states = [
                     size="lg"
                   />
                 </UFormField>
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <UFormField
                     label="City"
                     required
+                    class="col-span-2 sm:col-span-1"
                   >
                     <UInput
                       v-model="form.deliveryAddress.city"
@@ -641,7 +642,7 @@ const states = [
             </div>
           </template>
 
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               v-for="addon in availableAddons"
               :key="addon.id"

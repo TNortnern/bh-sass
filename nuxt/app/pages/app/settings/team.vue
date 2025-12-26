@@ -102,29 +102,66 @@
 
           <div
             v-else
-            class="flex flex-col gap-3"
+            class="flex flex-col gap-2 md:gap-3"
           >
             <div
               v-for="member in activeMembers"
               :key="member.id"
-              class="flex items-center gap-5 p-5 bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/[0.06] rounded-xl transition-all duration-200 hover:bg-gray-100 dark:hover:bg-white/[0.03] hover:border-gray-200 dark:hover:border-white/[0.1]"
+              class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 md:gap-5 p-3 sm:p-4 md:p-5 bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/[0.06] rounded-xl transition-all duration-200 hover:bg-gray-100 dark:hover:bg-white/[0.03] hover:border-gray-200 dark:hover:border-white/[0.1]"
             >
-              <div class="w-12 h-12 flex-shrink-0">
-                <div
-                  v-if="!member.avatar"
-                  class="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl text-black text-sm font-bold"
-                >
-                  {{ getInitials(member.name) }}
+              <div class="flex items-center gap-3 sm:gap-4">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
+                  <div
+                    v-if="!member.avatar"
+                    class="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-400 to-amber-500 rounded-lg sm:rounded-xl text-black text-xs sm:text-sm font-bold"
+                  >
+                    {{ getInitials(member.name) }}
+                  </div>
+                  <img
+                    v-else
+                    :src="member.avatar"
+                    :alt="member.name"
+                    class="w-full h-full object-cover rounded-lg sm:rounded-xl"
+                  >
                 </div>
-                <img
-                  v-else
-                  :src="member.avatar"
-                  :alt="member.name"
-                  class="w-full h-full object-cover rounded-xl"
-                >
+
+                <div class="flex-1 min-w-0 sm:hidden">
+                  <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-0.5 truncate">
+                    {{ member.name }}
+                  </h4>
+                  <p class="text-xs text-gray-500 dark:text-[#666] truncate">
+                    {{ member.email }}
+                  </p>
+                </div>
+
+                <!-- Mobile role badge and actions -->
+                <div class="flex items-center gap-2 sm:hidden ml-auto">
+                  <div
+                    class="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold"
+                    :class="{
+                      'bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400': member.role === 'admin',
+                      'bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-blue-600 dark:text-blue-400': member.role === 'manager',
+                      'bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 text-green-600 dark:text-green-400': member.role === 'staff'
+                    }"
+                  >
+                    <UIcon
+                      :name="getRoleIcon(member.role)"
+                      class="w-3 h-3"
+                    />
+                    {{ formatRole(member.role) }}
+                  </div>
+                  <UDropdown :items="getDropdownItems(member)">
+                    <UButton
+                      variant="ghost"
+                      size="sm"
+                      icon="i-heroicons-ellipsis-horizontal"
+                    />
+                  </UDropdown>
+                </div>
               </div>
 
-              <div class="flex-1 min-w-0">
+              <!-- Desktop info section -->
+              <div class="hidden sm:block flex-1 min-w-0">
                 <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">
                   {{ member.name }}
                 </h4>
@@ -142,7 +179,7 @@
                 </div>
               </div>
 
-              <div class="flex-shrink-0">
+              <div class="hidden sm:block flex-shrink-0">
                 <div
                   class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold"
                   :class="{
@@ -159,7 +196,7 @@
                 </div>
               </div>
 
-              <div class="flex-shrink-0">
+              <div class="hidden sm:block flex-shrink-0">
                 <UDropdown :items="getDropdownItems(member)">
                   <UButton
                     variant="ghost"

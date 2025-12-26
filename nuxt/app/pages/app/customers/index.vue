@@ -6,22 +6,22 @@
       class="space-y-4"
     >
       <!-- Page Header -->
-      <div class="mb-8">
-        <div class="flex items-start justify-between gap-4 mb-6">
+      <div class="mb-6 md:mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 md:mb-6">
           <div>
-            <h1 class="text-4xl font-bold text-gray-900 dark:text-slate-50 mb-2 tracking-tight">
+            <h1 class="text-2xl md:text-4xl font-bold text-gray-900 dark:text-slate-50 mb-1 md:mb-2 tracking-tight">
               Customers
             </h1>
-            <p class="text-gray-600 dark:text-slate-400 text-lg">
+            <p class="text-sm md:text-lg text-gray-600 dark:text-slate-400">
               Manage your customer relationships and booking history
             </p>
           </div>
 
           <UButton
             color="primary"
-            size="lg"
+            size="md"
             icon="i-lucide-plus"
-            class="rounded-xl"
+            class="rounded-xl w-full sm:w-auto"
             @click="navigateTo('/app/customers/new')"
           >
             Add Customer
@@ -29,23 +29,24 @@
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
           <UCard
             class="bg-gradient-to-br from-gray-100 to-gray-50 dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
+            :ui="{ body: 'p-3 md:p-5' }"
           >
             <div class="flex items-start justify-between">
-              <div>
-                <div class="text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-2">
+              <div class="flex-1 min-w-0">
+                <div class="text-[10px] md:text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-1 md:mb-2 truncate">
                   Total Customers
                 </div>
-                <div class="text-3xl font-bold text-gray-900 dark:text-slate-200">
+                <div class="text-xl md:text-3xl font-bold text-gray-900 dark:text-slate-200">
                   {{ total }}
                 </div>
               </div>
-              <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+              <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
                 <UIcon
                   name="i-lucide-users"
-                  class="w-6 h-6 text-blue-500"
+                  class="w-4 h-4 md:w-6 md:h-6 text-blue-500"
                 />
               </div>
             </div>
@@ -53,20 +54,21 @@
 
           <UCard
             class="bg-gradient-to-br from-gray-100 to-gray-50 dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
+            :ui="{ body: 'p-3 md:p-5' }"
           >
             <div class="flex items-start justify-between">
-              <div>
-                <div class="text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-2">
+              <div class="flex-1 min-w-0">
+                <div class="text-[10px] md:text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-1 md:mb-2 truncate">
                   VIP Customers
                 </div>
-                <div class="text-3xl font-bold text-gray-900 dark:text-slate-200">
+                <div class="text-xl md:text-3xl font-bold text-gray-900 dark:text-slate-200">
                   {{ vipCount }}
                 </div>
               </div>
-              <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
+              <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
                 <UIcon
                   name="i-lucide-star"
-                  class="w-6 h-6 text-amber-500"
+                  class="w-4 h-4 md:w-6 md:h-6 text-amber-500"
                 />
               </div>
             </div>
@@ -74,20 +76,21 @@
 
           <UCard
             class="bg-gradient-to-br from-gray-100 to-gray-50 dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
+            :ui="{ body: 'p-3 md:p-5' }"
           >
             <div class="flex items-start justify-between">
-              <div>
-                <div class="text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-2">
+              <div class="flex-1 min-w-0">
+                <div class="text-[10px] md:text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-1 md:mb-2 truncate">
                   New This Month
                 </div>
-                <div class="text-3xl font-bold text-gray-900 dark:text-slate-200">
+                <div class="text-xl md:text-3xl font-bold text-gray-900 dark:text-slate-200">
                   {{ newThisMonth }}
                 </div>
               </div>
-              <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+              <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-green-500/10 flex items-center justify-center flex-shrink-0">
                 <UIcon
                   name="i-lucide-user-plus"
-                  class="w-6 h-6 text-green-500"
+                  class="w-4 h-4 md:w-6 md:h-6 text-green-500"
                 />
               </div>
             </div>
@@ -95,20 +98,21 @@
 
           <UCard
             class="bg-gradient-to-br from-gray-100 to-gray-50 dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
+            :ui="{ body: 'p-3 md:p-5' }"
           >
             <div class="flex items-start justify-between">
-              <div>
-                <div class="text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-2">
+              <div class="flex-1 min-w-0">
+                <div class="text-[10px] md:text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-1 md:mb-2 truncate">
                   Avg Lifetime Value
                 </div>
-                <div class="text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
+                <div class="text-xl md:text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
                   {{ formatCurrency(avgLifetimeValue) }}
                 </div>
               </div>
-              <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
+              <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
                 <UIcon
                   name="i-lucide-dollar-sign"
-                  class="w-6 h-6 text-purple-500"
+                  class="w-4 h-4 md:w-6 md:h-6 text-purple-500"
                 />
               </div>
             </div>
@@ -300,10 +304,116 @@
         </div>
       </div>
 
-      <!-- Customers Table -->
+      <!-- Mobile Customer Cards (visible on mobile only) -->
+      <div
+        v-if="viewMode === 'table' && customers.length > 0"
+        class="lg:hidden space-y-3"
+      >
+        <div
+          v-for="customer in customers"
+          :key="'mobile-' + customer.id"
+          class="bg-white dark:bg-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl p-4 cursor-pointer transition-all hover:ring-amber-500/50"
+          @click="handleRowClick(customer)"
+        >
+          <!-- Customer Header -->
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <UAvatar
+                :src="customer.avatar"
+                :alt="`${customer.firstName} ${customer.lastName}`"
+                size="md"
+              >
+                {{ `${customer.firstName.charAt(0)}${customer.lastName.charAt(0)}` }}
+              </UAvatar>
+              <div class="min-w-0">
+                <div class="font-semibold text-gray-900 dark:text-slate-200 flex items-center gap-2">
+                  <span class="truncate">{{ customer.firstName }} {{ customer.lastName }}</span>
+                  <UIcon
+                    v-if="customer.tags.includes('VIP')"
+                    name="i-lucide-star"
+                    class="w-4 h-4 text-amber-400 flex-shrink-0"
+                  />
+                </div>
+                <div class="text-sm text-gray-500 dark:text-slate-400 truncate">
+                  {{ customer.email }}
+                </div>
+              </div>
+            </div>
+            <div
+              class="flex-shrink-0"
+              @click.stop
+            >
+              <UDropdownMenu :items="getCustomerActions(customer)">
+                <UButton
+                  icon="i-lucide-more-vertical"
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                />
+              </UDropdownMenu>
+            </div>
+          </div>
+
+          <!-- Customer Details -->
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <span class="text-gray-500 dark:text-slate-400">Phone:</span>
+              <a
+                :href="`tel:${customer.phone}`"
+                class="ml-1 text-gray-900 dark:text-slate-200 hover:text-amber-400"
+                @click.stop
+              >
+                {{ customer.phone }}
+              </a>
+            </div>
+            <div>
+              <span class="text-gray-500 dark:text-slate-400">Bookings:</span>
+              <span class="ml-1 font-semibold text-gray-900 dark:text-slate-200">{{ customer.bookings.total }}</span>
+              <span
+                v-if="customer.bookings.upcoming > 0"
+                class="ml-1 text-xs text-amber-500"
+              >({{ customer.bookings.upcoming }} upcoming)</span>
+            </div>
+            <div>
+              <span class="text-gray-500 dark:text-slate-400">Spent:</span>
+              <span class="ml-1 font-semibold text-amber-400">{{ formatCurrency(customer.totalSpent) }}</span>
+            </div>
+            <div>
+              <span class="text-gray-500 dark:text-slate-400">Last:</span>
+              <span class="ml-1 text-gray-600 dark:text-slate-400">{{ formatRelativeDate(customer.lastBooking) }}</span>
+            </div>
+          </div>
+
+          <!-- Tags -->
+          <div
+            v-if="customer.tags.length > 0"
+            class="flex flex-wrap gap-1 mt-3 pt-3 border-t border-gray-100 dark:border-slate-700/50"
+          >
+            <UBadge
+              v-for="tag in customer.tags.slice(0, 3)"
+              :key="tag"
+              :color="getTagColor(tag)"
+              variant="subtle"
+              size="xs"
+            >
+              {{ tag }}
+            </UBadge>
+            <UBadge
+              v-if="customer.tags.length > 3"
+              color="neutral"
+              variant="subtle"
+              size="xs"
+            >
+              +{{ customer.tags.length - 3 }}
+            </UBadge>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customers Table (hidden on mobile) -->
       <UCard
         v-if="viewMode === 'table'"
-        class="bg-white dark:bg-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
+        class="hidden lg:block bg-white dark:bg-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
       >
         <div class="overflow-x-auto">
           <table class="min-w-full">
@@ -506,9 +616,9 @@
       <!-- Pagination -->
       <div
         v-if="customers.length > 0"
-        class="flex items-center justify-between mt-6"
+        class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 md:mt-6"
       >
-        <div class="text-sm text-gray-600 dark:text-slate-400">
+        <div class="text-xs sm:text-sm text-gray-600 dark:text-slate-400 text-center sm:text-left">
           Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, total) }} of {{ total }} customers
         </div>
 

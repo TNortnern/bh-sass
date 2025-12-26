@@ -62,6 +62,22 @@ export const Plans: CollectionConfig = {
       },
     },
     {
+      name: 'annualPrice',
+      type: 'number',
+      admin: {
+        description: 'Annual price in cents (typically 20% discount, e.g., 27840 for $278.40/year = $23.20/mo)',
+        step: 1,
+      },
+    },
+    {
+      name: 'displayOrder',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        description: 'Order to display plans (lower = first)',
+      },
+    },
+    {
       name: 'transactionFee',
       type: 'number',
       required: true,
@@ -179,8 +195,31 @@ export const Plans: CollectionConfig = {
       name: 'stripePriceId',
       type: 'text',
       admin: {
-        description: 'Stripe Price ID (e.g., price_xxx)',
+        description: 'Stripe Monthly Price ID (e.g., price_xxx)',
         readOnly: false,
+      },
+    },
+    {
+      name: 'stripeAnnualPriceId',
+      type: 'text',
+      admin: {
+        description: 'Stripe Annual Price ID (e.g., price_xxx)',
+        readOnly: false,
+      },
+    },
+    {
+      name: 'highlighted',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Highlight this plan on pricing page (recommended plan)',
+      },
+    },
+    {
+      name: 'description',
+      type: 'textarea',
+      admin: {
+        description: 'Short description shown on pricing page',
       },
     },
     {

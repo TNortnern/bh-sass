@@ -46,19 +46,33 @@
         </span>
       </div>
 
+      <!-- Loading State -->
+      <div
+        v-if="pending && !plans"
+        class="flex justify-center py-16"
+      >
+        <UIcon
+          name="i-lucide-loader-circle"
+          class="w-8 h-8 animate-spin text-gray-400"
+        />
+      </div>
+
       <!-- Pricing Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      <div
+        v-else
+        class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto"
+      >
         <div
-          v-for="plan in plans"
+          v-for="plan in displayPlans"
           :key="plan.name"
           class="relative rounded-2xl p-8 transition-all duration-300"
-          :class="plan.featured
+          :class="plan.highlighted
             ? 'bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-800 dark:to-gray-900 border-2 border-orange-500 shadow-xl shadow-orange-500/20 scale-105'
             : 'bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800'"
         >
           <!-- Featured Badge -->
           <div
-            v-if="plan.featured"
+            v-if="plan.highlighted"
             class="absolute -top-4 left-1/2 -translate-x-1/2"
           >
             <span class="px-4 py-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-semibold rounded-full shadow-lg">
@@ -70,31 +84,31 @@
           <div class="text-center mb-8">
             <h3
               class="text-xl font-semibold mb-2"
-              :class="plan.featured ? 'text-white' : 'text-gray-900 dark:text-white'"
+              :class="plan.highlighted ? 'text-white' : 'text-gray-900 dark:text-white'"
             >
               {{ plan.name }}
             </h3>
             <p
               class="text-sm mb-4"
-              :class="plan.featured ? 'text-gray-300' : 'text-gray-500 dark:text-gray-400'"
+              :class="plan.highlighted ? 'text-gray-300' : 'text-gray-500 dark:text-gray-400'"
             >
               {{ plan.description }}
             </p>
             <div class="flex items-baseline justify-center gap-1">
               <span
                 class="text-4xl font-bold"
-                :class="plan.featured ? 'text-white' : 'text-gray-900 dark:text-white'"
+                :class="plan.highlighted ? 'text-white' : 'text-gray-900 dark:text-white'"
               >
-                ${{ annual ? plan.annualPrice : plan.monthlyPrice }}
+                ${{ getDisplayPrice(plan) }}
               </span>
-              <span :class="plan.featured ? 'text-gray-400' : 'text-gray-500 dark:text-gray-400'">/mo</span>
+              <span :class="plan.highlighted ? 'text-gray-400' : 'text-gray-500 dark:text-gray-400'">/mo</span>
             </div>
             <p
-              v-if="plan.fee"
+              v-if="plan.transactionFee"
               class="text-xs mt-2"
-              :class="plan.featured ? 'text-gray-400' : 'text-gray-500 dark:text-gray-400'"
+              :class="plan.highlighted ? 'text-gray-400' : 'text-gray-500 dark:text-gray-400'"
             >
-              + {{ plan.fee }} transaction fee
+              + {{ plan.transactionFee }}% transaction fee
             </p>
           </div>
 
@@ -104,12 +118,12 @@
               v-for="feature in plan.features"
               :key="feature"
               class="flex items-center gap-3 text-sm"
-              :class="plan.featured ? 'text-gray-300' : 'text-gray-600 dark:text-gray-300'"
+              :class="plan.highlighted ? 'text-gray-300' : 'text-gray-600 dark:text-gray-300'"
             >
               <UIcon
                 name="i-lucide-check"
                 class="w-5 h-5 flex-shrink-0"
-                :class="plan.featured ? 'text-orange-400' : 'text-orange-500'"
+                :class="plan.highlighted ? 'text-orange-400' : 'text-orange-500'"
               />
               <span>{{ feature }}</span>
             </li>
@@ -118,12 +132,12 @@
           <!-- CTA Button -->
           <UButton
             to="/auth/register"
-            :class="plan.featured
+            :class="plan.highlighted
               ? 'w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white'
               : 'w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900'"
             size="lg"
           >
-            {{ plan.cta }}
+            {{ plan.price === 0 ? 'Start Free' : 'Start Free Trial' }}
           </UButton>
         </div>
       </div>
@@ -160,58 +174,101 @@
 </template>
 
 <script setup lang="ts">
+interface Plan {
+  id: string
+  name: string
+  slug: string
+  price: number
+  annualPrice?: number
+  description?: string
+  transactionFee: number
+  features: string[]
+  highlighted?: boolean
+  limits?: {
+    maxItems: number
+    maxBookings: number
+    maxUsers: number
+  }
+}
+
 const annual = ref(false)
 
-const plans = [
+// Fetch plans from API
+const { data: plans, pending } = await useLazyFetch<Plan[]>('/v1/plans', {
+  default: () => []
+})
+
+// Fallback plans in case API fails
+const fallbackPlans: Plan[] = [
   {
+    id: 'free',
     name: 'Starter',
+    slug: 'free',
     description: 'Perfect for getting started',
-    monthlyPrice: 0,
-    annualPrice: 0,
-    fee: '6%',
+    price: 0,
+    transactionFee: 6,
     features: [
       'Up to 10 bookings/month',
-      '5 inventory items',
+      '10 inventory items',
       'Basic booking calendar',
       'Email notifications',
       'Customer management'
     ],
-    cta: 'Start Free',
-    featured: false
+    highlighted: false
   },
   {
+    id: 'pro',
     name: 'Growth',
+    slug: 'pro',
     description: 'For growing rental businesses',
-    monthlyPrice: 39,
-    annualPrice: 31,
-    fee: '2.5%',
+    price: 2900,
+    annualPrice: 27840,
+    transactionFee: 3.5,
     features: [
-      'Unlimited bookings',
-      'Unlimited inventory',
+      'Up to 500 bookings/month',
+      '50 inventory items',
       'Embeddable booking widget',
-      'Route planning',
       'SMS notifications',
+      'Website builder',
       'Priority support'
     ],
-    cta: 'Start Free Trial',
-    featured: true
+    highlighted: true
   },
   {
+    id: 'platinum',
     name: 'Pro',
+    slug: 'platinum',
     description: 'For established businesses',
-    monthlyPrice: 99,
-    annualPrice: 79,
-    fee: '0.5%',
+    price: 10000,
+    annualPrice: 96000,
+    transactionFee: 1,
     features: [
       'Everything in Growth',
+      'Unlimited bookings',
+      'Unlimited inventory',
       'API access',
       'White-label options',
-      'Custom contracts',
-      'Advanced analytics',
       'Dedicated account manager'
     ],
-    cta: 'Start Free Trial',
-    featured: false
+    highlighted: false
   }
 ]
+
+// Use fetched plans or fallback
+const displayPlans = computed(() => {
+  if (plans.value && plans.value.length > 0) {
+    return plans.value
+  }
+  return fallbackPlans
+})
+
+// Calculate display price (monthly or annual)
+const getDisplayPrice = (plan: Plan) => {
+  if (annual.value && plan.annualPrice) {
+    // Annual price divided by 12 for monthly equivalent
+    return Math.round(plan.annualPrice / 12 / 100)
+  }
+  // Monthly price in cents, convert to dollars
+  return Math.round(plan.price / 100)
+}
 </script>

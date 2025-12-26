@@ -217,26 +217,11 @@ const mockTeamMembers: TeamMember[] = [
   }
 ]
 
-const mockNotificationSettings: NotificationSettings = {
-  email: {
-    newBooking: true,
-    cancellation: true,
-    payment: true,
-    reminder: true,
-    dailySummary: true
-  },
-  inApp: {
-    newBooking: true,
-    cancellation: true,
-    payment: true,
-    reminder: false
-  },
-  reminderTiming: 24
-}
-
 // Mock API keys removed - now using real Payload API
 
 // Mock webhooks removed - now using real Payload API
+
+// Mock notification settings removed - now using real tenant defaults from Payload schema
 
 export const useSettings = () => {
   const toast = useToast()
@@ -453,18 +438,50 @@ export const useSettings = () => {
           }
         } catch (error) {
           console.warn('Failed to fetch tenant data, using defaults:', error)
-          // Fall back to mock data if tenant fetch fails
+          // Fall back to mock data if tenant fetch fails (but NOT for notifications - use schema defaults)
           state.business.value = mockBusinessSettings
           state.booking.value = mockBookingSettings
           state.payments.value = mockPaymentSettings
-          state.notifications.value = mockNotificationSettings
+          // Use the same defaults as defined in the Tenant schema
+          state.notifications.value = {
+            email: {
+              newBooking: true,
+              cancellation: true,
+              payment: true,
+              reminder: true,
+              dailySummary: false
+            },
+            inApp: {
+              newBooking: true,
+              cancellation: true,
+              payment: true,
+              reminder: false
+            },
+            reminderTiming: 24
+          }
         }
       } else {
-        // No tenant ID - use mock data
+        // No tenant ID - use mock data (but NOT for notifications - use schema defaults)
         state.business.value = mockBusinessSettings
         state.booking.value = mockBookingSettings
         state.payments.value = mockPaymentSettings
-        state.notifications.value = mockNotificationSettings
+        // Use the same defaults as defined in the Tenant schema
+        state.notifications.value = {
+          email: {
+            newBooking: true,
+            cancellation: true,
+            payment: true,
+            reminder: true,
+            dailySummary: false
+          },
+          inApp: {
+            newBooking: true,
+            cancellation: true,
+            payment: true,
+            reminder: false
+          },
+          reminderTiming: 24
+        }
       }
 
       // Fetch real team members from Users collection

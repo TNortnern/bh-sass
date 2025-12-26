@@ -103,6 +103,8 @@ export interface CreateBookingInput {
     attendees?: number
     specialInstructions?: string
   }
+  deliveryTime?: string
+  pickupTime?: string
   items: Array<{
     itemId: string
     serviceId: string
@@ -285,6 +287,8 @@ export function usePublicBooking() {
           })),
           totalPrice: bookingData.totalPrice,
           depositAmount: bookingData.depositAmount,
+          deliveryTime: bookingData.deliveryTime,
+          pickupTime: bookingData.pickupTime,
           eventDetails: {
             type: bookingData.eventDetails.type,
             attendees: bookingData.eventDetails.attendees,

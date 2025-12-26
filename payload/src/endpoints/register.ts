@@ -1,9 +1,12 @@
 import type { Endpoint } from 'payload'
 import { generatePayloadCookie, headersWithCors } from 'payload'
+import { getStripeClient } from '../lib/stripe/client'
+import Stripe from 'stripe'
 
 /**
  * Public registration endpoint
  * Creates a new tenant and tenant_admin user in a single transaction
+ * Auto-creates Stripe Express account for the tenant
  */
 export const registerHandler: Endpoint['handler'] = async (req) => {
   const { payload } = req
@@ -77,9 +80,66 @@ export const registerHandler: Endpoint['handler'] = async (req) => {
             setupTime: 30,
             pickupTime: 30,
           },
+          notificationSettings: {
+            emailNewBooking: true,
+            emailCancellation: true,
+            emailPayment: true,
+            emailReminder: true,
+            emailDailySummary: false,
+            inAppNewBooking: true,
+            inAppCancellation: true,
+            inAppPayment: true,
+            inAppReminder: false,
+            reminderTiming: 24,
+          },
         }
       } as any  // Payload 3.x type workaround
     })
+
+    // Auto-create Stripe Express account for the tenant
+    let stripeAccountId: string | undefined
+    try {
+      const stripe = getStripeClient()
+      const idempotencyKey = `tenant_${tenant.id}_connect_${Date.now()}`
+
+      const account = await stripe.accounts.create({
+        type: 'express',
+        country: 'US',
+        email: email.toLowerCase().trim(),
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+        business_type: 'company',
+        metadata: {
+          tenantId: String(tenant.id),
+          tenantName: tenant.name,
+          tenantSlug: finalSlug,
+        },
+      }, {
+        idempotencyKey,
+      })
+
+      stripeAccountId = account.id
+
+      // Update tenant with Stripe account ID
+      await payload.update({
+        collection: 'tenants',
+        id: tenant.id,
+        data: {
+          stripeAccountId: account.id,
+          stripeAccountStatus: 'pending',
+          stripeDetailsSubmitted: false,
+          stripeChargesEnabled: false,
+          stripePayoutsEnabled: false,
+        },
+      })
+
+      payload.logger.info(`Created Stripe Express account ${account.id} for tenant ${tenant.id}`)
+    } catch (stripeError) {
+      // Log the error but don't fail registration
+      payload.logger.error({ err: stripeError, msg: 'Failed to create Stripe account during registration' })
+    }
 
     // Create user with tenant relationship
     const user = await payload.create({
@@ -130,6 +190,7 @@ export const registerHandler: Endpoint['handler'] = async (req) => {
         name: tenant.name,
         slug: tenant.slug,
         plan: tenant.plan,
+        stripeAccountId: stripeAccountId,
         rbPayloadTenantId: tenant.rbPayloadTenantId,
         rbPayloadApiKey: tenant.rbPayloadApiKey,
         rbPayloadSyncStatus: tenant.rbPayloadSyncStatus

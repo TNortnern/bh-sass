@@ -82,7 +82,7 @@
           </div>
 
           <!-- Quick Actions -->
-          <div class="grid sm:grid-cols-3 gap-4 mb-8">
+          <div class="grid sm:grid-cols-2 gap-4 mb-8">
             <UButton
               size="lg"
               color="primary"
@@ -112,66 +112,52 @@
                   class="w-5 h-5"
                 />
               </template>
-              Add More Items
-            </UButton>
-
-            <UButton
-              size="lg"
-              color="neutral"
-              variant="soft"
-              class="justify-center"
-              @click="viewBookingPage"
-            >
-              <template #leading>
-                <Icon
-                  name="lucide:external-link"
-                  class="w-5 h-5"
-                />
-              </template>
-              View Booking Page
+              Add Inventory Items
             </UButton>
           </div>
 
-          <!-- Upgrade Promotion -->
-          <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-600/20 via-pink-600/20 to-orange-600/20 border border-purple-500/30 p-6">
-            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-2xl" />
+          <!-- Payment Setup Promotion -->
+          <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-600/20 via-blue-600/20 to-purple-600/20 border border-purple-500/30 p-6">
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full blur-2xl" />
 
             <div class="relative">
               <div class="flex items-start gap-4">
-                <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
                   <Icon
-                    name="lucide:sparkles"
+                    name="lucide:credit-card"
                     class="w-6 h-6 text-white"
                   />
                 </div>
                 <div class="flex-1">
                   <h3 class="text-white font-semibold text-lg mb-2">
-                    Unlock Premium Features
+                    Ready to Accept Payments?
                   </h3>
                   <p class="text-gray-300 text-sm mb-4">
-                    Upgrade to reduce platform fees to 3%, remove BouncePro branding, get priority support, and unlock advanced features.
+                    Connect Stripe to start accepting secure online payments from your customers. Set up takes just a few minutes.
                   </p>
                   <div class="flex flex-wrap gap-3">
                     <UButton
-                      color="neutral"
+                      color="primary"
                       size="sm"
-                      to="/app/settings/billing"
+                      :loading="isLoadingStripe"
+                      @click="handleConnectStripe"
                     >
-                      View Plans & Pricing
-                      <template #trailing>
+                      <template #leading>
                         <Icon
-                          name="lucide:arrow-right"
+                          name="lucide:credit-card"
                           class="w-4 h-4"
                         />
                       </template>
+                      Connect Stripe
                     </UButton>
-                    <div class="flex items-center gap-2 text-xs text-gray-400">
-                      <Icon
-                        name="lucide:zap"
-                        class="w-4 h-4 text-amber-400"
-                      />
-                      Plans start at $29/month
-                    </div>
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      size="sm"
+                      to="/app/settings/payments"
+                    >
+                      Set up later
+                    </UButton>
                   </div>
                 </div>
               </div>
@@ -204,12 +190,14 @@
 </template>
 
 <script setup lang="ts">
-/* eslint-disable @typescript-eslint/no-unused-vars */
 definePageMeta({
   layout: 'onboarding'
 })
 
 const { state, completeOnboarding } = useOnboarding()
+const toast = useToast()
+
+const isLoadingStripe = ref(false)
 
 const setupSummary = computed(() => {
   const summary = []
@@ -221,17 +209,17 @@ const setupSummary = computed(() => {
     })
   }
 
-  if (state.value.business.types && state.value.business.types.length > 0) {
+  if (state.value.business.timezone) {
     summary.push({
-      label: 'Business Type',
-      value: state.value.business.types.map((t: string) => t.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())).join(', ')
+      label: 'Timezone',
+      value: state.value.business.timezone
     })
   }
 
-  if (state.value.firstItem) {
+  if (state.value.business.serviceArea) {
     summary.push({
-      label: 'First Item',
-      value: state.value.firstItem.name
+      label: 'Service Area',
+      value: state.value.business.serviceArea
     })
   }
 
@@ -243,29 +231,41 @@ const setupSummary = computed(() => {
     })
   }
 
-  if (state.value.paymentsConnected) {
-    summary.push({
-      label: 'Payments',
-      value: 'Stripe connected'
-    })
-  } else {
-    summary.push({
-      label: 'Payments',
-      value: 'Not configured yet'
-    })
-  }
-
   return summary
 })
 
 const nextSteps = [
-  { icon: 'lucide:package-plus', label: 'Add more rental items' },
+  { icon: 'lucide:package-plus', label: 'Add rental items' },
+  { icon: 'lucide:credit-card', label: 'Connect payment processing' },
   { icon: 'lucide:palette', label: 'Customize your booking page' },
-  { icon: 'lucide:share-2', label: 'Share your booking link' },
-  { icon: 'lucide:bell', label: 'Set up notifications' }
+  { icon: 'lucide:share-2', label: 'Share your booking link' }
 ]
 
-function getConfettiStyle(index: number) {
+async function handleConnectStripe() {
+  isLoadingStripe.value = true
+
+  try {
+    const response = await $fetch<{ url?: string }>('/api/stripe/connect/onboard', {
+      method: 'POST'
+    })
+
+    if (response.url) {
+      window.location.href = response.url
+    }
+  } catch (error) {
+    console.error('Failed to connect Stripe:', error)
+    toast.add({
+      title: 'Failed to connect Stripe',
+      description: 'Please try again later',
+      color: 'error',
+      icon: 'i-lucide-alert-circle'
+    })
+  } finally {
+    isLoadingStripe.value = false
+  }
+}
+
+function getConfettiStyle(_index: number) {
   const colors = ['#f59e0b', '#f97316', '#ef4444', '#ec4899', '#8b5cf6', '#3b82f6', '#10b981']
   const randomColor = colors[Math.floor(Math.random() * colors.length)]
   const randomX = Math.random() * 100
@@ -278,15 +278,6 @@ function getConfettiStyle(index: number) {
     animationDelay: `${randomDelay}s`,
     animationDuration: `${randomDuration}s`
   }
-}
-
-const viewBookingPage = () => {
-  const slug = state.value.business.name
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-')
-
-  window.open(`/book/${slug}`, '_blank')
 }
 
 onMounted(() => {

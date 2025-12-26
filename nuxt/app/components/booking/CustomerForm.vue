@@ -31,6 +31,8 @@ const formData = ref<CustomerInfo>({
     attendees: undefined,
     specialRequests: ''
   },
+  deliveryTime: '',
+  pickupTime: '',
   termsAccepted: false
 })
 
@@ -140,6 +142,22 @@ const onPhoneInput = (event: Event) => {
   const input = event.target as HTMLInputElement
   formData.value.phone = formatPhone(input.value)
 }
+
+// Time slot options for delivery and pickup
+const timeSlotItems = [
+  { label: '8:00 AM', value: '8:00 AM' },
+  { label: '9:00 AM', value: '9:00 AM' },
+  { label: '10:00 AM', value: '10:00 AM' },
+  { label: '11:00 AM', value: '11:00 AM' },
+  { label: '12:00 PM', value: '12:00 PM' },
+  { label: '1:00 PM', value: '1:00 PM' },
+  { label: '2:00 PM', value: '2:00 PM' },
+  { label: '3:00 PM', value: '3:00 PM' },
+  { label: '4:00 PM', value: '4:00 PM' },
+  { label: '5:00 PM', value: '5:00 PM' },
+  { label: '6:00 PM', value: '6:00 PM' },
+  { label: '7:00 PM', value: '7:00 PM' }
+]
 </script>
 
 <template>
@@ -326,6 +344,59 @@ const onPhoneInput = (event: Event) => {
             class="w-full"
           />
         </UFormField>
+      </div>
+    </div>
+
+    <!-- Delivery & Pickup Times -->
+    <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+        <UIcon
+          name="i-lucide-clock"
+          class="w-5 h-5"
+        />
+        Preferred Delivery & Pickup Times
+      </h3>
+
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <UFormField
+            label="Preferred Delivery Time"
+            hint="Optional"
+          >
+            <USelect
+              v-model="formData.deliveryTime"
+              :items="timeSlotItems"
+              placeholder="Select time"
+              size="lg"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField
+            label="Preferred Pickup Time"
+            hint="Optional"
+          >
+            <USelect
+              v-model="formData.pickupTime"
+              :items="timeSlotItems"
+              placeholder="Select time"
+              size="lg"
+              class="w-full"
+            />
+          </UFormField>
+        </div>
+
+        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <div class="flex items-start gap-2 text-xs text-blue-700 dark:text-blue-300">
+            <UIcon
+              name="i-lucide-info"
+              class="w-4 h-4 flex-shrink-0 mt-0.5"
+            />
+            <p>
+              We'll do our best to accommodate your preferred times. Exact delivery and pickup times will be confirmed based on our schedule and route availability.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
 

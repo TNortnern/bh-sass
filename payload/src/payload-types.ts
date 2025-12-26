@@ -78,6 +78,7 @@ export interface Config {
     customers: Customer;
     availability: Availability;
     plans: Plan;
+    'promo-codes': PromoCode;
     subscriptions: Subscription;
     'inventory-units': InventoryUnit;
     bundles: Bundle;
@@ -117,6 +118,7 @@ export interface Config {
     customers: CustomersSelect<false> | CustomersSelect<true>;
     availability: AvailabilitySelect<false> | AvailabilitySelect<true>;
     plans: PlansSelect<false> | PlansSelect<true>;
+    'promo-codes': PromoCodesSelect<false> | PromoCodesSelect<true>;
     subscriptions: SubscriptionsSelect<false> | SubscriptionsSelect<true>;
     'inventory-units': InventoryUnitsSelect<false> | InventoryUnitsSelect<true>;
     bundles: BundlesSelect<false> | BundlesSelect<true>;
@@ -186,9 +188,17 @@ export interface UserAuthOperations {
 export interface User {
   id: number;
   /**
-   * The tenant this user belongs to (not required for super admins)
+   * Primary tenant this user belongs to (not required for super admins)
    */
   tenantId?: (number | null) | Tenant;
+  /**
+   * Additional tenants this user can access (for multi-tenant users)
+   */
+  additionalTenants?: (number | Tenant)[] | null;
+  /**
+   * Currently active tenant (defaults to primary tenantId if not set)
+   */
+  activeTenantId?: (number | null) | Tenant;
   /**
    * User role and permissions level
    */
@@ -1401,6 +1411,14 @@ export interface Plan {
    */
   price: number;
   /**
+   * Annual price in cents (typically 20% discount, e.g., 27840 for $278.40/year = $23.20/mo)
+   */
+  annualPrice?: number | null;
+  /**
+   * Order to display plans (lower = first)
+   */
+  displayOrder?: number | null;
+  /**
    * Transaction fee percentage (e.g., 6 for 6%)
    */
   transactionFee: number;
@@ -1457,11 +1475,96 @@ export interface Plan {
     apiAccess?: boolean | null;
   };
   /**
-   * Stripe Price ID (e.g., price_xxx)
+   * Stripe Monthly Price ID (e.g., price_xxx)
    */
   stripePriceId?: string | null;
   /**
+   * Stripe Annual Price ID (e.g., price_xxx)
+   */
+  stripeAnnualPriceId?: string | null;
+  /**
+   * Highlight this plan on pricing page (recommended plan)
+   */
+  highlighted?: boolean | null;
+  /**
+   * Short description shown on pricing page
+   */
+  description?: string | null;
+  /**
    * Is this plan available for new signups?
+   */
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promo-codes".
+ */
+export interface PromoCode {
+  id: number;
+  /**
+   * Promo code customers will enter (e.g., LAUNCH20, HOLIDAY50)
+   */
+  code: string;
+  /**
+   * Internal description for this promo code
+   */
+  description?: string | null;
+  /**
+   * Type of discount to apply
+   */
+  discountType: 'percentage' | 'fixed' | 'trial' | 'first_month_free';
+  /**
+   * Discount value (percentage 0-100, or cents for fixed, or days for trial)
+   */
+  discountValue: number;
+  /**
+   * How long the discount applies
+   */
+  duration?: ('once' | 'repeating' | 'forever') | null;
+  /**
+   * Number of months discount applies (for repeating duration)
+   */
+  durationMonths?: number | null;
+  /**
+   * Leave empty to apply to all plans, or select specific plans
+   */
+  applicablePlans?: (number | Plan)[] | null;
+  /**
+   * Minimum plan price in cents (optional, e.g., 2900 for $29+)
+   */
+  minPlanPrice?: number | null;
+  /**
+   * Maximum total uses (leave empty for unlimited)
+   */
+  maxUses?: number | null;
+  /**
+   * Current usage count (auto-updated)
+   */
+  usageCount?: number | null;
+  /**
+   * Maximum uses per customer (usually 1)
+   */
+  maxUsesPerCustomer?: number | null;
+  /**
+   * When promo code becomes active (optional)
+   */
+  startDate?: string | null;
+  /**
+   * When promo code expires (optional)
+   */
+  endDate?: string | null;
+  /**
+   * Stripe Coupon ID (auto-generated when synced)
+   */
+  stripeCouponId?: string | null;
+  /**
+   * Stripe Promotion Code ID (auto-generated when synced)
+   */
+  stripePromotionCodeId?: string | null;
+  /**
+   * Is this promo code currently active?
    */
   active?: boolean | null;
   updatedAt: string;
@@ -3113,6 +3216,10 @@ export interface PayloadLockedDocument {
         value: number | Plan;
       } | null)
     | ({
+        relationTo: 'promo-codes';
+        value: number | PromoCode;
+      } | null)
+    | ({
         relationTo: 'subscriptions';
         value: number | Subscription;
       } | null)
@@ -3244,6 +3351,8 @@ export interface PayloadMigration {
  */
 export interface UsersSelect<T extends boolean = true> {
   tenantId?: T;
+  additionalTenants?: T;
+  activeTenantId?: T;
   role?: T;
   isActive?: T;
   profile?:
@@ -3785,6 +3894,8 @@ export interface PlansSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   price?: T;
+  annualPrice?: T;
+  displayOrder?: T;
   transactionFee?: T;
   features?:
     | T
@@ -3810,6 +3921,33 @@ export interface PlansSelect<T extends boolean = true> {
         apiAccess?: T;
       };
   stripePriceId?: T;
+  stripeAnnualPriceId?: T;
+  highlighted?: T;
+  description?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promo-codes_select".
+ */
+export interface PromoCodesSelect<T extends boolean = true> {
+  code?: T;
+  description?: T;
+  discountType?: T;
+  discountValue?: T;
+  duration?: T;
+  durationMonths?: T;
+  applicablePlans?: T;
+  minPlanPrice?: T;
+  maxUses?: T;
+  usageCount?: T;
+  maxUsesPerCustomer?: T;
+  startDate?: T;
+  endDate?: T;
+  stripeCouponId?: T;
+  stripePromotionCodeId?: T;
   active?: T;
   updatedAt?: T;
   createdAt?: T;

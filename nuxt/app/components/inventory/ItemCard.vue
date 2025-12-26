@@ -315,6 +315,11 @@ const actionItems = computed(() => [
                 class="w-4 h-4 text-gray-500 dark:text-gray-400"
               />
               <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Available</span>
+              <UIcon
+                v-if="item.totalUnits === 0"
+                name="i-lucide-alert-triangle"
+                class="w-3.5 h-3.5 text-orange-600 dark:text-orange-400"
+              />
             </div>
             <p class="text-lg font-bold text-gray-900 dark:text-white">
               {{ item.availableUnits }}<span class="text-sm text-gray-500 dark:text-gray-400">/{{ item.totalUnits }}</span>
@@ -474,9 +479,16 @@ const actionItems = computed(() => [
                 />
               </div>
               <div>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
-                  Units
-                </p>
+                <div class="flex items-center gap-1.5">
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Units
+                  </p>
+                  <UIcon
+                    v-if="item.totalUnits === 0"
+                    name="i-lucide-alert-triangle"
+                    class="w-3 h-3 text-orange-600 dark:text-orange-400"
+                  />
+                </div>
                 <p class="font-semibold text-gray-900 dark:text-white">
                   {{ item.availableUnits }}<span class="text-gray-500 dark:text-gray-400">/{{ item.totalUnits }}</span>
                 </p>

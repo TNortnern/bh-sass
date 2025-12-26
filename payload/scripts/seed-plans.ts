@@ -14,7 +14,11 @@ const plans = [
     name: 'Free',
     slug: 'free',
     price: 0,
+    annualPrice: 0,
     transactionFee: 6,
+    description: 'Perfect for getting started',
+    displayOrder: 0,
+    highlighted: false,
     features: [
       { feature: 'Up to 10 rental items' },
       { feature: 'Up to 50 bookings/month' },
@@ -40,8 +44,12 @@ const plans = [
   {
     name: 'Pro',
     slug: 'pro',
-    price: 2900, // $29
+    price: 2900, // $29/mo
+    annualPrice: 27840, // $278.40/yr (save 20%)
     transactionFee: 3.5,
+    description: 'For growing rental businesses',
+    displayOrder: 1,
+    highlighted: true, // Recommended plan
     features: [
       { feature: 'Up to 50 rental items' },
       { feature: '500 bookings/month' },
@@ -68,8 +76,12 @@ const plans = [
   {
     name: 'Platinum',
     slug: 'platinum',
-    price: 10000, // $100
+    price: 10000, // $100/mo
+    annualPrice: 96000, // $960/yr (save 20%)
     transactionFee: 1,
+    description: 'For established rental companies',
+    displayOrder: 2,
+    highlighted: false,
     features: [
       { feature: 'Unlimited rental items' },
       { feature: 'Unlimited bookings' },

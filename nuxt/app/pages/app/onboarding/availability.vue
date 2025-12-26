@@ -7,13 +7,13 @@
           name="lucide:calendar-clock"
           class="w-4 h-4"
         />
-        Step 3: Set Your Availability
+        Step 3: Business Hours
       </div>
       <h1 class="text-3xl sm:text-4xl font-bold text-white mb-3 tracking-tight">
-        When are you available?
+        Set your business hours
       </h1>
       <p class="text-gray-400 max-w-xl mx-auto">
-        Set your business hours and lead time for bookings
+        Define when you're available to take bookings
       </p>
     </div>
 
@@ -123,46 +123,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Lead Time -->
-          <div class="pt-4 border-t border-gray-700/50">
-            <UFormField
-              label="Minimum Lead Time"
-              help="How much advance notice do you need for bookings?"
-              size="xl"
-            >
-              <USelect
-                v-model="leadTime"
-                :items="leadTimeOptions"
-                size="xl"
-                icon="i-lucide-clock"
-                class="w-full"
-                @change="debouncedSave"
-              />
-            </UFormField>
-          </div>
-
-          <!-- Auto-save indicator -->
-          <div
-            v-if="isSaving"
-            class="flex items-center gap-2 text-sm text-amber-400 pt-2"
-          >
-            <Icon
-              name="lucide:loader-circle"
-              class="w-4 h-4 animate-spin"
-            />
-            Saving progress...
-          </div>
-          <div
-            v-else-if="savedRecently"
-            class="flex items-center gap-2 text-sm text-green-400 pt-2"
-          >
-            <Icon
-              name="lucide:check-circle"
-              class="w-4 h-4"
-            />
-            Progress saved
-          </div>
         </div>
       </UCard>
     </div>
@@ -202,6 +162,8 @@
 
       <UButton
         size="lg"
+        :loading="isSaving"
+        :disabled="isSaving"
         class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all"
         @click="handleNext"
       >
@@ -222,23 +184,14 @@ definePageMeta({
   layout: 'onboarding'
 })
 
-const { state, nextStep, prevStep, saveProgress } = useOnboarding()
+const { state, nextStep, prevStep, saveBusinessHours } = useOnboarding()
+const toast = useToast()
 
 const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
 const availability = reactive({ ...state.value.availability })
-const leadTime = ref('24')
-
-const leadTimeOptions = [
-  { label: '12 hours', value: '12' },
-  { label: '24 hours (1 day)', value: '24' },
-  { label: '48 hours (2 days)', value: '48' },
-  { label: '72 hours (3 days)', value: '72' },
-  { label: '1 week', value: '168' }
-]
 
 const isSaving = ref(false)
-const savedRecently = ref(false)
 
 const copyToWeekdays = () => {
   const mondaySchedule = availability.monday as { open: string, close: string, enabled: boolean } | undefined
@@ -264,37 +217,48 @@ const enableAll = () => {
 }
 
 const debouncedSave = useDebounceFn(() => {
-  isSaving.value = true
-
-  // Update state
+  // Update local state only for UI feedback
   if (state.value.availability) {
     Object.assign(state.value.availability, availability)
   }
-
-  saveProgress()
-
-  setTimeout(() => {
-    isSaving.value = false
-    savedRecently.value = true
-    setTimeout(() => {
-      savedRecently.value = false
-    }, 2000)
-  }, 300)
 }, 500)
 
-const handleNext = () => {
-  // Save final state
-  if (state.value.availability) {
-    Object.assign(state.value.availability, availability)
+const handleNext = async () => {
+  isSaving.value = true
+
+  try {
+    // Update local state
+    if (state.value.availability) {
+      Object.assign(state.value.availability, availability)
+    }
+
+    // Save to database
+    await saveBusinessHours(availability)
+
+    toast.add({
+      title: 'Business hours saved',
+      color: 'success',
+      icon: 'i-lucide-check-circle'
+    })
+
+    nextStep()
+    navigateTo('/app/onboarding/complete')
+  } catch (error) {
+    console.error('Failed to save business hours:', error)
+    toast.add({
+      title: 'Failed to save',
+      description: 'Please try again',
+      color: 'error',
+      icon: 'i-lucide-alert-circle'
+    })
+  } finally {
+    isSaving.value = false
   }
-  saveProgress()
-  nextStep()
-  navigateTo('/app/onboarding/payments')
 }
 
 const handleBack = () => {
   prevStep()
-  navigateTo('/app/onboarding/item')
+  navigateTo('/app/onboarding/business')
 }
 
 useHead({

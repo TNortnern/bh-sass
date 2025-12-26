@@ -46,6 +46,8 @@ export interface CustomerInfo {
     attendees?: number
     specialRequests?: string
   }
+  deliveryTime?: string
+  pickupTime?: string
   termsAccepted: boolean
 }
 

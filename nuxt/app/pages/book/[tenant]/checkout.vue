@@ -107,6 +107,8 @@ const proceedToPayment = async (paymentType: 'deposit' | 'full' = 'deposit') => 
         attendees: customerInfo.value.eventDetails.attendees,
         specialInstructions: customerInfo.value.eventDetails.specialRequests
       },
+      deliveryTime: customerInfo.value.deliveryTime,
+      pickupTime: customerInfo.value.pickupTime,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       items: items.value.map((item: any) => ({
         itemId: item.itemId,

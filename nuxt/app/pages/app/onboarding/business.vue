@@ -109,28 +109,6 @@
               @update:model-value="debouncedSave"
             />
           </UFormField>
-
-          <!-- Auto-save indicator -->
-          <div
-            v-if="isSaving"
-            class="flex items-center gap-2 text-sm text-amber-400"
-          >
-            <Icon
-              name="lucide:loader-circle"
-              class="w-4 h-4 animate-spin"
-            />
-            Saving progress...
-          </div>
-          <div
-            v-else-if="savedRecently"
-            class="flex items-center gap-2 text-sm text-green-400"
-          >
-            <Icon
-              name="lucide:check-circle"
-              class="w-4 h-4"
-            />
-            Progress saved
-          </div>
         </form>
       </UCard>
     </div>
@@ -155,7 +133,8 @@
 
       <UButton
         size="lg"
-        :disabled="!isFormValid"
+        :disabled="!isFormValid || isSaving"
+        :loading="isSaving"
         class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all"
         @click="handleNext"
       >
@@ -176,7 +155,8 @@ definePageMeta({
   layout: 'onboarding'
 })
 
-const { state, nextStep, prevStep, saveProgress } = useOnboarding()
+const { state, nextStep, prevStep, saveBusinessInfo } = useOnboarding()
+const toast = useToast()
 
 const form = reactive({
   name: state.value.business.name || '',
@@ -233,7 +213,6 @@ const usCities = [
 const filteredCities = computed(() => usCities)
 
 const isSaving = ref(false)
-const savedRecently = ref(false)
 
 const businessNameHelp = computed(() => {
   if (!form.name) return 'This will appear on your booking page'
@@ -254,41 +233,56 @@ function slugify(text: string): string {
 }
 
 const debouncedSave = useDebounceFn(() => {
-  isSaving.value = true
-
-  // Update state - use Object.assign to avoid readonly errors
+  // Update local state only for UI feedback
   Object.assign(state.value.business, {
     name: form.name,
     types: form.types,
     timezone: form.timezone,
     serviceArea: form.serviceArea
   })
-
-  saveProgress()
-
-  setTimeout(() => {
-    isSaving.value = false
-    savedRecently.value = true
-    setTimeout(() => {
-      savedRecently.value = false
-    }, 2000)
-  }, 300)
 }, 500)
 
-const handleNext = () => {
+const handleNext = async () => {
   if (!isFormValid.value) return
 
-  // Save final state - use Object.assign to avoid readonly errors
-  Object.assign(state.value.business, {
-    name: form.name,
-    types: form.types,
-    timezone: form.timezone,
-    serviceArea: form.serviceArea
-  })
+  isSaving.value = true
 
-  saveProgress()
-  nextStep()
-  navigateTo('/app/onboarding/item')
+  try {
+    // Update local state
+    Object.assign(state.value.business, {
+      name: form.name,
+      types: form.types,
+      timezone: form.timezone,
+      serviceArea: form.serviceArea
+    })
+
+    // Save to database
+    await saveBusinessInfo({
+      name: form.name,
+      types: form.types,
+      timezone: form.timezone,
+      serviceArea: form.serviceArea
+    })
+
+    toast.add({
+      title: 'Business info saved',
+      color: 'success',
+      icon: 'i-lucide-check-circle'
+    })
+
+    nextStep()
+    navigateTo('/app/onboarding/availability')
+  } catch (error) {
+    console.error('Failed to save business info:', error)
+    toast.add({
+      title: 'Failed to save',
+      description: 'Please try again',
+      color: 'error',
+      icon: 'i-lucide-alert-circle'
+    })
+  } finally {
+    isSaving.value = false
+  }
 }
 
 const handleBack = () => {

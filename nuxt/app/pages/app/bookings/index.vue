@@ -6,22 +6,22 @@
       class="space-y-4"
     >
       <!-- Page Header -->
-      <div class="mb-8">
-        <div class="flex items-start justify-between gap-4 mb-6">
+      <div class="mb-6 md:mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 md:mb-6">
           <div>
-            <h1 class="text-4xl font-bold text-gray-900 dark:text-slate-50 mb-2 tracking-tight">
+            <h1 class="text-2xl md:text-4xl font-bold text-gray-900 dark:text-slate-50 mb-1 md:mb-2 tracking-tight">
               Bookings
             </h1>
-            <p class="text-gray-600 dark:text-slate-400 text-lg">
+            <p class="text-sm md:text-lg text-gray-600 dark:text-slate-400">
               Manage your bounce house rentals and reservations
             </p>
           </div>
 
           <UButton
             color="primary"
-            size="lg"
+            size="md"
             icon="i-lucide-plus"
-            class="rounded-xl"
+            class="rounded-xl w-full sm:w-auto"
             @click="navigateTo('/app/bookings/new')"
           >
             New Booking
@@ -29,26 +29,26 @@
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
           <UCard
             class="bg-gradient-to-br from-gray-100 to-gray-50 dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
             :ui="{
-              body: 'p-5'
+              body: 'p-3 md:p-5'
             }"
           >
             <div class="flex items-start justify-between">
               <div>
-                <div class="text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-2">
+                <div class="text-[10px] md:text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-1 md:mb-2">
                   Total Bookings
                 </div>
-                <div class="text-3xl font-bold text-gray-900 dark:text-slate-200">
+                <div class="text-xl md:text-3xl font-bold text-gray-900 dark:text-slate-200">
                   {{ stats.total }}
                 </div>
               </div>
-              <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+              <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-blue-500/10 flex items-center justify-center">
                 <UIcon
                   name="i-lucide-clipboard-list"
-                  class="w-6 h-6 text-blue-500"
+                  class="w-4 h-4 md:w-6 md:h-6 text-blue-500"
                 />
               </div>
             </div>
@@ -57,22 +57,22 @@
           <UCard
             class="bg-gradient-to-br from-gray-100 to-gray-50 dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
             :ui="{
-              body: 'p-5'
+              body: 'p-3 md:p-5'
             }"
           >
             <div class="flex items-start justify-between">
               <div>
-                <div class="text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-2">
+                <div class="text-[10px] md:text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-1 md:mb-2">
                   Confirmed
                 </div>
-                <div class="text-3xl font-bold text-gray-900 dark:text-slate-200">
+                <div class="text-xl md:text-3xl font-bold text-gray-900 dark:text-slate-200">
                   {{ stats.confirmed }}
                 </div>
               </div>
-              <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+              <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-green-500/10 flex items-center justify-center">
                 <UIcon
                   name="i-lucide-check-circle"
-                  class="w-6 h-6 text-green-500"
+                  class="w-4 h-4 md:w-6 md:h-6 text-green-500"
                 />
               </div>
             </div>
@@ -81,22 +81,22 @@
           <UCard
             class="bg-gradient-to-br from-gray-100 to-gray-50 dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
             :ui="{
-              body: 'p-5'
+              body: 'p-3 md:p-5'
             }"
           >
             <div class="flex items-start justify-between">
               <div>
-                <div class="text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-2">
-                  Total Revenue
+                <div class="text-[10px] md:text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-1 md:mb-2">
+                  Revenue
                 </div>
-                <div class="text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
+                <div class="text-xl md:text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
                   {{ formatCurrency(stats.totalRevenue) }}
                 </div>
               </div>
-              <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
+              <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-amber-500/10 flex items-center justify-center">
                 <UIcon
                   name="i-lucide-dollar-sign"
-                  class="w-6 h-6 text-amber-500"
+                  class="w-4 h-4 md:w-6 md:h-6 text-amber-500"
                 />
               </div>
             </div>
@@ -105,22 +105,22 @@
           <UCard
             class="bg-gradient-to-br from-gray-100 to-gray-50 dark:from-slate-800/60 dark:to-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
             :ui="{
-              body: 'p-5'
+              body: 'p-3 md:p-5'
             }"
           >
             <div class="flex items-start justify-between">
               <div>
-                <div class="text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-2">
+                <div class="text-[10px] md:text-xs font-medium text-gray-600 dark:text-slate-500 uppercase tracking-wider mb-1 md:mb-2">
                   Outstanding
                 </div>
-                <div class="text-3xl font-bold text-gray-900 dark:text-slate-200">
+                <div class="text-xl md:text-3xl font-bold text-gray-900 dark:text-slate-200">
                   {{ formatCurrency(stats.outstandingBalance) }}
                 </div>
               </div>
-              <div class="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
+              <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-red-500/10 flex items-center justify-center">
                 <UIcon
                   name="i-lucide-alert-circle"
-                  class="w-6 h-6 text-red-500"
+                  class="w-4 h-4 md:w-6 md:h-6 text-red-500"
                 />
               </div>
             </div>
@@ -322,25 +322,26 @@
       <!-- Bulk Actions Toolbar -->
       <div
         v-if="selectedBookings.length > 0"
-        class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center justify-between"
+        class="mb-4 p-3 md:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
       >
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
           <UIcon
             name="i-lucide-check-circle"
-            class="w-5 h-5 text-blue-600 dark:text-blue-400"
+            class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400"
           />
-          <span class="text-sm font-medium text-blue-900 dark:text-blue-200">
-            {{ selectedBookings.length }} booking(s) selected
+          <span class="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-200">
+            {{ selectedBookings.length }} selected
           </span>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 w-full sm:w-auto">
           <UDropdownMenu :items="bulkActions">
             <UButton
               color="primary"
               variant="outline"
-              size="md"
+              size="sm"
+              class="flex-1 sm:flex-none"
             >
-              Bulk Actions
+              Actions
               <UIcon
                 name="i-lucide-chevron-down"
                 class="w-4 h-4 ml-1"
@@ -350,17 +351,107 @@
           <UButton
             color="neutral"
             variant="ghost"
-            size="md"
+            size="sm"
             @click="selectedBookings = []"
           >
-            Clear Selection
+            Clear
           </UButton>
         </div>
       </div>
 
-      <!-- Bookings Table -->
+      <!-- Mobile Booking Cards (hidden on lg+) -->
+      <div class="lg:hidden space-y-3">
+        <div
+          v-for="booking in paginatedBookings"
+          :key="'mobile-' + booking.id"
+          class="bg-white dark:bg-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl p-4 cursor-pointer active:bg-gray-50 dark:active:bg-slate-700/30"
+          @click="handleRowClick(booking)"
+        >
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <div class="font-mono text-sm font-semibold text-gray-900 dark:text-slate-200">
+                {{ booking.bookingNumber }}
+              </div>
+              <div class="text-sm font-medium text-gray-700 dark:text-slate-300 mt-1">
+                {{ booking.customer.name }}
+              </div>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+              <UBadge
+                :color="getStatusColor(booking.status)"
+                variant="subtle"
+                size="xs"
+              >
+                {{ formatStatus(booking.status) }}
+              </UBadge>
+              <UBadge
+                :color="getPaymentColor(booking.paymentStatus)"
+                variant="subtle"
+                size="xs"
+              >
+                {{ formatPaymentStatus(booking.paymentStatus) }}
+              </UBadge>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <div class="text-gray-500 dark:text-slate-400">
+              {{ formatDate(booking.dates.start) }} - {{ formatDate(booking.dates.end) }}
+            </div>
+            <div class="font-semibold text-amber-500">
+              {{ formatCurrency(booking.payment.total) }}
+            </div>
+          </div>
+          <div class="mt-2 text-xs text-gray-500 dark:text-slate-400 truncate">
+            {{ booking.item.name }}
+          </div>
+        </div>
+
+        <!-- Mobile Loading State -->
+        <div
+          v-if="isLoading || !hasFetched"
+          class="flex justify-center py-12"
+        >
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-8 h-8 animate-spin text-gray-500 dark:text-slate-500"
+          />
+        </div>
+
+        <!-- Mobile Empty State -->
+        <div
+          v-else-if="hasFetched && bookings.length === 0"
+          class="text-center py-12"
+        >
+          <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-slate-800/60 flex items-center justify-center">
+            <UIcon
+              name="i-lucide-calendar-plus"
+              class="w-8 h-8 text-gray-400 dark:text-slate-600"
+            />
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-300 mb-2">
+            No bookings yet
+          </h3>
+          <p class="text-sm text-gray-600 dark:text-slate-500 mb-4">
+            Create your first booking
+          </p>
+          <UButton
+            color="primary"
+            size="md"
+            class="rounded-xl"
+            @click="navigateTo('/app/bookings/new')"
+          >
+            <UIcon
+              name="i-lucide-plus"
+              class="w-4 h-4 mr-2"
+            />
+            New Booking
+          </UButton>
+        </div>
+      </div>
+
+      <!-- Desktop Bookings Table (hidden on mobile) -->
       <UCard
-        class="bg-white dark:bg-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
+        class="hidden lg:block bg-white dark:bg-slate-800/40 ring-1 ring-gray-200 dark:ring-slate-700/50 rounded-xl"
         :ui="{
           body: 'p-0'
         }"
@@ -577,17 +668,17 @@
       <!-- Pagination -->
       <div
         v-if="paginatedBookings.length > 0"
-        class="flex items-center justify-between mt-6"
+        class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6"
       >
-        <div class="text-sm text-gray-600 dark:text-slate-400">
-          Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, displayedBookings.length) }} of {{ displayedBookings.length }} bookings
+        <div class="text-xs sm:text-sm text-gray-600 dark:text-slate-400 text-center sm:text-left">
+          Showing {{ (currentPage - 1) * pageSize + 1 }}-{{ Math.min(currentPage * pageSize, displayedBookings.length) }} of {{ displayedBookings.length }}
         </div>
 
         <UPagination
           v-model="currentPage"
           :page-count="pageSize"
           :total="displayedBookings.length"
-          class="flex items-center gap-1"
+          class="gap-0.5 sm:gap-1"
         />
       </div>
 
@@ -665,6 +756,10 @@ const { currentUser } = useAuth()
 
 // Track if initial fetch is complete
 const hasFetched = ref(false)
+
+// Real-time updates - poll every 30 seconds
+const pollingInterval = ref<NodeJS.Timeout | null>(null)
+const lastBookingCount = ref(0)
 
 // Check if user has tenant ID assigned
 const hasTenant = computed(() => {
@@ -770,6 +865,34 @@ const paginatedBookings = computed(() => {
 onMounted(async () => {
   await fetchBookings()
   hasFetched.value = true
+  lastBookingCount.value = bookings.value.length
+
+  // Start polling for updates every 30 seconds
+  pollingInterval.value = setInterval(async () => {
+    if (hasTenant.value) {
+      const currentCount = bookings.value.length
+      await fetchBookings()
+
+      // Show toast if new bookings arrived
+      const newCount = bookings.value.length
+      if (newCount > currentCount) {
+        const diff = newCount - currentCount
+        toast.add({
+          title: 'New Booking(s)',
+          description: `${diff} new booking${diff > 1 ? 's' : ''} received`,
+          color: 'success',
+          icon: 'i-lucide-calendar-plus'
+        })
+      }
+    }
+  }, 30000) // 30 seconds
+})
+
+// Cleanup polling on unmount
+onUnmounted(() => {
+  if (pollingInterval.value) {
+    clearInterval(pollingInterval.value)
+  }
 })
 
 // Watch search query

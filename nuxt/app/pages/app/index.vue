@@ -30,6 +30,9 @@ const { fetchCustomers, total: totalCustomers } = useCustomers()
 // Combined loading state
 const isLoading = ref(true)
 
+// Real-time updates - poll every 30 seconds
+const pollingInterval = ref<NodeJS.Timeout | null>(null)
+
 // Fetch data on mount
 onMounted(async () => {
   try {
@@ -39,6 +42,23 @@ onMounted(async () => {
     ])
   } finally {
     isLoading.value = false
+  }
+
+  // Start polling for updates every 30 seconds
+  pollingInterval.value = setInterval(async () => {
+    if (hasTenant.value) {
+      await Promise.all([
+        fetchBookings(),
+        fetchCustomers({ limit: 100 })
+      ])
+    }
+  }, 30000) // 30 seconds
+})
+
+// Cleanup polling on unmount
+onUnmounted(() => {
+  if (pollingInterval.value) {
+    clearInterval(pollingInterval.value)
   }
 })
 

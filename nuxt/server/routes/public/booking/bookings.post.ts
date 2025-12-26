@@ -89,6 +89,8 @@ export default defineEventHandler(async (event) => {
       addOns, // Array of add-ons
       startDate,
       endDate,
+      deliveryTime: body.deliveryTime || undefined,
+      pickupTime: body.pickupTime || undefined,
       status: 'pending',
       totalPrice: body.totalPrice || 0,
       depositPaid: 0,

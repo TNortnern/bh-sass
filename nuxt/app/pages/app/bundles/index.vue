@@ -175,19 +175,20 @@ const statusOptions = [
 <template>
   <div class="space-y-6">
     <!-- Page Header -->
-    <div class="flex items-center justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
           Bundles
         </h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">
+        <p class="text-sm md:text-base text-gray-600 dark:text-gray-400 mt-1">
           Package deals combining multiple items
         </p>
       </div>
       <UButton
         color="primary"
-        size="lg"
+        size="md"
         to="/app/bundles/new"
+        class="w-full sm:w-auto"
       >
         <UIcon
           name="i-lucide-plus"
@@ -198,81 +199,93 @@ const statusOptions = [
     </div>
 
     <!-- Stats Card -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <UCard
+        class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+        :ui="{ body: 'p-3 md:p-5' }"
+      >
         <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <div class="flex-1 min-w-0">
+            <p class="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">
               Total Bundles
             </p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            <p class="text-xl md:text-3xl font-bold text-gray-900 dark:text-white mt-1 md:mt-2">
               {{ stats.total }}
             </p>
           </div>
-          <div class="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center flex-shrink-0">
+          <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center flex-shrink-0">
             <UIcon
               name="i-lucide-package"
-              class="w-6 h-6 text-purple-600 dark:text-purple-400"
+              class="w-4 h-4 md:w-6 md:h-6 text-purple-600 dark:text-purple-400"
             />
           </div>
         </div>
       </UCard>
 
-      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <UCard
+        class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+        :ui="{ body: 'p-3 md:p-5' }"
+      >
         <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <div class="flex-1 min-w-0">
+            <p class="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">
               Active
             </p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            <p class="text-xl md:text-3xl font-bold text-gray-900 dark:text-white mt-1 md:mt-2">
               {{ stats.active }}
             </p>
           </div>
-          <div class="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
+          <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
             <UIcon
               name="i-lucide-check-circle"
-              class="w-6 h-6 text-green-600 dark:text-green-400"
+              class="w-4 h-4 md:w-6 md:h-6 text-green-600 dark:text-green-400"
             />
           </div>
         </div>
       </UCard>
 
-      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <UCard
+        class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+        :ui="{ body: 'p-3 md:p-5' }"
+      >
         <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <div class="flex-1 min-w-0">
+            <p class="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">
               Featured
             </p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            <p class="text-xl md:text-3xl font-bold text-gray-900 dark:text-white mt-1 md:mt-2">
               {{ stats.featured }}
             </p>
           </div>
-          <div class="w-12 h-12 rounded-lg bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center flex-shrink-0">
+          <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center flex-shrink-0">
             <UIcon
               name="i-lucide-star"
-              class="w-6 h-6 text-amber-600 dark:text-amber-400"
+              class="w-4 h-4 md:w-6 md:h-6 text-amber-600 dark:text-amber-400"
             />
           </div>
         </div>
       </UCard>
 
-      <UCard class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <UCard
+        class="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+        :ui="{ body: 'p-3 md:p-5' }"
+      >
         <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <div class="flex-1 min-w-0">
+            <p class="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">
               Avg Items
             </p>
-            <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+            <p class="text-xl md:text-3xl font-bold text-gray-900 dark:text-white mt-1 md:mt-2">
               {{ stats.avgItemsPerBundle }}
             </p>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <p class="text-xs md:text-sm text-gray-500 dark:text-gray-400 mt-1 md:mt-2">
               Per bundle
             </p>
           </div>
-          <div class="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
+          <div class="w-8 h-8 md:w-12 md:h-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
             <UIcon
               name="i-lucide-layers"
-              class="w-6 h-6 text-blue-600 dark:text-blue-400"
+              class="w-4 h-4 md:w-6 md:h-6 text-blue-600 dark:text-blue-400"
             />
           </div>
         </div>
